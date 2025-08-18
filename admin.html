@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - LAIA SKIN INSTITUT</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #fdfbf7 0%, #f8f6f0 100%);
+            color: #2c3e50;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #d4b5a0;
+        }
+
+        /* Layout */
+        .container {
+            display: flex;
+            height: calc(100vh - 70px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+            padding: 2rem 0;
+        }
+
+        .menu-item {
+            display: block;
+            padding: 1rem 2rem;
+            color: #333;
+            text-decoration: none;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            font-size: 1rem;
+        }
+
+        .menu-item:hover {
+            background: rgba(212, 181, 160, 0.1);
+            color: #d4b5a0;
+        }
+
+        .menu-item.active {
+            background: linear-gradient(135deg, #d4b5a0, #c9a084);
+            color: white;
+        }
+
+        /* Content */
+        .content {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .section {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .section h2 {
+            color: #d4b5a0;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+        }
+
+        /* Cards */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .card h3 {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .card .value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        th {
+            background: #f8f9fa;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #666;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            background: #d4b5a0;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: #c9a084;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        /* Service Cards */
+        .service-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .service-card h3 {
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+
+        .service-price {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="logo">LAIA SKIN INSTITUT - Admin</div>
+        <div>
+            <span>Bonjour Admin</span>
+            <a href="/mon-institut.html" style="margin-left: 2rem; color: #d4b5a0;">Voir le site</a>
+        </div>
+    </div>
+
+    <!-- Container -->
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <button class="menu-item active" onclick="showTab('dashboard')">
+                📊 Dashboard
+            </button>
+            <button class="menu-item" onclick="showTab('planning')">
+                📅 Planning
+            </button>
+            <button class="menu-item" onclick="showTab('validation')">
+                ✅ Validation
+            </button>
+            <button class="menu-item" onclick="showTab('reservations')">
+                📋 Réservations
+            </button>
+            <button class="menu-item" onclick="showTab('clients')">
+                👥 Clients
+            </button>
+            <button class="menu-item" onclick="showTab('services')">
+                💆‍♀️ Services
+            </button>
+            <button class="menu-item" onclick="showTab('loyalty')">
+                🎁 Fidélité
+            </button>
+            <button class="menu-item" onclick="showTab('payments')">
+                💳 Paiements
+            </button>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Dashboard Section -->
+            <div id="dashboard" class="section active">
+                <h2>📊 Dashboard</h2>
+                
+                <!-- Statistiques du jour -->
+                <div class="cards-grid">
+                    <div class="card" style="border-left: 4px solid #28a745;">
+                        <h3>Rendez-vous Aujourd'hui</h3>
+                        <div class="value" id="dashTodayRdvCount">0</div>
+                        <small id="dashTodayRdvDetails" style="color: #666;">Chargement...</small>
+                    </div>
+                    <div class="card" style="border-left: 4px solid #17a2b8;">
+                        <h3>CA du Jour</h3>
+                        <div class="value" id="dashTodayRevenue">0€</div>
+                        <small id="dashTodayRevenueDetails" style="color: #666;">0 services</small>
+                    </div>
+                    <div class="card" style="border-left: 4px solid #ffc107;">
+                        <h3>Taux de remplissage</h3>
+                        <div class="value" id="dashFillRate">0%</div>
+                        <small id="dashFillRateDetails" style="color: #666;">0h sur 8h</small>
+                    </div>
+                    <div class="card" style="border-left: 4px solid #9c27b0;">
+                        <h3>Prochain RDV</h3>
+                        <div class="value" id="dashNextAppointmentTime" style="font-size: 1.5rem;">--:--</div>
+                        <small id="dashNextAppointmentClient" style="color: #666;">Aucun RDV</small>
+                    </div>
+                </div>
+                
+                <!-- Statistiques de la semaine -->
+                <h3 style="margin-top: 2rem; color: #d4b5a0;">📈 Performance de la semaine</h3>
+                <div class="cards-grid" style="margin-top: 1rem;">
+                    <div class="card" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">
+                        <h3 style="color: white;">CA Semaine</h3>
+                        <div class="value" id="dashWeekRevenue">0€</div>
+                        <small id="dashWeekRevenueProgress" style="color: rgba(255,255,255,0.8);">+0% vs semaine dernière</small>
+                    </div>
+                    <div class="card" style="background: linear-gradient(135deg, #f093fb, #f5576c); color: white;">
+                        <h3 style="color: white;">Total RDV</h3>
+                        <div class="value" id="dashWeekAppointments">0</div>
+                        <small id="dashWeekAppointmentsAvg" style="color: rgba(255,255,255,0.8);">Moy: 0/jour</small>
+                    </div>
+                    <div class="card" style="background: linear-gradient(135deg, #4facfe, #00f2fe); color: white;">
+                        <h3 style="color: white;">Service populaire</h3>
+                        <div class="value" id="dashTopService" style="font-size: 1.2rem;">--</div>
+                        <small id="dashTopServiceCount" style="color: rgba(255,255,255,0.8);">0 réservations</small>
+                    </div>
+                    <div class="card" style="background: linear-gradient(135deg, #43e97b, #38f9d7); color: white;">
+                        <h3 style="color: white;">Nouveaux clients</h3>
+                        <div class="value" id="dashNewClientsWeek">0</div>
+                        <small id="dashNewClientsDetails" style="color: rgba(255,255,255,0.8);">Cette semaine</small>
+                    </div>
+                </div>
+                
+                <!-- Performance du mois -->
+                <h3 style="margin-top: 2rem; color: #d4b5a0;">📊 Performance du mois</h3>
+                <div class="cards-grid" style="margin-top: 1rem;">
+                    <div class="card" style="background: linear-gradient(135deg, #fa709a, #fee140); color: white;">
+                        <h3 style="color: white;">CA Mensuel</h3>
+                        <div class="value" id="dashMonthRevenue">0€</div>
+                        <small id="dashMonthProgress" style="color: rgba(255,255,255,0.8);">+0% vs mois dernier</small>
+                    </div>
+                    <div class="card" style="background: linear-gradient(135deg, #30cfd0, #330867); color: white;">
+                        <h3 style="color: white;">RDV du mois</h3>
+                        <div class="value" id="dashMonthAppointments">0</div>
+                        <small id="dashMonthAvg" style="color: rgba(255,255,255,0.8);">Moy: 0/jour</small>
+                    </div>
+                    <div class="card" style="background: linear-gradient(135deg, #a8edea, #fed6e3); color: #333;">
+                        <h3>Taux de conversion</h3>
+                        <div class="value" id="dashMonthConversion">0%</div>
+                        <small id="dashMonthConversionDetails" style="color: #666;">0 confirmés sur 0</small>
+                    </div>
+                    <div class="card" style="background: linear-gradient(135deg, #ffecd2, #fcb69f); color: #333;">
+                        <h3>Panier moyen</h3>
+                        <div class="value" id="dashMonthAvgTicket">0€</div>
+                        <small id="dashMonthTicketTrend" style="color: #666;">Par client</small>
+                    </div>
+                </div>
+                
+                <!-- Performance annuelle -->
+                <h3 style="margin-top: 2rem; color: #d4b5a0;">📈 Performance annuelle ${new Date().getFullYear()}</h3>
+                <div class="cards-grid" style="margin-top: 1rem;">
+                    <div class="card" style="background: linear-gradient(135deg, #f77062, #fe5196); color: white;">
+                        <h3 style="color: white;">CA Annuel</h3>
+                        <div class="value" id="dashYearRevenue">0€</div>
+                        <small id="dashYearTarget" style="color: rgba(255,255,255,0.8);">Objectif: 100 000€</small>
+                    </div>
+                    <div class="card" style="background: linear-gradient(135deg, #764ba2, #f39060); color: white;">
+                        <h3 style="color: white;">Total RDV</h3>
+                        <div class="value" id="dashYearAppointments">0</div>
+                        <small id="dashYearGrowth" style="color: rgba(255,255,255,0.8);">Croissance: +0%</small>
+                    </div>
+                    <div class="card" style="background: linear-gradient(135deg, #fa709a, #fee140); color: white;">
+                        <h3 style="color: white;">Clients actifs</h3>
+                        <div class="value" id="dashYearClients">0</div>
+                        <small id="dashYearNewClients" style="color: rgba(255,255,255,0.8);">Nouveaux: 0</small>
+                    </div>
+                    <div class="card" style="background: linear-gradient(135deg, #00d2ff, #3a47d5); color: white;">
+                        <h3 style="color: white;">Mois record</h3>
+                        <div class="value" id="dashBestMonth" style="font-size: 1.2rem;">--</div>
+                        <small id="dashBestMonthAmount" style="color: rgba(255,255,255,0.8);">0€</small>
+                    </div>
+                </div>
+                
+                <!-- Évolution CA année par année -->
+                <h3 style="margin-top: 2rem; color: #d4b5a0;">📊 Évolution du CA (3 dernières années)</h3>
+                <div style="background: white; padding: 1.5rem; border-radius: 12px; margin-top: 1rem;">
+                    <div id="dashYearEvolution">
+                        <!-- Le graphique d'évolution sera affiché ici -->
+                    </div>
+                    <div id="dashYearComparison" style="margin-top: 1rem;">
+                        <!-- Comparaison détaillée -->
+                    </div>
+                </div>
+                
+                <!-- Les prochains rendez-vous ont été déplacés vers l'onglet Planning -->
+            </div>
+
+            <!-- Planning Section -->
+            <div id="planning" class="section">
+                <h2>📅 Planning & Calendrier</h2>
+                <div style="display: flex; gap: 1.5rem; margin-bottom: 2rem;">
+                    <div class="card" style="flex: 1;">
+                        <h3>Rendez-vous Aujourd'hui</h3>
+                        <div class="value" id="todayAppointments">0</div>
+                    </div>
+                    <div class="card" style="flex: 1;">
+                        <h3>Rendez-vous Demain</h3>
+                        <div class="value" id="tomorrowAppointments">0</div>
+                    </div>
+                    <button onclick="openBlockingInterface()" style="padding: 1rem 2rem; background: linear-gradient(135deg, #d4b5a0, #c9a084); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: 500; transition: all 0.3s;">
+                        ⚙️ Gérer mes disponibilités
+                    </button>
+                </div>
+                <div style="background: white; padding: 2rem; border-radius: 12px;">
+                    <h3>Calendrier Mensuel</h3>
+                    <p>Le calendrier interactif apparaîtra ici...</p>
+                </div>
+                
+                <!-- Prochains rendez-vous déplacés depuis le dashboard -->
+                <h3 style="margin-top: 2rem; color: #d4b5a0;">📅 Prochains rendez-vous</h3>
+                <div id="planningUpcomingAppointments" style="background: white; padding: 1.5rem; border-radius: 12px; margin-top: 1rem;">
+                    <div style="text-align: center; color: #999; padding: 2rem;">
+                        Chargement des prochains rendez-vous...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Validation Section -->
+            <div id="validation" class="section">
+                <h2>✅ Validation des Rendez-vous</h2>
+                
+                <!-- Section pour valider les soins effectués (APRÈS le RDV) -->
+                <div id="service-validation" style="margin-bottom: 2rem;">
+                    <h3 style="color: #d4b5a0; margin-bottom: 1rem;">🎯 Soins effectués à valider</h3>
+                    <div id="services-to-validate">
+                        <!-- Sera rempli dynamiquement avec des cartes -->
+                    </div>
+                </div>
+                
+                <!-- Section pour confirmer les RDV à venir -->
+                <div id="upcoming-validation" style="margin-bottom: 2rem;">
+                    <h3 style="color: #d4b5a0; margin-bottom: 1rem;">📅 Prochains RDV à confirmer</h3>
+                    <div id="upcoming-to-confirm" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1rem;">
+                        <!-- Exemple de cartes statiques (seront remplacées par données dynamiques) -->
+                        <div style="background: white; padding: 1.5rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); border-left: 4px solid #ffc107;">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                                <div>
+                                    <h4 style="margin: 0; color: #333;">Julie Bernard</h4>
+                                    <p style="color: #666; margin: 0.5rem 0;">Renaissance - 90€</p>
+                                </div>
+                                <span style="background: #fff3cd; color: #856404; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.875rem;">
+                                    En attente
+                                </span>
+                            </div>
+                            <p style="color: #666; font-size: 0.9rem; margin: 0.5rem 0;">
+                                <i class="fas fa-calendar"></i> 13/08/2024 à 14:00<br>
+                                <i class="fas fa-globe"></i> Source: Site Web
+                            </p>
+                            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                                <button class="btn btn-success" style="flex: 1; padding: 0.5rem;">
+                                    <i class="fas fa-check"></i> Confirmer
+                                </button>
+                                <button class="btn btn-danger" style="flex: 1; padding: 0.5rem;">
+                                    <i class="fas fa-times"></i> Annuler
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div style="background: white; padding: 1.5rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); border-left: 4px solid #ffc107;">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                                <div>
+                                    <h4 style="margin: 0; color: #333;">Emma Petit</h4>
+                                    <p style="color: #666; margin: 0.5rem 0;">LED Thérapie - 60€</p>
+                                </div>
+                                <span style="background: #fff3cd; color: #856404; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.875rem;">
+                                    En attente
+                                </span>
+                            </div>
+                            <p style="color: #666; font-size: 0.9rem; margin: 0.5rem 0;">
+                                <i class="fas fa-calendar"></i> 14/08/2024 à 10:00<br>
+                                <i class="fas fa-globe"></i> Source: Planity
+                            </p>
+                            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                                <button class="btn btn-success" style="flex: 1; padding: 0.5rem;">
+                                    <i class="fas fa-check"></i> Confirmer
+                                </button>
+                                <button class="btn btn-danger" style="flex: 1; padding: 0.5rem;">
+                                    <i class="fas fa-times"></i> Annuler
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reservations Section -->
+            <div id="reservations" class="section">
+                <h2>📋 Réservations Centralisées</h2>
+                
+                <!-- Container pour les prochaines réservations en temps réel -->
+                <div id="upcoming-reservations" style="margin-bottom: 2rem;">
+                    <!-- Sera rempli dynamiquement par integrated-booking-system.js -->
+                </div>
+                
+                <div class="cards-grid">
+                    <div class="card" style="background: #17a2b8; color: white;">
+                        <h3 style="color: white;">Site Internet</h3>
+                        <div class="value">12</div>
+                    </div>
+                    <div class="card" style="background: #FF6B6B; color: white;">
+                        <h3 style="color: white;">Planity</h3>
+                        <div class="value">8</div>
+                    </div>
+                    <div class="card" style="background: #4ECDC4; color: white;">
+                        <h3 style="color: white;">Treatwell</h3>
+                        <div class="value">5</div>
+                    </div>
+                    <div class="card" style="background: #6c757d; color: white;">
+                        <h3 style="color: white;">Téléphone</h3>
+                        <div class="value">3</div>
+                    </div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Client</th>
+                            <th>Service</th>
+                            <th>Source</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>12/08 14:00</td>
+                            <td>Marie Dupont</td>
+                            <td>BB Glow</td>
+                            <td><span style="background: #17a2b8; color: white; padding: 0.25rem 0.5rem; border-radius: 4px;">Site</span></td>
+                            <td>✅ Confirmé</td>
+                        </tr>
+                        <tr>
+                            <td>12/08 16:00</td>
+                            <td>Sophie Martin</td>
+                            <td>Hydro'Naissance</td>
+                            <td><span style="background: #FF6B6B; color: white; padding: 0.25rem 0.5rem; border-radius: 4px;">Planity</span></td>
+                            <td>⏳ En attente</td>
+                        </tr>
+                        <tr>
+                            <td>13/08 10:00</td>
+                            <td>Claire Dubois</td>
+                            <td>Renaissance</td>
+                            <td><span style="background: #4ECDC4; color: white; padding: 0.25rem 0.5rem; border-radius: 4px;">Treatwell</span></td>
+                            <td>✅ Confirmé</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Clients Section -->
+            <div id="clients" class="section">
+                <h2>👥 Gestion des Clients</h2>
+                <div style="margin-bottom: 2rem;">
+                    <input type="text" placeholder="Rechercher un client..." style="padding: 0.75rem; width: 300px; border: 1px solid #ddd; border-radius: 8px;">
+                    <button class="btn" style="margin-left: 1rem;">+ Nouveau Client</button>
+                </div>
+                <div class="cards-grid">
+                    <div class="card">
+                        <h3>Marie Dupont</h3>
+                        <p>📧 marie.dupont@email.com</p>
+                        <p>📱 06 12 34 56 78</p>
+                        <p style="margin-top: 1rem;">
+                            <span style="background: #e8f4fd; padding: 0.25rem 0.5rem; border-radius: 4px;">12 visites</span>
+                            <span style="background: #ffe8e8; padding: 0.25rem 0.5rem; border-radius: 4px; margin-left: 0.5rem;">VIP</span>
+                        </p>
+                    </div>
+                    <div class="card">
+                        <h3>Sophie Martin</h3>
+                        <p>📧 sophie.martin@email.com</p>
+                        <p>📱 06 98 76 54 32</p>
+                        <p style="margin-top: 1rem;">
+                            <span style="background: #e8f4fd; padding: 0.25rem 0.5rem; border-radius: 4px;">8 visites</span>
+                        </p>
+                    </div>
+                    <div class="card">
+                        <h3>Claire Dubois</h3>
+                        <p>📧 claire.dubois@email.com</p>
+                        <p>📱 06 45 67 89 10</p>
+                        <p style="margin-top: 1rem;">
+                            <span style="background: #d4edda; padding: 0.25rem 0.5rem; border-radius: 4px;">Nouveau</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Services Section -->
+            <div id="services" class="section">
+                <h2>💆‍♀️ Gestion des Services</h2>
+                <div class="service-card" style="background: linear-gradient(135deg, #4ECDC4, #44A08D);">
+                    <h3>💧 Hydro'Naissance</h3>
+                    <p>Hydratation profonde et technologie avancée</p>
+                    <div style="display: flex; justify-content: space-between; margin-top: 1rem;">
+                        <span class="service-price">80€</span>
+                        <span>60 minutes</span>
+                    </div>
+                </div>
+                <div class="service-card" style="background: linear-gradient(135deg, #FF6B6B, #FF8E53);">
+                    <h3>✨ BB Glow</h3>
+                    <p>Maquillage semi-permanent effet bonne mine</p>
+                    <div style="display: flex; justify-content: space-between; margin-top: 1rem;">
+                        <span class="service-price">120€</span>
+                        <span>90 minutes</span>
+                    </div>
+                </div>
+                <div class="service-card" style="background: linear-gradient(135deg, #9B59B6, #8E44AD);">
+                    <h3>🌟 Renaissance</h3>
+                    <p>Microneedling - Régénération cellulaire</p>
+                    <div style="display: flex; justify-content: space-between; margin-top: 1rem;">
+                        <span class="service-price">110€</span>
+                        <span>75 minutes</span>
+                    </div>
+                </div>
+                <div class="service-card" style="background: linear-gradient(135deg, #3498DB, #2980B9);">
+                    <h3>💎 Hydrafacial</h3>
+                    <p>Nettoyage profond nouvelle génération</p>
+                    <div style="display: flex; justify-content: space-between; margin-top: 1rem;">
+                        <span class="service-price">90€</span>
+                        <span>60 minutes</span>
+                    </div>
+                </div>
+                <div class="service-card" style="background: linear-gradient(135deg, #E74C3C, #C0392B);">
+                    <h3>💡 LED Thérapie</h3>
+                    <p>Photobiomodulation médicale</p>
+                    <div style="display: flex; justify-content: space-between; margin-top: 1rem;">
+                        <span class="service-price">50€</span>
+                        <span>30 minutes</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loyalty Section -->
+            <div id="loyalty" class="section">
+                <h2>🎁 Programme de Fidélité</h2>
+                
+                <!-- Section gestion fidélité intégrée -->
+                <div id="loyalty-section" style="margin-bottom: 2rem;">
+                    <div id="loyalty-container">
+                        <!-- Sera rempli dynamiquement par integrated-booking-system.js -->
+                    </div>
+                </div>
+                
+                <div class="cards-grid">
+                    <div class="card" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">
+                        <h3 style="color: white;">Clients Fidèles</h3>
+                        <div class="value">156</div>
+                    </div>
+                    <div class="card" style="background: linear-gradient(135deg, #f093fb, #f5576c); color: white;">
+                        <h3 style="color: white;">Points Distribués</h3>
+                        <div class="value">3,240</div>
+                    </div>
+                    <div class="card" style="background: linear-gradient(135deg, #4facfe, #00f2fe); color: white;">
+                        <h3 style="color: white;">Récompenses</h3>
+                        <div class="value">45</div>
+                    </div>
+                </div>
+                <h3 style="margin-top: 2rem;">Top Clients VIP</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Rang</th>
+                            <th>Client</th>
+                            <th>Points</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>🥇</td>
+                            <td>Marie Dupont</td>
+                            <td style="color: #d4b5a0; font-weight: bold;">450</td>
+                            <td>VIP Gold</td>
+                        </tr>
+                        <tr>
+                            <td>🥈</td>
+                            <td>Sophie Martin</td>
+                            <td style="color: #d4b5a0; font-weight: bold;">380</td>
+                            <td>VIP Silver</td>
+                        </tr>
+                        <tr>
+                            <td>🥉</td>
+                            <td>Claire Dubois</td>
+                            <td style="color: #d4b5a0; font-weight: bold;">290</td>
+                            <td>VIP Bronze</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Payments Section -->
+            <div id="payments" class="section">
+                <h2>💳 Paiements & Factures</h2>
+                <div class="cards-grid">
+                    <div class="card" style="background: #28a745; color: white;">
+                        <h3 style="color: white;">CA du Mois</h3>
+                        <div class="value">2,450€</div>
+                    </div>
+                    <div class="card" style="background: #ffc107; color: white;">
+                        <h3 style="color: white;">En Attente</h3>
+                        <div class="value">320€</div>
+                    </div>
+                    <div class="card" style="background: #17a2b8; color: white;">
+                        <h3 style="color: white;">Factures</h3>
+                        <div class="value">28</div>
+                    </div>
+                </div>
+                <h3 style="margin-top: 2rem;">Dernières Transactions</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Client</th>
+                            <th>Service</th>
+                            <th>Montant</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>12/08/2024</td>
+                            <td>Marie Dupont</td>
+                            <td>BB Glow</td>
+                            <td style="font-weight: bold;">120€</td>
+                            <td><span style="background: #28a745; color: white; padding: 0.25rem 0.5rem; border-radius: 4px;">Payé</span></td>
+                        </tr>
+                        <tr>
+                            <td>11/08/2024</td>
+                            <td>Sophie Martin</td>
+                            <td>Hydro'Naissance</td>
+                            <td style="font-weight: bold;">80€</td>
+                            <td><span style="background: #ffc107; color: white; padding: 0.25rem 0.5rem; border-radius: 4px;">En attente</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Fonction simple et directe pour changer d'onglet
+        function showTab(tabName) {
+            console.log('Changement vers:', tabName);
+            
+            // Cacher toutes les sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Afficher la section demandée
+            const targetSection = document.getElementById(tabName);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+            
+            // Mettre à jour le menu
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Activer le bon onglet
+            event.target.classList.add('active');
+            
+            // Sauvegarder dans localStorage
+            localStorage.setItem('activeTab', tabName);
+        }
+        
+        // Restaurer le dernier onglet au chargement
+        window.addEventListener('DOMContentLoaded', function() {
+            const lastTab = localStorage.getItem('activeTab');
+            if (lastTab && lastTab !== 'dashboard') {
+                // Simuler un clic sur le bon onglet
+                const tabButtons = document.querySelectorAll('.menu-item');
+                tabButtons.forEach(btn => {
+                    if (btn.textContent.toLowerCase().includes(lastTab) || 
+                        (lastTab === 'planning' && btn.textContent.includes('Planning')) ||
+                        (lastTab === 'validation' && btn.textContent.includes('Validation')) ||
+                        (lastTab === 'reservations' && btn.textContent.includes('Réservations')) ||
+                        (lastTab === 'clients' && btn.textContent.includes('Clients')) ||
+                        (lastTab === 'services' && btn.textContent.includes('Services')) ||
+                        (lastTab === 'loyalty' && btn.textContent.includes('Fidélité')) ||
+                        (lastTab === 'payments' && btn.textContent.includes('Paiements'))) {
+                        btn.click();
+                    }
+                });
+            }
+        });
+    </script>
+    
+    <!-- Système de synchronisation des réservations -->
+    <script src="sync-reservations.js"></script>
+    
+    <!-- Système de validation synchronisé -->
+    <script src="validation-sync-system.js"></script>
+    
+    <!-- Fix synchronisation dashboard -->
+    <script src="dashboard-fix-sync.js"></script>
+    
+    <!-- Système de paiements et comptabilité -->
+    <script src="payment-accounting-system.js"></script>
+    
+    <!-- Calendrier intégré pour l'onglet Planning -->
+    <script src="calendar-integration.js"></script>
+    <script src="calendar-blocking-system.js"></script>
+    <script src="calendar-appointment-creator.js"></script>
+    <script src="sync-system.js"></script>
+    <script src="calendar-sync-integration.js"></script>
+    
+    <!-- Système de fidélité avec parrainage -->
+    <script src="loyalty-system.js"></script>
+    
+    <!-- Système de paiements et comptabilité -->
+    <script src="payment-accounting-system.js"></script>
+    
+    <!-- Synchronisation complète du Dashboard -->
+    <script src="dashboard-sync.js"></script>
+    
+</body>
+</html>

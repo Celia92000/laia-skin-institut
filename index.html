@@ -1,0 +1,3545 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAIA SKIN INSTITUT - Hydro'Cleaning, Renaissance, BB Glow & LED Thérapie</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.7;
+            color: #2c3e50;
+            background: linear-gradient(135deg, #fdfbf7 0%, #f8f6f0 100%);
+            font-weight: 400;
+            overflow-x: hidden;
+        }
+        
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 0 10px;
+        }
+
+        /* Header */
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(212, 181, 160, 0.2);
+            color: #2c3e50;
+            padding: 1.5rem 0;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+        
+        /* Animation d'apparition du header */
+        @keyframes headerSlideIn {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        header {
+            animation: headerSlideIn 0.8s ease-out;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .logo-circle {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background-image: url('logo-laia-skin.png');
+            background-size: 120px 120px;
+            background-position: center center;
+            background-repeat: no-repeat;
+            box-shadow: 0 6px 20px rgba(212, 181, 160, 0.4);
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        
+        .logo-circle:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 8px 25px rgba(212, 181, 160, 0.6);
+        }
+        
+        .logo h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 0;
+            white-space: nowrap;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .nav-menu a {
+            color: #2c3e50;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            position: relative;
+            font-size: 0.95rem;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+
+        .nav-menu a:hover {
+            background: linear-gradient(135deg, #d4b5a0, #c9a084);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(212, 181, 160, 0.3);
+        }
+        
+        /* Indicateur de page active moderne */
+        .nav-menu a.active {
+            background: linear-gradient(135deg, #d4b5a0, #c9a084);
+            color: white;
+            position: relative;
+        }
+        
+        .nav-menu a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            background: #d4b5a0;
+            border-radius: 50%;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            background: linear-gradient(135deg, #fdfbf7 0%, #f8f6f0 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #2c3e50;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Particules flottantes */
+        .hero::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 20%, rgba(212, 181, 160, 0.1) 2px, transparent 2px),
+                radial-gradient(circle at 80% 40%, rgba(201, 160, 132, 0.1) 2px, transparent 2px),
+                radial-gradient(circle at 40% 80%, rgba(212, 181, 160, 0.1) 2px, transparent 2px),
+                radial-gradient(circle at 90% 70%, rgba(201, 160, 132, 0.1) 2px, transparent 2px);
+            background-size: 150px 150px, 200px 200px, 180px 180px, 220px 220px;
+            animation: particlesFloat 20s linear infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        @keyframes particlesFloat {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+            100% { transform: translateY(0px) rotate(360deg); }
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 20%;
+            right: 10%;
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(45deg, rgba(212, 181, 160, 0.1), rgba(201, 160, 132, 0.1));
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: 15%;
+            left: 15%;
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(45deg, rgba(201, 160, 132, 0.08), rgba(212, 181, 160, 0.08));
+            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+            z-index: 1;
+            animation: morphing 12s ease-in-out infinite;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+            padding: 3rem;
+        }
+        
+        .hero-content h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 4.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 400;
+            line-height: 1.2;
+            letter-spacing: -0.5px;
+            color: #2c3e50;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.7), 0 0 10px rgba(255, 255, 255, 0.8);
+            background: linear-gradient(135deg, #d4b5a0, #c9a084, #d4b5a0);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 4s ease-in-out infinite;
+        }
+        
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { 
+                transform: scale(1) rotate(-3deg); 
+                opacity: 1; 
+            }
+            50% { 
+                transform: scale(1.1) rotate(3deg); 
+                opacity: 0.9; 
+            }
+        }
+        
+        @keyframes glow {
+            0%, 100% { 
+                box-shadow: 0 0 20px rgba(212, 181, 160, 0.5); 
+                transform: scale(1); 
+            }
+            50% { 
+                box-shadow: 0 0 30px rgba(212, 181, 160, 0.8), 0 0 40px rgba(201, 160, 132, 0.4); 
+                transform: scale(1.05); 
+            }
+        }
+        
+        @keyframes elegantGlow {
+            0%, 100% { 
+                box-shadow: 0 20px 60px rgba(184,134,11,0.3), 0 8px 30px rgba(218,165,32,0.2), inset 0 2px 0 rgba(255,255,255,0.8);
+            }
+            50% { 
+                box-shadow: 0 25px 70px rgba(184,134,11,0.4), 0 10px 35px rgba(218,165,32,0.3), inset 0 2px 0 rgba(255,255,255,0.9);
+            }
+        }
+
+        .hero-content p {
+            font-size: 1.4rem;
+            margin-bottom: 3rem;
+            color: #5a6c7d;
+            font-weight: 300;
+            letter-spacing: 0.5px;
+            line-height: 1.8;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #d4b5a0, #c9a084);
+            color: white;
+            padding: 1.2rem 3rem;
+            text-decoration: none;
+            border-radius: 35px;
+            font-weight: 500;
+            font-size: 1rem;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-shadow: 0 8px 25px rgba(212, 181, 160, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(212, 181, 160, 0.6);
+        }
+        
+        .cta-button:hover::before {
+            left: 100%;
+        }
+
+        /* Presentation Section */
+        .presentation {
+            padding: 8rem 0;
+            background: linear-gradient(135deg, #fdfbf7 0%, #f8f6f0 100%);
+            position: relative;
+        }
+        
+        .presentation-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .presentation-card {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 4rem;
+            align-items: start;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 4rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+            border: 1px solid rgba(212, 181, 160, 0.2);
+        }
+        
+        .presentation-image {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 12rem;
+        }
+        
+        .presentation-image {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .presentation-text h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.8rem;
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            font-weight: 400;
+            font-style: italic;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .intro-text {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.4rem;
+            color: #5a6c7d;
+            line-height: 1.8;
+            margin-bottom: 3rem;
+            font-weight: 300;
+            font-style: italic;
+            letter-spacing: 0.3px;
+            text-align: justify;
+        }
+        
+        .expertise-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .expertise-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            background: rgba(212, 181, 160, 0.05);
+            padding: 1.5rem;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .expertise-item:hover {
+            background: rgba(212, 181, 160, 0.1);
+            transform: translateY(-5px);
+        }
+        
+        .expertise-icon {
+            font-size: 2rem;
+            min-width: 50px;
+        }
+        
+        .expertise-item h4 {
+            color: #c9a084;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .expertise-item p {
+            color: #5a6c7d;
+            line-height: 1.6;
+            font-size: 0.95rem;
+            margin: 0;
+        }
+        
+        .values-section h4 {
+            color: #c9a084;
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .values-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .values-list li {
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+            position: relative;
+            color: #5a6c7d;
+            line-height: 1.6;
+        }
+        
+        .values-list li::before {
+            content: '✨';
+            position: absolute;
+            left: 0;
+            color: #d4b5a0;
+            font-size: 1.2rem;
+        }
+        
+        .values-list li strong {
+            color: #c9a084;
+        }
+        
+        @media (max-width: 768px) {
+            .presentation-card {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+                padding: 2rem;
+            }
+            
+            .expertise-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Services Section */
+        .services {
+            padding: 8rem 0;
+            background: linear-gradient(135deg, #fdfbf7 0%, #f8f6f0 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Formes géométriques flottantes */
+        .services::before {
+            content: '';
+            position: absolute;
+            top: 10%;
+            right: -5%;
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(45deg, rgba(212, 181, 160, 0.1), rgba(201, 160, 132, 0.1));
+            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+            animation: morphing 8s ease-in-out infinite;
+        }
+        
+        .services::after {
+            content: '';
+            position: absolute;
+            bottom: 20%;
+            left: -3%;
+            width: 150px;
+            height: 150px;
+            background: linear-gradient(45deg, rgba(201, 160, 132, 0.1), rgba(212, 181, 160, 0.1));
+            border-radius: 70% 30% 30% 70% / 70% 70% 30% 30%;
+            animation: morphing 10s ease-in-out infinite reverse;
+        }
+        
+        @keyframes morphing {
+            0%, 100% {
+                border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+                transform: rotate(0deg) scale(1);
+            }
+            25% {
+                border-radius: 70% 30% 50% 50% / 50% 70% 30% 50%;
+                transform: rotate(90deg) scale(1.1);
+            }
+            50% {
+                border-radius: 50% 50% 30% 70% / 70% 50% 50% 30%;
+                transform: rotate(180deg) scale(0.9);
+            }
+            75% {
+                border-radius: 50% 70% 70% 30% / 30% 50% 50% 70%;
+                transform: rotate(270deg) scale(1.05);
+            }
+        }
+
+        .section-title {
+            text-align: center;
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
+            margin-bottom: 4rem;
+            color: #2c3e50;
+            position: relative;
+            font-weight: 400;
+            letter-spacing: -0.5px;
+        }
+
+        .section-title::after {
+            content: '';
+            width: 120px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #d4b5a0, #c9a084, transparent);
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 2px;
+        }
+        
+        .section-title::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: #d4b5a0;
+            position: absolute;
+            bottom: -19px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 50%;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.4rem;
+            margin-bottom: 6rem;
+            padding: 0;
+            align-items: start;
+        }
+
+        .service-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.06);
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            border: 1px solid rgba(212, 181, 160, 0.2);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            align-items: stretch;
+        }
+        
+        .service-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 580px;
+        }
+        
+        .service-bottom {
+            margin-top: auto;
+            align-self: stretch;
+        }
+        
+        /* Effet de brillance moderne */
+        .service-card::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 25px;
+            background: linear-gradient(45deg, 
+                transparent 30%, 
+                rgba(212, 181, 160, 0.3) 50%, 
+                transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+        
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #d4b5a0, #c9a084, #d4b5a0);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+
+        .service-card:hover {
+            transform: translateY(-15px) scale(1.02);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.12);
+        }
+        
+        .service-card:hover::after {
+            opacity: 1;
+        }
+        
+        .service-card:hover::before {
+            transform: translateX(0);
+        }
+
+        .service-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .service-icon::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+            transform: rotate(-45deg);
+            transition: all 0.6s ease;
+            opacity: 0;
+        }
+        
+        .service-card:hover .service-icon::before {
+            opacity: 1;
+            transform: rotate(-45deg) translateX(100%);
+        }
+
+        .hydrafacial-icon {
+            background: linear-gradient(135deg, #d4b5a0, #c9a084);
+        }
+
+        .microneedling-icon {
+            background: linear-gradient(135deg, #e4c4a8, #d4b5a0);
+        }
+
+        .bbglow-icon {
+            background: linear-gradient(135deg, #f5e6d3, #e4c4a8);
+        }
+
+        .led-icon {
+            background: linear-gradient(135deg, #c9a084, #b89470);
+        }
+
+        .service-card h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+            text-align: center;
+            font-weight: 500;
+            letter-spacing: -0.3px;
+            min-height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .service-card p {
+            color: #5a6c7d;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+            font-weight: 300;
+            font-size: 0.9rem;
+            text-align: center;
+            min-height: 4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .benefits {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+
+        .benefits li {
+            color: #2c3e50;
+            margin-bottom: 0.8rem;
+            font-weight: 400;
+            padding-left: 2rem;
+            position: relative;
+            font-size: 0.95rem;
+        }
+
+        .benefits li::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: linear-gradient(45deg, #d4b5a0, #c9a084);
+            border-radius: 50%;
+            position: absolute;
+            left: 0.5rem;
+            top: 0.7rem;
+        }
+
+        .service-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(212, 181, 160, 0.2);
+        }
+
+        .duration {
+            color: #8a9ba8;
+            font-weight: 400;
+            font-size: 0.9rem;
+            letter-spacing: 0.3px;
+        }
+
+        .price {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: #c9a084;
+            letter-spacing: -0.3px;
+        }
+
+        .service-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #d4b5a0, #c9a084);
+            color: white;
+            border: none;
+            padding: 1.2rem;
+            border-radius: 30px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .service-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .service-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(212, 181, 160, 0.4);
+        }
+        
+        .service-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        /* Why Choose Us */
+        .why-choose-us {
+            padding: 8rem 0;
+            background: linear-gradient(135deg, rgba(212, 181, 160, 0.95), rgba(201, 160, 132, 0.95));
+            backdrop-filter: blur(20px);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .why-choose-us::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><defs><pattern id="luxury" width="40" height="40" patternUnits="userSpaceOnUse"><circle cx="20" cy="20" r="2" fill="white" opacity="0.1"/></pattern></defs><rect width="200" height="200" fill="url(%23luxury)"/></svg>') repeat;
+            opacity: 0.3;
+        }
+
+        .why-choose-us h2 {
+            text-align: center;
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
+            margin-bottom: 4rem;
+            font-weight: 400;
+            letter-spacing: -0.5px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 3rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .feature {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .feature::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.6s;
+        }
+
+        .feature:hover {
+            transform: translateY(-8px) scale(1.02);
+            background: rgba(255,255,255,0.2);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+        
+        .feature:hover::before {
+            left: 100%;
+        }
+
+        .feature-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+        }
+
+        .feature h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            font-weight: 500;
+            letter-spacing: -0.2px;
+        }
+
+        /* Contact Section */
+        .contact {
+            padding: 8rem 0;
+            background: linear-gradient(135deg, #fdfbf7 0%, #f8f6f0 100%);
+            position: relative;
+        }
+
+        .contact h2 {
+            text-align: center;
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
+            margin-bottom: 4rem;
+            color: #2c3e50;
+            position: relative;
+            font-weight: 400;
+            letter-spacing: -0.5px;
+        }
+
+        .contact h2::after {
+            content: '';
+            width: 120px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #d4b5a0, #c9a084, transparent);
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 2px;
+        }
+        
+        .contact h2::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: #d4b5a0;
+            position: absolute;
+            bottom: -19px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 50%;
+        }
+
+        .contact-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: start;
+        }
+
+        .contact-info h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            margin-bottom: 2.5rem;
+            color: #2c3e50;
+            font-weight: 500;
+            letter-spacing: -0.3px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(212, 181, 160, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .info-item:hover {
+            transform: translateX(5px);
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+        }
+
+        .info-icon {
+            font-size: 1.5rem;
+            min-width: 30px;
+        }
+
+        .info-item strong {
+            display: block;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+        }
+
+        .info-item p {
+            color: #5a6c7d;
+            line-height: 1.6;
+            margin: 0;
+            font-weight: 300;
+        }
+
+        .contact-form-container {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            padding: 3rem;
+            border-radius: 25px;
+            border: 1px solid rgba(212, 181, 160, 0.2);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+        }
+
+        .contact-form-container h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            margin-bottom: 2.5rem;
+            color: #2c3e50;
+            text-align: center;
+            font-weight: 500;
+            letter-spacing: -0.3px;
+        }
+
+        .contact-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .contact-form input,
+        .contact-form select,
+        .contact-form textarea {
+            padding: 1.2rem;
+            border: 2px solid rgba(212, 181, 160, 0.3);
+            border-radius: 15px;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            font-weight: 300;
+        }
+
+        .contact-form input:focus,
+        .contact-form select:focus,
+        .contact-form textarea:focus {
+            outline: none;
+            border-color: #d4b5a0;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(212, 181, 160, 0.1), 0 10px 25px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        /* Effet de frappe moderne */
+        .contact-form input:not(:placeholder-shown),
+        .contact-form textarea:not(:placeholder-shown) {
+            border-color: rgba(212, 181, 160, 0.6);
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #d4b5a0, #c9a084);
+            color: white;
+            border: none;
+            padding: 1.4rem 2rem;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            margin-top: 1.5rem;
+            width: 100%;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 35px rgba(212, 181, 160, 0.4);
+        }
+        
+        .submit-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        /* Footer */
+        footer {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 4rem 0 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="footerPattern" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="white" opacity="0.05"/></pattern></defs><rect width="100" height="100" fill="url(%23footerPattern)"/></svg>') repeat;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 3rem;
+            margin-bottom: 3rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .footer-section h4 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: #ecf0f1;
+            font-weight: 500;
+            letter-spacing: -0.2px;
+        }
+
+        .footer-section p,
+        .footer-section ul {
+            color: #bdc3c7;
+            line-height: 1.7;
+            font-weight: 300;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(189, 195, 199, 0.2);
+            padding-top: 2rem;
+            text-align: center;
+            color: #bdc3c7;
+            position: relative;
+            z-index: 2;
+            font-weight: 300;
+        }
+
+        /* Navigation flexible pour toutes les tailles */
+        @media (max-width: 1400px) {
+            nav {
+                justify-content: center;
+            }
+            
+            .logo {
+                flex: 1 1 100%;
+                justify-content: center;
+                order: 1;
+            }
+            
+            .nav-menu {
+                order: 2;
+                gap: 1.5rem;
+                justify-content: flex-end;
+            }
+        }
+        
+        /* Responsive - Taille moyenne */
+        @media (max-width: 1200px) {
+            .nav-menu {
+                gap: 1rem;
+            }
+            
+            .nav-menu a {
+                padding: 0.7rem 1.2rem;
+                font-size: 0.9rem;
+            }
+            
+            .logo h1 {
+                font-size: 1.6rem;
+            }
+        }
+        
+        @media (max-width: 900px) {
+            nav {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 1rem;
+            }
+            
+            .logo {
+                order: 1;
+                flex: 1 1 100%;
+                justify-content: center;
+            }
+            
+            .nav-menu {
+                order: 2;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 0.5rem;
+            }
+            
+            .nav-menu a {
+                padding: 0.6rem 1rem;
+                font-size: 0.85rem;
+            }
+            
+            .logo h1 {
+                font-size: 1.4rem;
+            }
+        }
+
+        /* Responsive - Petite taille */
+        @media (max-width: 768px) {
+            nav {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: center;
+                padding: 1rem 0.5rem;
+            }
+            
+            .logo {
+                order: 1;
+                flex-direction: row;
+                gap: 0.5rem;
+                flex-shrink: 0;
+            }
+            
+            .logo-circle {
+                width: 40px;
+                height: 40px;
+                background-size: 55px 55px;
+                background-position: center center;
+            }
+            
+            .logo-circle:hover {
+                transform: scale(1.1) rotate(5deg);
+            }
+            
+            .logo h1 {
+                font-size: 1.2rem;
+                white-space: nowrap;
+            }
+            
+            .nav-menu {
+                order: 2;
+                gap: 0.3rem;
+                flex-wrap: wrap;
+                justify-content: center;
+                width: 100%;
+                max-width: none;
+            }
+            
+            .nav-menu a {
+                padding: 0.5rem 0.8rem;
+                font-size: 0.8rem;
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
+        }
+        
+        /* Très petite taille */
+        @media (max-width: 480px) {
+            .nav-menu a {
+                padding: 0.4rem 0.6rem;
+                font-size: 0.75rem;
+            }
+            
+            .logo h1 {
+                font-size: 1rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .hero-content h2 {
+                font-size: 2.5rem;
+            }
+            
+            .services::before,
+            .services::after {
+                display: none;
+            }
+            
+            .services-grid {
+                grid-template-columns: 1fr;
+                gap: 0.4rem;
+            }
+            
+            .contact-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .services-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-content h2 {
+                font-size: 2rem;
+            }
+            
+            .service-card {
+                padding: 1.5rem;
+            }
+        }
+
+        /* Section Réservation */
+        .reservation {
+            padding: 8rem 0;
+            background: linear-gradient(135deg, #fdfbf7 0%, #f8f6f0 100%);
+        }
+
+        .reservation-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .calendar-section, .booking-form-section {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .calendar-header button {
+            background: linear-gradient(135deg, #d4b5a0, #c9a084);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .calendar-header h4 {
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        #calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .calendar-day {
+            padding: 1rem;
+            text-align: center;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid #eee;
+        }
+
+        .calendar-day.available {
+            background: rgba(212, 181, 160, 0.1);
+            border-color: #d4b5a0;
+        }
+
+        .calendar-day.available:hover {
+            background: #d4b5a0;
+            color: white;
+        }
+
+        .calendar-day.selected {
+            background: linear-gradient(135deg, #d4b5a0, #c9a084);
+            color: white;
+        }
+
+        .time-slots {
+            margin-top: 2rem;
+        }
+
+        #slots-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .time-slot {
+            padding: 0.8rem;
+            text-align: center;
+            background: rgba(212, 181, 160, 0.1);
+            border: 1px solid #d4b5a0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .time-slot:hover {
+            background: #d4b5a0;
+            color: white;
+        }
+
+        .time-slot.selected {
+            background: linear-gradient(135deg, #d4b5a0, #c9a084);
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .form-group input, 
+        .form-group select, 
+        .form-group textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #d4b5a0;
+            box-shadow: 0 0 0 3px rgba(212, 181, 160, 0.1);
+        }
+
+        .booking-summary {
+            background: rgba(212, 181, 160, 0.1);
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin: 2rem 0;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #d4b5a0, #c9a084);
+            color: white;
+            border: none;
+            padding: 1.2rem 2rem;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(212, 181, 160, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .reservation-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <div class="logo-circle" title="LAIA SKIN INSTITUT Logo"></div>
+                <h1>LAIA SKIN INSTITUT</h1>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#accueil">Accueil</a></li>
+                <li><a href="#presentation">À propos de moi</a></li>
+                <li><a href="#services">Mes Prestations</a></li>
+                <li><a href="#reservation">Réservation</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><a href="admin.html" style="background: linear-gradient(135deg, #d4b5a0, #c9a084); color: white !important; padding: 0.8rem 1.5rem; border-radius: 20px; font-weight: 500; white-space: nowrap;">👤 Mon Espace</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="accueil" class="hero">
+            <div class="hero-content">
+                <h2>Une peau respectée, une beauté révélée</h2>
+                <p>Institut de beauté de soins avancés</p>
+                <a href="#services" class="cta-button">Découvrir nos soins</a>
+            </div>
+        </section>
+        
+        <section id="presentation" class="presentation">
+            <div class="container">
+                <h2 class="section-title">À Propos de Moi</h2>
+                <div class="presentation-content">
+                    <div class="presentation-card">
+                        <div class="presentation-image">
+                            <div style="width: 350px; height: 350px; border-radius: 15px; overflow: hidden; box-shadow: 0 20px 60px rgba(212, 181, 160, 0.4); border: 4px solid rgba(255, 255, 255, 0.8);">
+                                <img src="celia-sans-fond.png.png" alt="Laïa - Fondatrice LAIA SKIN INSTITUT" style="width: 120%; height: 120%; object-fit: cover; transform: translateY(2px) translateX(-10%);">
+                            </div>
+                        </div>
+                        <div class="presentation-text">
+                            <h3>Laïa, Experte Beauté</h3>
+                            <p class="intro-text">Bienvenue dans mon univers ! Je suis Laïa, et j'ai créé ici plus qu'un institut : un cocon bienveillant où retrouver confiance et sérénité.</p>
+                            
+                            <div style="background: rgba(212, 181, 160, 0.05); padding: 2rem; border-radius: 15px; margin-bottom: 2rem;">
+                                <p style="font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; color: #5a6c7d; line-height: 1.8; margin: 0; font-weight: 300; letter-spacing: 0.2px; text-align: justify;">
+                                    Diplômée d'un CAP et BTS Esthétique, j'ai enrichi mon parcours en explorant l'univers commercial, puis l'administration et enfin la gestion de projets. Chaque compétence acquise nourrissait un rêve : celui de créer mon propre institut de beauté. Lors de ces expériences enrichissantes, quelque chose me manquait — redonner de l'humanité à mon métier en faisant quelque chose qui donne une satisfaction immédiate aux clients et leur permet de retrouver confiance. C'est ainsi que j'ai parfait ma formation aux techniques avancées des soins du visage, retrouvant l'essence même de ma vocation. Aujourd'hui, ma mission est claire : vous offrir votre refuge bienveillant et vous accompagner vers une confiance rayonnante.
+                                </p>
+                            </div>
+                            
+                            <div style="background: rgba(212, 181, 160, 0.1); padding: 2rem; border-radius: 15px; margin: 2rem 0; border-left: 4px solid #d4b5a0;">
+                                <p style="margin: 0; font-family: 'Cormorant Garamond', serif; font-style: italic; color: #2c3e50; font-size: 1.1rem; line-height: 1.6;">
+                                    <em>"Chaque séance est une rencontre unique. J'aime prendre le temps de vraiment vous écouter, comprendre vos besoins et adapter mes soins pour que vous repartiez non seulement avec une peau transformée, mais aussi avec cette étincelle dans le regard qui dit 'je me sens bien dans ma peau'."</em>
+                                </p>
+                            </div>
+                            
+                            <div class="values-section">
+                                <h4>Mes Valeurs</h4>
+                                <ul class="values-list">
+                                    <li><strong>Bienveillance :</strong> Un accueil chaleureux et sans jugement, où vous vous sentez en sécurité</li>
+                                    <li><strong>Confiance :</strong> Restaurer votre estime de vous-même et révéler votre beauté unique</li>
+                                    <li><strong>Ressourcement :</strong> Créer un véritable cocon de détente pour vous reconnecter à vous-même</li>
+                                    <li><strong>Respect :</strong> Honorer votre rythme, vos besoins et votre individualité</li>
+                                    <li><strong>Authenticité :</strong> Créer un environnement où vous pouvez être vous-même sans masque</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="services" class="services">
+            <div class="container">
+                <h2 class="section-title">Mes Prestations</h2>
+                
+                <div class="services-grid">
+                    <div class="service-card" style="border: 3px solid transparent; background: linear-gradient(white, white) padding-box, linear-gradient(135deg, #B8860B, #DAA520, #CD853F) border-box; transform: scale(1.08); position: relative; z-index: 15; animation: elegantGlow 4s ease-in-out infinite; background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(254,250,240,0.95), rgba(253,245,230,0.98));">
+                        <div class="service-content">
+                            <div class="service-icon" style="background: linear-gradient(135deg, #d4b5a0, #c9a084, #e4c4a8, #f5e6d3); width: 60px; height: 60px; font-size: 1.8rem; animation: glow 3s ease-in-out infinite; border: 2px solid rgba(255,255,255,0.6); box-shadow: 0 10px 25px rgba(212, 181, 160, 0.25), inset 0 1px 5px rgba(255,255,255,0.2);">👑</div>
+                            <h3 style="background: linear-gradient(135deg, #d4b5a0, #c9a084, #d4b5a0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-size: 1.5rem; text-shadow: none; font-family: 'Playfair Display', serif; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 0.8rem;">Hydro'Naissance</h3>
+                            <div style="background: linear-gradient(45deg, rgba(212, 181, 160, 0.15), rgba(201, 160, 132, 0.1), rgba(248, 246, 240, 0.2)); color: #2c3e50; padding: 0.8rem; border-radius: 15px; margin: 0.5rem 0; font-weight: 500; text-align: center; font-size: 0.85rem; box-shadow: 0 5px 20px rgba(212, 181, 160, 0.15), inset 0 1px 0 rgba(255,255,255,0.5); border: 1px solid rgba(212, 181, 160, 0.3); letter-spacing: 0.2px;">
+                                LE SOIN LE PLUS DEMANDÉ
+                            </div>
+                            <p>Hydro'Cleaning + Renaissance + LED en 1h30. Résultats immédiats.</p>
+                            <div style="background:linear-gradient(135deg,rgba(212,181,160,0.1),rgba(201,160,132,0.05));border-radius:15px;padding:1.2rem;margin-bottom:0;position:relative;overflow:hidden;">
+                                <div style="position:absolute;top:-10px;right:-10px;font-size:1.8rem;opacity:0.3;transform:rotate(12deg);">👑</div>
+                                <div style="display:flex;gap:1.5rem;align-items:center;">
+                                    <img src="Hydrocleaning.png" alt="Hydro'Naissance" style="width:100px;height:100px;object-fit:cover;border-radius:50%;border:3px solid rgba(212,181,160,0.3);box-shadow:0 4px 15px rgba(0,0,0,0.1);flex-shrink:0;">
+                                    <div>
+                                        <p style="color:#c9a084;font-weight:600;margin:0 0 0.3rem 0;font-size:0.85rem;">👑 Protocole Exclusif</p>
+                                        <p style="color:#5a6c7d;line-height:1.4;margin:0;font-size:0.85rem;">
+                                            3 techniques expertes en 1 séance ✨
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="service-details">
+                                <div class="duration" style="margin-bottom:0.3rem;">Durée: 1h30</div>
+                                <div class="price">
+                                    <div style="display: flex; flex-direction: column; align-items: center; gap: 0.3rem;">
+                                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                            <span style="text-decoration: line-through; color: #999; font-size: 1.1rem;">210€</span> 
+                                            <span style="font-size: 1.5rem; font-weight: bold;">140€</span>
+                                        </div>
+                                        <div style="background: linear-gradient(135deg, #B8860B, #DAA520); color: white; padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; border: 1px solid #CD853F; box-shadow: 0 4px 15px rgba(184,134,11,0.3), inset 0 1px 0 rgba(255,255,255,0.2); letter-spacing: 0.2px;">70€ d'économisé</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="service-bottom">
+                            <div style="margin:-0.5rem 0 0 0;padding:0.8rem;background:rgba(212,181,160,0.1);border-radius:8px;font-size:0.8rem;">
+                                <strong style="color:#c9a084;display:block;margin-bottom:0.4rem;">Forfaits:</strong>
+                                <div style="display:flex;justify-content:space-between;margin-bottom:0.2rem;">
+                                    <span>1 séance:</span>
+                                    <span><strong>140€</strong> <span style="text-decoration:line-through;opacity:0.7;font-size:0.7rem;">210€</span></span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;margin-bottom:0.2rem;">
+                                    <span>3 séances:</span>
+                                    <span><strong>390€</strong> <span style="text-decoration:line-through;opacity:0.7;font-size:0.7rem;">630€</span></span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;">
+                                    <span>4 séances:</span>
+                                    <span><strong>520€</strong> <span style="text-decoration:line-through;opacity:0.7;font-size:0.7rem;">840€</span></span>
+                                </div>
+                            </div>
+                            <button class="service-btn" onclick="window.location.href='eclat-supreme.html'" style="background: linear-gradient(135deg, #d4b5a0, #c9a084); color: white; font-weight: bold; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; border: 2px solid #c9a084; position: relative; overflow: hidden; box-shadow: 0 8px 25px rgba(212, 181, 160, 0.5);">
+                                <span style="position: relative; z-index: 2;">✨ DÉCOUVRIR HYDRO'NAISSANCE ✨</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="service-card">
+                        <div class="service-content">
+                            <div class="service-icon hydrafacial-icon">💧</div>
+                            <h3>Hydro'Cleaning</h3>
+                            <p>Nettoyage de peau en profondeur avec pénétration d'actifs, masque personnalisé et LED. Peau purifiée et éclatante instantanément.</p>
+                            <div style="background: linear-gradient(135deg, rgba(212, 181, 160, 0.1), rgba(201, 160, 132, 0.05)); border-radius: 15px; padding: 1.2rem; margin-bottom: 0; position: relative; overflow: hidden;">
+                                <div style="position: absolute; top: -10px; right: -10px; font-size: 2rem; opacity: 0.3; transform: rotate(15deg);">✨</div>
+                                <div style="display: flex; gap: 1.5rem; align-items: center;">
+                                    <img src="Hydrocleaning.png" 
+                                         alt="Hydro'Cleaning - Vrai traitement en cours à l'institut" 
+                                         style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%; border: 3px solid rgba(212, 181, 160, 0.3); flex-shrink: 0; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                                    <div style="min-height: 80px; display: flex; flex-direction: column; justify-content: center;">
+                                        <p style="color: #c9a084; font-weight: 600; margin: 0 0 0.5rem 0; font-size: 0.9rem;">💧 Le Grand Nettoyage</p>
+                                        <p style="color: #5a6c7d; line-height: 1.5; margin: 0; font-size: 0.9rem;">
+                                            Nettoyage profond + actifs + LED. Éclat instantané ✨
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="service-details">
+                                <div class="duration" style="margin-bottom:0.3rem;">Durée: 60 minutes</div>
+                                <div class="price"><span style="text-decoration: line-through; color: #999; font-size: 1.1rem;">120€</span> 90€</div>
+                            </div>
+                        </div>
+                        <div class="service-bottom">
+                            <div style="margin:-0.5rem 0 0 0;padding:0.8rem;background:rgba(212,181,160,0.1);border-radius:8px;font-size:0.8rem;">
+                                <strong style="color:#c9a084;display:block;margin-bottom:0.4rem;">Forfaits:</strong>
+                                <div style="display:flex;justify-content:space-between;margin-bottom:0.2rem;">
+                                    <span>1 séance:</span>
+                                    <span><strong>90€</strong> <span style="text-decoration:line-through;opacity:0.7;font-size:0.7rem;">120€</span></span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;margin-bottom:0.2rem;">
+                                    <span>3 séances:</span>
+                                    <span><strong>260€</strong> <span style="text-decoration:line-through;opacity:0.7;font-size:0.7rem;">340€</span></span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;">
+                                    <span>4 séances:</span>
+                                    <span><strong>340€</strong> <span style="text-decoration:line-through;opacity:0.7;font-size:0.7rem;">460€</span></span>
+                                </div>
+                            </div>
+                            <button class="service-btn" onclick="window.location.href='laia-hydrocleaning.html'" style="background: linear-gradient(135deg, #d4b5a0, #c9a084); color: white; font-weight: bold; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; border: 2px solid #c9a084; position: relative; overflow: hidden; box-shadow: 0 8px 25px rgba(212, 181, 160, 0.5);">
+                                <span style="position: relative; z-index: 2;">DÉCOUVRIR HYDRO'CLEANING</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="service-card">
+                        <div class="service-content">
+                            <div class="service-icon microneedling-icon">✨</div>
+                            <h3>Renaissance</h3>
+                            <p>Stimulation naturelle du collagène pour améliorer la texture, réduire les cicatrices et combattre les signes de l'âge.</p>
+                            <div style="background: linear-gradient(135deg, rgba(212, 181, 160, 0.1), rgba(201, 160, 132, 0.05)); border-radius: 15px; padding: 1.2rem; margin-bottom: 0; position: relative; overflow: hidden;">
+                                <div style="position: absolute; top: -10px; right: -10px; font-size: 2rem; opacity: 0.3; transform: rotate(-15deg);">🔄</div>
+                                <div style="display: flex; gap: 1.5rem; align-items: center;">
+                                    <img src="Renaissance.png" 
+                                         alt="Renaissance - Vrai traitement microneedling à l'institut" 
+                                         style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%; border: 3px solid rgba(212, 181, 160, 0.3); flex-shrink: 0; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                                    <div style="min-height: 80px; display: flex; flex-direction: column; justify-content: center;">
+                                        <p style="color: #c9a084; font-weight: 600; margin: 0 0 0.5rem 0; font-size: 0.9rem;">🔄 Renouvellement Cellulaire</p>
+                                        <p style="color: #5a6c7d; line-height: 1.5; margin: 0; font-size: 0.9rem;">
+                                            Cicatrices estompées, pores resserrés, texture lissée 💫
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="service-details">
+                                <div class="duration" style="margin-bottom:0.3rem;">Durée: 60 minutes</div>
+                                <div class="price"><span style="text-decoration: line-through; color: #999; font-size: 1.1rem;">120€</span> 90€</div>
+                            </div>
+                        </div>
+                        <div class="service-bottom">
+                            <div style="margin:-0.5rem 0 0 0;padding:0.8rem;background:rgba(212,181,160,0.1);border-radius:8px;font-size:0.8rem;">
+                                <strong style="color:#c9a084;display:block;margin-bottom:0.4rem;">Forfaits:</strong>
+                                <div style="display:flex;justify-content:space-between;margin-bottom:0.2rem;">
+                                    <span>1 séance:</span>
+                                    <span><strong>90€</strong> <span style="text-decoration:line-through;opacity:0.7;font-size:0.7rem;">120€</span></span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;margin-bottom:0.2rem;">
+                                    <span>3 séances:</span>
+                                    <span><strong>260€</strong> <span style="text-decoration:line-through;opacity:0.7;font-size:0.7rem;">340€</span></span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;">
+                                    <span>4 séances:</span>
+                                    <span><strong>340€</strong> <span style="text-decoration:line-through;opacity:0.7;font-size:0.7rem;">460€</span></span>
+                                </div>
+                            </div>
+                            <button class="service-btn" onclick="window.location.href='laia-renaissance.html'" style="background: linear-gradient(135deg, #d4b5a0, #c9a084); color: white; font-weight: bold; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; border: 2px solid #c9a084; position: relative; overflow: hidden; box-shadow: 0 8px 25px rgba(212, 181, 160, 0.5);">
+                                <span style="position: relative; z-index: 2;">DÉCOUVRIR RENAISSANCE</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="service-card">
+                        <div class="service-content">
+                            <div class="service-icon bbglow-icon">🌟</div>
+                            <h3>BB Glow</h3>
+                            <p style="min-height: 3.2rem; display: flex; align-items: center; justify-content: center; text-align: center;">Traitement semi-permanent pour un teint unifié et un éclat naturel durable sans maquillage.</p>
+                            <div style="background: linear-gradient(135deg, rgba(212, 181, 160, 0.1), rgba(201, 160, 132, 0.05)); border-radius: 15px; padding: 1.2rem; margin-bottom: 0; position: relative; overflow: hidden; min-height: 140px; display: flex; align-items: center;">
+                                <div style="position: absolute; top: -10px; right: -10px; font-size: 2rem; opacity: 0.3; transform: rotate(25deg);">🌟</div>
+                                <div style="display: flex; gap: 1.5rem; align-items: center; width: 100%;">
+                                    <img src="BB glow.png" 
+                                         alt="BB Glow - Vrai traitement dans votre institut" 
+                                         style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%; border: 3px solid rgba(212, 181, 160, 0.3); flex-shrink: 0; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                                    <div style="min-height: 80px; display: flex; flex-direction: column; justify-content: center;">
+                                        <p style="color: #c9a084; font-weight: 600; margin: 0 0 0.5rem 0; font-size: 0.9rem;">🌟 Le Filtre Instagram</p>
+                                        <p style="color: #5a6c7d; line-height: 1.5; margin: 0; font-size: 0.9rem; min-height: 60px; display: flex; align-items: center;">
+                                            Teint parfait au réveil. Éclat naturel longue durée 💋
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="service-details">
+                                <div class="duration" style="margin-bottom:0.3rem;">Durée: 90 minutes</div>
+                                <div class="price"><span style="text-decoration: line-through; color: #999; font-size: 1.1rem;">90€</span> 60€</div>
+                            </div>
+                        </div>
+                        <div class="service-bottom">
+                            <div style="margin:-0.5rem 0 0 0;padding:0.8rem;background:rgba(212,181,160,0.1);border-radius:8px;font-size:0.8rem;">
+                                <strong style="color:#c9a084;display:block;margin-bottom:0.4rem;">Forfaits:</strong>
+                                <div style="display:flex;justify-content:space-between;margin-bottom:0.2rem;">
+                                    <span>1 séance:</span>
+                                    <span><strong>60€</strong> <span style="text-decoration:line-through;opacity:0.7;font-size:0.7rem;">90€</span></span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;margin-bottom:0.2rem;">
+                                    <span>3 séances:</span>
+                                    <span><strong>170€</strong> <span style="text-decoration:line-through;opacity:0.7;font-size:0.7rem;">240€</span></span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;">
+                                    <span>4 séances:</span>
+                                    <span><strong>220€</strong> <span style="text-decoration:line-through;opacity:0.7;font-size:0.7rem;">300€</span></span>
+                                </div>
+                            </div>
+                            <button class="service-btn" onclick="window.location.href='bb-glow.html'" style="background: linear-gradient(135deg, #d4b5a0, #c9a084); color: white; font-weight: bold; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; border: 2px solid #c9a084; position: relative; overflow: hidden; box-shadow: 0 8px 25px rgba(212, 181, 160, 0.5);">
+                                <span style="position: relative; z-index: 2;">DÉCOUVRIR BB GLOW</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="service-card">
+                        <div class="service-content">
+                            <div class="service-icon led-icon">💡</div>
+                            <h3>Thérapie LED</h3>
+                            <p style="min-height: 3.2rem; display: flex; align-items: center; justify-content: center; text-align: center;">Photothérapie pour traiter l'acné, stimuler la régénération et améliorer l'élasticité cutanée.</p>
+                            <div style="background: linear-gradient(135deg, rgba(212, 181, 160, 0.1), rgba(201, 160, 132, 0.05)); border-radius: 15px; padding: 1.2rem; margin-bottom: 0; position: relative; overflow: hidden; min-height: 140px; display: flex; align-items: center;">
+                                <div style="position: absolute; top: -10px; right: -10px; font-size: 2rem; opacity: 0.3; transform: rotate(-10deg);">💡</div>
+                                <div style="display: flex; gap: 1.5rem; align-items: center; width: 100%;">
+                                    <img src="https://images.pexels.com/photos/6787202/pexels-photo-6787202.jpeg?auto=compress&cs=tinysrgb&w=300" 
+                                         alt="LED Thérapie - Équipement luminothérapie" 
+                                         style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%; border: 3px solid rgba(212, 181, 160, 0.3); flex-shrink: 0; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                                    <div style="min-height: 80px; display: flex; flex-direction: column; justify-content: center;">
+                                        <p style="color: #c9a084; font-weight: 600; margin: 0 0 0.5rem 0; font-size: 0.9rem;">💡 Le Bain de Lumière Magique</p>
+                                        <p style="color: #5a6c7d; line-height: 1.5; margin: 0; font-size: 0.9rem; min-height: 60px; display: flex; align-items: center;">
+                                            Votre pause cocooning sous les LED ! Fermez les yeux, détendez-vous, pendant que la lumière booste votre peau. Réveil : teint frais et esprit zen 🌟
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="service-details">
+                                <div class="duration" style="margin-bottom:0.3rem;">Durée: 45 minutes</div>
+                                <div class="price"><span style="text-decoration: line-through; color: #999; font-size: 1.1rem;">40€</span> 30€</div>
+                            </div>
+                        </div>
+                        <div class="service-bottom">
+                            <!-- Forfaits Thérapie LED -->
+                            <div style="margin:-0.5rem 0 0 0;padding:0.8rem;background:rgba(212,181,160,0.1);border-radius:8px;font-size:0.8rem;">
+                                <strong style="color:#c9a084;display:block;margin-bottom:0.4rem;">Forfaits:</strong>
+                                <div style="display:flex;justify-content:space-between;margin-bottom:0.2rem;">
+                                    <span>1 séance:</span>
+                                    <span><strong>30€</strong> <span style="text-decoration:line-through;opacity:0.7;font-size:0.7rem;">40€</span></span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;margin-bottom:0.2rem;">
+                                    <span>3 séances:</span>
+                                    <span><strong>85€</strong> <span style="text-decoration:line-through;opacity:0.7;font-size:0.7rem;">105€</span></span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;">
+                                    <span>4 séances:</span>
+                                    <span><strong>110€</strong> <span style="text-decoration:line-through;opacity:0.7;font-size:0.7rem;">140€</span></span>
+                                </div>
+                            </div>
+                            <button class="service-btn" onclick="window.location.href='therapie-led.html'" style="background: linear-gradient(135deg, #d4b5a0, #c9a084); color: white; font-weight: bold; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; border: 2px solid #c9a084; position: relative; overflow: hidden; box-shadow: 0 8px 25px rgba(212, 181, 160, 0.5);">
+                                <span style="position: relative; z-index: 2;">DÉCOUVRIR THÉRAPIE LED</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="why-choose-us">
+            <div class="container">
+                <h2>Pourquoi Nous Choisir ?</h2>
+                <div class="features-grid">
+                    <div class="feature">
+                        <div class="feature-icon">🏆</div>
+                        <h3>Expertise Reconnue</h3>
+                        <p>Équipe formée aux dernières techniques esthétiques</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">🔬</div>
+                        <h3>Technologie Avancée</h3>
+                        <p>Équipements de dernière génération pour des résultats optimaux</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">✨</div>
+                        <h3>Résultats Visibles</h3>
+                        <p>Amélioration visible dès les premières séances</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">🛡️</div>
+                        <h3>Sécurité Maximale</h3>
+                        <p>Protocoles stricts d'hygiène et de sécurité</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section Réservation Complète -->
+        <section id="reservation" class="reservation">
+            <div class="container">
+                <div style="text-align: center; margin-bottom: 3rem;">
+                    <h2 style="font-family: 'Playfair Display', serif; font-size: 2.5rem; color: #2c3e50; margin-bottom: 1rem;">📅 Réservation Complète</h2>
+                    <p style="font-size: 1.2rem; color: #5a6c7d;">Remplissez le formulaire et réservez votre créneau en une seule fois</p>
+                </div>
+
+                <!-- Formulaire complet unique -->
+                <div style="max-width: 900px; margin: 0 auto; background: rgba(255,255,255,0.95); border-radius: 25px; padding: 3rem; box-shadow: 0 15px 40px rgba(0,0,0,0.12); border: 1px solid rgba(212, 181, 160, 0.3);">
+                    <form id="complete-booking-form" onsubmit="submitCompleteBooking(event)">
+                        
+                        <!-- Informations personnelles -->
+                        <div style="margin-bottom: 3rem;">
+                            <h3 style="color: #c9a084; margin-bottom: 2rem; font-family: 'Playfair Display', serif; text-align: center;">👤 Vos informations</h3>
+                            
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                                <div style="display: flex; flex-direction: column;">
+                                    <label style="margin-bottom: 0.5rem; color: #2c3e50; font-weight: 600;">Prénom *</label>
+                                    <input type="text" id="complete-firstname" required style="padding: 1rem; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 1rem; transition: all 0.3s ease;" onfocus="this.style.borderColor='#d4af37'" onblur="this.style.borderColor='#e0e0e0'">
+                                </div>
+                                <div style="display: flex; flex-direction: column;">
+                                    <label style="margin-bottom: 0.5rem; color: #2c3e50; font-weight: 600;">Nom *</label>
+                                    <input type="text" id="complete-lastname" required style="padding: 1rem; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 1rem; transition: all 0.3s ease;" onfocus="this.style.borderColor='#d4af37'" onblur="this.style.borderColor='#e0e0e0'">
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                                <div style="display: flex; flex-direction: column;">
+                                    <label style="margin-bottom: 0.5rem; color: #2c3e50; font-weight: 600;">Email *</label>
+                                    <input type="email" id="complete-email" required style="padding: 1rem; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 1rem; transition: all 0.3s ease;" onfocus="this.style.borderColor='#d4af37'" onblur="this.style.borderColor='#e0e0e0'">
+                                </div>
+                                <div style="display: flex; flex-direction: column;">
+                                    <label style="margin-bottom: 0.5rem; color: #2c3e50; font-weight: 600;">Téléphone *</label>
+                                    <input type="tel" id="complete-phone" required style="padding: 1rem; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 1rem; transition: all 0.3s ease;" onfocus="this.style.borderColor='#d4af37'" onblur="this.style.borderColor='#e0e0e0'" placeholder="06 12 34 56 78">
+                                </div>
+                            </div>
+
+                            <div style="display: flex; flex-direction: column; margin-bottom: 1.5rem;">
+                                <label style="margin-bottom: 0.5rem; color: #2c3e50; font-weight: 600;">Date de naissance</label>
+                                <input type="date" id="complete-birthdate" style="padding: 1rem; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 1rem; transition: all 0.3s ease; max-width: 300px;" onfocus="this.style.borderColor='#d4af37'" onblur="this.style.borderColor='#e0e0e0'">
+                            </div>
+                        </div>
+
+                        <!-- Choix de la prestation -->
+                        <div style="margin-bottom: 3rem;">
+                            <h3 style="color: #c9a084; margin-bottom: 2rem; font-family: 'Playfair Display', serif; text-align: center;">💆‍♀️ Choisissez votre prestation</h3>
+                            
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+                                <div class="complete-service-option" data-service="hydro_naissance" data-price="120" data-duration="90" onclick="selectCompleteService(this)">
+                                    <div style="padding: 1.5rem; border: 2px solid #e0e0e0; border-radius: 15px; cursor: pointer; transition: all 0.3s ease; text-align: center; background: rgba(255,255,255,0.9); box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                                        <div style="font-size: 2.5rem; margin-bottom: 1rem;">🌟</div>
+                                        <strong style="font-size: 1.2rem; color: #2c3e50;">Hydro'Naissance</strong>
+                                        <div style="font-size: 0.9rem; color: #666; margin: 0.8rem 0; font-style: italic;">Protocole VIP exclusif</div>
+                                        <div style="color: #d4af37; font-weight: bold; font-size: 1.1rem;">120€ • 90min</div>
+                                    </div>
+                                </div>
+                                <div class="complete-service-option" data-service="bb_glow" data-price="100" data-duration="90" onclick="selectCompleteService(this)">
+                                    <div style="padding: 1.5rem; border: 2px solid #e0e0e0; border-radius: 15px; cursor: pointer; transition: all 0.3s ease; text-align: center; background: rgba(255,255,255,0.9); box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                                        <div style="font-size: 2.5rem; margin-bottom: 1rem;">✨</div>
+                                        <strong style="font-size: 1.2rem; color: #2c3e50;">BB Glow</strong>
+                                        <div style="font-size: 0.9rem; color: #666; margin: 0.8rem 0; font-style: italic;">Teint parfait semi-permanent</div>
+                                        <div style="color: #d4af37; font-weight: bold; font-size: 1.1rem;">100€ • 90min</div>
+                                    </div>
+                                </div>
+                                <div class="complete-service-option" data-service="hydro_cleaning" data-price="90" data-duration="90" onclick="selectCompleteService(this)">
+                                    <div style="padding: 1.5rem; border: 2px solid #e0e0e0; border-radius: 15px; cursor: pointer; transition: all 0.3s ease; text-align: center; background: rgba(255,255,255,0.9); box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                                        <div style="font-size: 2.5rem; margin-bottom: 1rem;">💧</div>
+                                        <strong style="font-size: 1.2rem; color: #2c3e50;">Hydro'Cleaning</strong>
+                                        <div style="font-size: 0.9rem; color: #666; margin: 0.8rem 0; font-style: italic;">Hydrafacial nouvelle génération</div>
+                                        <div style="color: #d4af37; font-weight: bold; font-size: 1.1rem;">90€ • 90min</div>
+                                    </div>
+                                </div>
+                                <div class="complete-service-option" data-service="microneedling" data-price="70" data-duration="75" onclick="selectCompleteService(this)">
+                                    <div style="padding: 1.5rem; border: 2px solid #e0e0e0; border-radius: 15px; cursor: pointer; transition: all 0.3s ease; text-align: center; background: rgba(255,255,255,0.9); box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                                        <div style="font-size: 2.5rem; margin-bottom: 1rem;">🔄</div>
+                                        <strong style="font-size: 1.2rem; color: #2c3e50;">Renaissance</strong>
+                                        <div style="font-size: 0.9rem; color: #666; margin: 0.8rem 0; font-style: italic;">Microneedling régénérateur</div>
+                                        <div style="color: #d4af37; font-weight: bold; font-size: 1.1rem;">70€ • 75min</div>
+                                    </div>
+                                </div>
+                                <div class="complete-service-option" data-service="led_therapie" data-price="40" data-duration="30" onclick="selectCompleteService(this)">
+                                    <div style="padding: 1.5rem; border: 2px solid #e0e0e0; border-radius: 15px; cursor: pointer; transition: all 0.3s ease; text-align: center; background: rgba(255,255,255,0.9); box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                                        <div style="font-size: 2.5rem; margin-bottom: 1rem;">💡</div>
+                                        <strong style="font-size: 1.2rem; color: #2c3e50;">LED Thérapie</strong>
+                                        <div style="font-size: 0.9rem; color: #666; margin: 0.8rem 0; font-style: italic;">Photothérapie par lumière</div>
+                                        <div style="color: #d4af37; font-weight: bold; font-size: 1.1rem;">40€ • 30min</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="service-required-message" style="text-align: center; margin-top: 1rem; color: #d4af37; font-weight: 600; display: none;">
+                                ⬆️ Veuillez sélectionner une prestation
+                            </div>
+                        </div>
+
+                        <!-- Calendrier et horaires -->
+                        <div style="margin-bottom: 3rem;">
+                            <h3 style="color: #c9a084; margin-bottom: 2rem; font-family: 'Playfair Display', serif; text-align: center;">📅 Choisissez votre créneau</h3>
+                            
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; margin: 2rem 0;">
+                                <div style="background: rgba(255,255,255,0.95); border-radius: 20px; padding: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid rgba(212, 181, 160, 0.2);">
+                                    <h4 style="color: #c9a084; margin-bottom: 1.5rem; text-align: center;">Calendrier</h4>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                                        <button type="button" onclick="previousMonthComplete()" style="background: none; border: 2px solid #d4af37; color: #d4af37; padding: 0.8rem 1.2rem; border-radius: 10px; cursor: pointer; transition: all 0.3s ease; font-weight: 500;">&lt;</button>
+                                        <h4 id="completeCurrentMonth" style="margin: 0; color: #2c3e50; font-family: 'Playfair Display', serif; font-size: 1.3rem;">Janvier 2025</h4>
+                                        <button type="button" onclick="nextMonthComplete()" style="background: none; border: 2px solid #d4af37; color: #d4af37; padding: 0.8rem 1.2rem; border-radius: 10px; cursor: pointer; transition: all 0.3s ease; font-weight: 500;">&gt;</button>
+                                    </div>
+                                    <div id="completeCalendarGrid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem;">
+                                        <!-- Calendar days will be generated by JavaScript -->
+                                    </div>
+                                </div>
+
+                                <div style="background: rgba(255,255,255,0.95); border-radius: 20px; padding: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid rgba(212, 181, 160, 0.2);">
+                                    <h4 style="margin-bottom: 1.5rem; color: #c9a084; text-align: center;">Créneaux disponibles</h4>
+                                    <div id="completeTimeSlots" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem;">
+                                        <div class="complete-time-slot" data-time="09:00" onclick="selectCompleteTime(this)" style="padding: 1rem; border: 2px solid #e0e0e0; border-radius: 10px; text-align: center; cursor: pointer; transition: all 0.3s ease; font-weight: 500;">09h00</div>
+                                        <div class="complete-time-slot" data-time="10:30" onclick="selectCompleteTime(this)" style="padding: 1rem; border: 2px solid #e0e0e0; border-radius: 10px; text-align: center; cursor: pointer; transition: all 0.3s ease; font-weight: 500;">10h30</div>
+                                        <div class="complete-time-slot" data-time="14:00" onclick="selectCompleteTime(this)" style="padding: 1rem; border: 2px solid #e0e0e0; border-radius: 10px; text-align: center; cursor: pointer; transition: all 0.3s ease; font-weight: 500;">14h00</div>
+                                        <div class="complete-time-slot" data-time="15:30" onclick="selectCompleteTime(this)" style="padding: 1rem; border: 2px solid #e0e0e0; border-radius: 10px; text-align: center; cursor: pointer; transition: all 0.3s ease; font-weight: 500;">15h30</div>
+                                        <div class="complete-time-slot" data-time="17:00" onclick="selectCompleteTime(this)" style="padding: 1rem; border: 2px solid #e0e0e0; border-radius: 10px; text-align: center; cursor: pointer; transition: all 0.3s ease; font-weight: 500;">17h00</div>
+                                    </div>
+                                    <p style="margin-top: 1.5rem; font-size: 0.9rem; color: #666; text-align: center; font-style: italic;">
+                                        <strong>Sélectionnez d'abord une date</strong>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Remarques -->
+                        <div style="margin-bottom: 3rem;">
+                            <h3 style="color: #c9a084; margin-bottom: 1.5rem; font-family: 'Playfair Display', serif; text-align: center;">💬 Remarques particulières</h3>
+                            <textarea id="complete-notes" rows="4" style="width: 100%; padding: 1rem; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 1rem; transition: all 0.3s ease; resize: vertical;" onfocus="this.style.borderColor='#d4af37'" onblur="this.style.borderColor='#e0e0e0'" placeholder="Allergies, première visite, questions particulières, préférences..."></textarea>
+                        </div>
+
+                        <!-- Récapitulatif et soumission -->
+                        <div id="complete-summary" style="background: rgba(212, 175, 55, 0.1); border-radius: 15px; padding: 2rem; margin-bottom: 2rem; border: 1px solid rgba(212, 175, 55, 0.2); display: none;">
+                            <h4 style="color: #c9a084; margin-bottom: 1.5rem; text-align: center;">📋 Récapitulatif de votre réservation</h4>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; text-align: center; margin-bottom: 1.5rem;">
+                                <div>
+                                    <strong style="color: #2c3e50;">Client :</strong><br>
+                                    <span id="summary-complete-name" style="color: #c9a084;"></span>
+                                </div>
+                                <div>
+                                    <strong style="color: #2c3e50;">Service :</strong><br>
+                                    <span id="summary-complete-service" style="color: #c9a084;"></span>
+                                </div>
+                                <div>
+                                    <strong style="color: #2c3e50;">Date :</strong><br>
+                                    <span id="summary-complete-date" style="color: #c9a084;"></span>
+                                </div>
+                                <div>
+                                    <strong style="color: #2c3e50;">Heure :</strong><br>
+                                    <span id="summary-complete-time" style="color: #c9a084;"></span>
+                                </div>
+                                <div>
+                                    <strong style="color: #2c3e50;">Prix :</strong><br>
+                                    <span id="summary-complete-price" style="color: #d4af37; font-weight: bold; font-size: 1.2rem;"></span>
+                                </div>
+                            </div>
+                            
+                            <div style="background: rgba(255, 193, 7, 0.1); border-radius: 12px; padding: 1.5rem; border: 1px solid rgba(255, 193, 7, 0.3);">
+                                <p style="margin: 0; text-align: center; color: #2c3e50; font-size: 0.95rem;">
+                                    <strong>💰 Paiement en espèces uniquement</strong><br>
+                                    Le règlement intégral se fera en espèces le jour de votre rendez-vous.<br>
+                                    📧📱 Confirmation obligatoire par email et WhatsApp 24h avant.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Bouton de soumission -->
+                        <div style="text-align: center;">
+                            <button type="submit" style="
+                                background: linear-gradient(45deg, #D4AF37, #B8860B, #DAA520);
+                                color: white;
+                                padding: 1.5rem 3rem;
+                                font-size: 1.3rem;
+                                font-weight: bold;
+                                border: none;
+                                border-radius: 30px;
+                                cursor: pointer;
+                                transition: all 0.3s ease;
+                                box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
+                                text-transform: uppercase;
+                                letter-spacing: 0.8px;
+                            " onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 12px 35px rgba(212, 175, 55, 0.6)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(212, 175, 55, 0.4)'">
+                                ✅ Confirmer ma Réservation
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <section id="contact" class="contact">
+            <div class="container">
+                <h2>Contact & Rendez-vous</h2>
+                <div class="contact-content">
+                    <div class="contact-info">
+                        <h3>Informations Pratiques</h3>
+                        <div class="info-item">
+                            <div class="info-icon">📍</div>
+                            <div>
+                                <strong>Adresse</strong>
+                                <p>123 Rue de la Beauté<br>75001 Paris</p>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-icon">📞</div>
+                            <div>
+                                <strong>Téléphone</strong>
+                                <p>01 23 45 67 89</p>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-icon">✉️</div>
+                            <div>
+                                <strong>Email</strong>
+                                <p>contact@laiaskin-institut.fr</p>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-icon">🕒</div>
+                            <div>
+                                <strong>Horaires</strong>
+                                <p>Lundi - Vendredi: 9h - 19h<br>Samedi: 9h - 17h<br>Dimanche: Fermé</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-form-container">
+                        <h3>Réserver Directement en Ligne</h3>
+                        
+                        <!-- Sélection du service -->
+                        <div style="margin-bottom: 2rem;">
+                            <h4 style="color: #c9a084; margin-bottom: 1rem;">1. Choisissez votre soin</h4>
+                            <div class="services-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;">
+                                <div class="service-option" data-service="hydro_naissance" data-price="120" data-duration="90" onclick="selectService(this)">
+                                    <div style="padding: 1rem; border: 2px solid #e0e0e0; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; text-align: center;">
+                                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">🌟</div>
+                                        <strong>Hydro'Naissance</strong>
+                                        <div style="font-size: 0.9rem; color: #666; margin: 0.5rem 0;">Protocole VIP exclusif</div>
+                                        <div style="color: #d4af37; font-weight: bold;">120€ • 90min</div>
+                                    </div>
+                                </div>
+                                <div class="service-option" data-service="bb_glow" data-price="100" data-duration="90" onclick="selectService(this)">
+                                    <div style="padding: 1rem; border: 2px solid #e0e0e0; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; text-align: center;">
+                                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">✨</div>
+                                        <strong>BB Glow</strong>
+                                        <div style="font-size: 0.9rem; color: #666; margin: 0.5rem 0;">Teint parfait semi-permanent</div>
+                                        <div style="color: #d4af37; font-weight: bold;">100€ • 90min</div>
+                                    </div>
+                                </div>
+                                <div class="service-option" data-service="hydro_cleaning" data-price="90" data-duration="90" onclick="selectService(this)">
+                                    <div style="padding: 1rem; border: 2px solid #e0e0e0; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; text-align: center;">
+                                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">💧</div>
+                                        <strong>Hydro'Cleaning</strong>
+                                        <div style="font-size: 0.9rem; color: #666; margin: 0.5rem 0;">Hydrafacial nouvelle génération</div>
+                                        <div style="color: #d4af37; font-weight: bold;">90€ • 90min</div>
+                                    </div>
+                                </div>
+                                <div class="service-option" data-service="microneedling" data-price="70" data-duration="75" onclick="selectService(this)">
+                                    <div style="padding: 1rem; border: 2px solid #e0e0e0; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; text-align: center;">
+                                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔄</div>
+                                        <strong>Renaissance</strong>
+                                        <div style="font-size: 0.9rem; color: #666; margin: 0.5rem 0;">Microneedling régénérateur</div>
+                                        <div style="color: #d4af37; font-weight: bold;">70€ • 75min</div>
+                                    </div>
+                                </div>
+                                <div class="service-option" data-service="led_therapie" data-price="40" data-duration="30" onclick="selectService(this)">
+                                    <div style="padding: 1rem; border: 2px solid #e0e0e0; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; text-align: center;">
+                                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">💡</div>
+                                        <strong>LED Thérapie</strong>
+                                        <div style="font-size: 0.9rem; color: #666; margin: 0.5rem 0;">Photothérapie par lumière</div>
+                                        <div style="color: #d4af37; font-weight: bold;">40€ • 30min</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Message de sélection -->
+                        <div id="service-selection-message" style="text-align: center; padding: 2rem; background: rgba(212, 175, 55, 0.1); border-radius: 12px; margin: 1rem 0;">
+                            <p style="color: #c9a084; font-weight: 500; margin: 0;">
+                                ⬆️ Sélectionnez d'abord un service pour accéder au calendrier de réservation
+                            </p>
+                        </div>
+
+                        <!-- Calendrier (masqué par défaut) -->
+                        <div id="booking-calendar" style="display: none;">
+                            <h4 style="color: #c9a084; margin: 2rem 0 1rem 0;">2. Choisissez votre créneau</h4>
+                            
+                            <div class="calendar-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin: 1rem 0;">
+                                <div class="calendar" style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                                    <div class="calendar-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                        <button class="calendar-nav" onclick="previousMonth()" style="background: none; border: 2px solid #d4af37; color: #d4af37; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; transition: all 0.3s ease;">&lt;</button>
+                                        <h4 id="currentMonth" style="margin: 0; color: #2c3e50;">Janvier 2025</h4>
+                                        <button class="calendar-nav" onclick="nextMonth()" style="background: none; border: 2px solid #d4af37; color: #d4af37; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; transition: all 0.3s ease;">&gt;</button>
+                                    </div>
+                                    <div class="calendar-grid" id="calendarGrid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem;">
+                                        <!-- Calendar days will be generated by JavaScript -->
+                                    </div>
+                                </div>
+
+                                <div style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                                    <h4 style="margin-bottom: 1rem; color: #c9a084;">Créneaux disponibles</h4>
+                                    <div class="time-slots" id="timeSlots" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;">
+                                        <div class="time-slot" onclick="selectTime('09:00')" style="padding: 0.8rem; border: 2px solid #e0e0e0; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.3s ease;">09h00</div>
+                                        <div class="time-slot" onclick="selectTime('10:30')" style="padding: 0.8rem; border: 2px solid #e0e0e0; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.3s ease;">10h30</div>
+                                        <div class="time-slot" onclick="selectTime('14:00')" style="padding: 0.8rem; border: 2px solid #e0e0e0; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.3s ease;">14h00</div>
+                                        <div class="time-slot" onclick="selectTime('15:30')" style="padding: 0.8rem; border: 2px solid #e0e0e0; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.3s ease;">15h30</div>
+                                        <div class="time-slot" onclick="selectTime('17:00')" style="padding: 0.8rem; border: 2px solid #e0e0e0; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.3s ease;">17h00</div>
+                                    </div>
+                                    <p style="margin-top: 1rem; font-size: 0.9rem; color: #666;">
+                                        <strong>Sélectionnez d'abord une date</strong> pour voir les créneaux disponibles
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Bouton de réservation -->
+                            <div id="booking-action" style="display: none; text-align: center; margin: 2rem 0;">
+                                <button id="proceedToBooking" onclick="proceedToFullBooking()" style="
+                                    background: linear-gradient(45deg, #D4AF37, #B8860B, #DAA520);
+                                    color: white;
+                                    padding: 1rem 2rem;
+                                    font-size: 1.1rem;
+                                    font-weight: bold;
+                                    border: none;
+                                    border-radius: 30px;
+                                    cursor: pointer;
+                                    transition: all 0.3s ease;
+                                    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+                                ">
+                                    Réserver ce créneau →
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>LAIA SKIN INSTITUT</h4>
+                    <p>Votre institut de confiance pour révéler votre beauté naturelle avec les soins les plus avancés.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Services</h4>
+                    <ul>
+                        <li>Hydro'Cleaning - 90€</li>
+                        <li>Renaissance - 150€</li>
+                        <li>BB Glow - 200€</li>
+                        <li>Thérapie LED - 80€</li>
+                        <li>Consultations gratuites</li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact</h4>
+                    <p>📞 01 23 45 67 89<br>✉️ contact@laiaskin-institut.fr</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 LAIA SKIN INSTITUT. Tous droits réservés.</p>
+                
+                <!-- Boutons Admin Discrets -->
+                <div class="admin-access" style="margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center;">
+                    <a href="admin-dashboard.html" class="admin-btn" style="
+                        display: inline-block;
+                        background: linear-gradient(135deg, #d4b5a0, #c9a084);
+                        color: white;
+                        padding: 0.6rem 1rem;
+                        text-decoration: none;
+                        border-radius: 15px;
+                        font-size: 0.8rem;
+                        font-weight: 500;
+                        transition: all 0.3s ease;
+                        opacity: 0.6;
+                        box-shadow: 0 4px 15px rgba(212, 181, 160, 0.3);
+                    " 
+                    onmouseover="this.style.opacity='1'; this.style.transform='translateY(-2px)'"
+                    onmouseout="this.style.opacity='0.6'; this.style.transform='translateY(0)'">
+                        🔑 Admin Principal
+                    </a>
+                    <a href="admin-loyalty.html" class="admin-btn" style="
+                        display: inline-block;
+                        background: linear-gradient(135deg, #c9a084, #d4b5a0);
+                        color: white;
+                        padding: 0.6rem 1rem;
+                        text-decoration: none;
+                        border-radius: 15px;
+                        font-size: 0.8rem;
+                        font-weight: 500;
+                        transition: all 0.3s ease;
+                        opacity: 0.6;
+                        box-shadow: 0 4px 15px rgba(201, 160, 132, 0.3);
+                    " 
+                    onmouseover="this.style.opacity='1'; this.style.transform='translateY(-2px)'"
+                    onmouseout="this.style.opacity='0.6'; this.style.transform='translateY(0)'">
+                        🎁 Admin Fidélité
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    
+    <script>
+        // Fonctions existantes
+        function scrollToContact() {
+            document.getElementById('contact').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function handleSubmit(event) {
+            event.preventDefault();
+            // Animation de succès moderne
+            const button = event.target.querySelector('.submit-btn');
+            button.innerHTML = '✓ Message envoyé !';
+            button.style.background = 'linear-gradient(135deg, #48bb78, #38a169)';
+            setTimeout(() => {
+                alert('Merci pour votre demande ! Nous vous contacterons dans les plus brefs délais.');
+                button.innerHTML = 'DEMANDER UN RENDEZ-VOUS';
+                button.style.background = 'linear-gradient(135deg, #d4b5a0, #c9a084)';
+            }, 2000);
+        }
+
+        // Smooth scrolling avec indicateur de navigation active
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                // Retirer la classe active de tous les liens
+                document.querySelectorAll('.nav-menu a').forEach(link => {
+                    link.classList.remove('active');
+                });
+                
+                // Ajouter la classe active au lien cliqué
+                if (this.closest('.nav-menu')) {
+                    this.classList.add('active');
+                }
+                
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+        
+        
+        // Animation d'apparition des éléments au scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+        
+        // Observer les cartes de service pour l'animation
+        document.addEventListener('DOMContentLoaded', function() {
+            const animatedElements = document.querySelectorAll('.service-card, .feature, .info-item');
+            animatedElements.forEach((el, index) => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(30px)';
+                el.style.transition = `all 0.6s ease ${index * 0.1}s`;
+                observer.observe(el);
+            });
+        });
+        
+        // Effet de parallaxe léger sur le hero
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const hero = document.querySelector('.hero');
+            if (hero) {
+                const speed = scrolled * 0.3;
+                hero.style.transform = `translateY(${speed}px)`;
+            }
+        });
+        
+        // Animation du titre principal avec effet machine à écrire
+        document.addEventListener('DOMContentLoaded', function() {
+            const heroTitle = document.querySelector('.hero-content h2');
+            if (heroTitle) {
+                const originalText = heroTitle.textContent;
+                heroTitle.textContent = '';
+                heroTitle.style.borderRight = '3px solid #d4b5a0';
+                
+                let i = 0;
+                const typeWriter = () => {
+                    if (i < originalText.length) {
+                        heroTitle.textContent += originalText.charAt(i);
+                        i++;
+                        setTimeout(typeWriter, 100);
+                    } else {
+                        setTimeout(() => {
+                            heroTitle.style.borderRight = 'none';
+                        }, 1000);
+                    }
+                };
+                
+                setTimeout(typeWriter, 1000);
+            }
+        });
+
+        // Système de Calendrier et Réservation
+        class BookingSystem {
+            constructor() {
+                this.currentDate = new Date();
+                this.selectedDate = null;
+                this.selectedTime = null;
+                this.availableSlots = {
+                    // Exemple de créneaux - à personaliser depuis l'admin
+                    '2025-08-15': ['09:00', '11:00', '14:00', '16:00'],
+                    '2025-08-16': ['10:00', '14:30', '16:30'],
+                    '2025-08-17': ['09:30', '11:30', '15:00'],
+                    '2025-08-18': ['09:00', '13:00', '15:30'],
+                    '2025-08-19': ['10:30', '14:00', '16:00'],
+                    '2025-08-20': ['09:00', '11:00', '14:00'],
+                    '2025-08-21': ['10:00', '15:00', '17:00']
+                };
+                this.init();
+            }
+
+            init() {
+                this.renderCalendar();
+                this.bindEvents();
+            }
+
+            renderCalendar() {
+                const monthNames = [
+                    'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+                    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+                ];
+
+                document.getElementById('current-month').textContent = 
+                    `${monthNames[this.currentDate.getMonth()]} ${this.currentDate.getFullYear()}`;
+
+                const firstDay = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), 1);
+                const lastDay = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 0);
+                const startDate = new Date(firstDay);
+                startDate.setDate(startDate.getDate() - firstDay.getDay() + 1); // Commencer par lundi
+
+                const calendarGrid = document.getElementById('calendar-grid');
+                calendarGrid.innerHTML = '';
+
+                // En-têtes des jours
+                const dayHeaders = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+                dayHeaders.forEach(day => {
+                    const header = document.createElement('div');
+                    header.textContent = day;
+                    header.style.fontWeight = 'bold';
+                    header.style.padding = '0.5rem';
+                    header.style.textAlign = 'center';
+                    calendarGrid.appendChild(header);
+                });
+
+                // Générer les jours du calendrier
+                for (let i = 0; i < 42; i++) {
+                    const date = new Date(startDate);
+                    date.setDate(startDate.getDate() + i);
+
+                    const dayElement = document.createElement('div');
+                    dayElement.className = 'calendar-day';
+                    dayElement.textContent = date.getDate();
+
+                    if (date.getMonth() !== this.currentDate.getMonth()) {
+                        dayElement.style.opacity = '0.3';
+                    }
+
+                    const dateString = date.toISOString().split('T')[0];
+                    if (this.availableSlots[dateString] && date >= new Date()) {
+                        dayElement.classList.add('available');
+                        dayElement.addEventListener('click', () => this.selectDate(date));
+                    }
+
+                    calendarGrid.appendChild(dayElement);
+                }
+            }
+
+            selectDate(date) {
+                this.selectedDate = date;
+                const dateString = date.toISOString().split('T')[0];
+                
+                // Mise à jour visuelle
+                document.querySelectorAll('.calendar-day').forEach(day => {
+                    day.classList.remove('selected');
+                });
+                event.target.classList.add('selected');
+
+                // Afficher les créneaux horaires
+                this.showTimeSlots(dateString);
+            }
+
+            showTimeSlots(dateString) {
+                const timeSlotsDiv = document.getElementById('time-slots');
+                const slotsContainer = document.getElementById('slots-container');
+                
+                timeSlotsDiv.style.display = 'block';
+                slotsContainer.innerHTML = '';
+
+                const slots = this.availableSlots[dateString] || [];
+                slots.forEach(time => {
+                    const slotElement = document.createElement('div');
+                    slotElement.className = 'time-slot';
+                    slotElement.textContent = time;
+                    slotElement.addEventListener('click', () => this.selectTime(time));
+                    slotsContainer.appendChild(slotElement);
+                });
+            }
+
+            selectTime(time) {
+                this.selectedTime = time;
+                
+                // Mise à jour visuelle
+                document.querySelectorAll('.time-slot').forEach(slot => {
+                    slot.classList.remove('selected');
+                });
+                event.target.classList.add('selected');
+
+                // Afficher le formulaire
+                this.showBookingForm();
+            }
+
+            showBookingForm() {
+                document.getElementById('booking-form').style.display = 'block';
+                document.getElementById('selected-date').value = this.selectedDate.toISOString().split('T')[0];
+                document.getElementById('selected-time').value = this.selectedTime;
+                
+                this.updateBookingSummary();
+            }
+
+            updateBookingSummary() {
+                const date = this.selectedDate.toLocaleDateString('fr-FR', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                
+                const service = document.getElementById('service-type').value;
+                const serviceName = document.getElementById('service-type').selectedOptions[0]?.text || 'Non sélectionné';
+
+                document.getElementById('booking-details').innerHTML = `
+                    <p><strong>Date:</strong> ${date}</p>
+                    <p><strong>Heure:</strong> ${this.selectedTime}</p>
+                    <p><strong>Prestation:</strong> ${serviceName}</p>
+                `;
+            }
+
+            bindEvents() {
+                // Navigation du calendrier
+                document.getElementById('prev-month').addEventListener('click', () => {
+                    this.currentDate.setMonth(this.currentDate.getMonth() - 1);
+                    this.renderCalendar();
+                });
+
+                document.getElementById('next-month').addEventListener('click', () => {
+                    this.currentDate.setMonth(this.currentDate.getMonth() + 1);
+                    this.renderCalendar();
+                });
+
+                // Mise à jour du résumé quand service change
+                document.getElementById('service-type').addEventListener('change', () => {
+                    if (this.selectedDate && this.selectedTime) {
+                        this.updateBookingSummary();
+                    }
+                });
+
+                // Soumission du formulaire
+                document.getElementById('booking-form').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.submitBooking();
+                });
+            }
+
+            submitBooking() {
+                const formData = {
+                    date: document.getElementById('selected-date').value,
+                    time: document.getElementById('selected-time').value,
+                    name: document.getElementById('client-name').value,
+                    email: document.getElementById('client-email').value,
+                    phone: document.getElementById('client-phone').value,
+                    service: document.getElementById('service-type').value,
+                    notes: document.getElementById('client-notes').value
+                };
+
+                // Ici vous pourrez envoyer les données vers votre backend
+                console.log('Réservation:', formData);
+                
+                alert(`Merci ${formData.name} ! Votre rendez-vous a été demandé pour le ${formData.date} à ${formData.time}. Vous recevrez une confirmation par email.`);
+                
+                // Réinitialiser le formulaire
+                document.getElementById('booking-form').reset();
+                document.getElementById('booking-form').style.display = 'none';
+                document.getElementById('time-slots').style.display = 'none';
+            }
+        }
+
+        // Variables globales pour le calendrier
+        let currentDate = new Date();
+        let selectedDate = null;
+        let selectedTime = null;
+        let selectedService = null;
+
+        // Fonction de sélection de service
+        function selectService(element) {
+            // Retirer la sélection précédente
+            document.querySelectorAll('.service-option').forEach(option => {
+                option.querySelector('div').style.borderColor = '#e0e0e0';
+                option.querySelector('div').style.background = 'rgba(255,255,255,0.9)';
+            });
+            
+            // Sélectionner le nouveau service
+            element.querySelector('div').style.borderColor = '#d4af37';
+            element.querySelector('div').style.background = 'rgba(212, 175, 55, 0.1)';
+            
+            selectedService = {
+                service: element.dataset.service,
+                price: element.dataset.price,
+                duration: element.dataset.duration
+            };
+            
+            // Masquer le message et afficher le calendrier
+            document.getElementById('service-selection-message').style.display = 'none';
+            document.getElementById('booking-calendar').style.display = 'block';
+            
+            // Générer le calendrier
+            generateCalendar();
+        }
+
+        // Générer le calendrier
+        function generateCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            const monthHeader = document.getElementById('currentMonth');
+            
+            const monthNames = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
+                "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+            
+            monthHeader.textContent = `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+            
+            const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+            const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+            const startDate = new Date(firstDay);
+            startDate.setDate(startDate.getDate() - firstDay.getDay() + 1); // Start on Monday
+            
+            grid.innerHTML = '';
+            
+            // Day headers
+            const dayHeaders = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+            dayHeaders.forEach(day => {
+                const dayElement = document.createElement('div');
+                dayElement.textContent = day;
+                dayElement.style.fontWeight = 'bold';
+                dayElement.style.textAlign = 'center';
+                dayElement.style.padding = '0.5rem';
+                dayElement.style.color = '#c9a084';
+                grid.appendChild(dayElement);
+            });
+            
+            // Calendar days
+            for (let i = 0; i < 42; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+                
+                const dayElement = document.createElement('div');
+                dayElement.textContent = date.getDate();
+                dayElement.style.padding = '0.8rem';
+                dayElement.style.textAlign = 'center';
+                dayElement.style.cursor = 'pointer';
+                dayElement.style.borderRadius = '8px';
+                dayElement.style.transition = 'all 0.3s ease';
+                
+                const today = new Date();
+                const isCurrentMonth = date.getMonth() === currentDate.getMonth();
+                const isPast = date < today.setHours(0,0,0,0);
+                
+                if (!isCurrentMonth) {
+                    dayElement.style.color = '#ccc';
+                    dayElement.style.cursor = 'not-allowed';
+                } else if (isPast) {
+                    dayElement.style.color = '#999';
+                    dayElement.style.cursor = 'not-allowed';
+                } else {
+                    dayElement.style.color = '#2c3e50';
+                    dayElement.addEventListener('click', () => selectDate(date, dayElement));
+                    dayElement.addEventListener('mouseover', () => {
+                        if (!isPast && isCurrentMonth) {
+                            dayElement.style.background = 'rgba(212, 175, 55, 0.2)';
+                        }
+                    });
+                    dayElement.addEventListener('mouseout', () => {
+                        if (!dayElement.classList.contains('selected')) {
+                            dayElement.style.background = '';
+                        }
+                    });
+                }
+                
+                if (date.toDateString() === today.toDateString()) {
+                    dayElement.style.background = 'rgba(212, 175, 55, 0.3)';
+                    dayElement.style.fontWeight = 'bold';
+                }
+                
+                grid.appendChild(dayElement);
+            }
+        }
+
+        // Sélectionner une date
+        function selectDate(date, element) {
+            // Retirer la sélection précédente
+            document.querySelectorAll('#calendarGrid > div').forEach(day => {
+                if (!day.textContent.match(/^(Lun|Mar|Mer|Jeu|Ven|Sam|Dim)$/)) {
+                    day.style.background = '';
+                    day.classList.remove('selected');
+                }
+            });
+            
+            // Sélectionner la nouvelle date
+            element.style.background = '#d4af37';
+            element.style.color = 'white';
+            element.classList.add('selected');
+            
+            selectedDate = date;
+            
+            // Mettre à jour les créneaux horaires
+            const slots = document.querySelectorAll('.time-slot');
+            slots.forEach(slot => {
+                slot.style.borderColor = '#e0e0e0';
+                slot.style.background = 'white';
+                slot.style.cursor = 'pointer';
+                slot.classList.remove('selected');
+            });
+            
+            selectedTime = null;
+            document.getElementById('booking-action').style.display = 'none';
+        }
+
+        // Sélectionner un créneau horaire
+        function selectTime(time) {
+            if (!selectedDate) {
+                alert('Veuillez d\'abord sélectionner une date');
+                return;
+            }
+            
+            // Retirer la sélection précédente
+            document.querySelectorAll('.time-slot').forEach(slot => {
+                slot.style.borderColor = '#e0e0e0';
+                slot.style.background = 'white';
+                slot.classList.remove('selected');
+            });
+            
+            // Sélectionner le nouveau créneau
+            const selectedSlot = document.querySelector(`[onclick="selectTime('${time}')"]`);
+            selectedSlot.style.borderColor = '#d4af37';
+            selectedSlot.style.background = 'rgba(212, 175, 55, 0.1)';
+            selectedSlot.classList.add('selected');
+            
+            selectedTime = time;
+            
+            // Afficher le formulaire client et remplir le récapitulatif
+            showClientForm();
+        }
+
+        // Afficher le formulaire client avec récapitulatif
+        function showClientForm() {
+            // Masquer le calendrier
+            document.getElementById('booking-calendar').style.display = 'none';
+            
+            // Afficher le formulaire
+            document.getElementById('client-form').style.display = 'block';
+            
+            // Remplir le récapitulatif
+            const serviceNames = {
+                'hydro_naissance': '🌟 Hydro\'Naissance',
+                'bb_glow': '✨ BB Glow',
+                'hydro_cleaning': '💧 Hydro\'Cleaning',
+                'microneedling': '🔄 Renaissance',
+                'led_therapie': '💡 LED Thérapie'
+            };
+            
+            document.getElementById('summary-service').textContent = serviceNames[selectedService.service] || selectedService.service;
+            document.getElementById('summary-date').textContent = selectedDate.toLocaleDateString('fr-FR', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            document.getElementById('summary-time').textContent = selectedTime;
+            document.getElementById('summary-price').textContent = selectedService.price + '€';
+        }
+
+        // Retour au calendrier
+        function backToCalendar() {
+            document.getElementById('client-form').style.display = 'none';
+            document.getElementById('booking-calendar').style.display = 'block';
+        }
+
+        // Navigation du calendrier
+        function previousMonth() {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            generateCalendar();
+        }
+
+        function nextMonth() {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            generateCalendar();
+        }
+
+        // Soumettre la réservation avec les informations client
+        async function submitBooking(event) {
+            event.preventDefault();
+            
+            // Récupérer les données du formulaire
+            const bookingData = {
+                // Informations service et créneau
+                service: selectedService.service,
+                servicePrice: parseInt(selectedService.price),
+                duration: parseInt(selectedService.duration),
+                date: selectedDate.toISOString().split('T')[0],
+                time: selectedTime,
+                
+                // Informations client
+                firstName: document.getElementById('client-firstname').value.trim(),
+                lastName: document.getElementById('client-lastname').value.trim(),
+                email: document.getElementById('client-email').value.trim(),
+                phone: document.getElementById('client-phone').value.trim(),
+                birthdate: document.getElementById('client-birthdate').value || null,
+                notes: document.getElementById('client-notes').value.trim()
+            };
+            
+            // Validation
+            if (!bookingData.firstName || !bookingData.lastName || !bookingData.email || !bookingData.phone) {
+                alert('Veuillez remplir tous les champs obligatoires');
+                return;
+            }
+            
+            // Désactiver le bouton pendant l'envoi
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '⏳ Réservation en cours...';
+            submitBtn.disabled = true;
+            
+            try {
+                // Envoyer à l'API de réservation
+                const response = await fetch('/api/create-cash-booking', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(bookingData)
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    
+                    // Succès
+                    submitBtn.innerHTML = '✅ Réservation confirmée !';
+                    submitBtn.style.background = 'linear-gradient(45deg, #28a745, #20c997)';
+                    
+                    setTimeout(() => {
+                        alert(`✅ Réservation confirmée !\n\nService: ${bookingData.firstName} ${bookingData.lastName}\nVous allez recevoir un email de confirmation avec tous les détails.\n\nMerci de votre confiance !`);
+                        
+                        // Réinitialiser le formulaire
+                        resetBookingForm();
+                    }, 1500);
+                    
+                } else {
+                    throw new Error('Erreur lors de la réservation');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                alert('❌ Une erreur est survenue. Veuillez réessayer ou nous contacter directement.');
+                
+                // Restaurer le bouton
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                submitBtn.style.background = 'linear-gradient(45deg, #D4AF37, #B8860B, #DAA520)';
+            }
+        }
+        
+        // Réinitialiser le formulaire de réservation
+        function resetBookingForm() {
+            // Réinitialiser les variables
+            selectedService = null;
+            selectedDate = null;
+            selectedTime = null;
+            
+            // Masquer le formulaire et afficher le message de sélection
+            document.getElementById('client-form').style.display = 'none';
+            document.getElementById('booking-calendar').style.display = 'none';
+            document.getElementById('service-selection-message').style.display = 'block';
+            
+            // Réinitialiser la sélection des services
+            document.querySelectorAll('.service-option').forEach(option => {
+                option.querySelector('div').style.borderColor = '#e0e0e0';
+                option.querySelector('div').style.background = 'rgba(255,255,255,0.9)';
+            });
+            
+            // Vider le formulaire
+            document.getElementById('client-booking-form').reset();
+        }
+
+        // Styles CSS additionnels pour les interactions et animations
+        document.addEventListener('DOMContentLoaded', () => {
+            // Styles pour les options de service
+            const style = document.createElement('style');
+            style.textContent = `
+                .service-option:hover div {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+                }
+                
+                .time-slot:hover {
+                    border-color: #d4af37 !important;
+                    background: rgba(212, 175, 55, 0.1) !important;
+                }
+                
+                .calendar-nav:hover {
+                    background: #d4af37 !important;
+                    color: white !important;
+                }
+                
+                @keyframes pulse {
+                    0% { transform: scale(1); }
+                    50% { transform: scale(1.05); opacity: 0.8; }
+                    100% { transform: scale(1); }
+                }
+                
+                .realtime-update {
+                    animation: pulse 0.6s ease-in-out;
+                    background: rgba(40, 167, 69, 0.1) !important;
+                    border: 2px solid #28a745 !important;
+                    border-radius: 8px !important;
+                    padding: 0.3rem !important;
+                    margin: 0.2rem !important;
+                }
+            `;
+            document.head.appendChild(style);
+        });
+
+        // === SYSTÈME DE RÉSERVATION COMPLET ===
+        
+        // Variables pour le système de réservation complet
+        let completeSelectedService = null;
+        let completeSelectedDate = null;
+        let completeSelectedTime = null;
+        let completeCurrentDate = new Date();
+
+        // Sélectionner un service
+        function selectCompleteService(element) {
+            // Retirer la sélection précédente
+            document.querySelectorAll('.complete-service-option div').forEach(service => {
+                service.style.borderColor = '#e0e0e0';
+                service.style.background = 'rgba(255,255,255,0.9)';
+                service.style.transform = '';
+            });
+            
+            // Sélectionner le nouveau service
+            const serviceDiv = element.querySelector('div');
+            serviceDiv.style.borderColor = '#d4af37';
+            serviceDiv.style.background = 'rgba(212, 175, 55, 0.1)';
+            serviceDiv.style.transform = 'translateY(-2px)';
+            
+            // Stocker les informations du service
+            completeSelectedService = {
+                service: element.dataset.service,
+                price: element.dataset.price,
+                duration: element.dataset.duration,
+                name: serviceDiv.querySelector('strong').textContent
+            };
+            
+            // Masquer le message de sélection requis
+            document.getElementById('service-required-message').style.display = 'none';
+            
+            // Générer le calendrier
+            generateCompleteCalendar();
+            
+            // Mettre à jour le récapitulatif
+            updateCompleteSummary();
+        }
+
+        // Variable pour stocker les créneaux occupés
+        let completeOccupiedSlots = {};
+
+        // Variable pour tracker la dernière mise à jour
+        let completeLastUpdateTime = 0;
+
+        // Charger les créneaux occupés depuis la base de données avec synchronisation immédiate
+        async function loadCompleteOccupiedSlots(forceUpdate = false) {
+            try {
+                const url = `/api/appointments/occupied-slots?timestamp=${Date.now()}`;
+                console.log('📅 [Accueil] Chargement des créneaux occupés...');
+                const response = await fetch(url);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const newCompleteOccupiedSlots = {};
+                    
+                    // Organiser les créneaux par date
+                    data.occupiedSlots.forEach(slot => {
+                        const date = new Date(slot.datetime);
+                        const dateKey = date.toISOString().split('T')[0];
+                        const timeKey = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                        
+                        if (!newCompleteOccupiedSlots[dateKey]) {
+                            newCompleteOccupiedSlots[dateKey] = [];
+                        }
+                        newCompleteOccupiedSlots[dateKey].push(timeKey);
+                    });
+                    
+                    // Vérifier s'il y a des changements
+                    const hasChanges = JSON.stringify(completeOccupiedSlots) !== JSON.stringify(newCompleteOccupiedSlots);
+                    
+                    if (hasChanges || forceUpdate) {
+                        completeOccupiedSlots = newCompleteOccupiedSlots;
+                        completeLastUpdateTime = Date.now();
+                        
+                        console.log('🔄 [Accueil] Créneaux occupés mis à jour:', Object.keys(completeOccupiedSlots).length, 'jours');
+                        
+                        // Régénérer le calendrier avec les nouvelles données
+                        generateCompleteCalendar();
+                        
+                        // Si une date est sélectionnée, mettre à jour les créneaux
+                        if (completeSelectedDate) {
+                            updateCompleteTimeSlots();
+                        }
+                        
+                        // Notifier les autres pages via localStorage
+                        localStorage.setItem('laia-calendar-update', completeLastUpdateTime.toString());
+                    }
+                } else {
+                    console.warn('⚠️ [Accueil] Impossible de charger les créneaux occupés');
+                    if (forceUpdate) generateCompleteCalendar();
+                }
+            } catch (error) {
+                console.error('❌ [Accueil] Erreur chargement créneaux occupés:', error);
+                if (forceUpdate) generateCompleteCalendar();
+            }
+        }
+
+        // Fonction pour afficher les notifications temps réel
+        function showRealtimeNotification(message, type = 'info') {
+            // Créer la notification
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 1rem 1.5rem;
+                border-radius: 12px;
+                color: white;
+                font-weight: 600;
+                font-size: 0.95rem;
+                z-index: 10000;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                backdrop-filter: blur(10px);
+                transform: translateX(400px);
+                transition: all 0.4s ease;
+                max-width: 300px;
+                border-left: 4px solid;
+            `;
+            
+            // Couleurs selon le type
+            const styles = {
+                'success': 'background: rgba(40, 167, 69, 0.95); border-color: #28a745;',
+                'warning': 'background: rgba(255, 193, 7, 0.95); border-color: #ffc107; color: #212529;',
+                'error': 'background: rgba(220, 53, 69, 0.95); border-color: #dc3545;',
+                'info': 'background: rgba(23, 162, 184, 0.95); border-color: #17a2b8;'
+            };
+            
+            notification.style.cssText += styles[type] || styles.info;
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span>${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" 
+                           style="background: none; border: none; color: inherit; cursor: pointer; font-size: 1.2rem; margin-left: auto;">×</button>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Animation d'entrée
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // Suppression automatique après 4 secondes
+            setTimeout(() => {
+                notification.style.transform = 'translateX(400px)';
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.parentElement.removeChild(notification);
+                    }
+                }, 400);
+            }, 4000);
+        }
+
+        // Fonction pour démarrer la synchronisation temps réel
+        function startCompleteRealtimeSync() {
+            // Polling rapide toutes les 3 secondes
+            setInterval(() => {
+                loadCompleteOccupiedSlots();
+            }, 3000);
+            
+            // Écouter les changements depuis les autres pages
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'laia-calendar-update') {
+                    const updateTime = parseInt(e.newValue);
+                    if (updateTime > completeLastUpdateTime) {
+                        console.log('🔔 [Accueil] Mise à jour détectée depuis une autre page');
+                        loadCompleteOccupiedSlots(true);
+                    }
+                }
+            });
+            
+            // Écouter les événements de focus pour actualiser quand l'utilisateur revient sur l'onglet
+            window.addEventListener('focus', () => {
+                console.log('👁️ [Accueil] Page en focus - actualisation');
+                loadCompleteOccupiedSlots();
+            });
+            
+            console.log('⚡ [Accueil] Synchronisation temps réel activée');
+        }
+
+        // Générer le calendrier complet avec synchronisation
+        function generateCompleteCalendar() {
+            const grid = document.getElementById('completeCalendarGrid');
+            const monthHeader = document.getElementById('completeCurrentMonth');
+            
+            if (!grid || !monthHeader) return;
+            
+            const monthNames = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
+                "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+            
+            monthHeader.textContent = `${monthNames[completeCurrentDate.getMonth()]} ${completeCurrentDate.getFullYear()}`;
+            
+            const firstDay = new Date(completeCurrentDate.getFullYear(), completeCurrentDate.getMonth(), 1);
+            const lastDay = new Date(completeCurrentDate.getFullYear(), completeCurrentDate.getMonth() + 1, 0);
+            const startDate = new Date(firstDay);
+            startDate.setDate(startDate.getDate() - firstDay.getDay() + 1); // Start on Monday
+            
+            grid.innerHTML = '';
+            
+            // Day headers
+            const dayHeaders = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+            dayHeaders.forEach(day => {
+                const dayElement = document.createElement('div');
+                dayElement.textContent = day;
+                dayElement.style.fontWeight = 'bold';
+                dayElement.style.textAlign = 'center';
+                dayElement.style.padding = '0.5rem';
+                dayElement.style.color = '#c9a084';
+                dayElement.style.fontSize = '0.85rem';
+                grid.appendChild(dayElement);
+            });
+            
+            // Calendar days
+            for (let i = 0; i < 42; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+                
+                const dayElement = document.createElement('div');
+                dayElement.style.padding = '0.8rem';
+                dayElement.style.textAlign = 'center';
+                dayElement.style.cursor = 'pointer';
+                dayElement.style.borderRadius = '8px';
+                dayElement.style.transition = 'all 0.3s ease';
+                dayElement.style.fontSize = '0.9rem';
+                dayElement.style.minHeight = '40px';
+                dayElement.style.display = 'flex';
+                dayElement.style.alignItems = 'center';
+                dayElement.style.justifyContent = 'center';
+                dayElement.style.position = 'relative';
+                
+                const today = new Date();
+                today.setHours(0,0,0,0);
+                const isCurrentMonth = date.getMonth() === completeCurrentDate.getMonth();
+                const isPast = date < today;
+                const isWorkingDay = date.getDay() >= 1 && date.getDay() <= 6; // Monday to Saturday
+                
+                // Vérifier s'il y a des créneaux occupés ce jour-là
+                const dateKey = date.toISOString().split('T')[0];
+                const hasOccupiedSlots = completeOccupiedSlots[dateKey] && completeOccupiedSlots[dateKey].length > 0;
+                
+                // Texte du jour avec indicateur si créneaux occupés
+                const dayText = date.getDate() + (hasOccupiedSlots && isCurrentMonth ? ' •' : '');
+                dayElement.textContent = dayText;
+                
+                if (!isCurrentMonth) {
+                    dayElement.style.color = '#ccc';
+                    dayElement.style.cursor = 'not-allowed';
+                } else if (isPast) {
+                    dayElement.style.color = '#999';
+                    dayElement.style.cursor = 'not-allowed';
+                } else if (!isWorkingDay) {
+                    dayElement.style.color = '#999';
+                    dayElement.style.cursor = 'not-allowed';
+                    dayElement.style.textDecoration = 'line-through';
+                } else {
+                    dayElement.style.color = '#2c3e50';
+                    dayElement.addEventListener('click', () => selectCompleteDate(date, dayElement));
+                    dayElement.addEventListener('mouseover', () => {
+                        if (!isPast && isCurrentMonth && isWorkingDay) {
+                            dayElement.style.background = 'rgba(212, 175, 55, 0.2)';
+                        }
+                    });
+                    dayElement.addEventListener('mouseout', () => {
+                        if (!dayElement.classList.contains('selected')) {
+                            dayElement.style.background = '';
+                        }
+                    });
+                }
+                
+                // Indicateur visuel pour les créneaux occupés
+                if (hasOccupiedSlots && isCurrentMonth) {
+                    dayElement.style.fontWeight = 'bold';
+                    if (!isPast && isWorkingDay) {
+                        dayElement.style.color = '#d4af37';
+                    }
+                }
+                
+                if (date.toDateString() === today.toDateString()) {
+                    dayElement.style.background = 'rgba(212, 175, 55, 0.3)';
+                    dayElement.style.fontWeight = 'bold';
+                }
+                
+                grid.appendChild(dayElement);
+            }
+        }
+
+        // Sélectionner une date complète
+        function selectCompleteDate(date, element) {
+            // Retirer la sélection précédente
+            document.querySelectorAll('#completeCalendarGrid > div').forEach(day => {
+                if (!day.textContent.match(/^(Lun|Mar|Mer|Jeu|Ven|Sam|Dim)$/)) {
+                    day.style.background = '';
+                    day.style.color = '#2c3e50';
+                    day.classList.remove('selected');
+                }
+            });
+            
+            // Sélectionner la nouvelle date
+            element.style.background = '#d4af37';
+            element.style.color = 'white';
+            element.classList.add('selected');
+            
+            completeSelectedDate = date;
+            completeSelectedTime = null;
+            
+            // Mettre à jour les créneaux disponibles avec synchronisation BD
+            updateCompleteTimeSlots();
+            
+            // Mettre à jour le récapitulatif
+            updateCompleteSummary();
+        }
+
+        // Mettre à jour les créneaux disponibles selon la date sélectionnée
+        function updateCompleteTimeSlots() {
+            if (!completeSelectedDate) return;
+            
+            const dateKey = completeSelectedDate.toISOString().split('T')[0];
+            const occupiedTimes = completeOccupiedSlots[dateKey] || [];
+            
+            // Tous les créneaux possibles
+            const allTimeSlots = ['09:00', '10:30', '14:00', '15:30', '17:00'];
+            
+            const timeSlotsContainer = document.getElementById('completeTimeSlots');
+            timeSlotsContainer.innerHTML = '';
+            
+            allTimeSlots.forEach(time => {
+                const slotElement = document.createElement('div');
+                slotElement.className = 'complete-time-slot';
+                slotElement.dataset.time = time;
+                slotElement.textContent = time.replace(':', 'h');
+                
+                // Styles de base
+                slotElement.style.padding = '1rem';
+                slotElement.style.borderRadius = '10px';
+                slotElement.style.textAlign = 'center';
+                slotElement.style.transition = 'all 0.3s ease';
+                slotElement.style.fontWeight = '500';
+                slotElement.style.cursor = 'pointer';
+                
+                // Vérifier si le créneau est occupé
+                if (occupiedTimes.includes(time)) {
+                    // Créneau occupé
+                    slotElement.style.border = '2px solid #ff6b6b';
+                    slotElement.style.background = 'rgba(255, 107, 107, 0.1)';
+                    slotElement.style.color = '#ff6b6b';
+                    slotElement.style.cursor = 'not-allowed';
+                    slotElement.textContent += ' (Occupé)';
+                    slotElement.title = 'Ce créneau est déjà réservé';
+                } else {
+                    // Créneau disponible
+                    slotElement.style.border = '2px solid #e0e0e0';
+                    slotElement.style.background = 'white';
+                    slotElement.style.color = '#2c3e50';
+                    slotElement.addEventListener('click', () => selectCompleteTime(slotElement));
+                    slotElement.addEventListener('mouseover', () => {
+                        if (!slotElement.classList.contains('selected')) {
+                            slotElement.style.borderColor = '#d4af37';
+                            slotElement.style.background = 'rgba(212, 175, 55, 0.1)';
+                        }
+                    });
+                    slotElement.addEventListener('mouseout', () => {
+                        if (!slotElement.classList.contains('selected')) {
+                            slotElement.style.borderColor = '#e0e0e0';
+                            slotElement.style.background = 'white';
+                        }
+                    });
+                }
+                
+                timeSlotsContainer.appendChild(slotElement);
+            });
+            
+            // Mettre à jour le message informatif avec animation
+            const availableCount = allTimeSlots.length - occupiedTimes.length;
+            const infoMessage = timeSlotsContainer.parentElement.querySelector('p');
+            if (infoMessage) {
+                const oldAvailable = infoMessage.dataset.lastAvailable || availableCount;
+                infoMessage.innerHTML = `<strong>${availableCount} créneaux disponibles</strong> sur ${allTimeSlots.length}`;
+                infoMessage.style.color = availableCount > 0 ? '#28a745' : '#dc3545';
+                infoMessage.dataset.lastAvailable = availableCount;
+                
+                // Animation si changement détecté
+                if (oldAvailable != availableCount && oldAvailable !== undefined) {
+                    infoMessage.style.animation = 'pulse 0.8s ease-in-out';
+                    setTimeout(() => {
+                        infoMessage.style.animation = '';
+                    }, 800);
+                    
+                    // Notification visuelle
+                    if (availableCount < oldAvailable) {
+                        showRealtimeNotification('⚠️ Un créneau vient d\'être réservé', 'warning');
+                    }
+                }
+            }
+        }
+
+        // Sélectionner un créneau horaire complet
+        function selectCompleteTime(element) {
+            if (!completeSelectedDate) {
+                alert('Veuillez d\'abord sélectionner une date');
+                return;
+            }
+            
+            // Retirer la sélection précédente
+            document.querySelectorAll('.complete-time-slot').forEach(slot => {
+                if (slot.style.cursor !== 'not-allowed') {
+                    slot.style.borderColor = '#e0e0e0';
+                    slot.style.background = 'white';
+                    slot.classList.remove('selected');
+                }
+            });
+            
+            // Sélectionner le nouveau créneau
+            element.style.borderColor = '#d4af37';
+            element.style.background = 'rgba(212, 175, 55, 0.1)';
+            element.classList.add('selected');
+            
+            completeSelectedTime = element.dataset.time;
+            
+            // Mettre à jour le récapitulatif
+            updateCompleteSummary();
+        }
+
+        // Mettre à jour le récapitulatif
+        function updateCompleteSummary() {
+            const summaryDiv = document.getElementById('complete-summary');
+            
+            // Récupérer les informations du formulaire
+            const firstName = document.getElementById('complete-firstname').value.trim();
+            const lastName = document.getElementById('complete-lastname').value.trim();
+            
+            // Vérifier si toutes les informations sont disponibles
+            if (completeSelectedService && completeSelectedDate && completeSelectedTime && firstName && lastName) {
+                summaryDiv.style.display = 'block';
+                
+                // Mettre à jour le contenu
+                document.getElementById('summary-complete-name').textContent = `${firstName} ${lastName}`;
+                document.getElementById('summary-complete-service').textContent = completeSelectedService.name;
+                document.getElementById('summary-complete-date').textContent = completeSelectedDate.toLocaleDateString('fr-FR', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                document.getElementById('summary-complete-time').textContent = completeSelectedTime;
+                document.getElementById('summary-complete-price').textContent = completeSelectedService.price + '€';
+            } else {
+                summaryDiv.style.display = 'none';
+            }
+        }
+
+        // Navigation du calendrier complet
+        function previousMonthComplete() {
+            completeCurrentDate.setMonth(completeCurrentDate.getMonth() - 1);
+            generateCompleteCalendar();
+        }
+
+        function nextMonthComplete() {
+            completeCurrentDate.setMonth(completeCurrentDate.getMonth() + 1);
+            generateCompleteCalendar();
+        }
+
+        // Soumettre la réservation complète
+        async function submitCompleteBooking(event) {
+            event.preventDefault();
+            
+            // Validation des données
+            const firstName = document.getElementById('complete-firstname').value.trim();
+            const lastName = document.getElementById('complete-lastname').value.trim();
+            const email = document.getElementById('complete-email').value.trim();
+            const phone = document.getElementById('complete-phone').value.trim();
+            const birthdate = document.getElementById('complete-birthdate').value;
+            const notes = document.getElementById('complete-notes').value.trim();
+            
+            // Validation complète
+            if (!firstName || !lastName || !email || !phone) {
+                alert('⚠️ Veuillez remplir tous les champs obligatoires (prénom, nom, email, téléphone)');
+                return;
+            }
+            
+            if (!completeSelectedService) {
+                alert('⚠️ Veuillez sélectionner une prestation');
+                document.getElementById('service-required-message').style.display = 'block';
+                return;
+            }
+            
+            if (!completeSelectedDate || !completeSelectedTime) {
+                alert('⚠️ Veuillez sélectionner une date et un créneau horaire');
+                return;
+            }
+            
+            // Préparer les données de réservation
+            const bookingData = {
+                // Service et créneau
+                service: completeSelectedService.name,
+                serviceType: completeSelectedService.service,
+                servicePrice: parseInt(completeSelectedService.price),
+                duration: parseInt(completeSelectedService.duration),
+                
+                // Date et heure
+                date: completeSelectedDate.toISOString().split('T')[0],
+                time: completeSelectedTime,
+                
+                // Informations client
+                firstName,
+                lastName,
+                email,
+                phone,
+                birthdate: birthdate || null,
+                notes: notes || '',
+                
+                // Mode de paiement et source
+                paymentMethod: 'cash',
+                origine: 'Site internet',
+                source: 'Homepage',
+                amount: parseInt(completeSelectedService.price)
+            };
+            
+            // Désactiver le bouton pendant l'envoi
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '⏳ Réservation en cours...';
+            submitBtn.disabled = true;
+            submitBtn.style.cursor = 'not-allowed';
+            
+            try {
+                console.log('📤 Envoi de la réservation:', bookingData);
+                
+                // Envoyer à l'API de réservation
+                const response = await fetch('/api/create-cash-booking', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(bookingData)
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('✅ Réservation confirmée:', result);
+                    
+                    // 🚀 SYNCHRONISATION IMMÉDIATE après réservation
+                    console.log('⚡ Synchronisation immédiate déclenchée...');
+                    
+                    // Attendre un petit délai pour que la BD soit mise à jour
+                    setTimeout(async () => {
+                        await loadCompleteOccupiedSlots(true);
+                        
+                        // Notifier immédiatement toutes les autres pages
+                        localStorage.setItem('laia-calendar-update', Date.now().toString());
+                        localStorage.setItem('laia-new-booking', JSON.stringify({
+                            date: bookingData.date,
+                            time: bookingData.time,
+                            service: bookingData.service,
+                            timestamp: Date.now()
+                        }));
+                        
+                        console.log('🔄 Synchronisation immédiate terminée');
+                    }, 500);
+                    
+                    // Succès
+                    submitBtn.innerHTML = '✅ Réservation confirmée !';
+                    submitBtn.style.background = 'linear-gradient(45deg, #28a745, #20c997)';
+                    
+                    setTimeout(() => {
+                        alert(`✅ Réservation confirmée !
+
+Service: ${bookingData.service}
+Client: ${bookingData.firstName} ${bookingData.lastName}
+Date: ${completeSelectedDate.toLocaleDateString('fr-FR')} à ${completeSelectedTime}
+Prix: ${bookingData.servicePrice}€ (paiement en espèces)
+
+📧 Vous allez recevoir un email de confirmation avec tous les détails.
+📱 Nous vous enverrons un rappel 24h avant votre rendez-vous.
+
+Merci de votre confiance !`);
+                        
+                        // Réinitialiser le formulaire
+                        resetCompleteBookingForm();
+                    }, 2000);
+                    
+                } else {
+                    const errorData = await response.json();
+                    console.error('❌ Erreur serveur:', errorData);
+                    throw new Error(errorData.message || 'Erreur lors de la réservation');
+                }
+            } catch (error) {
+                console.error('❌ Erreur réservation:', error);
+                alert(`❌ Erreur lors de la réservation: ${error.message}
+
+Veuillez réessayer ou nous contacter directement:
+📞 Téléphone
+📧 Email`);
+                
+                // Restaurer le bouton
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                submitBtn.style.cursor = 'pointer';
+                submitBtn.style.background = 'linear-gradient(45deg, #D4AF37, #B8860B, #DAA520)';
+            }
+        }
+        
+        // Réinitialiser le formulaire de réservation complet
+        function resetCompleteBookingForm() {
+            // Réinitialiser les variables
+            completeSelectedService = null;
+            completeSelectedDate = null;
+            completeSelectedTime = null;
+            
+            // Réinitialiser la sélection des services
+            document.querySelectorAll('.complete-service-option div').forEach(service => {
+                service.style.borderColor = '#e0e0e0';
+                service.style.background = 'rgba(255,255,255,0.9)';
+                service.style.transform = '';
+            });
+            
+            // Masquer le récapitulatif
+            document.getElementById('complete-summary').style.display = 'none';
+            document.getElementById('service-required-message').style.display = 'none';
+            
+            // Vider le formulaire
+            document.getElementById('complete-booking-form').reset();
+            
+            // Renouveler le calendrier
+            generateCompleteCalendar();
+            
+            // Restaurer le bouton
+            const submitBtn = document.querySelector('#complete-booking-form button[type="submit"]');
+            submitBtn.innerHTML = '✅ Confirmer ma Réservation';
+            submitBtn.disabled = false;
+            submitBtn.style.cursor = 'pointer';
+            submitBtn.style.background = 'linear-gradient(45deg, #D4AF37, #B8860B, #DAA520)';
+        }
+
+        // Ajouter des event listeners pour les champs de saisie pour mettre à jour le récapitulatif
+        document.addEventListener('DOMContentLoaded', function() {
+            const firstNameInput = document.getElementById('complete-firstname');
+            const lastNameInput = document.getElementById('complete-lastname');
+            
+            if (firstNameInput && lastNameInput) {
+                firstNameInput.addEventListener('input', updateCompleteSummary);
+                lastNameInput.addEventListener('input', updateCompleteSummary);
+            }
+            
+            // Charger les créneaux occupés et initialiser le calendrier synchronisé
+            loadCompleteOccupiedSlots(true);
+            
+            // 🚀 Démarrer la synchronisation temps réel
+            startCompleteRealtimeSync();
+        });
+
+        // Initialiser le système de réservation
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof BookingSystem !== 'undefined') {
+                new BookingSystem();
+            }
+        });
+    </script>
+    
+    <!-- Connexion réservation → planning admin -->
+    <script src="connect-reservation-to-planning.js"></script>
+    <script src="prevent-time-conflicts.js"></script>
+</body>
+</html>

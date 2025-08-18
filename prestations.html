@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nos Prestations - LAIA SKIN INSTITUT</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Lora', serif;
+            line-height: 1.8;
+            color: #2c3e50;
+            background: linear-gradient(135deg, #fdfbf7 0%, #f8f6f0 100%);
+        }
+
+        /* Header */
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(212, 181, 160, 0.2);
+            color: #2c3e50;
+            padding: 1.5rem 0;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .logo-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-image: url('logo-laia-skin.png');
+            background-size: 80px 80px;
+            background-position: center center;
+            background-repeat: no-repeat;
+            box-shadow: 0 6px 20px rgba(212, 181, 160, 0.4);
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        
+        .logo h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 0;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-menu a {
+            color: #2c3e50;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-menu a:hover {
+            background: linear-gradient(135deg, #d4b5a0, #c9a084);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(212, 181, 160, 0.3);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 8rem 2rem 4rem;
+        }
+
+        .page-title {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .page-title h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #B8860B, #DAA520, #CD7F32);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 600;
+        }
+
+        .page-subtitle {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.5rem;
+            color: #8b6f47;
+            font-style: italic;
+        }
+
+        /* VIP Service */
+        .vip-service {
+            background: linear-gradient(135deg, rgba(184, 134, 11, 0.15), rgba(218, 165, 32, 0.15));
+            border: 2px solid #B8860B;
+            border-radius: 30px;
+            padding: 3rem;
+            margin-bottom: 4rem;
+            box-shadow: 0 25px 50px rgba(184, 134, 11, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vip-service::before {
+            content: "VIP";
+            position: absolute;
+            top: -10px;
+            right: 30px;
+            background: #B8860B;
+            color: white;
+            padding: 0.5rem 2rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 0 0 15px 15px;
+            letter-spacing: 2px;
+        }
+
+        .vip-service .service-card {
+            border: none !important;
+            background: transparent !important;
+            box-shadow: none !important;
+        }
+
+        /* Services Grid */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 3rem;
+            margin-bottom: 4rem;
+        }
+
+        .service-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+            border: 1px solid rgba(212, 181, 160, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .service-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.15);
+        }
+
+        .service-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            display: block;
+        }
+
+        .service-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: #8b6f47;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .service-price {
+            font-size: 2.5rem;
+            color: #B8860B;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .service-duration {
+            color: #666;
+            margin-bottom: 1.5rem;
+            font-style: italic;
+        }
+
+        .service-description {
+            color: #5a6c7d;
+            margin-bottom: 2rem;
+            line-height: 1.7;
+        }
+
+        .service-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #B8860B, #DAA520, #CD7F32);
+            color: white;
+            padding: 1rem 2.5rem;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(184, 134, 11, 0.4);
+            text-align: center;
+            width: 100%;
+        }
+
+        .service-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(184, 134, 11, 0.6);
+        }
+
+        .info-banner {
+            background: rgba(184, 134, 11, 0.1);
+            border: 1px solid rgba(184, 134, 11, 0.3);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            margin-top: 3rem;
+        }
+
+        .info-banner h3 {
+            font-family: 'Playfair Display', serif;
+            color: #8b6f47;
+            margin-bottom: 1rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 6rem 1rem 2rem;
+            }
+            
+            .page-title h1 {
+                font-size: 2.5rem;
+            }
+            
+            .services-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            
+            .vip-service {
+                padding: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <div class="logo-circle" title="LAIA SKIN INSTITUT Logo"></div>
+                <h1>LAIA SKIN INSTITUT</h1>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="mon-institut.html">Accueil</a></li>
+                <li><a href="prestations.html">Services</a></li>
+                <li><a href="admin.html">Mon Compte</a></li>
+                <li><a href="mon-institut.html#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Page Header -->
+        <section class="page-header">
+            <div class="container">
+                <h1>Nos Prestations</h1>
+                <p>Découvrez nos soins innovants pour révéler votre beauté naturelle</p>
+            </div>
+        </section>
+
+        <!-- Services Section -->
+        <section class="services">
+            <div class="container">
+                <!-- Hydrocleaning -->
+                <div class="service-detail" id="hydrocleaning">
+                    <div class="service-content">
+                        <div class="service-info">
+                            <div class="service-badge">
+                                <i class="fas fa-droplet"></i>
+                            </div>
+                            <h2>Hydro'Cleaning</h2>
+                            <p class="service-subtitle">Hydratation profonde et éclat instantané</p>
+                            <p class="service-description">
+                                L'Hydro'Cleaning est un soin révolutionnaire qui combine nettoyage, exfoliation, 
+                                extraction et hydratation en une seule séance. Ce traitement non invasif 
+                                redonne instantanément éclat et douceur à votre peau.
+                            </p>
+                            <div class="service-benefits">
+                                <h4>Bénéfices :</h4>
+                                <ul>
+                                    <li>Nettoyage en profondeur des pores</li>
+                                    <li>Hydratation intense et durable</li>
+                                    <li>Éclat immédiat</li>
+                                    <li>Réduction des ridules</li>
+                                    <li>Teint unifié</li>
+                                </ul>
+                            </div>
+                            <div class="service-pricing">
+                                <div class="price-card">
+                                    <span class="price">90€</span>
+                                    <span class="duration">60 min</span>
+                                    <a href="booking.html?service=hydrafacial" class="btn btn-primary book-service-btn" data-service-name="Hydrafacial" data-service-price="90" data-service-duration="60">Réserver</a>
+                                </div>
+                                <div class="package-info">
+                                    <h5>Forfait 3 séances : 260€</h5>
+                                    <h5>Forfait 4 séances : 340€</h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="service-image">
+                            <div class="image-placeholder hydrafacial-bg"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Renaissance -->
+                <div class="service-detail reverse" id="renaissance">
+                    <div class="service-content">
+                        <div class="service-info">
+                            <div class="service-badge">
+                                <i class="fas fa-magic"></i>
+                            </div>
+                            <h2>Renaissance</h2>
+                            <p class="service-subtitle">Régénération cellulaire avancée</p>
+                            <p class="service-description">
+                                Le microneedling stimule la production naturelle de collagène grâce à des 
+                                micro-perforations contrôlées. Cette technique favorise le renouvellement 
+                                cellulaire pour une peau plus ferme et rajeunie.
+                            </p>
+                            <div class="service-benefits">
+                                <h4>Bénéfices :</h4>
+                                <ul>
+                                    <li>Stimulation du collagène</li>
+                                    <li>Réduction des cicatrices d'acné</li>
+                                    <li>Atténuation des ridules</li>
+                                    <li>Amélioration de la texture</li>
+                                    <li>Fermeté retrouvée</li>
+                                </ul>
+                            </div>
+                            <div class="service-pricing">
+                                <div class="price-card">
+                                    <span class="price">90€</span>
+                                    <span class="duration">75 min</span>
+                                    <a href="booking.html?service=microneedling" class="btn btn-primary book-service-btn" data-service-name="Renaissance" data-service-price="90" data-service-duration="75">Réserver</a>
+                                </div>
+                                <div class="package-info">
+                                    <h5>Forfait 3 séances : 260€</h5>
+                                    <h5>Forfait 4 séances : 340€</h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="service-image">
+                            <div class="image-placeholder microneedling-bg"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LED & BB Glow -->
+                <div class="service-detail" id="led-therapie">
+                    <div class="service-content">
+                        <div class="service-info">
+                            <div class="service-badge">
+                                <i class="fas fa-sun"></i>
+                            </div>
+                            <h2>LED Thérapie</h2>
+                            <p class="service-subtitle">Luminothérapie régénératrice</p>
+                            <p class="service-description">
+                                La thérapie par lumière LED stimule les processus naturels de réparation cellulaire. 
+                                Cette technologie non invasive traite l'inflammation, stimule la production de collagène 
+                                et améliore la texture et l'éclat de votre peau.
+                            </p>
+                            <div class="service-benefits">
+                                <h4>Bénéfices :</h4>
+                                <ul>
+                                    <li>Action anti-inflammatoire LED</li>
+                                    <li>Stimulation cellulaire</li>
+                                    <li>Teint unifié et lumineux</li>
+                                    <li>Effet maquillage naturel</li>
+                                    <li>Longue tenue (4-6 mois)</li>
+                                </ul>
+                            </div>
+                            <div class="service-pricing">
+                                <div class="price-card">
+                                    <span class="price">60€</span>
+                                    <span class="duration">45 min</span>
+                                    <a href="booking.html?service=led-therapie" class="btn btn-primary book-service-btn" data-service-name="LED Thérapie" data-service-price="60" data-service-duration="45">Réserver</a>
+                                </div>
+                                <div class="package-info">
+                                    <h5>Forfait 3 séances : 170€</h5>
+                                    <h5>Forfait 4 séances : 220€</h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="service-image">
+                            <div class="image-placeholder led-bg"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BB Glow -->
+                <div class="service-detail reverse" id="bb-glow">
+                    <div class="service-content">
+                        <div class="service-info">
+                            <div class="service-badge">
+                                <i class="fas fa-palette"></i>
+                            </div>
+                            <h2>BB Glow</h2>
+                            <p class="service-subtitle">Effet teint parfait longue durée</p>
+                            <p class="service-description">
+                                Le BB Glow est une technique révolutionnaire qui infuse des pigments naturels dans l'épiderme 
+                                pour créer un effet teint parfait. Ce soin semi-permanent apporte un maquillage naturel 
+                                qui dure de 4 à 6 mois.
+                            </p>
+                            <div class="service-benefits">
+                                <h4>Bénéfices :</h4>
+                                <ul>
+                                    <li>Teint unifié et lumineux</li>
+                                    <li>Effet maquillage naturel</li>
+                                    <li>Longue tenue (4-6 mois)</li>
+                                    <li>Couvrance des imperfections</li>
+                                    <li>Gain de temps quotidien</li>
+                                </ul>
+                            </div>
+                            <div class="service-pricing">
+                                <div class="price-card">
+                                    <span class="price">90€</span>
+                                    <span class="duration">90 min</span>
+                                    <a href="booking.html?service=bb-glow" class="btn btn-primary book-service-btn" data-service-name="BB Glow" data-service-price="90" data-service-duration="90">Réserver</a>
+                                </div>
+                                <div class="package-info">
+                                    <h5>Forfait 3 séances : 260€</h5>
+                                    <h5>Forfait 4 séances : 340€</h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="service-image">
+                            <div class="image-placeholder bbglow-bg"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hydroneedling (Combiné) -->
+                <div class="service-detail featured reverse" id="hydronaissance">
+                    <div class="service-content">
+                        <div class="service-info">
+                            <div class="service-badge featured">
+                                <i class="fas fa-gem"></i>
+                            </div>
+                            <h2>Hydroneedling</h2>
+                            <p class="service-subtitle">Le soin combiné d'exception</p>
+                            <p class="service-description">
+                                Notre soin signature qui combine les bienfaits de l'Hydro'Cleaning et de la 
+                                Renaissance en une seule séance. Pour des résultats exceptionnels et 
+                                une transformation visible de votre peau.
+                            </p>
+                            <div class="service-benefits">
+                                <h4>Bénéfices combinés :</h4>
+                                <ul>
+                                    <li>Hydratation profonde + régénération</li>
+                                    <li>Nettoyage complet + stimulation collagène</li>
+                                    <li>Résultats visibles immédiats</li>
+                                    <li>Traitement complet anti-âge</li>
+                                    <li>Efficacité maximale</li>
+                                </ul>
+                            </div>
+                            <div class="service-pricing featured-pricing">
+                                <div class="price-card featured">
+                                    <span class="combo-label">Soin Combiné</span>
+                                    <span class="price">Tarif sur mesure</span>
+                                    <span class="duration">120 min</span>
+                                    <a href="booking.html?service=hydroneedling" class="btn btn-white book-service-btn" data-service-name="Hydroneedling" data-service-price="150" data-service-duration="120">Réserver</a>
+                                </div>
+                                <div class="package-info">
+                                    <p>Tarification personnalisée selon vos besoins</p>
+                                    <p>Consultation gratuite incluse</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="service-image">
+                            <div class="image-placeholder hydroneedling-bg"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section Réservation avec Calendrier -->
+        <section class="reservation-section" style="padding: 4rem 0; background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(248,246,240,0.9));">
+            <div class="container">
+                <div style="text-align: center; margin-bottom: 3rem;">
+                    <h2 style="font-family: 'Playfair Display', serif; font-size: 2.5rem; color: #2c3e50; margin-bottom: 1rem;">📅 Réservation en Ligne</h2>
+                    <p style="font-size: 1.2rem; color: #5a6c7d;">Choisissez votre soin et réservez directement votre créneau</p>
+                </div>
+
+                <!-- Sélection du service -->
+                <div style="margin-bottom: 3rem;">
+                    <h3 style="color: #c9a084; margin-bottom: 2rem; text-align: center; font-family: 'Playfair Display', serif;">1. Choisissez votre soin</h3>
+                    <div class="services-grid-booking" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; max-width: 1000px; margin: 0 auto;">
+                        <div class="service-option" data-service="hydro_naissance" data-price="120" data-duration="90" onclick="selectService(this)">
+                            <div style="padding: 1.5rem; border: 2px solid #e0e0e0; border-radius: 15px; cursor: pointer; transition: all 0.3s ease; text-align: center; background: white; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                                <div style="font-size: 2.5rem; margin-bottom: 1rem;">🌟</div>
+                                <strong style="font-size: 1.2rem; color: #2c3e50;">Hydro'Naissance</strong>
+                                <div style="font-size: 0.9rem; color: #666; margin: 0.8rem 0; font-style: italic;">Protocole VIP exclusif</div>
+                                <div style="color: #d4af37; font-weight: bold; font-size: 1.1rem;">120€ • 90min</div>
+                            </div>
+                        </div>
+                        <div class="service-option" data-service="bb_glow" data-price="100" data-duration="90" onclick="selectService(this)">
+                            <div style="padding: 1.5rem; border: 2px solid #e0e0e0; border-radius: 15px; cursor: pointer; transition: all 0.3s ease; text-align: center; background: white; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                                <div style="font-size: 2.5rem; margin-bottom: 1rem;">✨</div>
+                                <strong style="font-size: 1.2rem; color: #2c3e50;">BB Glow</strong>
+                                <div style="font-size: 0.9rem; color: #666; margin: 0.8rem 0; font-style: italic;">Teint parfait semi-permanent</div>
+                                <div style="color: #d4af37; font-weight: bold; font-size: 1.1rem;">100€ • 90min</div>
+                            </div>
+                        </div>
+                        <div class="service-option" data-service="hydro_cleaning" data-price="90" data-duration="90" onclick="selectService(this)">
+                            <div style="padding: 1.5rem; border: 2px solid #e0e0e0; border-radius: 15px; cursor: pointer; transition: all 0.3s ease; text-align: center; background: white; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                                <div style="font-size: 2.5rem; margin-bottom: 1rem;">💧</div>
+                                <strong style="font-size: 1.2rem; color: #2c3e50;">Hydro'Cleaning</strong>
+                                <div style="font-size: 0.9rem; color: #666; margin: 0.8rem 0; font-style: italic;">Hydrafacial nouvelle génération</div>
+                                <div style="color: #d4af37; font-weight: bold; font-size: 1.1rem;">90€ • 90min</div>
+                            </div>
+                        </div>
+                        <div class="service-option" data-service="microneedling" data-price="70" data-duration="75" onclick="selectService(this)">
+                            <div style="padding: 1.5rem; border: 2px solid #e0e0e0; border-radius: 15px; cursor: pointer; transition: all 0.3s ease; text-align: center; background: white; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                                <div style="font-size: 2.5rem; margin-bottom: 1rem;">🔄</div>
+                                <strong style="font-size: 1.2rem; color: #2c3e50;">Renaissance</strong>
+                                <div style="font-size: 0.9rem; color: #666; margin: 0.8rem 0; font-style: italic;">Microneedling régénérateur</div>
+                                <div style="color: #d4af37; font-weight: bold; font-size: 1.1rem;">70€ • 75min</div>
+                            </div>
+                        </div>
+                        <div class="service-option" data-service="led_therapie" data-price="40" data-duration="30" onclick="selectService(this)">
+                            <div style="padding: 1.5rem; border: 2px solid #e0e0e0; border-radius: 15px; cursor: pointer; transition: all 0.3s ease; text-align: center; background: white; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                                <div style="font-size: 2.5rem; margin-bottom: 1rem;">💡</div>
+                                <strong style="font-size: 1.2rem; color: #2c3e50;">LED Thérapie</strong>
+                                <div style="font-size: 0.9rem; color: #666; margin: 0.8rem 0; font-style: italic;">Photothérapie par lumière</div>
+                                <div style="color: #d4af37; font-weight: bold; font-size: 1.1rem;">40€ • 30min</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Message de sélection -->
+                <div id="service-selection-message" style="text-align: center; padding: 2rem; background: rgba(212, 175, 55, 0.1); border-radius: 15px; margin: 2rem 0; border: 2px solid rgba(212, 175, 55, 0.2);">
+                    <p style="color: #c9a084; font-weight: 600; margin: 0; font-size: 1.1rem;">
+                        ⬆️ Sélectionnez d'abord un service pour accéder au calendrier de réservation
+                    </p>
+                </div>
+
+                <!-- Calendrier (masqué par défaut) -->
+                <div id="booking-calendar" style="display: none;">
+                    <h3 style="color: #c9a084; margin: 3rem 0 2rem 0; text-align: center; font-family: 'Playfair Display', serif;">2. Choisissez votre créneau</h3>
+                    
+                    <div class="calendar-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; margin: 2rem 0; max-width: 900px; margin-left: auto; margin-right: auto;">
+                        <div class="calendar" style="background: white; border-radius: 20px; padding: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid rgba(212, 181, 160, 0.2);">
+                            <div class="calendar-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                                <button class="calendar-nav" onclick="previousMonth()" style="background: none; border: 2px solid #d4af37; color: #d4af37; padding: 0.8rem 1.2rem; border-radius: 10px; cursor: pointer; transition: all 0.3s ease; font-weight: 500;">&lt;</button>
+                                <h4 id="currentMonth" style="margin: 0; color: #2c3e50; font-family: 'Playfair Display', serif; font-size: 1.3rem;">Janvier 2025</h4>
+                                <button class="calendar-nav" onclick="nextMonth()" style="background: none; border: 2px solid #d4af37; color: #d4af37; padding: 0.8rem 1.2rem; border-radius: 10px; cursor: pointer; transition: all 0.3s ease; font-weight: 500;">&gt;</button>
+                            </div>
+                            <div class="calendar-grid" id="calendarGrid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem;">
+                                <!-- Calendar days will be generated by JavaScript -->
+                            </div>
+                        </div>
+
+                        <div style="background: white; border-radius: 20px; padding: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid rgba(212, 181, 160, 0.2);">
+                            <h4 style="margin-bottom: 1.5rem; color: #c9a084; font-family: 'Playfair Display', serif; font-size: 1.2rem;">Créneaux disponibles</h4>
+                            <div class="time-slots" id="timeSlots" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem;">
+                                <div class="time-slot" onclick="selectTime('09:00')" style="padding: 1rem; border: 2px solid #e0e0e0; border-radius: 10px; text-align: center; cursor: pointer; transition: all 0.3s ease; font-weight: 500;">09h00</div>
+                                <div class="time-slot" onclick="selectTime('10:30')" style="padding: 1rem; border: 2px solid #e0e0e0; border-radius: 10px; text-align: center; cursor: pointer; transition: all 0.3s ease; font-weight: 500;">10h30</div>
+                                <div class="time-slot" onclick="selectTime('14:00')" style="padding: 1rem; border: 2px solid #e0e0e0; border-radius: 10px; text-align: center; cursor: pointer; transition: all 0.3s ease; font-weight: 500;">14h00</div>
+                                <div class="time-slot" onclick="selectTime('15:30')" style="padding: 1rem; border: 2px solid #e0e0e0; border-radius: 10px; text-align: center; cursor: pointer; transition: all 0.3s ease; font-weight: 500;">15h30</div>
+                                <div class="time-slot" onclick="selectTime('17:00')" style="padding: 1rem; border: 2px solid #e0e0e0; border-radius: 10px; text-align: center; cursor: pointer; transition: all 0.3s ease; font-weight: 500;">17h00</div>
+                            </div>
+                            <p style="margin-top: 1.5rem; font-size: 0.9rem; color: #666; text-align: center; font-style: italic;">
+                                <strong>Sélectionnez d'abord une date</strong> pour voir les créneaux disponibles
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Bouton de réservation -->
+                    <div id="booking-action" style="display: none; text-align: center; margin: 3rem 0;">
+                        <button id="proceedToBooking" onclick="proceedToFullBooking()" style="
+                            background: linear-gradient(45deg, #D4AF37, #B8860B, #DAA520);
+                            color: white;
+                            padding: 1.2rem 2.5rem;
+                            font-size: 1.2rem;
+                            font-weight: bold;
+                            border: none;
+                            border-radius: 35px;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+                            text-transform: uppercase;
+                            letter-spacing: 0.5px;
+                        " onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 10px 30px rgba(212, 175, 55, 0.6)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 6px 20px rgba(212, 175, 55, 0.4)'">
+                            🎯 Réserver ce créneau
+                        </button>
+                        <div style="margin-top: 1rem; color: #666; font-size: 0.9rem;">
+                            <p>✅ <strong>Sans engagement</strong> • 💰 <strong>Paiement en espèces le jour J</strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="cta-section">
+            <div class="container">
+                <div class="cta-content">
+                    <h3>Besoin d'aide pour choisir ?</h3>
+                    <p>Contactez-nous pour une consultation personnalisée gratuite</p>
+                    <div class="cta-buttons">
+                        <a href="mon-institut.html#contact" class="btn btn-secondary">Nous contacter</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Laia Skin Institut</h4>
+                    <p>Une peau respectée, une beauté affirmée</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Liens rapides</h4>
+                    <ul>
+                        <li><a href="index.html">Accueil</a></li>
+                        <li><a href="prestations.html">Prestations</a></li>
+                        <li><a href="index.html#contact">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Suivez-nous</h4>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Laia Skin Institut. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        // === SYNCHRONISATION IMMÉDIATE CALENDRIER PRESTATIONS ===
+        
+        // Variable pour stocker les créneaux occupés
+        let prestationsOccupiedSlots = {};
+        let prestationsLastUpdateTime = 0;
+
+        // Charger les créneaux occupés avec synchronisation immédiate
+        async function loadPrestationsOccupiedSlots(forceUpdate = false) {
+            try {
+                const url = `/api/appointments/occupied-slots?timestamp=${Date.now()}`;
+                console.log('📅 [Prestations] Chargement des créneaux occupés...');
+                const response = await fetch(url);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const newPrestationsOccupiedSlots = {};
+                    
+                    // Organiser les créneaux par date
+                    data.occupiedSlots.forEach(slot => {
+                        const date = new Date(slot.datetime);
+                        const dateKey = date.toISOString().split('T')[0];
+                        const timeKey = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                        
+                        if (!newPrestationsOccupiedSlots[dateKey]) {
+                            newPrestationsOccupiedSlots[dateKey] = [];
+                        }
+                        newPrestationsOccupiedSlots[dateKey].push(timeKey);
+                    });
+                    
+                    // Vérifier s'il y a des changements
+                    const hasChanges = JSON.stringify(prestationsOccupiedSlots) !== JSON.stringify(newPrestationsOccupiedSlots);
+                    
+                    if (hasChanges || forceUpdate) {
+                        prestationsOccupiedSlots = newPrestationsOccupiedSlots;
+                        prestationsLastUpdateTime = Date.now();
+                        
+                        console.log('🔄 [Prestations] Créneaux occupés mis à jour:', Object.keys(prestationsOccupiedSlots).length, 'jours');
+                        
+                        // Mettre à jour l'affichage du calendrier si existe
+                        if (typeof updatePrestationsCalendarDisplay === 'function') {
+                            updatePrestationsCalendarDisplay();
+                        }
+                        
+                        // Notifier les autres pages
+                        localStorage.setItem('laia-calendar-update', prestationsLastUpdateTime.toString());
+                    }
+                } else {
+                    console.warn('⚠️ [Prestations] Impossible de charger les créneaux occupés');
+                }
+            } catch (error) {
+                console.error('❌ [Prestations] Erreur chargement créneaux occupés:', error);
+            }
+        }
+
+        // Fonction pour vérifier si un créneau est disponible
+        function isPrestationTimeSlotAvailable(date, time) {
+            const dateKey = date.toISOString().split('T')[0];
+            const occupiedTimes = prestationsOccupiedSlots[dateKey] || [];
+            return !occupiedTimes.includes(time);
+        }
+
+        // Fonction pour démarrer la synchronisation temps réel
+        function startPrestationsRealtimeSync() {
+            // Polling rapide toutes les 3 secondes
+            setInterval(() => {
+                loadPrestationsOccupiedSlots();
+            }, 3000);
+            
+            // Écouter les changements depuis les autres pages
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'laia-calendar-update') {
+                    const updateTime = parseInt(e.newValue);
+                    if (updateTime > prestationsLastUpdateTime) {
+                        console.log('🔔 [Prestations] Mise à jour détectée depuis une autre page');
+                        loadPrestationsOccupiedSlots(true);
+                    }
+                }
+                
+                // Écouter spécifiquement les nouvelles réservations
+                if (e.key === 'laia-new-booking') {
+                    const bookingData = JSON.parse(e.newValue);
+                    console.log('🆕 [Prestations] Nouvelle réservation détectée:', bookingData);
+                    setTimeout(() => loadPrestationsOccupiedSlots(true), 200);
+                }
+            });
+            
+            // Actualiser quand l'utilisateur revient sur l'onglet
+            window.addEventListener('focus', () => {
+                console.log('👁️ [Prestations] Page en focus - actualisation');
+                loadPrestationsOccupiedSlots();
+            });
+            
+            console.log('⚡ [Prestations] Synchronisation temps réel activée');
+        }
+
+        // Initialiser la synchronisation immédiate au chargement
+        document.addEventListener('DOMContentLoaded', function() {
+            // Charger immédiatement les créneaux occupés
+            loadPrestationsOccupiedSlots(true);
+            
+            // Démarrer la synchronisation temps réel
+            startPrestationsRealtimeSync();
+            
+            console.log('🚀 [Prestations] Synchronisation immédiate activée');
+        });
+    </script>
+
+<!-- Système de synchronisation centralisé -->
+<script src="/sync-system.js"></script>
+<script>
+    // Initialisation spécifique à la page
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🔄 Système de synchronisation chargé');
+        
+        // Enregistrer un callback pour les mises à jour
+        if (window.syncManager) {
+            window.syncManager.onUpdate((booking, action) => {
+                console.log('📊 Mise à jour reçue:', action, booking);
+                
+                // Rafraîchir les éléments de la page si nécessaire
+                if (typeof refreshPageElements === 'function') {
+                    refreshPageElements();
+                }
+                
+                // Pour l'admin dashboard
+                if (typeof loadAdminReservations === 'function') {
+                    loadAdminReservations(true);
+                }
+                
+                // Pour le calendrier
+                if (typeof updateCalendar === 'function') {
+                    updateCalendar();
+                }
+                
+                // Pour les tableaux
+                if (typeof updateReservationsTable === 'function') {
+                    updateReservationsTable();
+                }
+            });
+        }
+    });
+</script>
+
+<script>
+    // Adapter les formulaires de réservation existants
+    document.addEventListener('DOMContentLoaded', function() {
+        // Intercepter tous les formulaires de réservation
+        const bookingForms = document.querySelectorAll('form[id*="booking"], form[id*="reservation"], .booking-form, .reservation-form');
+        
+        bookingForms.forEach(form => {
+            console.log('📝 Formulaire de réservation trouvé:', form.id || form.className);
+            
+            // Remplacer le gestionnaire de soumission
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                console.log('🚀 Soumission interceptée par SyncManager');
+                
+                // Extraire les données du formulaire
+                const formData = new FormData(form);
+                const bookingData = {};
+                
+                for (let [key, value] of formData.entries()) {
+                    bookingData[key] = value;
+                }
+                
+                // Déterminer la source
+                const source = window.location.pathname.includes('admin') ? 'admin' : 
+                              window.location.pathname.includes('espace-client') ? 'client-space' :
+                              window.location.pathname.includes('prestations') ? 'prestations' :
+                              'booking-page';
+                
+                try {
+                    // Utiliser SyncManager pour créer la réservation
+                    const result = await window.syncManager.createBooking(bookingData, source);
+                    
+                    if (result) {
+                        // Afficher un message de succès
+                        if (typeof showSuccessMessage === 'function') {
+                            showSuccessMessage('Réservation confirmée!');
+                        } else {
+                            alert('✅ Votre réservation a été confirmée!');
+                        }
+                        
+                        // Réinitialiser le formulaire
+                        form.reset();
+                        
+                        // Rediriger si nécessaire
+                        if (bookingData.redirect) {
+                            setTimeout(() => {
+                                window.location.href = bookingData.redirect;
+                            }, 2000);
+                        }
+                    }
+                } catch (error) {
+                    console.error('❌ Erreur réservation:', error);
+                    alert('Une erreur est survenue. Veuillez réessayer.');
+                }
+                
+                return false;
+            });
+        });
+    });
+</script>
+
+<!-- Système de synchronisation des réservations -->
+<script src="sync-reservations.js"></script>
+
+</body>
+</html>
