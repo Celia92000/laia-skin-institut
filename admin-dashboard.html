@@ -368,7 +368,6 @@
                     </button>
                 </div>
                 <div id="calendar-container" style="background: white; padding: 2rem; border-radius: 12px;">
-                    <h3>Calendrier Mensuel</h3>
                     <div id="calendar-content">
                         <!-- Le calendrier sera injecté ici -->
                         <p style="color: #666;">Chargement du calendrier...</p>
@@ -724,6 +723,7 @@
                 console.log('📅 Activation du calendrier Planning');
                 setTimeout(() => {
                     renderPlanningCalendar();
+                    loadUpcomingAppointments();
                 }, 100);
             }
             
@@ -938,6 +938,175 @@
             calendarDate = new Date();
             renderPlanningCalendar();
         }
+        
+        // Fonction pour charger et afficher les prochains rendez-vous
+        function loadUpcomingAppointments() {
+            console.log('📋 Chargement des prochains rendez-vous');
+            const container = document.getElementById('planningUpcomingAppointments');
+            if (!container) return;
+            
+            try {
+                // Récupérer les rendez-vous depuis localStorage
+                const appointments = JSON.parse(localStorage.getItem('allReservations') || '[]');
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                // Filtrer les rendez-vous futurs
+                const upcomingAppointments = appointments
+                    .filter(apt => {
+                        const aptDate = new Date(apt.datetime || apt.date);
+                        return aptDate >= today;
+                    })
+                    .sort((a, b) => {
+                        const dateA = new Date(a.datetime || a.date);
+                        const dateB = new Date(b.datetime || b.date);
+                        return dateA - dateB;
+                    })
+                    .slice(0, 10); // Limiter à 10 prochains rendez-vous
+                
+                if (upcomingAppointments.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; color: #999; padding: 2rem;">
+                            <i class="fas fa-calendar-times" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                            <p>Aucun rendez-vous à venir</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Créer le tableau des rendez-vous
+                let tableHTML = `
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid #d4b5a0;">
+                                <th style="padding: 1rem; text-align: left; color: #2c3e50;">Date</th>
+                                <th style="padding: 1rem; text-align: left; color: #2c3e50;">Heure</th>
+                                <th style="padding: 1rem; text-align: left; color: #2c3e50;">Client</th>
+                                <th style="padding: 1rem; text-align: left; color: #2c3e50;">Service</th>
+                                <th style="padding: 1rem; text-align: left; color: #2c3e50;">Durée</th>
+                                <th style="padding: 1rem; text-align: left; color: #2c3e50;">Prix</th>
+                                <th style="padding: 1rem; text-align: left; color: #2c3e50;">Statut</th>
+                                <th style="padding: 1rem; text-align: center; color: #2c3e50;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                upcomingAppointments.forEach((apt, index) => {
+                    const aptDate = new Date(apt.datetime || apt.date);
+                    const dateStr = aptDate.toLocaleDateString('fr-FR', {
+                        weekday: 'short',
+                        day: 'numeric',
+                        month: 'short'
+                    });
+                    const timeStr = apt.time || aptDate.toLocaleTimeString('fr-FR', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    
+                    const isToday = aptDate.toDateString() === today.toDateString();
+                    const rowStyle = isToday ? 'background: #fff3cd;' : (index % 2 === 0 ? 'background: #f8f9fa;' : '');
+                    
+                    tableHTML += `
+                        <tr style="${rowStyle}">
+                            <td style="padding: 1rem; border-bottom: 1px solid #e9ecef;">
+                                ${isToday ? '<strong style="color: #d4b5a0;">Aujourd\'hui</strong>' : dateStr}
+                            </td>
+                            <td style="padding: 1rem; border-bottom: 1px solid #e9ecef;">
+                                <strong>${timeStr}</strong>
+                            </td>
+                            <td style="padding: 1rem; border-bottom: 1px solid #e9ecef;">
+                                ${apt.clientName || apt.client?.name || 'Client'}
+                                ${apt.phone ? `<br><small style="color: #6c757d;">📞 ${apt.phone}</small>` : ''}
+                            </td>
+                            <td style="padding: 1rem; border-bottom: 1px solid #e9ecef;">
+                                <strong style="color: #d4b5a0;">${apt.service || 'Service'}</strong>
+                            </td>
+                            <td style="padding: 1rem; border-bottom: 1px solid #e9ecef;">
+                                ${apt.duration || 60} min
+                            </td>
+                            <td style="padding: 1rem; border-bottom: 1px solid #e9ecef;">
+                                <strong>${apt.price || apt.amount || 0}€</strong>
+                            </td>
+                            <td style="padding: 1rem; border-bottom: 1px solid #e9ecef;">
+                                <span style="
+                                    background: ${apt.status === 'confirmé' ? '#d4edda' : '#fff3cd'};
+                                    color: ${apt.status === 'confirmé' ? '#155724' : '#856404'};
+                                    padding: 0.25rem 0.75rem;
+                                    border-radius: 12px;
+                                    font-size: 0.85rem;
+                                    font-weight: 500;
+                                ">
+                                    ${apt.status || 'Confirmé'}
+                                </span>
+                            </td>
+                            <td style="padding: 1rem; border-bottom: 1px solid #e9ecef; text-align: center;">
+                                <button onclick="viewAppointmentDetails('${apt._id}')" style="
+                                    background: #d4b5a0;
+                                    color: white;
+                                    border: none;
+                                    padding: 0.5rem 1rem;
+                                    border-radius: 6px;
+                                    cursor: pointer;
+                                    margin: 0 0.25rem;
+                                ">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button onclick="editAppointment('${apt._id}')" style="
+                                    background: #6c757d;
+                                    color: white;
+                                    border: none;
+                                    padding: 0.5rem 1rem;
+                                    border-radius: 6px;
+                                    cursor: pointer;
+                                    margin: 0 0.25rem;
+                                ">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                tableHTML += `
+                        </tbody>
+                    </table>
+                `;
+                
+                container.innerHTML = tableHTML;
+                
+            } catch (error) {
+                console.error('Erreur chargement rendez-vous:', error);
+                container.innerHTML = `
+                    <div style="text-align: center; color: #dc3545; padding: 2rem;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                        <p>Erreur lors du chargement des rendez-vous</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Fonctions pour les actions sur les rendez-vous
+        function viewAppointmentDetails(id) {
+            console.log('Voir détails du rendez-vous:', id);
+            // À implémenter : modal avec détails
+        }
+        
+        function editAppointment(id) {
+            console.log('Modifier le rendez-vous:', id);
+            // À implémenter : modal d'édition
+        }
+        
+        // Charger les rendez-vous au démarrage si on est sur Planning
+        document.addEventListener('DOMContentLoaded', function() {
+            const planningSection = document.getElementById('planning');
+            if (planningSection && planningSection.classList.contains('active')) {
+                setTimeout(() => {
+                    renderPlanningCalendar();
+                    loadUpcomingAppointments();
+                }, 500);
+            }
+        });
     </script>
     
     <!-- Système de synchronisation des réservations -->
