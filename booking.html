@@ -1103,11 +1103,55 @@
                 // Sauvegarder les détails dans localStorage avant la redirection
                 const detailsToSave = {
                     ...bookingData,
-                    _id: result._id || result.bookingId
+                    _id: result._id || result.bookingId || `booking_${Date.now()}`,
+                    status: 'confirmé',
+                    createdAt: new Date().toISOString()
                 };
                 console.log('💾 Sauvegarde dans localStorage:', detailsToSave);
                 console.log('💰 Prix sauvegardé:', detailsToSave.price, 'ou amount:', detailsToSave.amount);
                 localStorage.setItem('lastBookingDetails', JSON.stringify(detailsToSave));
+                
+                // IMPORTANT: Ajouter aussi à la liste complète des réservations pour l'admin
+                let allReservations = JSON.parse(localStorage.getItem('allReservations') || '[]');
+                
+                // Créer un objet réservation complet pour l'admin
+                const adminReservation = {
+                    _id: result._id || result.bookingId || `booking_${Date.now()}`,
+                    datetime: `${bookingData.date}T${bookingData.time.replace('h', ':')}:00`,
+                    date: bookingData.date,
+                    time: bookingData.time,
+                    clientName: `${bookingData.firstName} ${bookingData.lastName}`,
+                    client: {
+                        name: `${bookingData.firstName} ${bookingData.lastName}`,
+                        email: bookingData.email,
+                        phone: bookingData.phone
+                    },
+                    email: bookingData.email,
+                    phone: bookingData.phone,
+                    service: bookingData.service,
+                    price: currentService.price,
+                    amount: currentService.price,
+                    duration: currentService.duration,
+                    status: 'confirmé',
+                    source: 'Site Internet',
+                    paymentMethod: 'cash',
+                    notes: bookingData.specialRequests || '',
+                    createdAt: new Date().toISOString()
+                };
+                
+                // Ajouter à la liste
+                allReservations.push(adminReservation);
+                
+                // Sauvegarder dans localStorage
+                localStorage.setItem('allReservations', JSON.stringify(allReservations));
+                
+                // Notifier le système de synchronisation
+                localStorage.setItem('laia-new-booking', JSON.stringify(adminReservation));
+                localStorage.setItem('lastBookingUpdate', Date.now().toString());
+                localStorage.setItem('laia-calendar-update', Date.now().toString());
+                
+                console.log('✅ Réservation ajoutée à l\'admin:', adminReservation);
+                
                 // Redirect to success page
                 window.location.href = 'booking-success.html?booking_id=' + (result._id || result.bookingId);
                 
