@@ -234,16 +234,27 @@
         </div>
         
         <div class="actions">
-            <a href="http://localhost:3001/client-dashboard.html" class="btn btn-primary">
+            <a href="connexion-espace-client.html" class="btn btn-primary">
                 🔑 Accéder à votre espace client
             </a>
-            <a href="/mon-institut.html" class="btn btn-secondary">
+            <a href="index.html" class="btn btn-secondary">
                 🏠 Retour à l'accueil
             </a>
         </div>
     </div>
 
     <script>
+        // Gestion de la navigation
+        if (window.history && window.history.pushState) {
+            // Ajouter une entrée dans l'historique
+            window.history.pushState(null, null, window.location.href);
+            
+            // Si l'utilisateur clique sur Retour, le rediriger vers l'accueil
+            window.onpopstate = function () {
+                window.location.href = 'index.html';
+            };
+        }
+        
         // Récupérer les paramètres URL
         const urlParams = new URLSearchParams(window.location.search);
         const bookingId = urlParams.get('booking_id');
