@@ -727,6 +727,14 @@
                 }, 100);
             }
             
+            // Charger les réservations si on va sur l'onglet Réservations
+            if (tabName === 'reservations') {
+                console.log('📋 Chargement des réservations');
+                setTimeout(() => {
+                    loadAllReservations();
+                }, 100);
+            }
+            
             // Mettre à jour le menu
             document.querySelectorAll('.menu-item').forEach(item => {
                 item.classList.remove('active');
@@ -1125,8 +1133,7 @@
     <!-- Système de paiements et comptabilité -->
     <script src="payment-accounting-system.js"></script>
     
-    <!-- Calendrier intégré pour l'onglet Planning -->
-    <script src="calendar-planning.js"></script>
+    <!-- Système de synchronisation -->
     <script src="sync-system.js"></script>
     
     <!-- Système de fidélité avec parrainage -->
