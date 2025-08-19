@@ -39,29 +39,36 @@ class PlanningCalendar {
 
     render() {
         const container = document.getElementById('planning');
-        if (!container) return;
+        if (!container) {
+            console.warn('⚠️ Onglet Planning non trouvé');
+            return;
+        }
 
-        // Trouver ou créer la zone du calendrier
-        let calendarSection = container.querySelector('.calendar-section');
-        if (!calendarSection) {
-            calendarSection = document.createElement('div');
-            calendarSection.className = 'calendar-section';
-            calendarSection.style.cssText = `
-                background: white;
-                padding: 2rem;
-                border-radius: 12px;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                margin-top: 2rem;
-            `;
+        // Chercher le div qui contient "Le calendrier interactif apparaîtra ici..."
+        const placeholderDivs = container.querySelectorAll('div');
+        let targetDiv = null;
+        
+        placeholderDivs.forEach(div => {
+            if (div.textContent.includes('calendrier interactif apparaîtra ici')) {
+                targetDiv = div.parentElement; // Prendre le parent (le div avec background white)
+            }
+        });
+        
+        if (!targetDiv) {
+            console.warn('⚠️ Zone calendrier non trouvée, création...');
+            targetDiv = document.createElement('div');
+            targetDiv.style.cssText = 'background: white; padding: 2rem; border-radius: 12px; margin-top: 2rem;';
             
-            // Remplacer le placeholder
-            const placeholder = container.querySelector('div:last-child');
-            if (placeholder && placeholder.textContent.includes('calendrier interactif')) {
-                placeholder.replaceWith(calendarSection);
+            // L'insérer après les cartes de stats
+            const statsDiv = container.querySelector('div[style*="display: flex"]');
+            if (statsDiv && statsDiv.nextSibling) {
+                container.insertBefore(targetDiv, statsDiv.nextSibling.nextSibling);
             } else {
-                container.appendChild(calendarSection);
+                container.appendChild(targetDiv);
             }
         }
+
+        const calendarSection = targetDiv;
 
         calendarSection.innerHTML = `
             <div class="calendar-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
@@ -322,16 +329,47 @@ class PlanningCalendar {
 // Créer une instance globale
 window.planningCalendar = new PlanningCalendar();
 
+// Fonction pour initialiser le calendrier quand l'onglet Planning est cliqué
+window.initPlanningCalendar = function() {
+    console.log('🚀 Initialisation calendrier Planning demandée');
+    if (!window.planningCalendar.initialized) {
+        window.planningCalendar.init();
+        window.planningCalendar.initialized = true;
+    } else {
+        window.planningCalendar.render();
+        window.planningCalendar.loadAppointments();
+    }
+};
+
 // Initialiser quand le DOM est prêt
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         // Attendre un peu pour que l'admin dashboard soit chargé
         setTimeout(() => {
-            window.planningCalendar.init();
-        }, 500);
+            // Vérifier si l'onglet Planning est déjà visible
+            const planningTab = document.getElementById('planning');
+            if (planningTab && planningTab.style.display !== 'none') {
+                window.planningCalendar.init();
+                window.planningCalendar.initialized = true;
+            }
+        }, 1000);
     });
 } else {
     setTimeout(() => {
-        window.planningCalendar.init();
-    }, 500);
+        // Vérifier si l'onglet Planning est déjà visible
+        const planningTab = document.getElementById('planning');
+        if (planningTab && planningTab.style.display !== 'none') {
+            window.planningCalendar.init();
+            window.planningCalendar.initialized = true;
+        }
+    }, 1000);
 }
+
+// Écouter les changements d'onglets
+document.addEventListener('click', function(e) {
+    if (e.target.textContent && e.target.textContent.includes('Planning')) {
+        setTimeout(() => {
+            window.initPlanningCalendar();
+        }, 100);
+    }
+});

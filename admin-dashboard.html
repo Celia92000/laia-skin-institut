@@ -716,6 +716,14 @@
                 targetSection.classList.add('active');
             }
             
+            // Initialiser le calendrier si on va sur l'onglet Planning
+            if (tabName === 'planning' && window.initPlanningCalendar) {
+                console.log('📅 Activation du calendrier Planning');
+                setTimeout(() => {
+                    window.initPlanningCalendar();
+                }, 100);
+            }
+            
             // Mettre à jour le menu
             document.querySelectorAll('.menu-item').forEach(item => {
                 item.classList.remove('active');
