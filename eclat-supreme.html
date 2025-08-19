@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hydro'Naissance - LAIA SKIN INSTITUT</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Lora', serif;
+            line-height: 1.8;
+            color: #2c3e50;
+            background: linear-gradient(135deg, #fdfbf7 0%, #f8f6f0 100%);
+            font-weight: 400;
+            letter-spacing: 0.3px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(212, 181, 160, 0.2);
+            color: #2c3e50;
+            padding: 1.5rem 0;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .logo-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-image: url('logo-laia-skin.png');
+            background-size: 80px 80px;
+            background-position: center center;
+            background-repeat: no-repeat;
+            box-shadow: 0 6px 20px rgba(212, 181, 160, 0.4);
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        
+        .logo h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 0;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-menu a {
+            color: #2c3e50;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-menu a:hover {
+            background: linear-gradient(135deg, #d4b5a0, #c9a084);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(212, 181, 160, 0.3);
+        }
+
+        /* Main Content */
+        .service-detail {
+            padding: 2rem 0 2rem;
+            min-height: 100vh;
+        }
+
+        .hero-section {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-top: 3rem;
+        }
+
+        .service-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5rem;
+            margin-top: 4rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #D4AF37, #B8860B, #DAA520, #CD7F32);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 4s ease-in-out infinite;
+            position: relative;
+            filter: drop-shadow(0 4px 8px rgba(212, 175, 55, 0.4));
+        }
+        
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .service-subtitle {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.4rem;
+            color: #5a6c7d;
+            margin-bottom: 0.5rem;
+            font-weight: 400;
+            font-style: italic;
+            letter-spacing: 0.5px;
+        }
+
+        .price-highlight {
+            display: inline-block;
+            background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(253,251,247,0.95), rgba(248,246,240,0.98));
+            color: #c9a084;
+            padding: 2rem 3rem;
+            border-radius: 25px;
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin-bottom: 3rem;
+            border: 3px solid transparent;
+            background-clip: padding-box;
+            box-shadow: 0 25px 80px rgba(212, 181, 160, 0.35), 
+                        inset 0 1px 0 rgba(255,255,255,0.9),
+                        0 0 0 3px rgba(212, 181, 160, 0.3);
+            position: relative;
+        }
+        
+        .price-highlight::before {
+            content: "";
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(135deg, #D4AF37, #B8860B, #DAA520, #CD7F32);
+            border-radius: 27px;
+            z-index: -1;
+            animation: gradientShift 4s ease-in-out infinite;
+        }
+
+        .full-width-section {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+            border: 1px solid rgba(212, 181, 160, 0.2);
+        }
+
+        .combo-showcase {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 1rem;
+            margin: 2rem auto;
+            max-width: 500px;
+            flex-wrap: wrap;
+        }
+
+        .combo-item {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid rgba(212, 175, 55, 0.6);
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.2), 
+                        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            transition: all 0.3s ease;
+            flex: 1;
+            width: 140px;
+            height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .combo-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 60px rgba(212, 175, 55, 0.5),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+                        0 0 50px rgba(212, 175, 55, 0.4);
+            border-color: rgba(212, 175, 55, 0.8);
+        }
+
+        .combo-item::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+            transform: rotate(-45deg);
+            transition: all 0.6s ease;
+            opacity: 0;
+        }
+
+        .combo-item:hover::before {
+            opacity: 1;
+            transform: rotate(-45deg) translateX(50%);
+        }
+
+        .combo-item img {
+            width: 70px;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 50%;
+            margin-bottom: 0.5rem;
+            border: 2px solid rgba(212, 175, 55, 0.7);
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .combo-item:hover img {
+            transform: scale(1.05);
+            box-shadow: 0 15px 40px rgba(212, 175, 55, 0.6),
+                        inset 0 2px 4px rgba(255, 255, 255, 0.6),
+                        0 0 40px rgba(212, 175, 55, 0.5);
+        }
+
+        .combo-item h4 {
+            font-family: 'Cormorant Garamond', serif;
+            background: linear-gradient(135deg, #D4AF37, #B8860B, #DAA520, #CD7F32);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0;
+            font-size: 0.9rem;
+            font-weight: 500;
+            animation: gradientShift 4s ease-in-out infinite;
+            filter: drop-shadow(0 1px 2px rgba(212, 175, 55, 0.3));
+            letter-spacing: 0.3px;
+            line-height: 1.2;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            margin-bottom: 4rem;
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+            border: 1px solid rgba(212, 181, 160, 0.2);
+        }
+
+        .content-card h3 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2.2rem;
+            margin-bottom: 2rem;
+            color: #2c3e50;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        .steps-list {
+            list-style: none;
+            counter-reset: step-counter;
+        }
+
+        .steps-list li {
+            counter-increment: step-counter;
+            margin-bottom: 1.5rem;
+            padding-left: 3rem;
+            position: relative;
+        }
+
+        .steps-list li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: linear-gradient(135deg, #d4b5a0, #c9a084);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .benefits-list {
+            list-style: none;
+        }
+
+        .benefits-list li {
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+            position: relative;
+        }
+
+        .benefits-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #d4b5a0;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .warning-box {
+            background: rgba(255, 235, 205, 0.8);
+            border: 1px solid #d4b5a0;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .warning-box h4 {
+            color: #c9a084;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .cta-section {
+            text-align: center;
+            padding: 4rem 0;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #d4b5a0, #c9a084);
+            color: white;
+            padding: 1.2rem 3rem;
+            text-decoration: none;
+            border-radius: 35px;
+            font-weight: 500;
+            font-size: 1rem;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-shadow: 0 8px 25px rgba(212, 181, 160, 0.4);
+            margin: 0 1rem;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(212, 181, 160, 0.6);
+        }
+
+        .back-button {
+            background: transparent;
+            border: 2px solid #d4b5a0;
+            color: #d4b5a0;
+        }
+
+        .back-button:hover {
+            background: #d4b5a0;
+            color: white;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .combo-showcase {
+                flex-direction: column;
+                align-items: center;
+                gap: 1rem;
+            }
+            
+            .combo-item {
+                max-width: 200px;
+                width: 100%;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            
+            .service-title {
+                font-size: 2.5rem;
+            }
+            
+            .cta-button {
+                display: block;
+                margin: 1rem 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <div class="logo-circle" title="LAIA SKIN INSTITUT Logo"></div>
+                <h1>LAIA SKIN INSTITUT</h1>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="mon-institut.html">Accueil</a></li>
+                <li><a href="mon-institut.html#services">Mes Prestations</a></li>
+                <li><a href="mon-institut.html#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="service-detail">
+        <div class="container">
+            <div class="hero-section">
+                <h1 class="service-title">✨ Hydro'Naissance ✨</h1>
+                <p class="service-subtitle">Le protocole exclusif : Hydro'Cleaning + Renaissance + LED en une séance de 90 minutes</p>
+                
+                
+                <div class="full-width-section" style="background: rgba(255,255,255,0.95); box-shadow: 0 15px 40px rgba(0,0,0,0.1); border: 2px solid rgba(212, 181, 160, 0.3); margin: 0rem 0;">
+                    <div style="padding: 0.5rem 2rem; text-align: center;">
+                        <h2 style="color: #c9a084; font-family: 'Playfair Display', serif; font-size: 2.2rem; margin-bottom: 1rem;">🏆 Le Soin le Plus Complet</h2>
+                        <p style="margin-bottom: 2rem; font-size: 1.2rem; line-height: 1.6; color: #2c3e50;">
+                            <strong>3 soins premium en 1 séance</strong> : l'efficacité optimisée pour des résultats exceptionnels dès la première séance.
+                        </p>
+                        
+                        <div class="combo-showcase">
+                            <div class="combo-item">
+                                <img src="Hydrocleaning.png" alt="Hydro'Cleaning - Première étape">
+                                <h4>💧 Hydro'Cleaning</h4>
+                                <p style="font-size: 0.7rem; line-height: 1.1; font-family: 'Lora', serif; color: #5a6c7d; margin: 0.2rem 0 0 0;">Nettoyage</p>
+                            </div>
+                            <div class="combo-item">
+                                <img src="Renaissance.png" alt="Renaissance - Deuxième étape">
+                                <h4>✨ Renaissance</h4>
+                                <p style="font-size: 0.7rem; line-height: 1.1; font-family: 'Lora', serif; color: #5a6c7d; margin: 0.2rem 0 0 0;">Collagène</p>
+                            </div>
+                            <div class="combo-item">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='70' height='70' viewBox='0 0 70 70'%3E%3Ccircle cx='35' cy='35' r='35' fill='url(%23grad)'/%3E%3Ctext x='35' y='45' text-anchor='middle' font-size='30'%3E💡%3C/text%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23c9a084'/%3E%3Cstop offset='100%25' stop-color='%23b89470'/%3E%3C/linearGradient%3E%3C/defs%3E%3C/svg%3E" alt="Thérapie LED">
+                                <h4>💡 Thérapie LED</h4>
+                                <p style="font-size: 0.7rem; line-height: 1.1; font-family: 'Lora', serif; color: #5a6c7d; margin: 0.2rem 0 0 0;">LED</p>
+                            </div>
+                        </div>
+                        
+                        <p style="margin-bottom: 2rem;">
+                            <strong>Pourquoi choisir Hydro'Naissance ?</strong> Un protocole unique qui combine mes 3 soins les plus efficaces en une seule séance. L'Hydro'Cleaning prépare parfaitement votre peau, Renaissance stimule le renouvellement, et la LED thérapie optimise la récupération pour une synergie parfaite.
+                        </p>
+                        
+                        <div style="background: rgba(212, 181, 160, 0.15); padding: 2rem; border-radius: 15px; margin: 2rem 0; border-left: 4px solid #d4b5a0;">
+                            <p style="margin: 0; font-family: 'Cormorant Garamond', serif; font-style: italic; color: #2c3e50; font-size: 1.1rem; line-height: 1.6;">
+                                <em>"En une séance, j'ai eu les résultats que j'attendais depuis des mois. Ma peau n'a jamais été aussi belle !"</em> <br><small style="font-size: 0.9rem; color: #5a6c7d;">— Marie, 38 ans</small>
+                            </p>
+                        </div>
+                        
+                        
+                        <p style="margin: 0; color: #c9a084; font-weight: 600; text-align: center; font-size: 1.2rem;">
+                            La transformation complète en une seule séance exclusive ✨
+                        </p>
+                    </div>
+                </div>
+
+                <!-- PRIX ET OFFRE SPÉCIALE -->
+                <div class="price-highlight" style="position: relative; overflow: hidden; background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,248,220,0.95)); border: 3px solid transparent; background-clip: padding-box; box-shadow: 0 25px 80px rgba(212, 175, 55, 0.4), inset 0 1px 0 rgba(255,255,255,0.9); padding: 1.5rem 2rem;">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 1.5rem;">
+                        <span style="font-size: 2.2rem; font-weight: bold; color: #c9a084;">120€</span>
+                        <span style="text-decoration: line-through; opacity: 0.6; font-size: 1.5rem; color: #666;">210€</span>
+                    </div>
+                </div>
+                <!-- NOUVEAU BOUTON RÉSERVATION -->
+                <div style="text-align: center; margin: -30px 0 0 0;">
+                    <a href="booking.html" style="
+                        display: inline-block;
+                        background: linear-gradient(45deg, #D4AF37, #B8860B, #DAA520);
+                        color: white;
+                        padding: 18px 35px;
+                        font-size: 1.3rem;
+                        font-weight: bold;
+                        text-decoration: none;
+                        border-radius: 40px;
+                        box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
+                        transition: all 0.3s ease;
+                        border: 2px solid rgba(255,255,255,0.2);
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                    " onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 15px 35px rgba(212, 175, 55, 0.6)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(212, 175, 55, 0.4)'">
+                        📅 Je Réserve Mon Hydro'Naissance
+                    </a>
+                </div>
+                
+                <!-- FORFAITS SIMPLIFIÉS -->
+                <div style="background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(248,249,250,0.9)); border-radius: 25px; padding: 2rem; margin: 2rem 0; border: 2px solid rgba(212, 181, 160, 0.2);">
+                    <h3 style="text-align: center; color: #c9a084; font-family: 'Playfair Display', serif; font-size: 1.8rem; margin-bottom: 1.5rem;">💎 Nos Cures</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+                        <div style="background: white; border: 2px solid #d4b5a0; border-radius: 20px; padding: 1.5rem; text-align: center; box-shadow: 0 8px 25px rgba(0,0,0,0.1); height: 120px; display: flex; flex-direction: column; justify-content: center;">
+                            <h4 style="color: #c9a084; margin: 1rem 0 0.5rem 0; font-size: 1.2rem;">1 Séance</h4>
+                            <div style="font-size: 2rem; color: #c9a084; font-weight: bold; margin-top: -0.6rem;">120€</div>
+                        </div>
+                        
+                        <div style="background: white; border: 3px solid #28a745; border-radius: 20px; padding: 1.5rem; text-align: center; position: relative; box-shadow: 0 10px 30px rgba(40, 167, 69, 0.2); height: 120px; display: flex; flex-direction: column; justify-content: center;">
+                            <div style="background: #28a745; color: white; padding: 5px 15px; border-radius: 15px; font-size: 0.8rem; font-weight: bold; position: absolute; top: -10px; left: 50%; transform: translateX(-50%);">POPULAIRE</div>
+                            <h4 style="color: #28a745; margin: 1rem 0 0.5rem 0; font-size: 1.2rem;">3 Séances</h4>
+                            <div style="font-size: 1.8rem; color: #c9a084; font-weight: bold; margin-top: -0.6rem;">340€</div>
+                        </div>
+                        
+                        <div style="background: white; border: 2px solid #d4b5a0; border-radius: 20px; padding: 1.5rem; text-align: center; box-shadow: 0 8px 25px rgba(0,0,0,0.1); height: 120px; display: flex; flex-direction: column; justify-content: center;">
+                            <h4 style="color: #c9a084; margin: 1rem 0 0.5rem 0; font-size: 1.2rem;">4 Séances</h4>
+                            <div style="font-size: 1.8rem; color: #c9a084; font-weight: bold; margin-top: -0.6rem;">460€</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- POURQUOI CHOISIR HYDRO'NAISSANCE -->
+            <div class="full-width-section" style="background: linear-gradient(135deg, #f8f9fa, #e9ecef); border: 2px solid rgba(212, 181, 160, 0.3);">
+                <h3 style="text-align: center; color: #c9a084; font-family: 'Playfair Display', serif; font-size: 2.5rem; margin-bottom: 2rem;">🌟 Pourquoi Choisir Hydro'Naissance ?</h3>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; margin-top: 2rem;">
+                    <div style="text-align: center; padding: 2rem; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 3px solid rgba(212, 175, 55, 0.3);">
+                        <div style="font-size: 4rem; margin-bottom: 1rem; animation: bounce 2s infinite;">⚡</div>
+                        <h4 style="color: #c9a084; margin-bottom: 1rem; font-size: 1.3rem;">Résultats Instantanés</h4>
+                        <p style="line-height: 1.6;">Dès la sortie : peau éclatante, lissée, hydratée. <strong>L'effet "WOW" garanti !</strong></p>
+                    </div>
+                    
+                    <div style="text-align: center; padding: 2rem; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 3px solid rgba(40, 167, 69, 0.3);">
+                        <div style="font-size: 4rem; margin-bottom: 1rem;">💰</div>
+                        <h4 style="color: #28a745; margin-bottom: 1rem; font-size: 1.3rem;">70€ d'Économie</h4>
+                        <p style="line-height: 1.6;">3 soins premium pour le prix de 2. <strong>L'efficacité sans exploser le budget !</strong></p>
+                    </div>
+                    
+                    <div style="text-align: center; padding: 2rem; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 3px solid rgba(23, 162, 184, 0.3);">
+                        <div style="font-size: 4rem; margin-bottom: 1rem;">⏱️</div>
+                        <h4 style="color: #17a2b8; margin-bottom: 1rem; font-size: 1.3rem;">Gain de Temps</h4>
+                        <p style="line-height: 1.6;">1 seul RDV au lieu de 3. <strong>Parfait pour les agendas chargés !</strong></p>
+                    </div>
+                    
+                    <div style="text-align: center; padding: 2rem; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 3px solid rgba(220, 53, 69, 0.3);">
+                        <div style="font-size: 4rem; margin-bottom: 1rem;">🎯</div>
+                        <h4 style="color: #dc3545; margin-bottom: 1rem; font-size: 1.3rem;">Multi-Problèmes</h4>
+                        <p style="line-height: 1.6;">Rides + pores + éclat + fermeté... <strong>Tout traité en une fois !</strong></p>
+                    </div>
+                </div>
+                
+            </div>
+
+            <!-- RÉSULTATS ATTENDUS -->
+            <div class="full-width-section">
+                <!-- RÉSULTATS ATTENDUS -->
+                <div style="background: linear-gradient(135deg, #e8f5e8, #c8e6c9); padding: 2rem; border-radius: 20px; margin: 3rem 0; border: 3px solid #4caf50;">
+                    <h4 style="text-align: center; color: #2e7d32; font-size: 1.5rem; margin-bottom: 1.5rem;">🎯 Résultats Immédiats</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                        <div style="text-align: center;">✅ <strong>Éclat instantané</strong></div>
+                        <div style="text-align: center;">✅ <strong>Pores resserrés</strong></div>
+                        <div style="text-align: center;">✅ <strong>Rides lissées</strong></div>
+                        <div style="text-align: center;">✅ <strong>Fermeté retrouvée</strong></div>
+                        <div style="text-align: center;">✅ <strong>Hydratation 48h</strong></div>
+                        <div style="text-align: center;">✅ <strong>Teint unifié</strong></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="full-width-section">
+                <h3>Informations importantes</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-top: 2rem;">
+                    <div>
+                        <h4 style="color: #d4b5a0; margin-bottom: 1rem;">Durée du protocole</h4>
+                        <p>1h30 complète, enchaînement fluide des 3 soins</p>
+                    </div>
+                    <div>
+                        <h4 style="color: #d4b5a0; margin-bottom: 1rem;">Cure recommandée</h4>
+                        <p>Séances espacées de 2 semaines pour des résultats optimaux</p>
+                    </div>
+                    <div>
+                        <h4 style="color: #d4b5a0; margin-bottom: 1rem;">Récupération</h4>
+                        <p>24h de légères rougeurs possibles</p>
+                    </div>
+                </div>
+                
+                <div class="warning-box">
+                    <h4>⚠️ Contre-indications importantes</h4>
+                    <ul style="margin-left: 1.5rem; color: #5a6c7d;">
+                        <li>Grossesse et allaitement</li>
+                        <li>Peau infectée ou inflammée (acné active sévère, eczéma, psoriasis)</li>
+                        <li>Lésions cutanées suspectes ou cancer de la peau</li>
+                        <li>Troubles de la coagulation ou traitement anticoagulant</li>
+                        <li>Maladies auto-immunes (lupus, sclérodermie)</li>
+                        <li>Diabète non contrôlé</li>
+                        <li>Immunosuppression</li>
+                        <li>Prise d'Accutane/Roaccutane (attendre 6 mois après l'arrêt)</li>
+                        <li>Rosacée sévère</li>
+                        <li>Kéloïdes ou tendance cicatricielle hypertrophique</li>
+                        <li>Herpès récurrent dans la zone à traiter</li>
+                        <li>Exposition solaire récente ou prévue (moins de 2 semaines)</li>
+                        <li>Prise de corticoïdes au long cours</li>
+                        <li>Chimiothérapie en cours</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- SECTION FINALE RÉSERVATION -->
+            <div class="cta-section" style="background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,165,0,0.1)); padding: 4rem 2rem; border-radius: 25px; margin: 3rem 0; border: 3px solid rgba(212, 175, 55, 0.3);">
+                <h3 style="text-align: center; color: #c9a084; font-family: 'Playfair Display', serif; font-size: 2.5rem; margin-bottom: 1rem;">🌟 Prêt(e) pour Votre Transformation ?</h3>
+                <p style="text-align: center; font-size: 1.2rem; color: #2c3e50; margin-bottom: 3rem; max-width: 600px; margin-left: auto; margin-right: auto;">Rejoignez nos clientes qui ont choisi l'excellence. Votre peau mérite le meilleur protocole.</p>
+                
+                <!-- BOUTON PRINCIPAL -->
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <a href="booking.html" style="
+                        display: inline-block;
+                        background: linear-gradient(45deg, #ff6b35, #f7931e, #ffab00);
+                        color: white;
+                        padding: 25px 50px;
+                        font-size: 1.5rem;
+                        font-weight: bold;
+                        text-decoration: none;
+                        border-radius: 50px;
+                        box-shadow: 0 15px 40px rgba(255, 107, 53, 0.4);
+                        transition: all 0.3s ease;
+                        border: 3px solid rgba(255,255,255,0.3);
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                        animation: pulse 2s infinite;
+                    " onmouseover="this.style.transform='translateY(-8px) scale(1.05)'; this.style.boxShadow='0 25px 60px rgba(255, 107, 53, 0.6)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 15px 40px rgba(255, 107, 53, 0.4)'">
+                        ✨ RÉSERVER HYDRO'NAISSANCE ✨
+                    </a>
+                </div>
+                
+                <!-- INFOS PRATIQUES -->
+                <div style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin-bottom: 2rem;">
+                    <div style="background: white; padding: 1rem 2rem; border-radius: 20px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                        <div style="color: #28a745; font-weight: bold; font-size: 1.1rem;">💻 Réservation</div>
+                        <div style="font-size: 0.9rem; color: #666;">En ligne 24h/24</div>
+                    </div>
+                    <div style="background: white; padding: 1rem 2rem; border-radius: 20px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                        <div style="color: #17a2b8; font-weight: bold; font-size: 1.1rem;">🕐 Créneaux</div>
+                        <div style="font-size: 0.9rem; color: #666;">7j/7 jusqu'à 19h</div>
+                    </div>
+                    <div style="background: white; padding: 1rem 2rem; border-radius: 20px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                        <div style="color: #dc3545; font-weight: bold; font-size: 1.1rem;">📍 Localisation</div>
+                        <div style="font-size: 0.9rem; color: #666;">Cabinet privé</div>
+                    </div>
+                </div>
+                
+                <div style="text-align: center;">
+                    <a href="mon-institut.html" style="display: inline-block; background: transparent; border: 2px solid #c9a084; color: #c9a084; padding: 12px 30px; text-decoration: none; border-radius: 25px; font-weight: 500; transition: all 0.3s ease;" onmouseover="this.style.background='#c9a084'; this.style.color='white'" onmouseout="this.style.background='transparent'; this.style.color='#c9a084'">← Voir Tous Nos Soins</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+<!-- Configuration API -->
+<script src="config.js"></script>
+<!-- Système de synchronisation centralisé -->
+<script src="sync-system.js"></script>
+<script>
+    // Initialisation spécifique à la page
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🔄 Système de synchronisation chargé');
+        
+        // Enregistrer un callback pour les mises à jour
+        if (window.syncManager) {
+            window.syncManager.onUpdate((booking, action) => {
+                console.log('📊 Mise à jour reçue:', action, booking);
+                
+                // Rafraîchir les éléments de la page si nécessaire
+                if (typeof refreshPageElements === 'function') {
+                    refreshPageElements();
+                }
+                
+                // Pour l'admin dashboard
+                if (typeof loadAdminReservations === 'function') {
+                    loadAdminReservations(true);
+                }
+                
+                // Pour le calendrier
+                if (typeof updateCalendar === 'function') {
+                    updateCalendar();
+                }
+                
+                // Pour les tableaux
+                if (typeof updateReservationsTable === 'function') {
+                    updateReservationsTable();
+                }
+            });
+        }
+    });
+</script>
+
+<script>
+    // Adapter les formulaires de réservation existants
+    document.addEventListener('DOMContentLoaded', function() {
+        // Intercepter tous les formulaires de réservation
+        const bookingForms = document.querySelectorAll('form[id*="booking"], form[id*="reservation"], .booking-form, .reservation-form');
+        
+        bookingForms.forEach(form => {
+            console.log('📝 Formulaire de réservation trouvé:', form.id || form.className);
+            
+            // Remplacer le gestionnaire de soumission
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                console.log('🚀 Soumission interceptée par SyncManager');
+                
+                // Extraire les données du formulaire
+                const formData = new FormData(form);
+                const bookingData = {};
+                
+                for (let [key, value] of formData.entries()) {
+                    bookingData[key] = value;
+                }
+                
+                // Déterminer la source
+                const source = window.location.pathname.includes('admin') ? 'admin' : 
+                              window.location.pathname.includes('espace-client') ? 'client-space' :
+                              window.location.pathname.includes('prestations') ? 'prestations' :
+                              'booking-page';
+                
+                try {
+                    // Utiliser SyncManager pour créer la réservation
+                    const result = await window.syncManager.createBooking(bookingData, source);
+                    
+                    if (result) {
+                        // Afficher un message de succès
+                        if (typeof showSuccessMessage === 'function') {
+                            showSuccessMessage('Réservation confirmée!');
+                        } else {
+                            alert('✅ Votre réservation a été confirmée!');
+                        }
+                        
+                        // Réinitialiser le formulaire
+                        form.reset();
+                        
+                        // Rediriger si nécessaire
+                        if (bookingData.redirect) {
+                            setTimeout(() => {
+                                window.location.href = bookingData.redirect;
+                            }, 2000);
+                        }
+                    }
+                } catch (error) {
+                    console.error('❌ Erreur réservation:', error);
+                    alert('Une erreur est survenue. Veuillez réessayer.');
+                }
+                
+                return false;
+            });
+        });
+    });
+</script>
+</body>
+</html>

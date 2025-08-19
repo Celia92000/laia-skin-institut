@@ -1497,7 +1497,7 @@
                 <li><a href="#services">Mes Prestations</a></li>
                 <li><a href="#reservation">Réservation</a></li>
                 <li><a href="#contact">Contact</a></li>
-                <li><a href="admin.html" style="background: linear-gradient(135deg, #d4b5a0, #c9a084); color: white !important; padding: 0.8rem 1.5rem; border-radius: 20px; font-weight: 500; white-space: nowrap;">👤 Mon Espace</a></li>
+                <li><a href="connexion-espace-client.html" style="background: linear-gradient(135deg, #d4b5a0, #c9a084); color: white !important; padding: 0.8rem 1.5rem; border-radius: 20px; font-weight: 500; white-space: nowrap;">👤 Espace Client</a></li>
             </ul>
         </nav>
     </header>
@@ -2196,8 +2196,22 @@
             <div class="footer-bottom">
                 <p>&copy; 2024 LAIA SKIN INSTITUT. Tous droits réservés.</p>
                 
-                <!-- Boutons Admin Discrets -->
+                <!-- Boutons d'accès -->
                 <div class="admin-access" style="margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center;">
+                    <a href="connexion-espace-client.html" class="admin-btn" style="
+                        display: inline-block;
+                        background: linear-gradient(135deg, #8b6f47, #a0826d);
+                        color: white;
+                        padding: 0.6rem 1rem;
+                        text-decoration: none;
+                        border-radius: 15px;
+                        font-size: 0.8rem;
+                        font-weight: 500;
+                        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                        transition: all 0.3s ease;
+                    " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                        🔐 Espace Client
+                    </a>
                     <a href="admin-dashboard.html" class="admin-btn" style="
                         display: inline-block;
                         background: linear-gradient(135deg, #d4b5a0, #c9a084);
@@ -2213,24 +2227,7 @@
                     " 
                     onmouseover="this.style.opacity='1'; this.style.transform='translateY(-2px)'"
                     onmouseout="this.style.opacity='0.6'; this.style.transform='translateY(0)'">
-                        🔑 Admin Principal
-                    </a>
-                    <a href="admin-loyalty.html" class="admin-btn" style="
-                        display: inline-block;
-                        background: linear-gradient(135deg, #c9a084, #d4b5a0);
-                        color: white;
-                        padding: 0.6rem 1rem;
-                        text-decoration: none;
-                        border-radius: 15px;
-                        font-size: 0.8rem;
-                        font-weight: 500;
-                        transition: all 0.3s ease;
-                        opacity: 0.6;
-                        box-shadow: 0 4px 15px rgba(201, 160, 132, 0.3);
-                    " 
-                    onmouseover="this.style.opacity='1'; this.style.transform='translateY(-2px)'"
-                    onmouseout="this.style.opacity='0.6'; this.style.transform='translateY(0)'">
-                        🎁 Admin Fidélité
+                        🔑 Administration
                     </a>
                 </div>
             </div>
@@ -2780,7 +2777,8 @@
             
             try {
                 // Envoyer à l'API de réservation
-                const response = await fetch('/api/create-cash-booking', {
+                const apiBase = window.API_CONFIG ? window.API_CONFIG.baseURL : 'https://laia-skin-api.onrender.com';
+                const response = await fetch(`${apiBase}/api/create-cash-booking`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -2926,7 +2924,8 @@
         // Charger les créneaux occupés depuis la base de données avec synchronisation immédiate
         async function loadCompleteOccupiedSlots(forceUpdate = false) {
             try {
-                const url = `/api/appointments/occupied-slots?timestamp=${Date.now()}`;
+                const apiBase = window.API_CONFIG ? window.API_CONFIG.baseURL : 'https://laia-skin-api.onrender.com';
+                const url = `${apiBase}/api/appointments/occupied-slots?timestamp=${Date.now()}`;
                 console.log('📅 [Accueil] Chargement des créneaux occupés...');
                 const response = await fetch(url);
                 
@@ -3408,7 +3407,8 @@
                 console.log('📤 Envoi de la réservation:', bookingData);
                 
                 // Envoyer à l'API de réservation
-                const response = await fetch('/api/create-cash-booking', {
+                const apiBase = window.API_CONFIG ? window.API_CONFIG.baseURL : 'https://laia-skin-api.onrender.com';
+                const response = await fetch(`${apiBase}/api/create-cash-booking`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -3539,6 +3539,10 @@ Veuillez réessayer ou nous contacter directement:
     </script>
     
     <!-- Connexion réservation → planning admin -->
+    <!-- Configuration API -->
+    <script src="config.js"></script>
+    
+    <!-- Scripts de synchronisation -->
     <script src="connect-reservation-to-planning.js"></script>
     <script src="prevent-time-conflicts.js"></script>
 </body>

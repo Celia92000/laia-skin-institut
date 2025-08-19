@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Renaissance (Microneedling) - LAIA SKIN INSTITUT</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Lora', serif;
+            line-height: 1.8;
+            color: #2c3e50;
+            background: linear-gradient(135deg, #fdfbf7 0%, #f8f6f0 100%);
+            font-weight: 400;
+            letter-spacing: 0.3px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(212, 181, 160, 0.2);
+            color: #2c3e50;
+            padding: 1.5rem 0;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .logo-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-image: url('logo-laia-skin.png');
+            background-size: 80px 80px;
+            background-position: center center;
+            background-repeat: no-repeat;
+            box-shadow: 0 6px 20px rgba(212, 181, 160, 0.4);
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        
+        .logo h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 0;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-menu a {
+            color: #2c3e50;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-menu a:hover {
+            background: linear-gradient(135deg, #d4b5a0, #c9a084);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(212, 181, 160, 0.3);
+        }
+
+        /* Main Content */
+        .service-detail {
+            padding: 8rem 0 4rem;
+            min-height: 100vh;
+        }
+
+        .hero-section {
+            text-align: center;
+            margin-bottom: 6rem;
+        }
+
+        .service-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #d4b5a0, #c9a084, #d4b5a0);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 4s ease-in-out infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .service-subtitle {
+            font-size: 1.3rem;
+            color: #5a6c7d;
+            margin-bottom: 2rem;
+            font-weight: 300;
+        }
+
+        .full-width-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 3rem;
+            margin-bottom: 4rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+            border: 1px solid rgba(212, 181, 160, 0.2);
+        }
+
+        .full-width-section h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: #2c3e50;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            margin-bottom: 4rem;
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+            border: 1px solid rgba(212, 181, 160, 0.2);
+        }
+
+        .content-card h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            color: #2c3e50;
+        }
+
+        .highlight-box {
+            background: rgba(212, 181, 160, 0.1);
+            border: 1px solid #d4b5a0;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .highlight-box h4 {
+            color: #c9a084;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .warning-box {
+            background: rgba(255, 235, 205, 0.8);
+            border: 1px solid #d4b5a0;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .warning-box h4 {
+            color: #c9a084;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            
+            .service-title {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <div class="logo-circle" title="LAIA SKIN INSTITUT Logo"></div>
+                <h1>LAIA SKIN INSTITUT</h1>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="mon-institut.html">Accueil</a></li>
+                <li><a href="prestations.html">Services</a></li>
+                <li><a href="mon-institut.html#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="service-detail">
+        <div class="container">
+            <div class="hero-section">
+                <h1 class="service-title">🔄 Renaissance 🔄</h1>
+                <p class="service-subtitle">Microneedling : Réveillez le potentiel régénérateur de votre peau</p>
+                
+                <!-- SECTION PRIX ET RÉSERVATION -->
+                <div class="full-width-section" style="background: rgba(255,255,255,0.95); box-shadow: 0 15px 40px rgba(0,0,0,0.1); border: 2px solid rgba(212, 181, 160, 0.3); margin: 2rem 0;">
+                    <div style="padding: 0.5rem 2rem; text-align: center;">
+                        <h2 style="color: #c9a084; font-family: 'Playfair Display', serif; font-size: 2.2rem; margin-bottom: 1rem;">🔄 La Renaissance de Votre Peau</h2>
+                        <p style="margin-bottom: 2rem; font-size: 1.2rem; line-height: 1.6; color: #2c3e50;">
+                            <strong>Stimulez votre collagène naturel</strong> : une technique scientifiquement prouvée pour une peau plus ferme, plus lisse et visiblement rajeunie.
+                        </p>
+                        
+                        <!-- PRICING -->
+                        <div style="display: flex; justify-content: center; align-items: center; gap: 2rem; margin: 2rem 0; flex-wrap: wrap;">
+                            <div style="background: linear-gradient(135deg, rgba(212, 181, 160, 0.15), rgba(201, 160, 132, 0.15)); padding: 2rem; border-radius: 20px; border: 2px solid rgba(212, 181, 160, 0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                                <div style="font-size: 3rem; font-weight: bold; color: #D4AF37; margin-bottom: 0.5rem; font-family: 'Playfair Display', serif;">70€</div>
+                                <div style="font-size: 1.1rem; color: #2c3e50; font-weight: 500;">Séance complète</div>
+                                <div style="font-size: 0.9rem; color: #666; margin-top: 0.5rem;">75 minutes • Régénération</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- NOUVEAU BOUTON RÉSERVATION -->
+                    <div style="text-align: center; margin: -10px 0 0 0;">
+                        <a href="booking.html?service=microneedling&price=70&duration=75" style="
+                            display: inline-block;
+                            background: linear-gradient(45deg, #D4AF37, #B8860B, #DAA520);
+                            color: white;
+                            padding: 18px 35px;
+                            font-size: 1.3rem;
+                            font-weight: bold;
+                            text-decoration: none;
+                            border-radius: 40px;
+                            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
+                            transition: all 0.3s ease;
+                            border: 2px solid rgba(255,255,255,0.2);
+                            text-transform: uppercase;
+                            letter-spacing: 0.5px;
+                        " onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 15px 35px rgba(212, 175, 55, 0.6)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(212, 175, 55, 0.4)'">
+                            🔄 Je Réserve Ma Renaissance
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DESCRIPTION DÉTAILLÉE -->
+            <div style="background: transparent; box-shadow: none; border: none; margin: 2rem 0; width: 100%;">
+                <div style="display: grid; grid-template-columns: 1fr 400px; gap: 3rem; align-items: start; padding: 1rem 0; max-width: none; width: 100%;">
+                    <div style="line-height: 1.8; font-size: 1.1rem; color: #5a6c7d;">
+                        <p style="margin-bottom: 2rem;">
+                            <strong style="color: #c9a084;">Et si votre peau pouvait se régénérer naturellement ?</strong> Renaissance par Microneedling est la technique révolutionnaire qui réveille le potentiel de votre peau. En stimulant délicatement la production naturelle de collagène, ce soin révèle une peau plus ferme, plus lisse et visiblement rajeunie.
+                        </p>
+                        
+                        <p style="margin-bottom: 2rem;">
+                            Le principe ? Des <strong>micro-perforations contrôlées</strong> déclenchent le processus naturel de réparation de votre peau. Résultat : collagène et élastine sont boostés pour une peau plus dense, plus rebondie et d'apparence plus jeune.
+                        </p>
+                        
+                        <div style="background: rgba(212, 181, 160, 0.15); padding: 2rem; border-radius: 15px; margin: 2rem 0; border-left: 4px solid #d4b5a0;">
+                            <p style="margin: 0; font-style: italic; color: #2c3e50;">
+                                <strong>"Après 3 séances de Renaissance, ma peau a retrouvé une fermeté que je n'avais plus depuis des années. Mes rides se sont estompées et mon teint est éclatant !"</strong> - Sophie, 42 ans
+                            </p>
+                        </div>
+                        
+                        <p style="margin-bottom: 2rem;">
+                            <strong>L'avantage du Microneedling ?</strong> Contrairement aux techniques invasives, cette méthode respecte votre peau et utilise ses propres mécanismes de régénération. Aucune substance étrangère, que votre propre potentiel naturel !
+                        </p>
+                        
+                        <p style="margin: 0; color: #c9a084; font-weight: 600; text-align: center; font-size: 1.2rem;">
+                            Révélez la jeunesse de votre peau, naturellement.
+                        </p>
+                    </div>
+                    
+                    <div style="position: sticky; top: 2rem;">
+                        <div class="service-image" style="margin-bottom: 2rem;">
+                            <img src="https://images.unsplash.com/photo-1515377905703-c4788e51af15?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" 
+                                 alt="Traitement Renaissance Microneedling - Régénération cellulaire" 
+                                 style="width: 100%; height: 250px; object-fit: cover; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr; gap: 1rem;">
+                            <div style="text-align: center; padding: 1rem; background: white; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                                <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🔬</div>
+                                <strong style="color: #c9a084; font-size: 0.9rem;">Scientifique</strong>
+                                <p style="margin: 0.3rem 0 0 0; font-size: 0.8rem;">Technique prouvée</p>
+                            </div>
+                            <div style="text-align: center; padding: 1rem; background: white; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                                <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">💪</div>
+                                <strong style="color: #c9a084; font-size: 0.9rem;">Collagène</strong>
+                                <p style="margin: 0.3rem 0 0 0; font-size: 0.8rem;">Production stimulée</p>
+                            </div>
+                            <div style="text-align: center; padding: 1rem; background: white; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                                <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🌿</div>
+                                <strong style="color: #c9a084; font-size: 0.9rem;">Naturel</strong>
+                                <p style="margin: 0.3rem 0 0 0; font-size: 0.8rem;">Régénération propre</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTENU GRID -->
+            <div class="content-grid">
+                <div class="content-card">
+                    <h3>🎯 Ce soin est fait pour vous si...</h3>
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem;">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <span style="font-size: 2rem;">😔</span>
+                            <div>
+                                <strong>Peau relâchée et ridée</strong><br>
+                                <span style="color: #666; font-size: 0.9rem;">Perte de fermeté et rides visibles ?</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <span style="font-size: 2rem;">🎯</span>
+                            <div>
+                                <strong>Cicatrices d'acné</strong><br>
+                                <span style="color: #666; font-size: 0.9rem;">Marques et imperfections à atténuer</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <span style="font-size: 2rem;">✨</span>
+                            <div>
+                                <strong>Texture irrégulière</strong><br>
+                                <span style="color: #666; font-size: 0.9rem;">Pores dilatés et grain de peau rugueux</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-card">
+                    <h3>🔄 Résultats attendus</h3>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 1rem; padding-left: 2rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: #d4b5a0; font-weight: bold;">✓</span>
+                            Stimulation du collagène naturel
+                        </li>
+                        <li style="margin-bottom: 1rem; padding-left: 2rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: #d4b5a0; font-weight: bold;">✓</span>
+                            Réduction des rides et ridules
+                        </li>
+                        <li style="margin-bottom: 1rem; padding-left: 2rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: #d4b5a0; font-weight: bold;">✓</span>
+                            Amélioration des cicatrices d'acné
+                        </li>
+                        <li style="margin-bottom: 1rem; padding-left: 2rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: #d4b5a0; font-weight: bold;">✓</span>
+                            Fermeté et élasticité retrouvées
+                        </li>
+                        <li style="margin-bottom: 1rem; padding-left: 2rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: #d4b5a0; font-weight: bold;">✓</span>
+                            Texture de peau lissée et affinée
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- INFORMATIONS IMPORTANTES -->
+            <div class="full-width-section">
+                <h2>📋 Informations pratiques</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-top: 2rem;">
+                    <div>
+                        <h4 style="color: #d4b5a0; margin-bottom: 1rem;">⏱️ Durée du soin</h4>
+                        <p>75 minutes avec préparation incluse</p>
+                    </div>
+                    <div>
+                        <h4 style="color: #d4b5a0; margin-bottom: 1rem;">🔢 Nombre de séances</h4>
+                        <p>3-6 séances espacées de 4 semaines</p>
+                    </div>
+                    <div>
+                        <h4 style="color: #d4b5a0; margin-bottom: 1rem;">📅 Premiers résultats</h4>
+                        <p>Dès la 2ème séance, optimum à 3 mois</p>
+                    </div>
+                    <div>
+                        <h4 style="color: #d4b5a0; margin-bottom: 1rem;">🩹 Suites du traitement</h4>
+                        <p>24-48h de rougeurs légères</p>
+                    </div>
+                </div>
+
+                <div class="highlight-box">
+                    <h4>🌟 Avantages exclusifs de Renaissance</h4>
+                    <ul style="margin-left: 1.5rem; color: #5a6c7d;">
+                        <li><strong>Naturel :</strong> Stimule vos propres mécanismes de régénération</li>
+                        <li><strong>Polyvalent :</strong> Traite rides, cicatrices et texture</li>
+                        <li><strong>Progressif :</strong> Amélioration continue pendant 6 mois</li>
+                        <li><strong>Sûr :</strong> Technique non invasive et contrôlée</li>
+                        <li><strong>Durable :</strong> Résultats qui s'améliorent avec le temps</li>
+                    </ul>
+                </div>
+
+                <div class="warning-box">
+                    <h4>⚠️ Contre-indications</h4>
+                    <ul style="margin-left: 1.5rem; color: #5a6c7d;">
+                        <li>Grossesse et allaitement</li>
+                        <li>Maladies auto-immunes actives</li>
+                        <li>Prise d'anticoagulants</li>
+                        <li>Infections cutanées en cours</li>
+                        <li>Acné inflammatoire sévère</li>
+                        <li>Traitement isotrétinoïne récent (6 mois)</li>
+                        <li>Cicatrices chéloïdes</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- DEUXIÈME BOUTON RÉSERVATION -->
+            <div style="text-align: center; margin: 3rem 0;">
+                <a href="booking.html?service=microneedling&price=70&duration=75" style="
+                    display: inline-block;
+                    background: linear-gradient(45deg, #D4AF37, #B8860B, #DAA520);
+                    color: white;
+                    padding: 18px 35px;
+                    font-size: 1.3rem;
+                    font-weight: bold;
+                    text-decoration: none;
+                    border-radius: 40px;
+                    box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
+                    transition: all 0.3s ease;
+                    border: 2px solid rgba(255,255,255,0.2);
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                " onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 15px 35px rgba(212, 175, 55, 0.6)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(212, 175, 55, 0.4)'">
+                    🔄 Réserver Ma Renaissance - 70€
+                </a>
+            </div>
+        </div>
+    </main>
+
+<!-- Configuration API -->
+<script src="config.js"></script>
+<!-- Système de synchronisation centralisé -->
+<script src="sync-system.js"></script>
+<script>
+    // Initialisation spécifique à la page
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🔄 Système de synchronisation chargé');
+        
+        // Enregistrer un callback pour les mises à jour
+        if (window.syncManager) {
+            window.syncManager.onUpdate((booking, action) => {
+                console.log('📊 Mise à jour reçue:', action, booking);
+                
+                // Rafraîchir les éléments de la page si nécessaire
+                if (typeof refreshPageElements === 'function') {
+                    refreshPageElements();
+                }
+                
+                // Pour l'admin dashboard
+                if (typeof loadAdminReservations === 'function') {
+                    loadAdminReservations(true);
+                }
+                
+                // Pour le calendrier
+                if (typeof updateCalendar === 'function') {
+                    updateCalendar();
+                }
+                
+                // Pour les tableaux
+                if (typeof updateReservationsTable === 'function') {
+                    updateReservationsTable();
+                }
+            });
+        }
+    });
+</script>
+
+<script>
+    // Adapter les formulaires de réservation existants
+    document.addEventListener('DOMContentLoaded', function() {
+        // Intercepter tous les formulaires de réservation
+        const bookingForms = document.querySelectorAll('form[id*="booking"], form[id*="reservation"], .booking-form, .reservation-form');
+        
+        bookingForms.forEach(form => {
+            console.log('📝 Formulaire de réservation trouvé:', form.id || form.className);
+            
+            // Remplacer le gestionnaire de soumission
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                console.log('🚀 Soumission interceptée par SyncManager');
+                
+                // Extraire les données du formulaire
+                const formData = new FormData(form);
+                const bookingData = {};
+                
+                for (let [key, value] of formData.entries()) {
+                    bookingData[key] = value;
+                }
+                
+                // Déterminer la source
+                const source = window.location.pathname.includes('admin') ? 'admin' : 
+                              window.location.pathname.includes('espace-client') ? 'client-space' :
+                              window.location.pathname.includes('prestations') ? 'prestations' :
+                              'booking-page';
+                
+                try {
+                    // Utiliser SyncManager pour créer la réservation
+                    const result = await window.syncManager.createBooking(bookingData, source);
+                    
+                    if (result) {
+                        // Afficher un message de succès
+                        if (typeof showSuccessMessage === 'function') {
+                            showSuccessMessage('Réservation confirmée!');
+                        } else {
+                            alert('✅ Votre réservation a été confirmée!');
+                        }
+                        
+                        // Réinitialiser le formulaire
+                        form.reset();
+                        
+                        // Rediriger si nécessaire
+                        if (bookingData.redirect) {
+                            setTimeout(() => {
+                                window.location.href = bookingData.redirect;
+                            }, 2000);
+                        }
+                    }
+                } catch (error) {
+                    console.error('❌ Erreur réservation:', error);
+                    alert('Une erreur est survenue. Veuillez réessayer.');
+                }
+                
+                return false;
+            });
+        });
+    });
+</script>
+</body>
+</html>

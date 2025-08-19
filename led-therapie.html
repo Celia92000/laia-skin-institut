@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LED Thérapie - LAIA SKIN INSTITUT</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Lora', serif;
+            line-height: 1.8;
+            color: #2c3e50;
+            background: linear-gradient(135deg, #fdfbf7 0%, #f8f6f0 100%);
+            font-weight: 400;
+            letter-spacing: 0.3px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(212, 181, 160, 0.2);
+            color: #2c3e50;
+            padding: 1.5rem 0;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .logo-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-image: url('logo-laia-skin.png');
+            background-size: 80px 80px;
+            background-position: center center;
+            background-repeat: no-repeat;
+            box-shadow: 0 6px 20px rgba(212, 181, 160, 0.4);
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        
+        .logo h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 0;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-menu a {
+            color: #2c3e50;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-menu a:hover {
+            background: linear-gradient(135deg, #d4b5a0, #c9a084);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(212, 181, 160, 0.3);
+        }
+
+        /* Main Content */
+        .service-detail {
+            padding: 8rem 0 4rem;
+            min-height: 100vh;
+        }
+
+        .hero-section {
+            text-align: center;
+            margin-bottom: 6rem;
+        }
+
+        .service-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #d4b5a0, #c9a084, #d4b5a0);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 4s ease-in-out infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .service-subtitle {
+            font-size: 1.3rem;
+            color: #5a6c7d;
+            margin-bottom: 2rem;
+            font-weight: 300;
+        }
+
+        .full-width-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 3rem;
+            margin-bottom: 4rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+            border: 1px solid rgba(212, 181, 160, 0.2);
+        }
+
+        .full-width-section h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: #2c3e50;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            margin-bottom: 4rem;
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+            border: 1px solid rgba(212, 181, 160, 0.2);
+        }
+
+        .content-card h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            color: #2c3e50;
+        }
+
+        .highlight-box {
+            background: rgba(212, 181, 160, 0.1);
+            border: 1px solid #d4b5a0;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .highlight-box h4 {
+            color: #c9a084;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .warning-box {
+            background: rgba(255, 235, 205, 0.8);
+            border: 1px solid #d4b5a0;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .warning-box h4 {
+            color: #c9a084;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            
+            .service-title {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <div class="logo-circle" title="LAIA SKIN INSTITUT Logo"></div>
+                <h1>LAIA SKIN INSTITUT</h1>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="mon-institut.html">Accueil</a></li>
+                <li><a href="prestations.html">Services</a></li>
+                <li><a href="mon-institut.html#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="service-detail">
+        <div class="container">
+            <div class="hero-section">
+                <h1 class="service-title">💡 LED Thérapie 💡</h1>
+                <p class="service-subtitle">Photothérapie LED : La lumière bienfaisante pour une peau éclatante</p>
+                
+                <!-- SECTION PRIX ET RÉSERVATION -->
+                <div class="full-width-section" style="background: rgba(255,255,255,0.95); box-shadow: 0 15px 40px rgba(0,0,0,0.1); border: 2px solid rgba(212, 181, 160, 0.3); margin: 2rem 0;">
+                    <div style="padding: 0.5rem 2rem; text-align: center;">
+                        <h2 style="color: #c9a084; font-family: 'Playfair Display', serif; font-size: 2.2rem; margin-bottom: 1rem;">💡 La Thérapie par LED</h2>
+                        <p style="margin-bottom: 2rem; font-size: 1.2rem; line-height: 1.6; color: #2c3e50;">
+                            <strong>Photothérapie moderne</strong> : des longueurs d'onde ciblées pour réparer, apaiser et régénérer votre peau naturellement.
+                        </p>
+                        
+                        <!-- PRICING -->
+                        <div style="display: flex; justify-content: center; align-items: center; gap: 2rem; margin: 2rem 0; flex-wrap: wrap;">
+                            <div style="background: linear-gradient(135deg, rgba(212, 181, 160, 0.15), rgba(201, 160, 132, 0.15)); padding: 2rem; border-radius: 20px; border: 2px solid rgba(212, 181, 160, 0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                                <div style="font-size: 3rem; font-weight: bold; color: #D4AF37; margin-bottom: 0.5rem; font-family: 'Playfair Display', serif;">40€</div>
+                                <div style="font-size: 1.1rem; color: #2c3e50; font-weight: 500;">Séance complète</div>
+                                <div style="font-size: 0.9rem; color: #666; margin-top: 0.5rem;">30 minutes • Photothérapie</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- NOUVEAU BOUTON RÉSERVATION -->
+                    <div style="text-align: center; margin: -10px 0 0 0;">
+                        <a href="booking.html?service=led_therapie&price=40&duration=30" style="
+                            display: inline-block;
+                            background: linear-gradient(45deg, #D4AF37, #B8860B, #DAA520);
+                            color: white;
+                            padding: 18px 35px;
+                            font-size: 1.3rem;
+                            font-weight: bold;
+                            text-decoration: none;
+                            border-radius: 40px;
+                            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
+                            transition: all 0.3s ease;
+                            border: 2px solid rgba(255,255,255,0.2);
+                            text-transform: uppercase;
+                            letter-spacing: 0.5px;
+                        " onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 15px 35px rgba(212, 175, 55, 0.6)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(212, 175, 55, 0.4)'">
+                            💡 Je Réserve Ma LED Thérapie
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DESCRIPTION DÉTAILLÉE -->
+            <div style="background: transparent; box-shadow: none; border: none; margin: 2rem 0; width: 100%;">
+                <div style="display: grid; grid-template-columns: 1fr 400px; gap: 3rem; align-items: start; padding: 1rem 0; max-width: none; width: 100%;">
+                    <div style="line-height: 1.8; font-size: 1.1rem; color: #5a6c7d;">
+                        <p style="margin-bottom: 2rem;">
+                            <strong style="color: #c9a084;">La lumière qui soigne et répare.</strong> La LED Thérapie révolutionne les soins esthétiques en utilisant des longueurs d'onde spécifiques pour cibler précisément les besoins de votre peau. Rouge pour l'anti-âge, bleu pour l'acné, chaque couleur agit en profondeur pour des résultats visibles et durables.
+                        </p>
+                        
+                        <p style="margin-bottom: 2rem;">
+                            Cette technologie scientifiquement prouvée <strong>stimule les processus cellulaires naturels</strong> : production de collagène, élimination des bactéries, amélioration de la circulation. Un soin doux, sans douleur, aux effets remarquables.
+                        </p>
+                        
+                        <div style="background: rgba(212, 181, 160, 0.15); padding: 2rem; border-radius: 15px; margin: 2rem 0; border-left: 4px solid #d4b5a0;">
+                            <p style="margin: 0; font-style: italic; color: #2c3e50;">
+                                <strong>"Mes problèmes d'acné ont disparu en quelques semaines ! Ma peau n'a jamais été aussi nette et éclatante. La LED Thérapie a changé ma vie."</strong> - Emma, 28 ans
+                            </p>
+                        </div>
+                        
+                        <p style="margin-bottom: 2rem;">
+                            <strong>Pourquoi choisir la LED Thérapie ?</strong> Contrairement aux traitements agressifs, cette photothérapie respecte votre peau tout en délivrant des résultats exceptionnels. Relaxant et efficace, c'est le soin bien-être par excellence.
+                        </p>
+                        
+                        <p style="margin: 0; color: #c9a084; font-weight: 600; text-align: center; font-size: 1.2rem;">
+                            Laissez la lumière révéler votre beauté naturelle.
+                        </p>
+                    </div>
+                    
+                    <div style="position: sticky; top: 2rem;">
+                        <div class="service-image" style="margin-bottom: 2rem;">
+                            <img src="https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" 
+                                 alt="LED Thérapie - Photothérapie par lumière LED" 
+                                 style="width: 100%; height: 250px; object-fit: cover; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr; gap: 1rem;">
+                            <div style="text-align: center; padding: 1rem; background: white; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                                <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🔴</div>
+                                <strong style="color: #c9a084; font-size: 0.9rem;">Anti-âge</strong>
+                                <p style="margin: 0.3rem 0 0 0; font-size: 0.8rem;">Stimule le collagène</p>
+                            </div>
+                            <div style="text-align: center; padding: 1rem; background: white; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                                <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🔵</div>
+                                <strong style="color: #c9a084; font-size: 0.9rem;">Purifiant</strong>
+                                <p style="margin: 0.3rem 0 0 0; font-size: 0.8rem;">Élimine l'acné</p>
+                            </div>
+                            <div style="text-align: center; padding: 1rem; background: white; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                                <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">✨</div>
+                                <strong style="color: #c9a084; font-size: 0.9rem;">Relaxant</strong>
+                                <p style="margin: 0.3rem 0 0 0; font-size: 0.8rem;">Moment de bien-être</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LES COULEURS LED -->
+            <div class="full-width-section">
+                <h2>🌈 Les couleurs LED et leurs bienfaits</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; margin-top: 2rem;">
+                    <div style="background: rgba(255, 76, 87, 0.1); border: 2px solid #ff4c57; border-radius: 15px; padding: 1.5rem; text-align: center;">
+                        <div style="font-size: 2rem; margin-bottom: 1rem;">🔴</div>
+                        <h4 style="color: #ff4c57; margin-bottom: 1rem;">Rouge (630-700nm)</h4>
+                        <p style="font-size: 0.9rem; color: #5a6c7d;">Stimule la production de collagène, améliore l'élasticité, atténue rides et ridules. Parfait pour l'anti-âge.</p>
+                    </div>
+                    <div style="background: rgba(55, 66, 250, 0.1); border: 2px solid #3742fa; border-radius: 15px; padding: 1.5rem; text-align: center;">
+                        <div style="font-size: 2rem; margin-bottom: 1rem;">🔵</div>
+                        <h4 style="color: #3742fa; margin-bottom: 1rem;">Bleu (415nm)</h4>
+                        <p style="font-size: 0.9rem; color: #5a6c7d;">Élimine les bactéries P.acnes, réduit l'inflammation, resserre les pores. Idéal contre l'acné.</p>
+                    </div>
+                    <div style="background: rgba(46, 213, 115, 0.1); border: 2px solid #2ed573; border-radius: 15px; padding: 1.5rem; text-align: center;">
+                        <div style="font-size: 2rem; margin-bottom: 1rem;">🟢</div>
+                        <h4 style="color: #2ed573; margin-bottom: 1rem;">Vert (525nm)</h4>
+                        <p style="font-size: 0.9rem; color: #5a6c7d;">Apaise les rougeurs et la rosacée, améliore la microcirculation. Parfait pour les peaux sensibles.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTENU GRID -->
+            <div class="content-grid">
+                <div class="content-card">
+                    <h3>🎯 Ce soin est fait pour vous si...</h3>
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem;">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <span style="font-size: 2rem;">🌟</span>
+                            <div>
+                                <strong>Acné et imperfections</strong><br>
+                                <span style="color: #666; font-size: 0.9rem;">Boutons, points noirs et inflammations ?</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <span style="font-size: 2rem;">😴</span>
+                            <div>
+                                <strong>Signes de vieillissement</strong><br>
+                                <span style="color: #666; font-size: 0.9rem;">Rides, ridules et perte de fermeté</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <span style="font-size: 2rem;">🌿</span>
+                            <div>
+                                <strong>Besoin de douceur</strong><br>
+                                <span style="color: #666; font-size: 0.9rem;">Soin non invasif et relaxant</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-card">
+                    <h3>💡 Résultats attendus</h3>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 1rem; padding-left: 2rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: #d4b5a0; font-weight: bold;">✓</span>
+                            Réduction visible de l'acné
+                        </li>
+                        <li style="margin-bottom: 1rem; padding-left: 2rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: #d4b5a0; font-weight: bold;">✓</span>
+                            Stimulation du collagène naturel
+                        </li>
+                        <li style="margin-bottom: 1rem; padding-left: 2rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: #d4b5a0; font-weight: bold;">✓</span>
+                            Amélioration de la texture
+                        </li>
+                        <li style="margin-bottom: 1rem; padding-left: 2rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: #d4b5a0; font-weight: bold;">✓</span>
+                            Apaisement des rougeurs
+                        </li>
+                        <li style="margin-bottom: 1rem; padding-left: 2rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: #d4b5a0; font-weight: bold;">✓</span>
+                            Éclat et luminosité retrouvés
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- INFORMATIONS IMPORTANTES -->
+            <div class="full-width-section">
+                <h2>📋 Informations pratiques</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-top: 2rem;">
+                    <div>
+                        <h4 style="color: #d4b5a0; margin-bottom: 1rem;">⏱️ Durée du soin</h4>
+                        <p>30 minutes de relaxation totale</p>
+                    </div>
+                    <div>
+                        <h4 style="color: #d4b5a0; margin-bottom: 1rem;">🔢 Fréquence recommandée</h4>
+                        <p>2 séances par semaine pendant 4-6 semaines</p>
+                    </div>
+                    <div>
+                        <h4 style="color: #d4b5a0; margin-bottom: 1rem;">📅 Premiers résultats</h4>
+                        <p>Dès les premières séances</p>
+                    </div>
+                    <div>
+                        <h4 style="color: #d4b5a0; margin-bottom: 1rem;">🩹 Suites du traitement</h4>
+                        <p>Aucune, reprise immédiate des activités</p>
+                    </div>
+                </div>
+
+                <div class="highlight-box">
+                    <h4>🌟 Avantages de la LED Thérapie</h4>
+                    <ul style="margin-left: 1.5rem; color: #5a6c7d;">
+                        <li><strong>Non invasive :</strong> Aucune douleur, aucun effet secondaire</li>
+                        <li><strong>Scientifique :</strong> Technologie validée cliniquement</li>
+                        <li><strong>Personnalisée :</strong> Couleurs adaptées à vos besoins</li>
+                        <li><strong>Relaxante :</strong> Moment de détente absolue</li>
+                        <li><strong>Rapide :</strong> Résultats visibles rapidement</li>
+                    </ul>
+                </div>
+
+                <div class="warning-box">
+                    <h4>⚠️ Contre-indications</h4>
+                    <ul style="margin-left: 1.5rem; color: #5a6c7d;">
+                        <li>Grossesse (par précaution)</li>
+                        <li>Épilepsie photosensible</li>
+                        <li>Prise de médicaments photosensibilisants</li>
+                        <li>Cancer cutané en évolution</li>
+                        <li>Thyroïde hyperactive (zone cou)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- DEUXIÈME BOUTON RÉSERVATION -->
+            <div style="text-align: center; margin: 3rem 0;">
+                <a href="booking.html?service=led_therapie&price=40&duration=30" style="
+                    display: inline-block;
+                    background: linear-gradient(45deg, #D4AF37, #B8860B, #DAA520);
+                    color: white;
+                    padding: 18px 35px;
+                    font-size: 1.3rem;
+                    font-weight: bold;
+                    text-decoration: none;
+                    border-radius: 40px;
+                    box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
+                    transition: all 0.3s ease;
+                    border: 2px solid rgba(255,255,255,0.2);
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                " onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 15px 35px rgba(212, 175, 55, 0.6)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(212, 175, 55, 0.4)'">
+                    💡 Réserver Ma LED Thérapie - 40€
+                </a>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

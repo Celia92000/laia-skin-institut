@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Réservation Confirmée - LAIA SKIN INSTITUT</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Lora', serif;
+            line-height: 1.8;
+            color: #2c3e50;
+            background: linear-gradient(135deg, #fdfbf7 0%, #f8f6f0 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .success-container {
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 3rem 2rem;
+            box-shadow: 0 25px 70px rgba(0,0,0,0.1);
+            border: 2px solid rgba(212, 181, 160, 0.3);
+            text-align: center;
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            color: #28a745;
+            margin-bottom: 1.5rem;
+        }
+
+        .success-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #D4AF37, #B8860B, #DAA520, #CD7F32);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .success-subtitle {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.3rem;
+            color: #5a6c7d;
+            font-style: italic;
+            margin-bottom: 2rem;
+        }
+
+        .booking-details {
+            background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,248,220,0.8));
+            border: 2px solid rgba(212, 181, 160, 0.3);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: left;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(212, 181, 160, 0.2);
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            font-weight: bold;
+            color: #c9a084;
+        }
+
+        .detail-label {
+            color: #5a6c7d;
+            font-weight: 500;
+        }
+
+        .detail-value {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .next-steps {
+            background: rgba(212, 181, 160, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: left;
+        }
+
+        .next-steps h3 {
+            font-family: 'Playfair Display', serif;
+            color: #c9a084;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .next-steps ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .next-steps li {
+            margin-bottom: 0.8rem;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .next-steps li:before {
+            content: "✨";
+            position: absolute;
+            left: 0;
+        }
+
+        .actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 25px;
+            font-family: 'Lora', serif;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #D4AF37, #B8860B, #DAA520);
+            color: white;
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(212, 175, 55, 0.6);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid #c9a084;
+            color: #c9a084;
+        }
+
+        .btn-secondary:hover {
+            background: #c9a084;
+            color: white;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .success-container {
+                margin: 1rem;
+                padding: 2rem 1rem;
+            }
+            
+            .success-title {
+                font-size: 2rem;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="success-container">
+        <div class="success-icon">✅</div>
+        
+        <h1 class="success-title">Réservation Confirmée !</h1>
+        <p class="success-subtitle">Votre rendez-vous a été enregistré avec succès</p>
+        
+        <div class="booking-details" id="bookingDetails">
+            <!-- Les détails seront remplis par JavaScript -->
+            <div class="detail-row">
+                <span class="detail-label">Service :</span>
+                <span class="detail-value" id="serviceName">Chargement...</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Durée :</span>
+                <span class="detail-value" id="serviceDuration">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Date & Heure :</span>
+                <span class="detail-value" id="appointmentDateTime">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Prix total :</span>
+                <span class="detail-value" id="servicePrice">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Paiement :</span>
+                <span class="detail-value" id="paymentInfo">En espèces le jour J</span>
+            </div>
+        </div>
+        
+        <div class="next-steps">
+            <h3>📋 Prochaines étapes</h3>
+            <ul>
+                <li><strong>💰 Paiement à prévoir</strong> - Apportez <span id="priceReminder">le montant</span> en espèces le jour du rendez-vous (prévoir l'appoint)</li>
+                <li><strong>📧📱 Confirmation obligatoire</strong> - Nous vous contacterons par email et WhatsApp 24h avant pour confirmer votre présence</li>
+                <li><strong>🔑 Votre compte client est créé</strong> - Vous pouvez maintenant vous connecter avec votre email et mot de passe</li>
+                <li><strong>📧 Confirmation par email</strong> - Vous recevrez un email de confirmation dans les prochaines minutes</li>
+                <li><strong>⏰ Modification/Annulation</strong> - Possible jusqu'à 48h avant via l'email reçu</li>
+                <li><strong>☀️ Préparation</strong> - Évitez l'exposition au soleil 48h avant votre soin</li>
+            </ul>
+        </div>
+        
+        <div class="actions">
+            <a href="http://localhost:3001/client-dashboard.html" class="btn btn-primary">
+                🔑 Accéder à votre espace client
+            </a>
+            <a href="/mon-institut.html" class="btn btn-secondary">
+                🏠 Retour à l'accueil
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Récupérer les paramètres URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const bookingId = urlParams.get('booking_id');
+        
+        // Récupérer les détails depuis localStorage
+        const bookingDetails = JSON.parse(localStorage.getItem('lastBookingDetails') || '{}');
+        
+        // Debug : voir ce qui est dans bookingDetails
+        console.log('📋 Détails de la réservation depuis localStorage:', bookingDetails);
+        console.log('💰 Prix:', bookingDetails.price);
+        console.log('⏱️ Durée:', bookingDetails.duration);
+        
+        // Afficher les détails de la réservation
+        if (bookingDetails && bookingDetails.service) {
+            // Utiliser price ou amount selon ce qui est disponible
+            const price = bookingDetails.price || bookingDetails.amount || 0;
+            const duration = bookingDetails.duration || 60;
+            
+            document.getElementById('serviceName').textContent = bookingDetails.service || 'Service';
+            document.getElementById('serviceDuration').textContent = duration + ' minutes';
+            document.getElementById('servicePrice').textContent = price + '€';
+            document.getElementById('paymentInfo').textContent = price + '€ en espèces le jour J';
+            document.getElementById('priceReminder').textContent = price + '€';
+            
+            // Formater date et heure
+            if (bookingDetails.date && bookingDetails.time) {
+                // Gérer différents formats de date possibles
+                let dateObj;
+                
+                // Si la date contient un slash (format FR: DD/MM/YYYY)
+                if (bookingDetails.date.includes('/')) {
+                    const parts = bookingDetails.date.split('/');
+                    dateObj = new Date(parts[2], parts[1] - 1, parts[0]); // année, mois-1, jour
+                } else {
+                    // Format ISO (YYYY-MM-DD) ou autre
+                    dateObj = new Date(bookingDetails.date);
+                }
+                
+                // Vérifier que la date est valide
+                if (!isNaN(dateObj.getTime())) {
+                    const dateStr = dateObj.toLocaleDateString('fr-FR', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    document.getElementById('appointmentDateTime').textContent = `${dateStr} à ${bookingDetails.time}`;
+                } else {
+                    // Fallback : afficher la date telle quelle
+                    document.getElementById('appointmentDateTime').textContent = `${bookingDetails.date} à ${bookingDetails.time}`;
+                }
+            }
+        } else if (bookingId) {
+            console.log('✅ Réservation confirmée:', bookingId);
+            // Récupérer les détails de la réservation depuis l'API
+            fetchBookingDetails(bookingId);
+        }
+        
+        // Fonction pour récupérer les détails de la réservation
+        async function fetchBookingDetails(bookingId) {
+            try {
+                const apiUrl = window.API_CONFIG ? window.API_CONFIG.baseURL : 'https://laia-skin-api.onrender.com';
+                const response = await fetch(`${apiUrl}/api/appointments/${bookingId}`);
+                const booking = await response.json();
+                
+                if (booking && booking.datetime) {
+                    // Formatter la date et l'heure
+                    const dateObj = new Date(booking.datetime);
+                    const dateFormatted = dateObj.toLocaleDateString('fr-FR', {
+                        weekday: 'long',
+                        year: 'numeric', 
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    
+                    const timeFormatted = dateObj.toLocaleTimeString('fr-FR', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    
+                    const dateTimeElement = document.getElementById('appointmentDateTime');
+                    if (dateTimeElement) {
+                        dateTimeElement.textContent = `${dateFormatted} à ${timeFormatted}`;
+                    }
+                }
+            } catch (error) {
+                console.error('Erreur lors de la récupération des détails:', error);
+            }
+        }
+        
+        // Animation d'entrée
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.querySelector('.success-container');
+            container.style.opacity = '0';
+            container.style.transform = 'translateY(50px)';
+            
+            setTimeout(() => {
+                container.style.transition = 'all 0.6s ease';
+                container.style.opacity = '1';
+                container.style.transform = 'translateY(0)';
+            }, 100);
+        });
+    </script>
+</body>
+</html>

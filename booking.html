@@ -462,6 +462,8 @@
             }
         }
     </style>
+<!-- Configuration API -->
+<script src="config.js"></script>
 </head>
 <body>
     <header>
@@ -650,10 +652,41 @@
         function getSelectedService() {
             const urlParams = new URLSearchParams(window.location.search);
             const serviceParam = urlParams.get('service') || 'hydro_naissance';
+            const priceParam = urlParams.get('price');
+            const durationParam = urlParams.get('duration');
+            
             console.log('🔍 Service demandé:', serviceParam);
+            console.log('🔍 Prix depuis URL:', priceParam);
+            console.log('🔍 Durée depuis URL:', durationParam);
             console.log('🔍 Services disponibles:', Object.keys(services));
             
-            // Chercher le service demandé
+            // Créer un service basé sur les paramètres URL si on a prix et durée
+            if (priceParam && durationParam) {
+                const serviceNames = {
+                    'bb_glow': '✨ BB Glow',
+                    'led_therapie': '💡 LED Thérapie',
+                    'hydro_cleaning': '💧 Hydro Cleaning',
+                    'microneedling': '🔄 LAIA Renaissance',
+                    'eclat_supreme': '🌟 Éclat Suprême',
+                    'hydro_naissance': '🌟 Hydro\'Naissance'
+                };
+                
+                const selectedService = {
+                    name: serviceNames[serviceParam] || 'Service',
+                    description: 'Soin personnalisé',
+                    price: parseInt(priceParam),
+                    duration: parseInt(durationParam),
+                    preparationTime: 15,
+                    totalDuration: parseInt(durationParam) + 15,
+                    emoji: '✨',
+                    label: serviceNames[serviceParam] || 'Soin'
+                };
+                
+                console.log('✅ Service créé depuis URL avec prix:', selectedService.price);
+                return selectedService;
+            }
+            
+            // Chercher le service demandé dans la liste existante
             let selectedService = services[serviceParam];
             
             // Si pas trouvé, prendre le premier service disponible
@@ -668,17 +701,28 @@
                 selectedService = {
                     name: "🌟 Hydro'Naissance",
                     description: "Protocole exclusif : Hydro'Cleaning + Renaissance + LED en 90 minutes",
-                    price: 120,
-                    duration: 90,
+                    price: priceParam ? parseInt(priceParam) : 120,
+                    duration: durationParam ? parseInt(durationParam) : 90,
                     preparationTime: 15,
-                    totalDuration: 105,
+                    totalDuration: (durationParam ? parseInt(durationParam) : 90) + 15,
                     emoji: "🌟",
                     label: "Soin Hydro'Naissance"
                 };
-                console.log('⚠️ Aucun service trouvé, utilisation du service par défaut');
+                console.log('⚠️ Aucun service trouvé, utilisation du service par défaut avec prix:', selectedService.price);
             }
             
-            console.log('🎯 Service sélectionné:', selectedService);
+            // Si prix et durée sont passés dans l'URL et qu'on a trouvé un service, les utiliser en priorité
+            if (selectedService && priceParam) {
+                selectedService.price = parseInt(priceParam);
+                console.log('💰 Prix override depuis URL:', selectedService.price);
+            }
+            if (selectedService && durationParam) {
+                selectedService.duration = parseInt(durationParam);
+                selectedService.totalDuration = parseInt(durationParam) + (selectedService.preparationTime || 15);
+                console.log('⏱️ Durée override depuis URL:', selectedService.duration);
+            }
+            
+            console.log('🎯 Service sélectionné final:', selectedService);
             return selectedService;
         }
 
@@ -710,7 +754,8 @@
         async function loadServicesFromDatabase() {
             try {
                 console.log('📋 Chargement des services depuis la base...');
-                const response = await fetch('/api/admin/services');
+                const apiUrl = window.API_CONFIG ? window.API_CONFIG.baseURL : 'https://laia-skin-api.onrender.com';
+                const response = await fetch(`${apiUrl}/api/admin/services`);
                 
                 if (response.ok) {
                     const servicesFromDB = await response.json();
@@ -976,6 +1021,9 @@
             
             // Get current service information
             const currentService = getSelectedService();
+            console.log('🎯 Service actuel complet:', currentService);
+            console.log('💰 Prix du service:', currentService.price);
+            console.log('⏱️ Durée du service:', currentService.duration);
             
             // DEBUG: Vérifier les données avant envoi
             console.log('🐞 DEBUG - Données du formulaire:');
@@ -1007,9 +1055,11 @@
                 email,
                 phone,
                 password,
-                date: selectedDate.toLocaleDateString('fr-FR'),
+                date: selectedDate.toISOString().split('T')[0], // Format YYYY-MM-DD
                 time: selectedTime,
                 amount: currentService.price,
+                price: currentService.price,  // Ajout du prix pour la page de confirmation
+                duration: currentService.duration,  // Ajout de la durée pour la page de confirmation
                 paymentMethod: 'cash',
                 origine: 'Site internet',
                 source: 'Booking Page',
@@ -1031,7 +1081,8 @@
                 submitButton.textContent = 'Création en cours...';
                 
                 // Create booking and user account
-                const response = await fetch('/api/create-cash-booking', {
+                const apiUrl = window.API_CONFIG ? window.API_CONFIG.baseURL : 'https://laia-skin-api.onrender.com';
+                const response = await fetch(`${apiUrl}/api/appointments`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1049,8 +1100,16 @@
                 // Show success message
                 alert(`✅ Réservation confirmée !\n\nService: ${bookingData.service}\nClient: ${bookingData.firstName} ${bookingData.lastName}\nDate: ${bookingData.date} à ${bookingData.time}\nPaiement: 120€ en espèces le jour J\n\nVous allez recevoir un email de confirmation avec vos identifiants de connexion.`);
                 
+                // Sauvegarder les détails dans localStorage avant la redirection
+                const detailsToSave = {
+                    ...bookingData,
+                    _id: result._id || result.bookingId
+                };
+                console.log('💾 Sauvegarde dans localStorage:', detailsToSave);
+                console.log('💰 Prix sauvegardé:', detailsToSave.price, 'ou amount:', detailsToSave.amount);
+                localStorage.setItem('lastBookingDetails', JSON.stringify(detailsToSave));
                 // Redirect to success page
-                window.location.href = '/booking-success.html?booking_id=' + result.bookingId;
+                window.location.href = 'booking-success.html?booking_id=' + (result._id || result.bookingId);
                 
             } catch (error) {
                 console.error('Erreur création réservation:', error);
@@ -1136,13 +1195,27 @@
         // Charger les créneaux occupés depuis l'API
         async function loadOccupiedSlots() {
             try {
-                const response = await fetch('/api/appointments/occupied-slots');
+                const apiUrl = window.API_CONFIG ? window.API_CONFIG.baseURL : 'https://laia-skin-api.onrender.com';
+                const response = await fetch(`${apiUrl}/api/appointments/occupied-slots`);
                 if (response.ok) {
                     const data = await response.json();
                     occupiedSlots = {}; // Réinitialiser
                     
                     data.occupiedSlots.forEach(slot => {
+                        // Vérifier que slot.datetime existe et est valide
+                        if (!slot.datetime) {
+                            console.warn('⚠️ Créneau sans datetime:', slot);
+                            return;
+                        }
+                        
                         const date = new Date(slot.datetime);
+                        
+                        // Vérifier que la date est valide
+                        if (isNaN(date.getTime())) {
+                            console.warn('⚠️ Date invalide:', slot.datetime);
+                            return;
+                        }
+                        
                         const dateKey = date.toISOString().split('T')[0]; // Format: 2025-08-14
                         const timeKey = date.getHours().toString().padStart(2, '0') + 'h' + date.getMinutes().toString().padStart(2, '0'); // Format: 15h30
                         
@@ -1251,7 +1324,8 @@
         // Fonction pour vérifier si un email existe déjà
         async function checkExistingEmail(email) {
             try {
-                const response = await fetch(`${window.location.origin}/api/auth/check-email`, {
+                const apiUrl = window.API_CONFIG ? window.API_CONFIG.baseURL : 'https://laia-skin-api.onrender.com';
+                const response = await fetch(`${apiUrl}/api/auth/check-email`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

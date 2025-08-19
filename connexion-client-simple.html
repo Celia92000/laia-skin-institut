@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion Espace Client - LAIA SKIN INSTITUT</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Lora:wght@400;500&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Lora', serif;
+            background: linear-gradient(135deg, #fdfbf7 0%, #f8f6f0 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 3rem;
+            max-width: 450px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            border: 1px solid rgba(212, 181, 160, 0.2);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #d4b5a0, #c9a084);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid rgba(212, 181, 160, 0.3);
+            border-radius: 15px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: 'Lora', serif;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #d4b5a0;
+            box-shadow: 0 0 0 3px rgba(212, 181, 160, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #d4b5a0, #c9a084);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(212, 181, 160, 0.4);
+        }
+
+        .message {
+            padding: 1rem;
+            border-radius: 15px;
+            margin-bottom: 1rem;
+            text-align: center;
+            display: none;
+        }
+
+        .message.error {
+            background: rgba(255, 0, 0, 0.1);
+            color: #c0392b;
+            border: 1px solid rgba(255, 0, 0, 0.2);
+            display: block;
+        }
+
+        .message.success {
+            background: rgba(46, 204, 113, 0.1);
+            color: #27ae60;
+            border: 1px solid rgba(46, 204, 113, 0.2);
+            display: block;
+        }
+
+        .info-box {
+            background: rgba(212, 181, 160, 0.1);
+            border-radius: 15px;
+            padding: 1rem;
+            margin-top: 2rem;
+            border-left: 4px solid #d4b5a0;
+        }
+
+        .info-box h3 {
+            color: #c9a084;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .info-box p {
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+
+        .back-link a {
+            color: #c9a084;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+    <!-- Configuration API -->
+    <script src="config.js"></script>
+    <script src="client-auth-fix.js"></script>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <h1>LAIA SKIN INSTITUT</h1>
+            <p class="subtitle">Connexion à votre espace client</p>
+        </div>
+
+        <div id="errorMessage" class="message error" style="display: none;"></div>
+        <div id="successMessage" class="message success" style="display: none;"></div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required placeholder="votre@email.com">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Mot de passe</label>
+                <input type="password" id="password" name="password" required placeholder="Votre mot de passe">
+            </div>
+
+            <button type="submit" class="btn">Se connecter</button>
+        </form>
+
+        <div class="info-box">
+            <h3>💡 Première connexion ?</h3>
+            <p>
+                Utilisez l'email que vous avez fourni lors de votre réservation.
+                Le mot de passe vous a été envoyé par email après votre première réservation.
+            </p>
+        </div>
+
+        <div class="info-box" style="background: rgba(255, 193, 7, 0.1); border-left-color: #FFA000;">
+            <h3>🔧 Mode démo</h3>
+            <p>
+                Pour tester : entrez l'email utilisé lors d'une réservation.
+                N'importe quel mot de passe fonctionnera pour l'instant.
+            </p>
+        </div>
+
+        <div class="back-link">
+            <a href="index.html">← Retour à l'accueil</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            // Masquer les messages précédents
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+            
+            // Tenter la connexion
+            const result = await window.clientAuth.login(email, password);
+            
+            if (result.success) {
+                document.getElementById('successMessage').textContent = 'Connexion réussie ! Redirection...';
+                document.getElementById('successMessage').style.display = 'block';
+                
+                // Rediriger vers le dashboard client
+                setTimeout(() => {
+                    window.location.href = 'client-dashboard.html';
+                }, 1500);
+            } else {
+                document.getElementById('errorMessage').textContent = result.message || 'Email ou mot de passe incorrect';
+                document.getElementById('errorMessage').style.display = 'block';
+            }
+        });
+
+        // Vérifier si déjà connecté
+        if (window.clientAuth && window.clientAuth.isLoggedIn()) {
+            window.location.href = 'client-dashboard.html';
+        }
+    </script>
+</body>
+</html>
