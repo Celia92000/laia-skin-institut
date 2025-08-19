@@ -92,6 +92,106 @@ app.get('/api/appointments/occupied-slots', async (req, res) => {
     }
 });
 
+// Auth routes
+app.post('/api/auth/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        console.log(`🔐 Tentative connexion: ${email}`);
+        
+        // Comptes prédéfinis pour test
+        const users = [
+            {
+                id: 'admin_1',
+                email: 'admin',
+                password: 'institut2024',
+                name: 'Administrateur',
+                role: 'admin',
+                phone: '01 23 45 67 89',
+                createdAt: '2024-01-01'
+            },
+            {
+                id: 'client_1', 
+                email: 'celia',
+                password: '123456',
+                name: 'Célia',
+                role: 'client',
+                phone: '06 12 34 56 78',
+                createdAt: '2024-01-15'
+            },
+            {
+                id: 'client_2',
+                email: 'marie.dupont@email.com',
+                password: '123456',
+                name: 'Marie Dupont',
+                role: 'client',
+                phone: '01 23 45 67 89',
+                createdAt: '2024-01-10'
+            }
+        ];
+        
+        const user = users.find(u => 
+            (u.email === email || u.email === email.toLowerCase()) && 
+            u.password === password
+        );
+        
+        if (user) {
+            console.log(`✅ Connexion réussie: ${user.name} (${user.role})`);
+            // Générer un token simple
+            const token = Buffer.from(`${user.id}:${Date.now()}`).toString('base64');
+            
+            res.json({
+                success: true,
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    name: user.name,
+                    role: user.role,
+                    phone: user.phone,
+                    createdAt: user.createdAt
+                },
+                token: `Bearer ${token}`
+            });
+        } else {
+            console.log(`❌ Échec connexion: ${email}`);
+            res.status(401).json({
+                success: false,
+                message: 'Email ou mot de passe incorrect'
+            });
+        }
+    } catch (error) {
+        console.error('Erreur login:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Register route (création de compte)
+app.post('/api/auth/register', async (req, res) => {
+    try {
+        const { email, password, name, phone } = req.body;
+        
+        // Créer un nouvel utilisateur
+        const newUser = {
+            id: `client_${Date.now()}`,
+            email,
+            name,
+            phone,
+            role: 'client',
+            createdAt: new Date().toISOString()
+        };
+        
+        const token = Buffer.from(`${newUser.id}:${Date.now()}`).toString('base64');
+        
+        res.status(201).json({
+            success: true,
+            user: newUser,
+            token: `Bearer ${token}`,
+            message: 'Compte créé avec succès'
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Loyalty points route
 app.post('/api/loyalty/points', async (req, res) => {
     try {
