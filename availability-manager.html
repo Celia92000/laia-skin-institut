@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Disponibilités - LAIA SKIN INSTITUT</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Lora', serif;
+            background: linear-gradient(135deg, #fdfbf7 0%, #f8f6f0 100%);
+            color: #2c3e50;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #d4b5a0;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            color: #2c3e50;
+            font-size: 2rem;
+        }
+
+        .btn-close {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .tab {
+            padding: 1rem 1.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #6c757d;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            color: #d4b5a0;
+            font-weight: 600;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #d4b5a0;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Horaires d'ouverture */
+        .schedule-grid {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .day-schedule {
+            display: grid;
+            grid-template-columns: 150px 1fr auto;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .day-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .time-inputs {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .time-input {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #d4b5a0;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
+
+        /* Blocage de créneaux */
+        .blocking-section {
+            margin-bottom: 2rem;
+        }
+
+        .blocking-form {
+            display: grid;
+            gap: 1rem;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-control {
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #d4b5a0, #c9a084);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .blocked-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .blocked-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+        }
+
+        .blocked-info {
+            display: grid;
+            gap: 0.25rem;
+        }
+
+        .blocked-date {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .blocked-reason {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* Pauses */
+        .breaks-grid {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .break-item {
+            display: grid;
+            grid-template-columns: 200px 1fr auto;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .break-type {
+            font-weight: 600;
+        }
+
+        .btn-save {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-top: 2rem;
+            width: 100%;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-info {
+            background: #cff4fc;
+            color: #055160;
+            border: 1px solid #b6effb;
+        }
+
+        .alert-success {
+            background: #d1e7dd;
+            color: #0a3622;
+            border: 1px solid #a3cfbb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚙️ Gestion des Disponibilités</h1>
+            <button class="btn-close" onclick="window.location.href='admin-dashboard.html'">✕ Fermer</button>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('schedule')">📅 Horaires d'ouverture</button>
+            <button class="tab" onclick="showTab('blocking')">🚫 Bloquer des créneaux</button>
+            <button class="tab" onclick="showTab('breaks')">☕ Pauses</button>
+            <button class="tab" onclick="showTab('holidays')">🏖️ Congés</button>
+        </div>
+
+        <!-- Onglet Horaires -->
+        <div id="schedule" class="tab-content active">
+            <h2>Définir vos horaires d'ouverture</h2>
+            <div class="alert alert-info">
+                ℹ️ Définissez vos horaires de travail pour chaque jour de la semaine. Les clients ne pourront réserver que pendant ces créneaux.
+            </div>
+            
+            <div class="schedule-grid">
+                <div class="day-schedule">
+                    <span class="day-name">Lundi</span>
+                    <div class="time-inputs">
+                        <input type="time" class="time-input" id="lundi-start" value="09:00">
+                        <span>à</span>
+                        <input type="time" class="time-input" id="lundi-end" value="19:00">
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="lundi-open" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="day-schedule">
+                    <span class="day-name">Mardi</span>
+                    <div class="time-inputs">
+                        <input type="time" class="time-input" id="mardi-start" value="09:00">
+                        <span>à</span>
+                        <input type="time" class="time-input" id="mardi-end" value="19:00">
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="mardi-open" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="day-schedule">
+                    <span class="day-name">Mercredi</span>
+                    <div class="time-inputs">
+                        <input type="time" class="time-input" id="mercredi-start" value="09:00">
+                        <span>à</span>
+                        <input type="time" class="time-input" id="mercredi-end" value="19:00">
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="mercredi-open" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="day-schedule">
+                    <span class="day-name">Jeudi</span>
+                    <div class="time-inputs">
+                        <input type="time" class="time-input" id="jeudi-start" value="09:00">
+                        <span>à</span>
+                        <input type="time" class="time-input" id="jeudi-end" value="19:00">
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="jeudi-open" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="day-schedule">
+                    <span class="day-name">Vendredi</span>
+                    <div class="time-inputs">
+                        <input type="time" class="time-input" id="vendredi-start" value="09:00">
+                        <span>à</span>
+                        <input type="time" class="time-input" id="vendredi-end" value="19:00">
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="vendredi-open" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="day-schedule">
+                    <span class="day-name">Samedi</span>
+                    <div class="time-inputs">
+                        <input type="time" class="time-input" id="samedi-start" value="10:00">
+                        <span>à</span>
+                        <input type="time" class="time-input" id="samedi-end" value="17:00">
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="samedi-open" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="day-schedule">
+                    <span class="day-name">Dimanche</span>
+                    <div class="time-inputs">
+                        <input type="time" class="time-input" id="dimanche-start" value="10:00">
+                        <span>à</span>
+                        <input type="time" class="time-input" id="dimanche-end" value="17:00">
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="dimanche-open">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <button class="btn-save" onclick="saveSchedule()">💾 Enregistrer les horaires</button>
+        </div>
+
+        <!-- Onglet Blocage -->
+        <div id="blocking" class="tab-content">
+            <h2>Bloquer des créneaux spécifiques</h2>
+            
+            <div class="blocking-form">
+                <div class="form-group">
+                    <label>Type de blocage</label>
+                    <select class="form-control" id="block-type">
+                        <option value="single">Créneau unique</option>
+                        <option value="recurring">Créneau récurrent</option>
+                        <option value="day">Journée entière</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" class="form-control" id="block-date">
+                </div>
+
+                <div class="form-group" id="time-group">
+                    <label>Horaire</label>
+                    <div style="display: flex; gap: 1rem;">
+                        <input type="time" class="form-control" id="block-time-start" placeholder="Début">
+                        <input type="time" class="form-control" id="block-time-end" placeholder="Fin">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Raison (optionnel)</label>
+                    <input type="text" class="form-control" id="block-reason" placeholder="Ex: Formation, Rendez-vous personnel...">
+                </div>
+
+                <button class="btn-primary" onclick="addBlockedSlot()">➕ Ajouter le blocage</button>
+            </div>
+
+            <h3>Créneaux bloqués</h3>
+            <div class="blocked-list" id="blocked-list">
+                <!-- Les créneaux bloqués seront affichés ici -->
+            </div>
+        </div>
+
+        <!-- Onglet Pauses -->
+        <div id="breaks" class="tab-content">
+            <h2>Gérer vos pauses quotidiennes</h2>
+            <div class="alert alert-info">
+                ℹ️ Définissez vos pauses régulières. Ces créneaux seront automatiquement bloqués chaque jour.
+            </div>
+
+            <div class="breaks-grid">
+                <div class="break-item">
+                    <span class="break-type">☕ Pause café matin</span>
+                    <div class="time-inputs">
+                        <input type="time" class="time-input" id="break-morning-start" value="10:30">
+                        <span>à</span>
+                        <input type="time" class="time-input" id="break-morning-end" value="10:45">
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="break-morning-active">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="break-item">
+                    <span class="break-type">🍽️ Pause déjeuner</span>
+                    <div class="time-inputs">
+                        <input type="time" class="time-input" id="break-lunch-start" value="12:30">
+                        <span>à</span>
+                        <input type="time" class="time-input" id="break-lunch-end" value="13:30">
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="break-lunch-active" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="break-item">
+                    <span class="break-type">☕ Pause après-midi</span>
+                    <div class="time-inputs">
+                        <input type="time" class="time-input" id="break-afternoon-start" value="16:00">
+                        <span>à</span>
+                        <input type="time" class="time-input" id="break-afternoon-end" value="16:15">
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="break-afternoon-active">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>⏱️ Temps de préparation entre les rendez-vous (minutes)</label>
+                <input type="number" class="form-control" id="buffer-time" value="15" min="0" max="60">
+            </div>
+
+            <button class="btn-save" onclick="saveBreaks()">💾 Enregistrer les pauses</button>
+        </div>
+
+        <!-- Onglet Congés -->
+        <div id="holidays" class="tab-content">
+            <h2>Planifier vos congés</h2>
+            
+            <div class="blocking-form">
+                <div class="form-group">
+                    <label>Période de congés</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div>
+                            <label style="font-weight: normal; font-size: 0.9rem;">Date de début</label>
+                            <input type="date" class="form-control" id="holiday-start">
+                        </div>
+                        <div>
+                            <label style="font-weight: normal; font-size: 0.9rem;">Date de fin</label>
+                            <input type="date" class="form-control" id="holiday-end">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" class="form-control" id="holiday-description" placeholder="Ex: Vacances d'été, Formation...">
+                </div>
+
+                <button class="btn-primary" onclick="addHoliday()">➕ Ajouter les congés</button>
+            </div>
+
+            <h3>Congés planifiés</h3>
+            <div class="blocked-list" id="holidays-list">
+                <!-- Les congés seront affichés ici -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Chargement des données sauvegardées
+        function loadSettings() {
+            const settings = JSON.parse(localStorage.getItem('availabilitySettings') || '{}');
+            
+            // Charger les horaires
+            if (settings.schedule) {
+                Object.keys(settings.schedule).forEach(day => {
+                    const daySettings = settings.schedule[day];
+                    document.getElementById(`${day}-start`).value = daySettings.start || '09:00';
+                    document.getElementById(`${day}-end`).value = daySettings.end || '19:00';
+                    document.getElementById(`${day}-open`).checked = daySettings.open !== false;
+                });
+            }
+            
+            // Charger les pauses
+            if (settings.breaks) {
+                if (settings.breaks.morning) {
+                    document.getElementById('break-morning-start').value = settings.breaks.morning.start || '10:30';
+                    document.getElementById('break-morning-end').value = settings.breaks.morning.end || '10:45';
+                    document.getElementById('break-morning-active').checked = settings.breaks.morning.active || false;
+                }
+                if (settings.breaks.lunch) {
+                    document.getElementById('break-lunch-start').value = settings.breaks.lunch.start || '12:30';
+                    document.getElementById('break-lunch-end').value = settings.breaks.lunch.end || '13:30';
+                    document.getElementById('break-lunch-active').checked = settings.breaks.lunch.active !== false;
+                }
+                if (settings.breaks.afternoon) {
+                    document.getElementById('break-afternoon-start').value = settings.breaks.afternoon.start || '16:00';
+                    document.getElementById('break-afternoon-end').value = settings.breaks.afternoon.end || '16:15';
+                    document.getElementById('break-afternoon-active').checked = settings.breaks.afternoon.active || false;
+                }
+                document.getElementById('buffer-time').value = settings.breaks.bufferTime || 15;
+            }
+            
+            // Charger les créneaux bloqués
+            loadBlockedSlots();
+            loadHolidays();
+        }
+
+        // Changement d'onglet
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        // Sauvegarder les horaires
+        function saveSchedule() {
+            const settings = JSON.parse(localStorage.getItem('availabilitySettings') || '{}');
+            settings.schedule = {};
+            
+            const days = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
+            
+            days.forEach(day => {
+                settings.schedule[day] = {
+                    start: document.getElementById(`${day}-start`).value,
+                    end: document.getElementById(`${day}-end`).value,
+                    open: document.getElementById(`${day}-open`).checked
+                };
+            });
+            
+            localStorage.setItem('availabilitySettings', JSON.stringify(settings));
+            showSuccessMessage('Horaires enregistrés avec succès !');
+        }
+
+        // Sauvegarder les pauses
+        function saveBreaks() {
+            const settings = JSON.parse(localStorage.getItem('availabilitySettings') || '{}');
+            
+            settings.breaks = {
+                morning: {
+                    start: document.getElementById('break-morning-start').value,
+                    end: document.getElementById('break-morning-end').value,
+                    active: document.getElementById('break-morning-active').checked
+                },
+                lunch: {
+                    start: document.getElementById('break-lunch-start').value,
+                    end: document.getElementById('break-lunch-end').value,
+                    active: document.getElementById('break-lunch-active').checked
+                },
+                afternoon: {
+                    start: document.getElementById('break-afternoon-start').value,
+                    end: document.getElementById('break-afternoon-end').value,
+                    active: document.getElementById('break-afternoon-active').checked
+                },
+                bufferTime: parseInt(document.getElementById('buffer-time').value)
+            };
+            
+            localStorage.setItem('availabilitySettings', JSON.stringify(settings));
+            showSuccessMessage('Pauses enregistrées avec succès !');
+        }
+
+        // Ajouter un créneau bloqué
+        function addBlockedSlot() {
+            const type = document.getElementById('block-type').value;
+            const date = document.getElementById('block-date').value;
+            const timeStart = document.getElementById('block-time-start').value;
+            const timeEnd = document.getElementById('block-time-end').value;
+            const reason = document.getElementById('block-reason').value;
+            
+            if (!date) {
+                alert('Veuillez sélectionner une date');
+                return;
+            }
+            
+            const blockedSlots = JSON.parse(localStorage.getItem('blockedSlots') || '[]');
+            
+            const newSlot = {
+                id: Date.now(),
+                type,
+                date,
+                timeStart: type === 'day' ? null : timeStart,
+                timeEnd: type === 'day' ? null : timeEnd,
+                reason,
+                createdAt: new Date().toISOString()
+            };
+            
+            blockedSlots.push(newSlot);
+            localStorage.setItem('blockedSlots', JSON.stringify(blockedSlots));
+            
+            // Réinitialiser le formulaire
+            document.getElementById('block-date').value = '';
+            document.getElementById('block-time-start').value = '';
+            document.getElementById('block-time-end').value = '';
+            document.getElementById('block-reason').value = '';
+            
+            loadBlockedSlots();
+            showSuccessMessage('Créneau bloqué ajouté !');
+        }
+
+        // Charger les créneaux bloqués
+        function loadBlockedSlots() {
+            const blockedSlots = JSON.parse(localStorage.getItem('blockedSlots') || '[]');
+            const container = document.getElementById('blocked-list');
+            
+            if (blockedSlots.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #999;">Aucun créneau bloqué</p>';
+                return;
+            }
+            
+            container.innerHTML = blockedSlots.map(slot => `
+                <div class="blocked-item">
+                    <div class="blocked-info">
+                        <div class="blocked-date">
+                            ${new Date(slot.date).toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                            ${slot.type === 'day' ? '(Journée entière)' : `${slot.timeStart} - ${slot.timeEnd}`}
+                        </div>
+                        <div class="blocked-reason">${slot.reason || 'Pas de raison spécifiée'}</div>
+                    </div>
+                    <button class="btn-delete" onclick="deleteBlockedSlot(${slot.id})">Supprimer</button>
+                </div>
+            `).join('');
+        }
+
+        // Supprimer un créneau bloqué
+        function deleteBlockedSlot(id) {
+            if (!confirm('Supprimer ce créneau bloqué ?')) return;
+            
+            let blockedSlots = JSON.parse(localStorage.getItem('blockedSlots') || '[]');
+            blockedSlots = blockedSlots.filter(slot => slot.id !== id);
+            localStorage.setItem('blockedSlots', JSON.stringify(blockedSlots));
+            
+            loadBlockedSlots();
+            showSuccessMessage('Créneau supprimé !');
+        }
+
+        // Ajouter des congés
+        function addHoliday() {
+            const start = document.getElementById('holiday-start').value;
+            const end = document.getElementById('holiday-end').value;
+            const description = document.getElementById('holiday-description').value;
+            
+            if (!start || !end) {
+                alert('Veuillez sélectionner les dates de début et de fin');
+                return;
+            }
+            
+            const holidays = JSON.parse(localStorage.getItem('holidays') || '[]');
+            
+            const newHoliday = {
+                id: Date.now(),
+                start,
+                end,
+                description,
+                createdAt: new Date().toISOString()
+            };
+            
+            holidays.push(newHoliday);
+            localStorage.setItem('holidays', JSON.stringify(holidays));
+            
+            // Réinitialiser le formulaire
+            document.getElementById('holiday-start').value = '';
+            document.getElementById('holiday-end').value = '';
+            document.getElementById('holiday-description').value = '';
+            
+            loadHolidays();
+            showSuccessMessage('Congés ajoutés !');
+        }
+
+        // Charger les congés
+        function loadHolidays() {
+            const holidays = JSON.parse(localStorage.getItem('holidays') || '[]');
+            const container = document.getElementById('holidays-list');
+            
+            if (holidays.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #999;">Aucun congé planifié</p>';
+                return;
+            }
+            
+            container.innerHTML = holidays.map(holiday => `
+                <div class="blocked-item">
+                    <div class="blocked-info">
+                        <div class="blocked-date">
+                            Du ${new Date(holiday.start).toLocaleDateString('fr-FR')} 
+                            au ${new Date(holiday.end).toLocaleDateString('fr-FR')}
+                        </div>
+                        <div class="blocked-reason">${holiday.description || 'Congés'}</div>
+                    </div>
+                    <button class="btn-delete" onclick="deleteHoliday(${holiday.id})">Supprimer</button>
+                </div>
+            `).join('');
+        }
+
+        // Supprimer des congés
+        function deleteHoliday(id) {
+            if (!confirm('Supprimer ces congés ?')) return;
+            
+            let holidays = JSON.parse(localStorage.getItem('holidays') || '[]');
+            holidays = holidays.filter(h => h.id !== id);
+            localStorage.setItem('holidays', JSON.stringify(holidays));
+            
+            loadHolidays();
+            showSuccessMessage('Congés supprimés !');
+        }
+
+        // Afficher un message de succès
+        function showSuccessMessage(message) {
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-success';
+            alert.textContent = '✅ ' + message;
+            alert.style.position = 'fixed';
+            alert.style.top = '20px';
+            alert.style.right = '20px';
+            alert.style.zIndex = '9999';
+            
+            document.body.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 3000);
+        }
+
+        // Gérer l'affichage des champs de temps
+        document.getElementById('block-type').addEventListener('change', function() {
+            const timeGroup = document.getElementById('time-group');
+            if (this.value === 'day') {
+                timeGroup.style.display = 'none';
+            } else {
+                timeGroup.style.display = 'block';
+            }
+        });
+
+        // Charger les paramètres au démarrage
+        loadSettings();
+    </script>
+</body>
+</html>
