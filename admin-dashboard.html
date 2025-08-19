@@ -735,6 +735,14 @@
                 }, 100);
             }
             
+            // Mettre à jour le dashboard si on va sur Dashboard
+            if (tabName === 'dashboard') {
+                console.log('📊 Mise à jour du Dashboard');
+                setTimeout(() => {
+                    updateDashboardStats();
+                }, 100);
+            }
+            
             // Mettre à jour le menu
             document.querySelectorAll('.menu-item').forEach(item => {
                 item.classList.remove('active');
@@ -1218,6 +1226,150 @@
             }
         }
         
+        // Fonction pour mettre à jour les statistiques du Dashboard
+        function updateDashboardStats() {
+            console.log('📊 Mise à jour des statistiques du Dashboard');
+            
+            try {
+                // Récupérer toutes les réservations
+                const appointments = JSON.parse(localStorage.getItem('allReservations') || '[]');
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                // Calculer les statistiques du jour
+                let todayCount = 0;
+                let todayRevenue = 0;
+                let todayHours = 0;
+                let nextAppointment = null;
+                
+                // Calculer les statistiques de la semaine
+                const weekStart = new Date(today);
+                weekStart.setDate(today.getDate() - today.getDay()); // Début de la semaine (dimanche)
+                weekStart.setHours(0, 0, 0, 0);
+                
+                let weekCount = 0;
+                let weekRevenue = 0;
+                let weekNewClients = new Set();
+                
+                // Calculer les statistiques du mois
+                const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+                let monthCount = 0;
+                let monthRevenue = 0;
+                
+                // Parcourir toutes les réservations
+                appointments.forEach(apt => {
+                    const aptDate = new Date(apt.datetime || apt.date);
+                    const price = parseFloat(apt.price || apt.amount || 0);
+                    const duration = parseInt(apt.duration || 60);
+                    
+                    // Réservations du jour
+                    if (aptDate.toDateString() === today.toDateString()) {
+                        if (apt.status !== 'refusé' && apt.status !== 'annulé') {
+                            todayCount++;
+                            todayRevenue += price;
+                            todayHours += duration / 60;
+                        }
+                    }
+                    
+                    // Prochain rendez-vous
+                    if (aptDate > today && apt.status !== 'refusé' && apt.status !== 'annulé') {
+                        if (!nextAppointment || aptDate < new Date(nextAppointment.datetime || nextAppointment.date)) {
+                            nextAppointment = apt;
+                        }
+                    }
+                    
+                    // Réservations de la semaine
+                    if (aptDate >= weekStart && aptDate <= today) {
+                        if (apt.status !== 'refusé' && apt.status !== 'annulé') {
+                            weekCount++;
+                            weekRevenue += price;
+                            weekNewClients.add(apt.clientName || apt.client?.name || apt.email);
+                        }
+                    }
+                    
+                    // Réservations du mois
+                    if (aptDate >= monthStart && aptDate <= today) {
+                        if (apt.status !== 'refusé' && apt.status !== 'annulé') {
+                            monthCount++;
+                            monthRevenue += price;
+                        }
+                    }
+                });
+                
+                // Mettre à jour les éléments du Dashboard
+                
+                // Statistiques du jour
+                document.getElementById('dashTodayRdvCount').textContent = todayCount;
+                document.getElementById('dashTodayRdvDetails').textContent = todayCount > 0 ? `${todayHours.toFixed(1)}h de soins` : 'Aucun rendez-vous';
+                
+                document.getElementById('dashTodayRevenue').textContent = `${todayRevenue}€`;
+                document.getElementById('dashTodayRevenueDetails').textContent = `${todayCount} service${todayCount > 1 ? 's' : ''}`;
+                
+                const fillRate = Math.round((todayHours / 8) * 100);
+                document.getElementById('dashFillRate').textContent = `${fillRate}%`;
+                document.getElementById('dashFillRateDetails').textContent = `${todayHours.toFixed(1)}h sur 8h`;
+                
+                // Prochain rendez-vous
+                if (nextAppointment) {
+                    const nextDate = new Date(nextAppointment.datetime || nextAppointment.date);
+                    const timeStr = nextAppointment.time || nextDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                    document.getElementById('dashNextAppointmentTime').textContent = timeStr;
+                    document.getElementById('dashNextAppointmentClient').textContent = nextAppointment.clientName || nextAppointment.client?.name || 'Client';
+                } else {
+                    document.getElementById('dashNextAppointmentTime').textContent = '--:--';
+                    document.getElementById('dashNextAppointmentClient').textContent = 'Aucun RDV';
+                }
+                
+                // Statistiques de la semaine
+                const weekElement = document.querySelector('#dashboard .cards-grid:nth-of-type(2) .card:first-child .value');
+                if (weekElement) weekElement.textContent = weekCount;
+                
+                const weekRevenueElement = document.querySelector('#dashboard .cards-grid:nth-of-type(2) .card:nth-child(2) .value');
+                if (weekRevenueElement) weekRevenueElement.textContent = `${weekRevenue}€`;
+                
+                const weekClientsElement = document.querySelector('#dashboard .cards-grid:nth-of-type(2) .card:nth-child(3) .value');
+                if (weekClientsElement) weekClientsElement.textContent = weekNewClients.size;
+                
+                // Taux de satisfaction (simulé pour l'instant)
+                const satisfactionElement = document.querySelector('#dashboard .cards-grid:nth-of-type(2) .card:nth-child(4) .value');
+                if (satisfactionElement) satisfactionElement.textContent = '98%';
+                
+                // Statistiques du mois
+                const monthCountElement = document.querySelector('#dashboard .cards-grid:nth-of-type(3) .card:first-child .value');
+                if (monthCountElement) monthCountElement.textContent = monthCount;
+                
+                const monthRevenueElement = document.querySelector('#dashboard .cards-grid:nth-of-type(3) .card:nth-child(2) .value');
+                if (monthRevenueElement) monthRevenueElement.textContent = `${monthRevenue}€`;
+                
+                // Objectif du mois (exemple : 5000€)
+                const monthObjective = 5000;
+                const monthProgress = Math.round((monthRevenue / monthObjective) * 100);
+                const monthProgressElement = document.querySelector('#dashboard .cards-grid:nth-of-type(3) .card:nth-child(3) .value');
+                if (monthProgressElement) monthProgressElement.textContent = `${monthProgress}%`;
+                
+                // Service le plus populaire
+                const services = {};
+                appointments.forEach(apt => {
+                    if (apt.service && apt.status !== 'refusé' && apt.status !== 'annulé') {
+                        services[apt.service] = (services[apt.service] || 0) + 1;
+                    }
+                });
+                
+                const popularService = Object.entries(services).sort((a, b) => b[1] - a[1])[0];
+                const popularServiceElement = document.querySelector('#dashboard .cards-grid:nth-of-type(3) .card:nth-child(4) .value');
+                if (popularServiceElement && popularService) {
+                    popularServiceElement.textContent = popularService[0];
+                    const smallElement = popularServiceElement.nextElementSibling;
+                    if (smallElement) smallElement.textContent = `${popularService[1]} réservations`;
+                }
+                
+                console.log('✅ Dashboard mis à jour avec succès');
+                
+            } catch (error) {
+                console.error('❌ Erreur mise à jour Dashboard:', error);
+            }
+        }
+        
         // Fonction pour changer le statut d'une réservation
         function changeReservationStatus(id, newStatus) {
             console.log(`Changement statut: ${id} -> ${newStatus}`);
@@ -1249,8 +1401,22 @@
             }
         }
         
-        // Charger les rendez-vous au démarrage si on est sur Planning
+        // Fonction pour gérer les disponibilités
+        function openBlockingInterface() {
+            alert('🛠️ Fonctionnalité en cours de développement\n\nBientôt, vous pourrez :\n- Bloquer des créneaux\n- Définir vos horaires d\'ouverture\n- Gérer vos congés\n- Paramétrer les durées entre RDV');
+        }
+        
+        // Charger les données au démarrage selon l'onglet actif
         document.addEventListener('DOMContentLoaded', function() {
+            // Dashboard est l'onglet par défaut
+            const dashboardSection = document.getElementById('dashboard');
+            if (dashboardSection && dashboardSection.classList.contains('active')) {
+                setTimeout(() => {
+                    updateDashboardStats();
+                }, 500);
+            }
+            
+            // Si Planning est actif
             const planningSection = document.getElementById('planning');
             if (planningSection && planningSection.classList.contains('active')) {
                 setTimeout(() => {
@@ -1259,7 +1425,7 @@
                 }, 500);
             }
             
-            // Charger les réservations si on est sur Réservations
+            // Si Réservations est actif
             const reservationsSection = document.getElementById('reservations');
             if (reservationsSection && reservationsSection.classList.contains('active')) {
                 setTimeout(() => {
