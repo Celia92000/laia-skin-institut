@@ -367,9 +367,12 @@
                         ⚙️ Gérer mes disponibilités
                     </button>
                 </div>
-                <div style="background: white; padding: 2rem; border-radius: 12px;">
+                <div id="calendar-container" style="background: white; padding: 2rem; border-radius: 12px;">
                     <h3>Calendrier Mensuel</h3>
-                    <p>Le calendrier interactif apparaîtra ici...</p>
+                    <div id="calendar-content">
+                        <!-- Le calendrier sera injecté ici -->
+                        <p style="color: #666;">Chargement du calendrier...</p>
+                    </div>
                 </div>
                 
                 <!-- Prochains rendez-vous déplacés depuis le dashboard -->
@@ -717,10 +720,10 @@
             }
             
             // Initialiser le calendrier si on va sur l'onglet Planning
-            if (tabName === 'planning' && window.initPlanningCalendar) {
+            if (tabName === 'planning') {
                 console.log('📅 Activation du calendrier Planning');
                 setTimeout(() => {
-                    window.initPlanningCalendar();
+                    renderPlanningCalendar();
                 }, 100);
             }
             
@@ -756,6 +759,185 @@
                 });
             }
         });
+        
+        // Fonction pour créer le calendrier directement dans la page
+        function renderPlanningCalendar() {
+            console.log('🎯 Rendu du calendrier Planning');
+            const container = document.getElementById('calendar-content');
+            if (!container) {
+                console.error('❌ Container calendar-content non trouvé');
+                return;
+            }
+            
+            const today = new Date();
+            const currentMonth = today.getMonth();
+            const currentYear = today.getFullYear();
+            
+            // Générer le HTML du calendrier
+            let calendarHTML = `
+                <style>
+                    .planning-calendar {
+                        width: 100%;
+                    }
+                    .calendar-header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 2rem;
+                        padding: 1rem;
+                        background: #f8f9fa;
+                        border-radius: 8px;
+                    }
+                    .calendar-nav button {
+                        background: #d4b5a0;
+                        color: white;
+                        border: none;
+                        padding: 0.5rem 1rem;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        margin: 0 0.5rem;
+                    }
+                    .calendar-nav button:hover {
+                        background: #c9a084;
+                    }
+                    .calendar-grid {
+                        display: grid;
+                        grid-template-columns: repeat(7, 1fr);
+                        gap: 1px;
+                        background: #dee2e6;
+                        border: 1px solid #dee2e6;
+                        border-radius: 8px;
+                        overflow: hidden;
+                    }
+                    .calendar-day-header {
+                        background: #d4b5a0;
+                        color: white;
+                        padding: 1rem;
+                        text-align: center;
+                        font-weight: 600;
+                    }
+                    .calendar-day {
+                        background: white;
+                        padding: 0.75rem;
+                        min-height: 80px;
+                        cursor: pointer;
+                        position: relative;
+                    }
+                    .calendar-day:hover {
+                        background: #f8f9fa;
+                    }
+                    .calendar-day.today {
+                        background: #e7f5ff;
+                    }
+                    .calendar-day.other-month {
+                        background: #f8f9fa;
+                        color: #adb5bd;
+                    }
+                    .calendar-day-number {
+                        font-weight: 600;
+                        margin-bottom: 0.5rem;
+                    }
+                    .calendar-appointments {
+                        font-size: 0.75rem;
+                        color: #28a745;
+                    }
+                </style>
+                
+                <div class="planning-calendar">
+                    <div class="calendar-header">
+                        <h4 style="margin: 0;">📅 ${getMonthName(currentMonth)} ${currentYear}</h4>
+                        <div class="calendar-nav">
+                            <button onclick="changeMonth(-1)">◀ Précédent</button>
+                            <button onclick="goToToday()" style="background: #28a745;">Aujourd'hui</button>
+                            <button onclick="changeMonth(1)">Suivant ▶</button>
+                        </div>
+                    </div>
+                    <div class="calendar-grid">
+                        ${generateCalendarDays(currentYear, currentMonth)}
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = calendarHTML;
+        }
+        
+        // Variables globales pour le calendrier
+        let calendarDate = new Date();
+        
+        function getMonthName(month) {
+            const months = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 
+                          'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+            return months[month];
+        }
+        
+        function generateCalendarDays(year, month) {
+            let html = '';
+            const days = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+            
+            // Headers des jours
+            days.forEach(day => {
+                html += `<div class="calendar-day-header">${day}</div>`;
+            });
+            
+            // Premier jour du mois
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startDate = new Date(firstDay);
+            startDate.setDate(startDate.getDate() - firstDay.getDay());
+            
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // Générer 42 jours (6 semaines)
+            for (let i = 0; i < 42; i++) {
+                const cellDate = new Date(startDate);
+                cellDate.setDate(startDate.getDate() + i);
+                
+                const isToday = cellDate.toDateString() === today.toDateString();
+                const isCurrentMonth = cellDate.getMonth() === month;
+                
+                let classes = 'calendar-day';
+                if (isToday) classes += ' today';
+                if (!isCurrentMonth) classes += ' other-month';
+                
+                // Compter les rendez-vous (exemple)
+                const appointments = getAppointmentsForDate(cellDate);
+                
+                html += `
+                    <div class="${classes}" data-date="${cellDate.toISOString().split('T')[0]}">
+                        <div class="calendar-day-number">${cellDate.getDate()}</div>
+                        ${appointments > 0 ? `<div class="calendar-appointments">${appointments} RDV</div>` : ''}
+                    </div>
+                `;
+            }
+            
+            return html;
+        }
+        
+        function getAppointmentsForDate(date) {
+            // Récupérer les rendez-vous depuis localStorage
+            try {
+                const appointments = JSON.parse(localStorage.getItem('allReservations') || '[]');
+                const dateStr = date.toISOString().split('T')[0];
+                
+                return appointments.filter(apt => {
+                    const aptDate = new Date(apt.datetime || apt.date);
+                    return aptDate.toISOString().split('T')[0] === dateStr;
+                }).length;
+            } catch (e) {
+                return 0;
+            }
+        }
+        
+        function changeMonth(direction) {
+            calendarDate.setMonth(calendarDate.getMonth() + direction);
+            renderPlanningCalendar();
+        }
+        
+        function goToToday() {
+            calendarDate = new Date();
+            renderPlanningCalendar();
+        }
     </script>
     
     <!-- Système de synchronisation des réservations -->
