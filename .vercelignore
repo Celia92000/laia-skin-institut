@@ -1,1 +1,6 @@
-laia-skin-nextjs/
+node_modules/
+.env*
+.vercel
+*.log
+.git/
+.DS_Store
