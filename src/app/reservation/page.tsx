@@ -33,21 +33,31 @@ function ReservationContent() {
     fetch('/api/services')
       .then(res => res.json())
       .then(data => {
-        const formattedServices = data.map((service: any) => ({
-          id: service.slug,
-          name: service.name,
-          description: service.shortDescription || service.description,
-          duration: `${service.duration} min`,
-          price: `${service.price}€`,
-          promo: service.promoPrice ? `${service.promoPrice}€` : null,
-          forfait: service.forfaitPrice ? `${service.forfaitPrice}€` : null,
-          forfaitPromo: service.forfaitPromo ? `${service.forfaitPromo}€` : null,
-          icon: service.slug === 'hydro-naissance' ? "👑" : 
-                service.slug === 'hydro-cleaning' ? "💧" :
-                service.slug === 'renaissance' ? "✨" :
-                service.slug === 'bb-glow' ? "🌟" : "💡",
-          recommended: service.featured || false
-        }));
+        const formattedServices = data
+          .filter((service: any) => service.active && service.category !== 'forfaits')
+          .map((service: any) => ({
+            id: service.slug,
+            name: service.name,
+            description: service.shortDescription || service.description,
+            duration: `${service.duration} min`,
+            price: `${service.price}€`,
+            promo: service.promoPrice ? `${service.promoPrice}€` : null,
+            forfait: service.forfaitPrice ? `${service.forfaitPrice}€` : null,
+            forfaitPromo: service.forfaitPromo ? `${service.forfaitPromo}€` : null,
+            icon: service.slug === 'hydro-naissance' ? "👑" : 
+                  service.slug === 'hydro-cleaning' ? "💧" :
+                  service.slug === 'renaissance' ? "✨" :
+                  service.slug === 'bb-glow' ? "🌟" : "💡",
+            recommended: service.featured || false,
+            order: service.order || 999
+          }))
+          .sort((a: any, b: any) => {
+            // D'abord trier par featured (recommandé)
+            if (a.recommended && !b.recommended) return -1;
+            if (!a.recommended && b.recommended) return 1;
+            // Ensuite par ordre
+            return a.order - b.order;
+          });
         setServices(formattedServices);
       })
       .catch(err => {
