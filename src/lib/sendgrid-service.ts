@@ -1,5 +1,13 @@
 // Service d'envoi d'email avec SendGrid
-import { EmailData } from './email-service';
+
+interface EmailData {
+  to: string;
+  clientName: string;
+  date: string;
+  time: string;
+  services: string[];
+  totalPrice: number;
+}
 
 interface SendGridMailData {
   to: string;
