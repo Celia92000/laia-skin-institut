@@ -609,27 +609,6 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
         </div>
       </section>
 
-      {/* FAQ */}
-      <section className="py-20 px-4">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl lg:text-4xl font-playfair text-[#2c3e50] text-center mb-12">
-            Questions fréquentes
-          </h2>
-
-          <div className="space-y-4">
-            {faqs.map((faq, index) => (
-              <div key={index} className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-all">
-                <h3 className="font-semibold text-[#2c3e50] mb-3 flex items-center gap-2">
-                  <Sparkles className="w-5 h-5" style={{ color: enrichment.color }} />
-                  {faq.q}
-                </h3>
-                <p className="text-[#2c3e50]/70 pl-7">{faq.a}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Tarification détaillée */}
       <section className="py-20 px-4 bg-gradient-to-b from-white to-gray-50/30">
         <div className="max-w-6xl mx-auto">
@@ -771,6 +750,27 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
                 </Link>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="py-20 px-4">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl lg:text-4xl font-playfair text-[#2c3e50] text-center mb-12">
+            Questions fréquentes
+          </h2>
+
+          <div className="space-y-4">
+            {faqs.map((faq, index) => (
+              <div key={index} className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-all">
+                <h3 className="font-semibold text-[#2c3e50] mb-3 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5" style={{ color: enrichment.color }} />
+                  {faq.q}
+                </h3>
+                <p className="text-[#2c3e50]/70 pl-7">{faq.a}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
