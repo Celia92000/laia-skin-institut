@@ -31,12 +31,6 @@ const serviceEnrichment: Record<string, any> = {
     badge: '✨ SOIN SIGNATURE D\'EXCEPTION ✨',
     heroImage: '/services/hydro-naissance.jpg',
     isSignature: true,
-    luxuryFeatures: [
-      "Protocole exclusif de 90 minutes",
-      "Produits haute cosmétologie française",
-      "Champagne et collation offerts",
-      "Cadeau de bienvenue premium"
-    ],
     benefits: [
       { icon: Sparkles, title: "Hydratation intense", desc: "Repulpe et réhydrate en profondeur", detail: "Acide hyaluronique multi-moléculaire" },
       { icon: Shield, title: "Protection cellulaire", desc: "Renforce la barrière cutanée", detail: "Complexe vitaminique A-C-E" },
@@ -297,21 +291,6 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
                   Résultats visibles dès la première séance, effets durables garantis.
                 </p>
               </div>
-
-              {/* Luxury Features for Signature */}
-              {enrichment.isSignature && enrichment.luxuryFeatures && (
-                <div className="bg-gradient-to-r from-[#d4b5a0]/10 to-[#c9a084]/10 rounded-xl p-4 mb-6 border border-[#d4b5a0]/20">
-                  <p className="text-xs uppercase tracking-wider text-[#c9a084] font-bold mb-3">Expérience Premium Incluse</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {enrichment.luxuryFeatures.map((feature: string, idx: number) => (
-                      <div key={idx} className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-[#d4b5a0] flex-shrink-0" />
-                        <span className="text-xs text-[#2c3e50]/80">{feature}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               {/* Points clés */}
               <div className="grid grid-cols-2 gap-4">
