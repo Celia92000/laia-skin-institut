@@ -26,6 +26,8 @@ model User {
   medicalNotes   String?
   preferences    String?
   skinType       String?
+  resetToken     String?
+  resetTokenExpiry DateTime?
   evolutions     ClientEvolution[]
   loyaltyHistory LoyaltyHistory[]
   loyaltyProfile LoyaltyProfile?
