@@ -558,21 +558,21 @@ function ReservationContent() {
                     </p>
                     <div className="space-y-3">
                       {/* BB Glow en option (sauf si déjà sélectionné comme soin principal) */}
-                      {!selectedServices.includes("bbglow") && (
+                      {!selectedServices.includes("bb-glow") && (
                         <label className={`flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                          selectedOptions.includes("bbglow")
+                          selectedOptions.includes("bb-glow")
                             ? "border-[#d4b5a0] bg-[#d4b5a0]/5"
                             : "border-gray-200 hover:border-[#d4b5a0]/50"
                         }`}>
                           <div className="flex items-center gap-3">
                             <input
                               type="checkbox"
-                              checked={selectedOptions.includes("bbglow")}
+                              checked={selectedOptions.includes("bb-glow")}
                               onChange={(e) => {
                                 if (e.target.checked) {
-                                  setSelectedOptions([...selectedOptions, "bbglow"]);
+                                  setSelectedOptions([...selectedOptions, "bb-glow"]);
                                 } else {
-                                  setSelectedOptions(selectedOptions.filter(id => id !== "bbglow"));
+                                  setSelectedOptions(selectedOptions.filter(id => id !== "bb-glow"));
                                 }
                               }}
                               className="w-5 h-5 text-[#d4b5a0] focus:ring-[#d4b5a0] focus:ring-offset-0 rounded"
@@ -586,11 +586,10 @@ function ReservationContent() {
                         </label>
                       )}
                       
-                      {/* LED Thérapie en option (sauf si déjà dans le soin ou sélectionnée comme principale) */}
-                      {!selectedServices.includes("led") && 
-                       !["hydro-naissance", "hydro", "renaissance"].some(id => selectedServices.includes(id)) && (
+                      {/* LED Thérapie en option (sauf si déjà sélectionnée comme soin principal) */}
+                      {!selectedServices.includes("led-therapie") && (
                         <label className={`flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                          selectedOptions.includes("led")
+                          selectedOptions.includes("led-therapie")
                             ? "border-[#d4b5a0] bg-[#d4b5a0]/5"
                             : "border-gray-200 hover:border-[#d4b5a0]/50"
                         }`}>
@@ -600,9 +599,9 @@ function ReservationContent() {
                               checked={selectedOptions.includes("led")}
                               onChange={(e) => {
                                 if (e.target.checked) {
-                                  setSelectedOptions([...selectedOptions, "led"]);
+                                  setSelectedOptions([...selectedOptions, "led-therapie"]);
                                 } else {
-                                  setSelectedOptions(selectedOptions.filter(id => id !== "led"));
+                                  setSelectedOptions(selectedOptions.filter(id => id !== "led-therapie"));
                                 }
                               }}
                               className="w-5 h-5 text-[#d4b5a0] focus:ring-[#d4b5a0] focus:ring-offset-0 rounded"
