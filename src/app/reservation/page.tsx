@@ -924,13 +924,12 @@ function ReservationContent() {
                           {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                         </button>
                       </div>
-                      <button
-                        type="button"
-                        className="text-sm text-[#d4b5a0] hover:underline mt-2"
-                        onClick={() => alert("Contactez-nous sur Instagram @laiaskin pour réinitialiser votre mot de passe")}
+                      <Link
+                        href="/mot-passe-oublie"
+                        className="text-sm text-[#d4b5a0] hover:underline mt-2 inline-block"
                       >
                         Mot de passe oublié ?
-                      </button>
+                      </Link>
                     </div>
                   )}
 

@@ -224,14 +224,11 @@ export default function Login() {
               )}
 
               {isLogin && (
-                <div className="flex items-center justify-between">
+                <div className="flex items-center">
                   <label className="flex items-center">
                     <input type="checkbox" className="mr-2" />
                     <span className="text-sm text-muted">Se souvenir de moi</span>
                   </label>
-                  <Link href="/forgot-password" className="text-sm text-primary hover:text-primary-dark">
-                    Mot de passe oublié ?
-                  </Link>
                 </div>
               )}
 
