@@ -1,7 +1,7 @@
 'use client';
 
 import Link from "next/link";
-import { Clock, Star, ChevronRight, Calendar, ArrowRight, Shield, Sparkles, Award, Users, CheckCircle, TrendingUp, Gem, Heart, Zap, Eye } from "lucide-react";
+import { Clock, Star, ChevronRight, Calendar, ArrowRight, Shield, Sparkles, Award, Users, CheckCircle, TrendingUp, Gem, Heart, Zap, Eye, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface Service {
@@ -44,9 +44,9 @@ const serviceEnrichment: Record<string, any> = {
       { icon: Heart, title: "Anti-âge global", desc: "Réduit rides et ridules", detail: "Rétinol encapsulé nouvelle génération" }
     ],
     testimonials: [
-      { name: "Sophie M.", rating: 5, comment: "Ma peau n'a jamais été aussi hydratée et lumineuse. Un vrai coup de cœur !", skin: "Peau déshydratée" },
-      { name: "Claire D.", rating: 5, comment: "Les ridules ont disparu et ma peau paraît 10 ans plus jeune. Magique !", skin: "Peau mature" },
-      { name: "Emma L.", rating: 5, comment: "L'effet repulpant est incroyable. Ma peau est rebondie et éclatante.", skin: "Peau mixte" }
+      { name: "Sophie M.", rating: 5, comment: "Ma peau n'a jamais été aussi hydratée et lumineuse. Un vrai coup de cœur !" },
+      { name: "Claire D.", rating: 5, comment: "Les ridules ont disparu et ma peau paraît 10 ans plus jeune. Magique !" },
+      { name: "Emma L.", rating: 5, comment: "L'effet repulpant est incroyable. Ma peau est rebondie et éclatante." }
     ],
     stats: [
       { percentage: "98%", desc: "Peau plus hydratée" },
@@ -68,9 +68,9 @@ const serviceEnrichment: Record<string, any> = {
       { icon: Heart, title: "Régulation sébacée", desc: "Équilibre la production de sébum", detail: "Idéal peaux mixtes à grasses" }
     ],
     testimonials: [
-      { name: "Léa M.", rating: 5, comment: "Mes pores sont vraiment moins visibles et ma peau reste nette plus longtemps.", skin: "Peau mixte" },
-      { name: "Sarah B.", rating: 5, comment: "Après des années de lutte contre les points noirs, ce soin a changé la donne.", skin: "Peau grasse" },
-      { name: "Julie D.", rating: 5, comment: "C'est le seul soin qui maintient ma peau impeccable entre deux séances.", skin: "Peau sensible" }
+      { name: "Léa M.", rating: 5, comment: "Mes pores sont vraiment moins visibles et ma peau reste nette plus longtemps." },
+      { name: "Sarah B.", rating: 5, comment: "Après des années de lutte contre les points noirs, ce soin a changé la donne." },
+      { name: "Julie D.", rating: 5, comment: "C'est le seul soin qui maintient ma peau impeccable entre deux séances." }
     ],
     stats: [
       { percentage: "95%", desc: "Pores resserrés" },
@@ -92,9 +92,9 @@ const serviceEnrichment: Record<string, any> = {
       { icon: Heart, title: "Éclat sublime", desc: "Teint uniforme et lumineux", detail: "Peeling enzymatique doux" }
     ],
     testimonials: [
-      { name: "Marie P.", rating: 5, comment: "Une vraie renaissance ! Ma peau est transformée, plus ferme et éclatante.", skin: "Peau mature" },
-      { name: "Anne S.", rating: 5, comment: "Les taches ont disparu et mon teint est uniforme. Je suis bluffée !", skin: "Peau tachée" },
-      { name: "Céline R.", rating: 5, comment: "Le grain de peau est affiné, les pores invisibles. Un miracle !", skin: "Peau mixte" }
+      { name: "Marie P.", rating: 5, comment: "Une vraie renaissance ! Ma peau est transformée, plus ferme et éclatante." },
+      { name: "Anne S.", rating: 5, comment: "Les taches ont disparu et mon teint est uniforme. Je suis bluffée !" },
+      { name: "Céline R.", rating: 5, comment: "Le grain de peau est affiné, les pores invisibles. Un miracle !" }
     ],
     stats: [
       { percentage: "97%", desc: "Peau régénérée" },
@@ -116,9 +116,9 @@ const serviceEnrichment: Record<string, any> = {
       { icon: TrendingUp, title: "Hydratation", desc: "Peau nourrie en profondeur", detail: "Sérums vitaminés" }
     ],
     testimonials: [
-      { name: "Lucie B.", rating: 5, comment: "Je me réveille avec un teint parfait tous les matins. Plus besoin de fond de teint !", skin: "Peau terne" },
-      { name: "Marina T.", rating: 5, comment: "Les rougeurs sont camouflées et ma peau resplendit. Un gain de temps fou !", skin: "Peau sensible" },
-      { name: "Sophia L.", rating: 5, comment: "L'effet bonne mine est naturel et dure plusieurs semaines. J'adore !", skin: "Peau fatiguée" }
+      { name: "Lucie B.", rating: 5, comment: "Je me réveille avec un teint parfait tous les matins. Plus besoin de fond de teint !" },
+      { name: "Marina T.", rating: 5, comment: "Les rougeurs sont camouflées et ma peau resplendit. Un gain de temps fou !" },
+      { name: "Sophia L.", rating: 5, comment: "L'effet bonne mine est naturel et dure plusieurs semaines. J'adore !" }
     ],
     stats: [
       { percentage: "100%", desc: "Teint uniforme" },
@@ -140,9 +140,9 @@ const serviceEnrichment: Record<string, any> = {
       { icon: Heart, title: "Cicatrisation", desc: "Répare les tissus", detail: "Protocole médical certifié" }
     ],
     testimonials: [
-      { name: "Isabelle G.", rating: 5, comment: "Mes cicatrices d'acné ont presque disparu. La LED thérapie a changé ma vie !", skin: "Peau acnéique" },
-      { name: "Nathalie D.", rating: 5, comment: "Les rides se sont estompées et ma peau est plus ferme. Résultats bluffants !", skin: "Peau mature" },
-      { name: "Camille F.", rating: 5, comment: "L'inflammation a disparu et ma rosacée est sous contrôle. Enfin une solution !", skin: "Peau rosacée" }
+      { name: "Isabelle G.", rating: 5, comment: "Mes cicatrices d'acné ont presque disparu. La LED thérapie a changé ma vie !" },
+      { name: "Nathalie D.", rating: 5, comment: "Les rides se sont estompées et ma peau est plus ferme. Résultats bluffants !" },
+      { name: "Camille F.", rating: 5, comment: "L'inflammation a disparu et ma rosacée est sous contrôle. Enfin une solution !" }
     ],
     stats: [
       { percentage: "96%", desc: "Inflammation réduite" },
@@ -155,11 +155,11 @@ const serviceEnrichment: Record<string, any> = {
 
 const generateProtocolSteps = (serviceName: string, duration: number) => {
   const baseSteps = [
-    { title: "Diagnostic personnalisé", desc: "Analyse approfondie de votre peau avec technologie de pointe", duration: "5 min" },
-    { title: "Préparation cutanée", desc: "Nettoyage professionnel et préparation optimale de la peau", duration: "10 min" },
-    { title: `Protocole ${serviceName}`, desc: "Application experte du soin principal avec techniques exclusives", duration: `${Math.floor(duration * 0.5)} min` },
-    { title: "Masque thérapeutique", desc: "Application d'un masque haute performance adapté à vos besoins", duration: "15 min" },
-    { title: "Finition professionnelle", desc: "Soins de finition et protection avec conseils personnalisés", duration: "10 min" }
+    { title: "Consultation", desc: "Découverte de votre peau et définition de vos objectifs", duration: "5 min" },
+    { title: "Préparation", desc: "Nettoyage tout en douceur", duration: "10 min" },
+    { title: "Soin principal", desc: "Le cœur de votre expérience beauté", duration: `${Math.floor(duration * 0.5)} min` },
+    { title: "Masque", desc: "Moment de détente et d'hydratation", duration: "15 min" },
+    { title: "Finition", desc: "Protection et conseils beauté", duration: "10 min" }
   ];
   return baseSteps;
 };
@@ -457,40 +457,122 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
         </div>
       </section>
 
-      {/* Protocole détaillé */}
+      {/* Protocole et Contre-indications */}
       <section className="py-20 px-4 bg-gradient-to-b from-gray-50/30 to-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-playfair text-[#2c3e50] mb-4">
-              Un protocole d'expertise médicale
+              Protocole & Informations
             </h2>
             <p className="text-lg text-[#2c3e50]/60 max-w-3xl mx-auto">
-              Chaque étape est minutieusement élaborée par nos experts pour maximiser l'efficacité 
-              tout en respectant l'équilibre naturel de votre peau.
+              Tout ce que vous devez savoir pour profiter pleinement de votre soin
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-8">
-            {protocolSteps.map((step, index) => (
-              <div key={index} className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-all">
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-white font-semibold" style={{
-                    background: `linear-gradient(135deg, ${enrichment.color}, ${enrichment.secondaryColor})`
-                  }}>
-                    {index + 1}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold text-[#2c3e50]">{step.title}</h3>
-                      <span className="text-xs font-medium" style={{ color: enrichment.color }}>
-                        {step.duration}
-                      </span>
+          <div className="grid lg:grid-cols-2 gap-12">
+            {/* Protocole */}
+            <div>
+              <h3 className="text-2xl font-semibold text-[#2c3e50] mb-8 flex items-center gap-3">
+                <Sparkles className="w-6 h-6" style={{ color: enrichment.color }} />
+                Déroulement du soin
+              </h3>
+              <div className="space-y-4">
+                {protocolSteps.map((step, index) => (
+                  <div key={index} className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-all">
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-white font-semibold" style={{
+                        background: `linear-gradient(135deg, ${enrichment.color}, ${enrichment.secondaryColor})`
+                      }}>
+                        {index + 1}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-semibold text-[#2c3e50] text-base">{step.title}</h4>
+                          <span className="text-sm font-medium" style={{ color: enrichment.color }}>
+                            {step.duration}
+                          </span>
+                        </div>
+                        <p className="text-sm text-[#2c3e50]/70 leading-relaxed">{step.desc}</p>
+                      </div>
                     </div>
-                    <p className="text-sm text-[#2c3e50]/70">{step.desc}</p>
                   </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Contre-indications et Recommandations */}
+            <div>
+              <h3 className="text-2xl font-semibold text-[#2c3e50] mb-8 flex items-center gap-3">
+                <Shield className="w-6 h-6" style={{ color: enrichment.color }} />
+                Informations importantes
+              </h3>
+              <div className="space-y-5">
+                {/* Contre-indications */}
+                <div className="bg-white rounded-xl p-6 shadow-md">
+                  <h4 className="font-semibold text-[#2c3e50] text-base mb-4">Contre-indications</h4>
+                  <ul className="space-y-3 text-sm text-[#2c3e50]/70">
+                    <li className="flex items-start gap-2">
+                      <X className="w-4 h-4 text-red-500 mt-0.5" />
+                      <span>Grossesse ou allaitement (selon le soin)</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <X className="w-4 h-4 text-red-500 mt-0.5" />
+                      <span>Infections cutanées actives</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <X className="w-4 h-4 text-red-500 mt-0.5" />
+                      <span>Allergies aux composants utilisés</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <X className="w-4 h-4 text-red-500 mt-0.5" />
+                      <span>Traitements médicaux en cours (à signaler)</span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Recommandations avant */}
+                <div className="bg-white rounded-xl p-6 shadow-md">
+                  <h4 className="font-semibold text-[#2c3e50] text-base mb-4">Avant votre soin</h4>
+                  <ul className="space-y-3 text-sm text-[#2c3e50]/70">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
+                      <span>Arriver démaquillée ou avec un maquillage léger</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
+                      <span>Éviter l'exposition solaire 48h avant</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
+                      <span>Bien hydrater votre peau les jours précédents</span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Recommandations après */}
+                <div className="bg-white rounded-xl p-6 shadow-md">
+                  <h4 className="font-semibold text-[#2c3e50] text-base mb-4">Après votre soin</h4>
+                  <ul className="space-y-3 text-sm text-[#2c3e50]/70">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
+                      <span>Protection solaire SPF50 obligatoire</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
+                      <span>Maintenir une bonne hydratation</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
+                      <span>Suivre les conseils personnalisés donnés</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
+                      <span>Éviter sauna et hammam pendant 48h</span>
+                    </li>
+                  </ul>
                 </div>
               </div>
-            ))}
+            </div>
           </div>
         </div>
       </section>
@@ -524,7 +606,6 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
                     </div>
                     <div>
                       <p className="font-semibold text-[#2c3e50]">{testimonial.name}</p>
-                      <p className="text-xs text-[#2c3e50]/60">{testimonial.skin}</p>
                     </div>
                   </div>
                   <CheckCircle className="w-5 h-5 text-green-500" />
@@ -589,15 +670,15 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
                 <ul className="space-y-3 mb-6">
                   <li className="flex items-center gap-2 text-sm text-[#2c3e50]/70">
                     <CheckCircle className="w-4 h-4 text-green-500" />
-                    Diagnostic complet offert
+                    Analyse de peau offerte
                   </li>
                   <li className="flex items-center gap-2 text-sm text-[#2c3e50]/70">
                     <CheckCircle className="w-4 h-4 text-green-500" />
-                    Protocole complet {service.duration} min
+                    Soin complet {service.duration} minutes
                   </li>
                   <li className="flex items-center gap-2 text-sm text-[#2c3e50]/70">
                     <CheckCircle className="w-4 h-4 text-green-500" />
-                    Conseils personnalisés
+                    Conseils beauté sur mesure
                   </li>
                 </ul>
                 <Link 
@@ -619,7 +700,7 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
               </div>
             </div>
 
-            {/* Cure */}
+            {/* Forfait */}
             <div className="bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all transform hover:-translate-y-1">
               <div className="p-6 text-white relative" style={{
                 background: `linear-gradient(135deg, ${enrichment.color}, ${enrichment.secondaryColor})`
@@ -627,7 +708,7 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
                 <div className="absolute top-2 right-2 bg-amber-400 text-[#2c3e50] text-xs font-bold px-2 py-1 rounded">
                   BEST SELLER
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Cure Transformation</h3>
+                <h3 className="text-xl font-semibold mb-2">Forfait 4 Séances</h3>
                 <div className="flex items-baseline gap-2">
                   <span className="text-3xl font-bold">{packagePrice}€</span>
                   <span className="text-sm opacity-80 line-through">{service.price * 4}€</span>
@@ -638,19 +719,19 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
                 <ul className="space-y-3 mb-6">
                   <li className="flex items-center gap-2 text-sm text-[#2c3e50]/70">
                     <CheckCircle className="w-4 h-4 text-green-500" />
-                    4 séances complètes
+                    Forfait de 4 séances
                   </li>
                   <li className="flex items-center gap-2 text-sm text-[#2c3e50]/70">
                     <CheckCircle className="w-4 h-4 text-green-500" />
-                    Suivi personnalisé inclus
+                    Suivi évolution de votre peau
                   </li>
                   <li className="flex items-center gap-2 text-sm text-[#2c3e50]/70">
                     <CheckCircle className="w-4 h-4 text-green-500" />
-                    Produits de soin offerts
+                    Produits d'entretien offerts
                   </li>
                   <li className="flex items-center gap-2 text-sm text-[#2c3e50]/70">
                     <CheckCircle className="w-4 h-4 text-green-500" />
-                    -10% sur produits boutique
+                    Réduction boutique -10%
                   </li>
                 </ul>
                 <Link 
@@ -660,7 +741,7 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
                     background: `linear-gradient(135deg, ${enrichment.color}, ${enrichment.secondaryColor})`
                   }}
                 >
-                  Choisir cette cure
+                  Choisir ce forfait
                 </Link>
               </div>
             </div>
@@ -681,19 +762,19 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
                 <ul className="space-y-3 mb-6">
                   <li className="flex items-center gap-2 text-sm text-[#2c3e50]/70">
                     <CheckCircle className="w-4 h-4 text-green-500" />
-                    1 séance par mois
+                    Un soin mensuel
                   </li>
                   <li className="flex items-center gap-2 text-sm text-[#2c3e50]/70">
                     <CheckCircle className="w-4 h-4 text-green-500" />
-                    Réservation prioritaire
+                    Accès prioritaire
                   </li>
                   <li className="flex items-center gap-2 text-sm text-[#2c3e50]/70">
                     <CheckCircle className="w-4 h-4 text-green-500" />
-                    -20% sur soins additionnels
+                    Tarifs préférentiels -20%
                   </li>
                   <li className="flex items-center gap-2 text-sm text-[#2c3e50]/70">
                     <CheckCircle className="w-4 h-4 text-green-500" />
-                    Cadeaux exclusifs VIP
+                    Avantages VIP exclusifs
                   </li>
                 </ul>
                 <Link 
