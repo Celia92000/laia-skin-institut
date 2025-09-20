@@ -1085,9 +1085,14 @@ export default function EspaceClient() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[#2c3e50] mb-2">Mot de passe</label>
-                    <button className="px-4 py-2 border border-[#d4b5a0] text-[#d4b5a0] rounded-lg hover:bg-[#d4b5a0] hover:text-white transition-colors">
-                      Modifier mon mot de passe
-                    </button>
+                    <div className="flex gap-2">
+                      <Link
+                        href="/mot-passe-oublie"
+                        className="px-4 py-2 border border-[#d4b5a0] text-[#d4b5a0] rounded-lg hover:bg-[#d4b5a0] hover:text-white transition-colors"
+                      >
+                        Modifier mon mot de passe
+                      </Link>
+                    </div>
                   </div>
                 </div>
 

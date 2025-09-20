@@ -193,6 +193,17 @@ export default function Login() {
                 </div>
               </div>
 
+              {isLogin && (
+                <div className="text-right mb-4">
+                  <Link
+                    href="/mot-passe-oublie"
+                    className="text-sm text-[#d4b5a0] hover:text-[#c9a084] transition-colors"
+                  >
+                    Mot de passe oublié ?
+                  </Link>
+                </div>
+              )}
+
               {!isLogin && (
                 <div>
                   <label className="block text-sm font-medium mb-2">
