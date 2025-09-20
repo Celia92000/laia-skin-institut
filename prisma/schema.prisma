@@ -80,7 +80,8 @@ model Service {
   forfaitPromo      Float?
   duration          Int
   benefits          String? // JSON
-  process           String? // JSON
+  process           String? // JSON - Deprecated, use protocol instead
+  protocol          String? // JSON - Array of {title, duration, desc}
   recommendations   String?
   contraindications String?
   mainImage         String?

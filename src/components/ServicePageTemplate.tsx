@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Clock, Star, ChevronRight, Calendar, ArrowRight, Shield, Sparkles, Award, Users, CheckCircle, TrendingUp, Gem, Heart, Zap, Eye, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import OtherServices from './OtherServices';
 
 interface Service {
   id: string;
@@ -15,6 +16,7 @@ interface Service {
   forfaitPrice?: number | null;
   forfaitPromo?: number | null;
   benefits: string | null;
+  protocol?: string | null;
   contraindications: string | null;
   active: boolean;
   image: string | null;
@@ -231,7 +233,12 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
 
   const enrichment = serviceEnrichment[slug] || serviceEnrichment['hydro-naissance'];
   const IconComponent = enrichment.icon;
-  const protocolSteps = generateProtocolSteps(service.name, service.duration);
+  
+  // Utiliser le protocole de la DB s'il existe, sinon générer automatiquement
+  const protocolSteps = service.protocol 
+    ? (typeof service.protocol === 'string' ? JSON.parse(service.protocol) : service.protocol)
+    : generateProtocolSteps(service.name, service.duration);
+  
   const faqs = generateFAQ(service.name, service.price);
   
   // Utiliser les vrais prix de la base de données
@@ -772,6 +779,21 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Autres soins recommandés */}
+      <section className="py-20 px-4 bg-gray-50/30">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-playfair text-[#2c3e50] mb-4">
+              Découvrez nos autres soins
+            </h2>
+            <p className="text-lg text-[#2c3e50]/60">
+              Complétez votre routine beauté avec nos autres prestations
+            </p>
+          </div>
+          <OtherServices currentServiceSlug={slug} />
         </div>
       </section>
 

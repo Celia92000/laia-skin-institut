@@ -24,6 +24,7 @@ interface Service {
   duration: number;
   benefits?: string;
   process?: string;
+  protocol?: string;
   recommendations?: string;
   contraindications?: string;
   mainImage?: string;
@@ -159,6 +160,9 @@ export default function AdminServicesTab() {
 
     const [benefits, setBenefits] = useState<string[]>(parseJsonField(formData.benefits));
     const [process, setProcess] = useState<string[]>(parseJsonField(formData.process));
+    const [protocol, setProtocol] = useState<{title: string, duration: string, desc: string}[]>(
+      formData.protocol ? (typeof formData.protocol === 'string' ? JSON.parse(formData.protocol) : formData.protocol) : []
+    );
     const [gallery, setGallery] = useState<string[]>(parseJsonField(formData.gallery));
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -181,6 +185,7 @@ export default function AdminServicesTab() {
         ...formData,
         benefits: JSON.stringify(benefits.filter(b => b.trim())),
         process: JSON.stringify(process.filter(p => p.trim())),
+        protocol: JSON.stringify(protocol.filter(p => p.title?.trim() || p.desc?.trim())),
         gallery: JSON.stringify(gallery.filter(g => g.trim()))
       };
 
