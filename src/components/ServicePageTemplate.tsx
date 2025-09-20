@@ -736,38 +736,38 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
               <div className="p-6 text-white" style={{
                 background: `linear-gradient(135deg, #c9a084, #d4b5a0)`
               }}>
-                <h3 className="text-xl font-semibold mb-2">Abonnement Mensuel</h3>
+                <h3 className="text-xl font-semibold mb-2">Formule Liberté</h3>
                 <div className="flex items-baseline gap-2">
                   <span className="text-3xl font-bold">{monthlyPrice}€</span>
-                  <span className="text-sm opacity-90">/mois</span>
+                  <span className="text-sm opacity-90">par séance</span>
                 </div>
-                <p className="text-xs opacity-90 mt-1">Prélèvement automatique mensuel</p>
-                <p className="text-xs opacity-80">Sans engagement - Résiliable à tout moment</p>
+                <p className="text-xs opacity-90 mt-1">Tarif préférentiel régulier</p>
+                <p className="text-xs opacity-80">Paiement à chaque visite</p>
               </div>
               <div className="p-6">
                 <ul className="space-y-3 mb-6">
                   <li className="flex items-center gap-2 text-sm text-[#2c3e50]/70">
                     <CheckCircle className="w-4 h-4 text-green-500" />
-                    Un soin mensuel
+                    Tarif préférentiel pour clientes fidèles
                   </li>
                   <li className="flex items-center gap-2 text-sm text-[#2c3e50]/70">
                     <CheckCircle className="w-4 h-4 text-green-500" />
-                    Accès prioritaire
+                    Sans engagement
                   </li>
                   <li className="flex items-center gap-2 text-sm text-[#2c3e50]/70">
                     <CheckCircle className="w-4 h-4 text-green-500" />
-                    Tarifs préférentiels -20%
+                    Paiement en espèces à chaque visite
                   </li>
                   <li className="flex items-center gap-2 text-sm text-[#2c3e50]/70">
                     <CheckCircle className="w-4 h-4 text-green-500" />
-                    Avantages exclusifs
+                    Flexibilité totale
                   </li>
                 </ul>
                 <Link 
                   href="/reservation" 
                   className="block text-center py-3 bg-[#c9a084]/10 text-[#c9a084] rounded-lg font-semibold hover:bg-[#c9a084]/20 transition-all"
                 >
-                  S'abonner
+                  Choisir cette formule
                 </Link>
               </div>
             </div>

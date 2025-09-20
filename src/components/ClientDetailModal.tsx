@@ -268,7 +268,7 @@ export default function ClientDetailModal({
                                   <div className="inline-flex items-center gap-2 px-2 py-1 bg-blue-50 rounded-lg">
                                     <CreditCard className="w-3 h-3 text-blue-600" />
                                     <span className="text-xs font-medium text-blue-700">
-                                      Abonnement Mensuel
+                                      Formule Liberté
                                     </span>
                                   </div>
                                 )}
