@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,10 +22,14 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json(services);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Erreur lors de la récupération des services:', error);
     return NextResponse.json(
-      { error: 'Erreur serveur' },
+      { 
+        error: 'Erreur serveur',
+        message: error.message,
+        code: error.code 
+      },
       { status: 500 }
     );
   }
