@@ -82,8 +82,8 @@ export async function POST(request: NextRequest) {
         <h1>LAIA SKIN Institut</h1>
       </div>
       <div class="content">
-        <p>Bonjour ${clientName},</p>
-        <div class="message">${message.replace(/\n/g, '<br>')}</div>
+        <p>Bonjour ${clientName || 'Cliente'},</p>
+        <div class="message">${message ? message.replace(/\n/g, '<br>') : 'Votre réservation a été confirmée.'}</div>
         <div class="signature">
           <p>À très bientôt,<br>
           <strong>Laïa</strong><br>

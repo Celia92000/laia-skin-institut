@@ -686,14 +686,14 @@ export default function AdminDashboard() {
                     {newReservationCount} nouvelle{newReservationCount > 1 ? 's' : ''} réservation{newReservationCount > 1 ? 's' : ''} !
                   </p>
                   <p className="text-white/90 text-sm">
-                    En attente de validation dans l'onglet "Validation Soins"
+                    En attente de confirmation dans l'onglet "Planning du jour"
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => {
                   setShowNotification(false);
-                  setActiveTab('validation');
+                  setActiveTab('planning');
                   const pendingIds = reservations
                     .filter(r => r.status === 'pending')
                     .map(r => r.id);
@@ -931,17 +931,6 @@ export default function AdminDashboard() {
                     Vue calendrier
                   </button>
                   <button
-                    onClick={() => setPlanningSubTab('availability')}
-                    className={`px-4 py-2 rounded-lg transition-all ${
-                      planningSubTab === 'availability'
-                        ? 'bg-[#d4b5a0] text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    <Settings className="w-4 h-4 inline mr-2" />
-                    Gérer mes disponibilités
-                  </button>
-                  <button
                     onClick={() => setPlanningSubTab('list')}
                     className={`px-4 py-2 rounded-lg transition-all ${
                       planningSubTab === 'list'
@@ -951,6 +940,17 @@ export default function AdminDashboard() {
                   >
                     <List className="w-4 h-4 inline mr-2" />
                     Liste des réservations
+                  </button>
+                  <button
+                    onClick={() => setPlanningSubTab('availability')}
+                    className={`px-4 py-2 rounded-lg transition-all ${
+                      planningSubTab === 'availability'
+                        ? 'bg-[#d4b5a0] text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    <Settings className="w-4 h-4 inline mr-2" />
+                    Gérer mes disponibilités
                   </button>
                 </div>
               </div>
@@ -1027,7 +1027,18 @@ export default function AdminDashboard() {
                         date: typeof r.date === 'string' ? r.date : r.date.toISOString(),
                         userName: r.userName || 'Client',
                         userEmail: r.userEmail || '',
+                        serviceName: r.services && r.services.length > 0 
+                          ? r.services.map((s: string) => services[s as keyof typeof services] || s).join(', ')
+                          : 'Service non défini',
+                        serviceDuration: r.services && r.services.length > 0
+                          ? r.services.reduce((total: number, serviceId: string) => {
+                              const service = dbServices.find(s => s.id === serviceId);
+                              return total + (service?.duration || 60);
+                            }, 0)
+                          : 60
                       }))}
+                    services={services}
+                    dbServices={dbServices}
                     onNewReservation={() => setShowNewReservationModal(true)}
                     onDateClick={(date) => {
                       setQuickActionDate(date);

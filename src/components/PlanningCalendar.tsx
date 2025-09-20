@@ -14,6 +14,8 @@ interface Reservation {
   userName?: string;
   userEmail: string;
   services: any[];
+  serviceName?: string;
+  serviceDuration?: number;
   status: string;
   totalPrice: number;
 }
@@ -30,11 +32,13 @@ type ViewMode = 'day' | 'week' | 'month' | 'year';
 
 interface PlanningCalendarProps {
   reservations: Reservation[];
+  services?: Record<string, string>;
+  dbServices?: any[];
   onNewReservation?: () => void;
   onDateClick?: (date: Date) => void;
 }
 
-export default function PlanningCalendar({ reservations, onNewReservation, onDateClick }: PlanningCalendarProps) {
+export default function PlanningCalendar({ reservations, services, dbServices, onNewReservation, onDateClick }: PlanningCalendarProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [blockedSlots, setBlockedSlots] = useState<BlockedSlot[]>([]);
@@ -53,7 +57,7 @@ export default function PlanningCalendar({ reservations, onNewReservation, onDat
   const [clientName, setClientName] = useState<string>('');
   const [clientEmail, setClientEmail] = useState<string>('');
   const [clientPhone, setClientPhone] = useState<string>('');
-  const [services, setServices] = useState<any[]>([]);
+  const [localServices, setLocalServices] = useState<any[]>([]);
   const [isBlockMode, setIsBlockMode] = useState(false);
 
   useEffect(() => {
@@ -94,16 +98,23 @@ export default function PlanningCalendar({ reservations, onNewReservation, onDat
   };
 
   // Helper pour obtenir la durée d'un service en minutes
-  const getServiceDuration = (serviceName: string): number => {
-    const durations: Record<string, number> = {
-      'BB Glow': 90,
-      'Hydrocleaning': 60,
-      'Microneedling': 75,
-      'Thérapie LED': 30,
-      'Renaissance': 120,
-      'Éclat Suprême': 90
-    };
-    return durations[serviceName] || 60;
+  const getServiceDuration = (serviceName: string, reservation?: any): number => {
+    // Si la durée est déjà dans la réservation, l'utiliser
+    if (reservation?.serviceDuration) {
+      return reservation.serviceDuration;
+    }
+    
+    // Sinon, chercher dans dbServices si disponible
+    if (dbServices && reservation?.services && reservation.services.length > 0) {
+      const serviceId = reservation.services[0];
+      const service = dbServices.find(s => s.id === serviceId);
+      if (service?.duration) {
+        return service.duration;
+      }
+    }
+    
+    // Valeur par défaut
+    return 60;
   };
 
   // Vérifier si un créneau est disponible (pas de chevauchement)
@@ -438,8 +449,7 @@ export default function PlanningCalendar({ reservations, onNewReservation, onDat
               const isInReservedRange = dayReservations.some(r => {
                 const resStart = timeToMinutes(r.time);
                 // Récupérer la durée du service ou utiliser la durée par défaut
-                const serviceName = r.services?.[0]?.name || r.service || '';
-                const resDuration = r.services?.[0]?.duration || r.serviceDuration || getServiceDuration(serviceName);
+                const resDuration = r.serviceDuration || getServiceDuration(r.serviceName || '', r);
                 const resEnd = resStart + resDuration + 15; // +15 min préparation
                 return timeMin >= resStart && timeMin < resEnd;
               });
@@ -450,8 +460,7 @@ export default function PlanningCalendar({ reservations, onNewReservation, onDat
               let showReservationBlock = false;
               
               if (isReservationStart && reservation) {
-                const serviceName = reservation.services?.[0]?.name || reservation.service || '';
-                const duration = reservation.services?.[0]?.duration || reservation.serviceDuration || getServiceDuration(serviceName);
+                const duration = reservation.serviceDuration || getServiceDuration(reservation.serviceName || '', reservation);
                 reservationSpan = Math.ceil((duration + 15) / 30); // Nombre de créneaux de 30 min (incluant préparation)
                 showReservationBlock = true;
               }
@@ -564,9 +573,9 @@ export default function PlanningCalendar({ reservations, onNewReservation, onDat
                         <div className="flex items-center justify-between mb-2">
                           <span className="font-bold text-[#2c3e50]">{time}</span>
                           <span className="text-xs text-blue-600">
-                            {Math.floor((reservation.services?.[0]?.duration || reservation.serviceDuration || getServiceDuration(reservation.service || '')) / 60)}h
-                            {((reservation.services?.[0]?.duration || reservation.serviceDuration || getServiceDuration(reservation.service || '')) % 60) > 0 ? 
-                              `${(reservation.services?.[0]?.duration || reservation.serviceDuration || getServiceDuration(reservation.service || '')) % 60}min` : ''}
+                            {Math.floor((reservation.serviceDuration || getServiceDuration(reservation.serviceName || '', reservation)) / 60)}h
+                            {((reservation.serviceDuration || getServiceDuration(reservation.serviceName || '', reservation)) % 60) > 0 ? 
+                              `${(reservation.serviceDuration || getServiceDuration(reservation.serviceName || '', reservation)) % 60}min` : ''}
                           </span>
                         </div>
                         <div className="space-y-1">
@@ -577,7 +586,7 @@ export default function PlanningCalendar({ reservations, onNewReservation, onDat
                             </span>
                           </div>
                           <div className="text-xs text-blue-700">
-                            {reservation.services?.[0]?.name || reservation.service || 'Service'}
+                            {reservation.serviceName || reservation.services?.[0]?.name || reservation.service || 'Service'}
                           </div>
                           <div className="text-sm font-semibold text-blue-900">
                             {reservation.totalPrice}€

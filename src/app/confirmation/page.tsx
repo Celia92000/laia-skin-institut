@@ -223,7 +223,8 @@ END:VCALENDAR`;
                   <div className="mt-2 space-y-2">
                     {JSON.parse(reservation.services).map((serviceId: string) => {
                       const service = services[serviceId as keyof typeof services];
-                      const packageType = JSON.parse(reservation.packages)[serviceId];
+                      const packages = reservation.packages ? JSON.parse(reservation.packages) : {};
+                      const packageType = packages[serviceId];
                       return (
                         <div key={serviceId} className="flex items-center gap-2">
                           <span className="text-lg">{service?.icon}</span>
@@ -251,19 +252,11 @@ END:VCALENDAR`;
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="grid md:grid-cols-2 gap-4 mb-6">
-            <button
-              onClick={openWhatsApp}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:shadow-lg transition-all"
-            >
-              <MessageCircle className="w-5 h-5" />
-              Confirmer sur WhatsApp
-            </button>
-            
+          {/* Action Button */}
+          <div className="flex justify-center mb-6">
             <button
               onClick={addToCalendar}
-              className="flex items-center justify-center gap-2 px-6 py-3 border-2 border-[#d4b5a0] text-[#d4b5a0] rounded-xl hover:bg-[#d4b5a0] hover:text-white transition-all"
+              className="flex items-center justify-center gap-2 px-8 py-3 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white rounded-xl hover:shadow-lg transition-all"
             >
               <Download className="w-5 h-5" />
               Ajouter au calendrier

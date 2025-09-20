@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Calendar, Clock, CheckCircle, XCircle, Gift, Star, RefreshCw, User, Award, TrendingUp, LogOut, Share2, Heart, History, Check, Edit2, X, CalendarDays, MessageSquare, ThumbsUp, Send, Camera } from "lucide-react";
+import { Calendar, Clock, CheckCircle, XCircle, Gift, Star, RefreshCw, User, Award, TrendingUp, LogOut, Share2, Heart, History, Check, Edit2, X, CalendarDays, MessageSquare, ThumbsUp, Send, Camera, Edit } from "lucide-react";
 import AuthGuard from "@/components/AuthGuard";
 import { logout } from "@/lib/auth-client";
 
@@ -565,7 +565,7 @@ export default function EspaceClient() {
                           {reservation.services.map((serviceId: string) => (
                             <span key={serviceId} className="px-3 py-1 bg-[#d4b5a0]/10 rounded-full text-sm">
                               {services[serviceId as keyof typeof services]}
-                              {reservation.packages[serviceId] === 'forfait' && ' (Forfait 4 séances)'}
+                              {reservation.packages && reservation.packages[serviceId] === 'forfait' && ' (Forfait 4 séances)'}
                             </span>
                           ))}
                         </div>
@@ -613,19 +613,19 @@ export default function EspaceClient() {
                             <>
                               <button
                                 onClick={() => {
-                                  alert('Rendez-vous confirmé ! Vous recevrez un email de rappel 24h avant.');
-                                  // Ici, appeler l'API pour confirmer
-                                  window.location.reload();
+                                  alert('Pour modifier votre rendez-vous, contactez-nous sur Instagram @laiaskin ou appelez-nous.');
+                                  // Ici on pourrait ouvrir un modal de modification
                                 }}
-                                className="flex items-center gap-1 px-3 py-2 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600 transition-all"
+                                className="flex items-center gap-1 px-3 py-2 bg-[#d4b5a0] text-white rounded-lg text-sm hover:bg-[#c9a084] transition-all"
                               >
-                                <CheckCircle className="w-4 h-4" />
-                                Confirmer
+                                <Edit className="w-4 h-4" />
+                                Modifier
                               </button>
                               <button
                                 onClick={() => {
-                                  if (confirm('Voulez-vous vraiment annuler ce rendez-vous ?')) {
-                                    alert('Rendez-vous annulé.');
+                                  if (confirm('Voulez-vous vraiment annuler ce rendez-vous ?\n\nCette action est irréversible.')) {
+                                    alert('Rendez-vous annulé. Vous recevrez un email de confirmation.');
+                                    // Ici, appeler l'API pour annuler
                                     window.location.reload();
                                   }
                                 }}
