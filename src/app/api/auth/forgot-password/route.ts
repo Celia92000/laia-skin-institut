@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import crypto from 'crypto';
+import { sendPasswordResetEmail } from '@/lib/email-service';
 
 export async function POST(request: NextRequest) {
   try {
@@ -40,37 +41,16 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    // Dans une vraie application, on enverrait un email ici
-    // Pour cette démo, on simule l'envoi
-    console.log(`
-      ========================================
-      SIMULATION D'EMAIL DE RÉINITIALISATION
-      ========================================
-      
-      Destinataire: ${email}
-      
-      Bonjour ${user.name || 'Cliente'},
-      
-      Vous avez demandé la réinitialisation de votre mot de passe.
-      Cliquez sur le lien ci-dessous pour créer un nouveau mot de passe :
-      
-      http://localhost:3001/reset-password?token=${resetToken}
-      
-      Ce lien expirera dans 1 heure.
-      
-      Si vous n'avez pas demandé cette réinitialisation, ignorez cet email.
-      
-      Cordialement,
-      L'équipe LAIA SKIN Institut
-      
-      ========================================
-    `);
+    // Envoyer l'email avec Resend
+    const emailResult = await sendPasswordResetEmail({
+      email,
+      name: user.name || 'Cliente',
+      resetToken
+    });
 
-    // Pour le développement, afficher aussi les infos de connexion actuelles
-    if (email === 'celia@laiaskin.com') {
-      console.log('Info: Votre mot de passe actuel est "celia2024"');
-    } else if (email === 'admin@laiaskin.com') {
-      console.log('Info: Votre mot de passe actuel est "admin123"');
+    if (!emailResult.success) {
+      console.error('Erreur lors de l\'envoi de l\'email:', emailResult.error);
+      // On continue quand même pour ne pas révéler si l'email existe
     }
 
     return NextResponse.json({

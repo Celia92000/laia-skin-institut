@@ -1,174 +1,137 @@
-// Service d'envoi d'email simple avec template HTML
-// Utilise l'API Web native (nécessite un serveur SMTP configuré ou un service tiers)
+import { Resend } from 'resend';
 
-export interface EmailData {
-  to: string;
-  clientName: string;
-  date: string;
-  time: string;
-  services: string[];
-  totalPrice: number;
-  reservationId: string;
+// Initialiser Resend avec la clé API
+const resend = new Resend(process.env.RESEND_API_KEY || 'demo_key');
+
+interface SendPasswordResetEmailParams {
+  email: string;
+  name: string;
+  resetToken: string;
 }
 
-export async function sendConfirmationEmail(data: EmailData): Promise<boolean> {
-  console.log('📧 Envoi email de confirmation à:', data.to);
-  // Vérifier si EmailJS est configuré
-  if (process.env.EMAILJS_PUBLIC_KEY) {
-    const { sendEmailWithEmailJS } = await import('./emailjs-service');
-    return sendEmailWithEmailJS(data);
-  }
+export async function sendPasswordResetEmail({ email, name, resetToken }: SendPasswordResetEmailParams) {
+  const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/reset-password?token=${resetToken}`;
   
-  // Vérifier si SendGrid est configuré
-  if (process.env.SENDGRID_API_KEY) {
-    const { sendEmailWithSendGrid } = await import('./sendgrid-service');
-    return sendEmailWithSendGrid(data);
-  }
-  
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Réinitialisation de votre mot de passe</title>
+    </head>
+    <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f6f0;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8f6f0; padding: 40px 20px;">
+            <tr>
+                <td align="center">
+                    <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+                        <!-- Header -->
+                        <tr>
+                            <td style="background: linear-gradient(135deg, #d4b5a0, #c9a084); padding: 40px; text-align: center;">
+                                <h1 style="color: white; margin: 0; font-size: 32px; font-weight: 400; letter-spacing: 1px;">LAIA SKIN</h1>
+                                <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 14px;">Institut de Beauté</p>
+                            </td>
+                        </tr>
+                        
+                        <!-- Content -->
+                        <tr>
+                            <td style="padding: 40px;">
+                                <h2 style="color: #2c3e50; font-size: 24px; margin: 0 0 20px 0;">
+                                    Bonjour ${name || 'Cliente'} 👋
+                                </h2>
+                                
+                                <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+                                    Vous avez demandé la réinitialisation de votre mot de passe pour votre compte LAIA SKIN Institut.
+                                </p>
+                                
+                                <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
+                                    Cliquez sur le bouton ci-dessous pour créer un nouveau mot de passe :
+                                </p>
+                                
+                                <!-- CTA Button -->
+                                <table width="100%" cellpadding="0" cellspacing="0">
+                                    <tr>
+                                        <td align="center">
+                                            <a href="${resetUrl}" style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #d4b5a0, #c9a084); color: white; text-decoration: none; border-radius: 50px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 15px rgba(212, 181, 160, 0.3);">
+                                                Réinitialiser mon mot de passe
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </table>
+                                
+                                <div style="margin: 30px 0; padding: 20px; background-color: #fdfbf7; border-left: 4px solid #d4b5a0; border-radius: 4px;">
+                                    <p style="color: #866b5d; font-size: 14px; margin: 0 0 10px 0;">
+                                        <strong>⏰ Important :</strong> Ce lien expirera dans 1 heure
+                                    </p>
+                                    <p style="color: #866b5d; font-size: 14px; margin: 0;">
+                                        Si vous n'avez pas demandé cette réinitialisation, ignorez simplement cet email.
+                                    </p>
+                                </div>
+                                
+                                <p style="color: #999; font-size: 13px; margin: 30px 0 0 0;">
+                                    Si le bouton ne fonctionne pas, copiez et collez ce lien dans votre navigateur :
+                                </p>
+                                <p style="color: #d4b5a0; font-size: 13px; word-break: break-all; margin: 5px 0 0 0;">
+                                    ${resetUrl}
+                                </p>
+                            </td>
+                        </tr>
+                        
+                        <!-- Footer -->
+                        <tr>
+                            <td style="background-color: #2c3e50; padding: 30px; text-align: center;">
+                                <p style="color: #fff; font-size: 14px; margin: 0 0 10px 0;">
+                                    LAIA SKIN Institut
+                                </p>
+                                <p style="color: rgba(255,255,255,0.7); font-size: 13px; margin: 0 0 15px 0;">
+                                    Une peau respectée, une beauté révélée
+                                </p>
+                                <div style="margin-top: 20px;">
+                                    <a href="https://instagram.com/laiaskin" style="color: #d4b5a0; text-decoration: none; margin: 0 10px;">
+                                        Instagram
+                                    </a>
+                                    <span style="color: rgba(255,255,255,0.3);">|</span>
+                                    <a href="https://laia-skin-institut-as92.vercel.app" style="color: #d4b5a0; text-decoration: none; margin: 0 10px;">
+                                        Site web
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </body>
+    </html>
+  `;
+
   try {
-    // Template HTML pour l'email
-    const htmlContent = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <style>
-    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
-    .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 10px; overflow: hidden; }
-    .header { background: linear-gradient(135deg, #d4b5a0 0%, #c9a084 100%); color: white; padding: 30px; text-align: center; }
-    .content { padding: 30px; }
-    .info-box { background: #fdfbf7; border-left: 4px solid #d4b5a0; padding: 15px; margin: 20px 0; }
-    .address-box { background: #fff8f0; border: 2px solid #d4b5a0; border-radius: 8px; padding: 20px; margin: 20px 0; }
-    .button { display: inline-block; background: #d4b5a0; color: white; padding: 12px 30px; text-decoration: none; border-radius: 25px; margin: 10px 5px; }
-    .footer { background: #2c3e50; color: white; padding: 20px; text-align: center; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>✨ Confirmation de réservation</h1>
-      <p>LAIA SKIN INSTITUT</p>
-    </div>
-    
-    <div class="content">
-      <h2>Bonjour ${data.clientName},</h2>
-      <p>Votre rendez-vous est confirmé ! J'ai hâte de vous accueillir dans mon institut.</p>
-      
-      <div class="info-box">
-        <h3>📅 Détails de votre rendez-vous</h3>
-        <p><strong>Date :</strong> ${data.date}</p>
-        <p><strong>Heure :</strong> ${data.time}</p>
-        <p><strong>Soins réservés :</strong></p>
-        <ul>${data.services.map(s => `<li>${s}</li>`).join('')}</ul>
-        <p><strong>Montant total :</strong> ${data.totalPrice}€</p>
-        <p><small>Paiement en espèces sur place</small></p>
-      </div>
-      
-      <div class="address-box">
-        <h3>📍 Adresse de l'institut</h3>
-        <p><strong>LAIA SKIN INSTITUT</strong><br>
-        5 allée Jean de la Fontaine<br>
-        92000 Nanterre</p>
-        <p style="background: #d4b5a0; color: white; padding: 10px; border-radius: 5px; margin: 10px 0;">
-          <strong>🏢 Bâtiment 5 - 2ème étage - Porte 523</strong>
-        </p>
-        <p>🚇 À 6 minutes à pied de la gare Nanterre Université</p>
-      </div>
-      
-      <div style="text-align: center; margin: 30px 0;">
-        <a href="https://maps.google.com/?q=5+allée+Jean+de+la+Fontaine+92000+Nanterre" class="button">
-          📍 Voir sur Google Maps
-        </a>
-        <a href="https://wa.me/33683717050" class="button" style="background: #25D366;">
-          💬 WhatsApp
-        </a>
-      </div>
-      
-      <div class="info-box">
-        <h3>ℹ️ Informations importantes</h3>
-        <ul>
-          <li>Merci d'arriver 5 minutes avant votre rendez-vous</li>
-          <li>Annulation gratuite jusqu'à 24h avant</li>
-          <li>Pour toute modification : contactez-moi sur WhatsApp ou Instagram @laia.skin</li>
-        </ul>
-      </div>
-    </div>
-    
-    <div class="footer">
-      <p>Une peau respectée, une beauté révélée</p>
-      <p>📱 WhatsApp : 06 83 71 70 50 | 📧 contact@laiaskin.fr</p>
-      <p style="margin-top: 10px;">
-        <a href="https://www.instagram.com/laia.skin/" style="color: #d4b5a0;">Instagram</a> | 
-        <a href="https://www.facebook.com/profile.php?id=61578944046472" style="color: #d4b5a0;">Facebook</a> | 
-        <a href="https://www.tiktok.com/@laiaskin" style="color: #d4b5a0;">TikTok</a>
-      </p>
-    </div>
-  </div>
-</body>
-</html>`;
-
-    // Créer le contenu texte simple (fallback)
-    const textContent = `
-Confirmation de réservation - LAIA SKIN INSTITUT
-
-Bonjour ${data.clientName},
-
-Votre rendez-vous est confirmé !
-
-DÉTAILS DU RENDEZ-VOUS :
-Date : ${data.date}
-Heure : ${data.time}
-Soins : ${data.services.join(', ')}
-Montant : ${data.totalPrice}€
-
-ADRESSE :
-LAIA SKIN INSTITUT
-5 allée Jean de la Fontaine, 92000 Nanterre
-Bâtiment 5 - 2ème étage - Porte 523
-(6 min à pied de la gare Nanterre Université)
-
-Google Maps : https://maps.google.com/?q=5+allée+Jean+de+la+Fontaine+92000+Nanterre
-
-À très bientôt !
-Laïa
-
-WhatsApp : 06 12 34 56 78
-Instagram : @laia.skin`;
-
-    // Pour l'instant, on simule l'envoi (à remplacer par un vrai service)
-    console.log('📧 Email de confirmation préparé pour:', data.to);
-    console.log('Contenu HTML:', htmlContent.substring(0, 200) + '...');
-    
-    // Stocker dans localStorage pour simulation
-    if (typeof window !== 'undefined') {
-      const emailHistory = JSON.parse(localStorage.getItem('emailHistory') || '[]');
-      emailHistory.push({
-        to: data.to,
-        subject: `Confirmation RDV - ${data.date} à ${data.time}`,
-        sentAt: new Date().toISOString(),
-        type: 'confirmation'
-      });
-      localStorage.setItem('emailHistory', JSON.stringify(emailHistory));
+    // Si pas de clé API configurée, simuler l'envoi
+    if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY === 'demo_key') {
+      console.log('\n📧 SIMULATION D\'ENVOI D\'EMAIL (configurez RESEND_API_KEY pour activer l\'envoi réel)');
+      console.log('Destinataire:', email);
+      console.log('Lien de réinitialisation:', resetUrl);
+      console.log('\n');
+      return { success: true, simulated: true };
     }
 
-    return true;
+    // Envoyer l'email réel
+    const { data, error } = await resend.emails.send({
+      from: 'LAIA SKIN Institut <onboarding@resend.dev>', // Changez avec votre domaine vérifié
+      to: email,
+      subject: '🔐 Réinitialisez votre mot de passe - LAIA SKIN Institut',
+      html: htmlContent,
+    });
+
+    if (error) {
+      console.error('Erreur Resend:', error);
+      return { success: false, error };
+    }
+
+    console.log('✅ Email envoyé avec succès:', data);
+    return { success: true, data };
   } catch (error) {
-    console.error('Erreur lors de l\'envoi de l\'email:', error);
-    return false;
+    console.error('Erreur envoi email:', error);
+    return { success: false, error };
   }
-}
-
-// Fonction pour envoyer l'email de rappel
-export async function sendReminderEmail(data: EmailData): Promise<boolean> {
-  // Template similaire mais pour le rappel
-  const subject = `Rappel : Votre RDV demain à ${data.time}`;
-  console.log('📧 Email de rappel préparé:', subject);
-  return true;
-}
-
-// Fonction pour envoyer l'email d'annulation
-export async function sendCancellationEmail(data: Partial<EmailData>): Promise<boolean> {
-  const subject = `Annulation confirmée - LAIA SKIN INSTITUT`;
-  console.log('📧 Email d\'annulation préparé:', subject);
-  return true;
 }
