@@ -290,7 +290,7 @@ export default function ServiceDetailPage() {
                       </p>
                     )}
                   </div>
-                  {service.forfaitPromo && (
+                  {service.forfaitPromo && service.forfaitPrice && (
                     <div className="text-right">
                       <p className="text-sm text-gray-500">Forfait 4 séances</p>
                       <p className="text-2xl font-medium text-[#20b2aa]">{service.forfaitPromo}€</p>
