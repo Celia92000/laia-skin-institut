@@ -739,28 +739,28 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
                 <h3 className="text-xl font-semibold mb-2">Formule Liberté</h3>
                 <div className="flex items-baseline gap-2">
                   <span className="text-3xl font-bold">{monthlyPrice}€</span>
-                  <span className="text-sm opacity-90">par séance</span>
+                  <span className="text-sm opacity-90">/mois</span>
                 </div>
-                <p className="text-xs opacity-90 mt-1">Tarif préférentiel régulier</p>
-                <p className="text-xs opacity-80">Paiement à chaque visite</p>
+                <p className="text-xs opacity-90 mt-1">1 séance par mois</p>
+                <p className="text-xs opacity-80">Paiement en espèces à chaque visite</p>
               </div>
               <div className="p-6">
                 <ul className="space-y-3 mb-6">
                   <li className="flex items-center gap-2 text-sm text-[#2c3e50]/70">
                     <CheckCircle className="w-4 h-4 text-green-500" />
-                    Tarif préférentiel pour clientes fidèles
+                    1 séance garantie chaque mois
                   </li>
                   <li className="flex items-center gap-2 text-sm text-[#2c3e50]/70">
                     <CheckCircle className="w-4 h-4 text-green-500" />
-                    Sans engagement
+                    Tarif préférentiel fidélité
                   </li>
                   <li className="flex items-center gap-2 text-sm text-[#2c3e50]/70">
                     <CheckCircle className="w-4 h-4 text-green-500" />
-                    Paiement en espèces à chaque visite
+                    Créneaux prioritaires
                   </li>
                   <li className="flex items-center gap-2 text-sm text-[#2c3e50]/70">
                     <CheckCircle className="w-4 h-4 text-green-500" />
-                    Flexibilité totale
+                    Paiement mensuel en espèces
                   </li>
                 </ul>
                 <Link 
