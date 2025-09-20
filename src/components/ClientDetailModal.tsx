@@ -229,6 +229,52 @@ export default function ClientDetailModal({
                               ? JSON.parse(reservation.services).join(', ')
                               : reservation.services?.join(', ')}
                           </p>
+                          {/* Affichage des forfaits et abonnements */}
+                          {reservation.packages && (() => {
+                            const packages = typeof reservation.packages === 'string' 
+                              ? JSON.parse(reservation.packages) 
+                              : reservation.packages;
+                            const forfaits = Object.entries(packages).filter(([_, type]) => type === 'forfait');
+                            const abonnements = Object.entries(packages).filter(([_, type]) => type === 'abonnement');
+                            
+                            return (
+                              <div className="mt-2 space-y-1">
+                                {forfaits.length > 0 && forfaits.map(([serviceId, _]) => {
+                                  // Compter les séances utilisées pour ce forfait
+                                  const sessionsUsed = clientReservations.filter(r => {
+                                    const rPackages = typeof r.packages === 'string' ? JSON.parse(r.packages) : r.packages;
+                                    return rPackages?.[serviceId] === 'forfait' && 
+                                           r.status === 'completed' &&
+                                           new Date(r.date) <= new Date(reservation.date);
+                                  }).length;
+                                  
+                                  return (
+                                    <div key={serviceId} className="inline-flex items-center gap-2 px-2 py-1 bg-purple-50 rounded-lg">
+                                      <Package className="w-3 h-3 text-purple-600" />
+                                      <span className="text-xs font-medium text-purple-700">
+                                        Forfait 4 séances - Séance {Math.min(sessionsUsed, 4)}/4
+                                      </span>
+                                      <div className="flex gap-0.5">
+                                        {[1,2,3,4].map(i => (
+                                          <div key={i} className={`w-2 h-2 rounded-full ${
+                                            i <= sessionsUsed ? 'bg-purple-600' : 'bg-purple-200'
+                                          }`} />
+                                        ))}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                                {abonnements.length > 0 && (
+                                  <div className="inline-flex items-center gap-2 px-2 py-1 bg-blue-50 rounded-lg">
+                                    <CreditCard className="w-3 h-3 text-blue-600" />
+                                    <span className="text-xs font-medium text-blue-700">
+                                      Abonnement Mensuel
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })()}
                         </div>
                         <div className="text-right">
                           <p className="text-lg font-bold text-[#d4b5a0]">{reservation.totalPrice}€</p>

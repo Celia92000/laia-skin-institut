@@ -741,7 +741,8 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
                   <span className="text-3xl font-bold">{monthlyPrice}€</span>
                   <span className="text-sm opacity-90">/mois</span>
                 </div>
-                <p className="text-sm opacity-90 mt-1">Engagement 6 mois</p>
+                <p className="text-xs opacity-90 mt-1">Prélèvement automatique mensuel</p>
+                <p className="text-xs opacity-80">Sans engagement - Résiliable à tout moment</p>
               </div>
               <div className="p-6">
                 <ul className="space-y-3 mb-6">
