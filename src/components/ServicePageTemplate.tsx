@@ -742,7 +742,7 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
                   <span className="text-sm opacity-90">/mois</span>
                 </div>
                 <p className="text-xs opacity-90 mt-1">1 séance par mois</p>
-                <p className="text-xs opacity-80">Paiement en espèces à chaque visite</p>
+                <p className="text-xs opacity-80">Tarif avantageux pour clientes régulières</p>
               </div>
               <div className="p-6">
                 <ul className="space-y-3 mb-6">
@@ -760,7 +760,7 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
                   </li>
                   <li className="flex items-center gap-2 text-sm text-[#2c3e50]/70">
                     <CheckCircle className="w-4 h-4 text-green-500" />
-                    Paiement mensuel en espèces
+                    Sans engagement
                   </li>
                 </ul>
                 <Link 
