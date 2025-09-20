@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-  const diagnostics = {
+  const diagnostics: any = {
     env: {
       DATABASE_URL: process.env.DATABASE_URL ? 'SET (hidden)' : 'NOT SET',
       DIRECT_URL: process.env.DIRECT_URL ? 'SET (hidden)' : 'NOT SET',
@@ -16,7 +16,8 @@ export async function GET() {
     },
     prisma: {
       client_exists: false,
-      error: null
+      error: null,
+      service_count: null
     }
   };
 
