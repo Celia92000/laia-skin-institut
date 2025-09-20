@@ -24,18 +24,17 @@ export async function GET() {
   };
 
   try {
-    const { PrismaClient } = require('@prisma/client');
+    const { prisma } = await import('@/lib/prisma');
     diagnostics.prisma.client_exists = true;
     
-    const prisma = new PrismaClient();
     const count = await prisma.service.count();
     diagnostics.prisma.service_count = count;
-    await prisma.$disconnect();
   } catch (error: any) {
     diagnostics.prisma.error = {
       message: error.message,
       code: error.code,
-      name: error.name
+      name: error.name,
+      stack: error.stack?.split('\n').slice(0, 3).join('\n') // Premiers 3 lignes de la stack
     };
   }
 
