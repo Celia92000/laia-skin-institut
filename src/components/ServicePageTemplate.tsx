@@ -11,6 +11,9 @@ interface Service {
   description: string | null;
   duration: number;
   price: number;
+  promoPrice?: number | null;
+  forfaitPrice?: number | null;
+  forfaitPromo?: number | null;
   benefits: string | null;
   contraindications: string | null;
   active: boolean;
@@ -230,8 +233,11 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
   const IconComponent = enrichment.icon;
   const protocolSteps = generateProtocolSteps(service.name, service.duration);
   const faqs = generateFAQ(service.name, service.price);
-  const promotionalPrice = Math.floor(service.price * 0.85);
-  const packagePrice = Math.floor(service.price * 4 * 0.8);
+  
+  // Utiliser les vrais prix de la base de données
+  const promotionalPrice = service.promoPrice || Math.floor(service.price * 0.85);
+  const packagePrice = service.forfaitPromo || service.forfaitPrice || Math.floor(service.price * 4 * 0.8);
+  const monthlyPrice = Math.floor(service.price * 0.75); // Prix abonnement mensuel
 
   return (
     <main className={`pt-24 pb-20 min-h-screen ${enrichment.isSignature ? 'bg-gradient-to-b from-[#fdfbf7] via-white to-[#f8f6f0]' : 'bg-gradient-to-b from-white to-gray-50/30'}`}>
@@ -730,9 +736,9 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
               <div className="p-6 text-white" style={{
                 background: `linear-gradient(135deg, #c9a084, #d4b5a0)`
               }}>
-                <h3 className="text-xl font-semibold mb-2">Abonnement VIP</h3>
+                <h3 className="text-xl font-semibold mb-2">Abonnement Mensuel</h3>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold">{Math.floor(service.price * 0.75)}€</span>
+                  <span className="text-3xl font-bold">{monthlyPrice}€</span>
                   <span className="text-sm opacity-90">/mois</span>
                 </div>
                 <p className="text-sm opacity-90 mt-1">Engagement 6 mois</p>
@@ -753,14 +759,14 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
                   </li>
                   <li className="flex items-center gap-2 text-sm text-[#2c3e50]/70">
                     <CheckCircle className="w-4 h-4 text-green-500" />
-                    Avantages VIP exclusifs
+                    Avantages exclusifs
                   </li>
                 </ul>
                 <Link 
                   href="/reservation" 
                   className="block text-center py-3 bg-[#c9a084]/10 text-[#c9a084] rounded-lg font-semibold hover:bg-[#c9a084]/20 transition-all"
                 >
-                  Devenir VIP
+                  S'abonner
                 </Link>
               </div>
             </div>
