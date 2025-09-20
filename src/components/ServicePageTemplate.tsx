@@ -562,53 +562,6 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
         </div>
       </section>
 
-      {/* Témoignages */}
-      <section className="py-20 px-4 bg-gray-50/30">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-playfair text-[#2c3e50] mb-4">
-              L'expérience de nos clientes
-            </h2>
-            <div className="flex justify-center items-center gap-2">
-              <div className="flex">
-                {[1,2,3,4,5].map(i => (
-                  <Star key={i} className="w-5 h-5 text-amber-400 fill-amber-400" />
-                ))}
-              </div>
-              <span className="text-[#2c3e50]/60">5.0 sur 250+ avis vérifiés</span>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {enrichment.testimonials.map((testimonial: any, index: number) => (
-              <div key={index} className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold" style={{
-                      background: `linear-gradient(135deg, ${enrichment.color}, ${enrichment.secondaryColor})`
-                    }}>
-                      {testimonial.name[0]}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-[#2c3e50]">{testimonial.name}</p>
-                    </div>
-                  </div>
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                </div>
-                
-                <div className="flex mb-3">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 text-amber-400 fill-amber-400" />
-                  ))}
-                </div>
-                
-                <p className="text-[#2c3e50]/70 text-sm italic">"{testimonial.comment}"</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Tarification détaillée */}
       <section className="py-20 px-4 bg-gradient-to-b from-white to-gray-50/30">
         <div className="max-w-6xl mx-auto">
@@ -750,6 +703,53 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
                 </Link>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Témoignages */}
+      <section className="py-20 px-4 bg-gray-50/30">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-playfair text-[#2c3e50] mb-4">
+              L'expérience de nos clientes
+            </h2>
+            <div className="flex justify-center items-center gap-2">
+              <div className="flex">
+                {[1,2,3,4,5].map(i => (
+                  <Star key={i} className="w-5 h-5 text-amber-400 fill-amber-400" />
+                ))}
+              </div>
+              <span className="text-[#2c3e50]/60">5.0 sur 250+ avis vérifiés</span>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {enrichment.testimonials.map((testimonial: any, index: number) => (
+              <div key={index} className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold" style={{
+                      background: `linear-gradient(135deg, ${enrichment.color}, ${enrichment.secondaryColor})`
+                    }}>
+                      {testimonial.name[0]}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-[#2c3e50]">{testimonial.name}</p>
+                    </div>
+                  </div>
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                </div>
+                
+                <div className="flex mb-3">
+                  {[...Array(testimonial.rating)].map((_, i) => (
+                    <Star key={i} className="w-4 h-4 text-amber-400 fill-amber-400" />
+                  ))}
+                </div>
+                
+                <p className="text-[#2c3e50]/70 text-sm italic">"{testimonial.comment}"</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
