@@ -190,9 +190,9 @@ export default function ServiceDetailPage() {
       icon: "〰️"
     },
     {
-      name: "Cryothérapie",
-      description: "Le froid intense resserre les pores, apaise les inflammations et stimule la circulation.",
-      icon: "❄️"
+      name: "Microneedling",
+      description: "Micro-perforations contrôlées pour stimuler la régénération naturelle et maximiser l'absorption des actifs.",
+      icon: "✨"
     }
   ];
 
