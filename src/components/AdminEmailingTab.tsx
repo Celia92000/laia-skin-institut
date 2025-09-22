@@ -20,7 +20,10 @@ interface EmailTemplate {
 }
 
 export default function AdminEmailingTab() {
+  const [activeTab, setActiveTab] = useState<'campaigns' | 'newsletter'>('campaigns');
   const [clients, setClients] = useState<Client[]>([]);
+  const [newsletterSubscribers, setNewsletterSubscribers] = useState<any[]>([]);
+  const [newsletterStats, setNewsletterStats] = useState({ total: 0, active: 0, inactive: 0 });
   const [selectedClients, setSelectedClients] = useState<string[]>([]);
   const [emailSubject, setEmailSubject] = useState("");
   const [emailContent, setEmailContent] = useState("");
@@ -29,6 +32,7 @@ export default function AdminEmailingTab() {
   const [filterActive, setFilterActive] = useState<'all' | 'recent' | 'vip'>('all');
   const [showPreview, setShowPreview] = useState(false);
   const [sendHistory, setSendHistory] = useState<any[]>([]);
+  const [includeNewsletter, setIncludeNewsletter] = useState(false);
 
   // Templates prédéfinis
   const templates: EmailTemplate[] = [
@@ -85,6 +89,34 @@ Réservez votre découverte : https://laiaskin.fr/reservation
 Laïa`
     },
     {
+      id: "newsletter",
+      name: "Newsletter mensuelle",
+      subject: "🌸 Newsletter LAIA SKIN - [Mois] 2024",
+      content: `Bonjour [Prénom],
+
+J'espère que vous allez bien !
+
+Ce mois-ci chez LAIA SKIN :
+
+🌟 NOUVEAUTÉS
+[Nouveautés du mois]
+
+💆‍♀️ CONSEIL BEAUTÉ
+[Conseil beauté du mois]
+
+🎁 OFFRE EXCLUSIVE
+Pour nos abonnés newsletter : -10% sur votre prochain soin
+Code : NEWS[MOIS]2024
+
+Réservez votre soin : https://laiaskin.fr/reservation
+
+À très bientôt,
+Laïa
+
+P.S. : Vous recevez cette newsletter car vous êtes inscrit(e) à notre liste. 
+Pour vous désinscrire : [Lien de désinscription]`
+    },
+    {
       id: "anniversaire",
       name: "Anniversaire",
       subject: "🎂 Joyeux anniversaire [Prénom] !",
@@ -105,7 +137,21 @@ Laïa`
   useEffect(() => {
     fetchClients();
     fetchEmailHistory();
+    fetchNewsletterSubscribers();
   }, []);
+
+  const fetchNewsletterSubscribers = async () => {
+    try {
+      const response = await fetch('/api/newsletter/subscribe');
+      if (response.ok) {
+        const data = await response.json();
+        setNewsletterSubscribers(data.subscribers || []);
+        setNewsletterStats(data.stats || { total: 0, active: 0, inactive: 0 });
+      }
+    } catch (error) {
+      console.error('Erreur chargement inscrits newsletter:', error);
+    }
+  };
 
   const fetchClients = async () => {
     try {

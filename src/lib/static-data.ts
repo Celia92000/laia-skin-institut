@@ -118,8 +118,8 @@ export const openingHours = {
 
 export const contactInfo = {
   phone: '06 23 45 67 89',
-  email: 'contact@laiaskin.com',
+  email: 'contact@laia.skin.com',
   address: '33 Avenue Victor Hugo, 06000 Nice',
-  instagram: '@laiaskin',
+  instagram: '@laia.skin',
   facebook: 'Laia Skin Institut'
 };

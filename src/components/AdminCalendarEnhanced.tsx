@@ -12,6 +12,8 @@ interface Reservation {
   userEmail?: string;
   phone?: string;
   services: string[];
+  packages?: Record<string, string>;
+  isSubscription?: boolean;
   totalPrice: number;
   status: string;
   notes?: string;
@@ -274,6 +276,11 @@ export default function AdminCalendarEnhanced({ reservations, onDateSelect }: Ad
                             <span className="text-sm text-[#2c3e50]">{reservation.userName}</span>
                           </div>
                           <div className="flex flex-wrap gap-1 mt-2">
+                            {reservation.isSubscription && (
+                              <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium">
+                                📅 Abonnement
+                              </span>
+                            )}
                             {reservation.services.map(serviceId => (
                               <span key={serviceId} className="px-2 py-1 bg-[#d4b5a0]/10 rounded text-xs">
                                 {services[serviceId as keyof typeof services]}
@@ -527,6 +534,16 @@ export default function AdminCalendarEnhanced({ reservations, onDateSelect }: Ad
                               </div>
                             )}
                             
+                            {/* Badge abonnement si applicable */}
+                            {reservation.isSubscription && (
+                              <div className="mb-3 bg-gradient-to-r from-purple-100 to-purple-50 border border-purple-200 rounded-lg px-3 py-2">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-purple-600">🔔</span>
+                                  <span className="text-sm font-medium text-purple-700">Rendez-vous mensuel d'abonnement</span>
+                                </div>
+                              </div>
+                            )}
+                            
                             {/* Services détaillés */}
                             <div className="mb-2">
                               <div className="text-xs text-[#2c3e50]/60 mb-1">Prestations</div>
@@ -535,6 +552,9 @@ export default function AdminCalendarEnhanced({ reservations, onDateSelect }: Ad
                                   <div key={serviceId} className="bg-[#d4b5a0]/10 px-3 py-1.5 rounded-lg">
                                     <span className="text-sm font-medium text-[#2c3e50]">
                                       {services[serviceId as keyof typeof services] || serviceId}
+                                      {reservation.packages && reservation.packages[serviceId] === 'abonnement' && (
+                                        <span className="ml-2 text-xs text-purple-600 font-medium">(Abo)</span>
+                                      )}
                                     </span>
                                     {servicePricing[serviceId] && (
                                       <span className="text-xs text-[#2c3e50]/60 ml-2">• {formatPriceDetails(serviceId, true)}</span>

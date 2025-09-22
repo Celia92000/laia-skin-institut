@@ -18,7 +18,7 @@ export async function sendEmailFromBrowser(
     to_email: to,
     client_name: clientName,
     from_name: 'LAIA SKIN Institut',
-    reply_to: 'contact@laiaskininstitut.fr'
+    reply_to: 'contact@laia.skininstitut.fr'
   };
 
   if (template === 'custom') {

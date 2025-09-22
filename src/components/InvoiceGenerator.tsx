@@ -216,7 +216,7 @@ export function generateInvoiceHTML(data: InvoiceData): string {
               <p>123 Avenue de la Beauté</p>
               <p>75001 Paris, France</p>
               <p>Tél: 01 23 45 67 89</p>
-              <p>Email: contact@laiaskin.com</p>
+              <p>Email: contact@laia.skin.com</p>
               <p>SIRET: 123 456 789 00012</p>
             </div>
           </div>

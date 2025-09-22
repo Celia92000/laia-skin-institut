@@ -133,7 +133,7 @@ export async function GET(request: Request) {
         // Enregistrer dans l'historique
         await prisma.emailHistory.create({
           data: {
-            from: 'contact@laiaskininstitut.fr',
+            from: 'contact@laia.skininstitut.fr',
             to: reservation.user.email,
             subject: `📅 Rappel 48h`,
             content: `Rappel automatique 48h pour le rendez-vous du ${reservation.date.toLocaleDateString('fr-FR')}`,

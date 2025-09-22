@@ -407,7 +407,7 @@ export default function LEDTherapie() {
               Réserver ma séance LED Thérapie
             </Link>
             <p className="mt-4 text-[#2c3e50]/60">
-              Ou contactez-moi sur Instagram <a href="https://instagram.com/laiaskin" target="_blank" rel="noopener noreferrer" className="text-amber-500 hover:underline">@laiaskin</a>
+              Ou contactez-moi sur Instagram <a href="https://www.instagram.com/laia.skin/" target="_blank" rel="noopener noreferrer" className="text-amber-500 hover:underline">@laia.skin</a>
             </p>
           </div>
         </div>

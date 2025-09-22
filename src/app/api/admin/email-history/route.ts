@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
     // Créer l'entrée dans l'historique
     const emailEntry = await prisma.emailHistory.create({
       data: {
-        from: data.from || 'contact@laiaskininstitut.fr',
+        from: data.from || 'contact@laia.skininstitut.fr',
         to: data.to,
         subject: data.subject,
         content: data.content,

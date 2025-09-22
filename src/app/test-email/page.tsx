@@ -24,7 +24,7 @@ export default function TestEmailPage() {
             to_email: 'celia.ivorra95@hotmail.fr',
             client_name: 'Célia',
             from_name: 'LAIA SKIN Institut',
-            reply_to: 'contact@laiaskininstitut.fr',
+            reply_to: 'contact@laia.skininstitut.fr',
             service_name: 'Test Email',
             appointment_date: new Date().toLocaleDateString('fr-FR'),
             appointment_time: '14:00',

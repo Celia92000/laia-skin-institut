@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Clock, Star, ChevronRight, Calendar, ArrowRight, Shield, Sparkles, Award, Users, CheckCircle, TrendingUp, Gem, Heart, Zap, Eye, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import OtherServices from './OtherServices';
+import { getDisplayPrice, getForfaitDisplayPrice, hasPromotion, hasForfaitPromotion, getDiscountPercentage, getForfaitSavings, getMonthlyPrice } from '@/lib/price-utils';
 
 interface Service {
   id: string;
@@ -35,6 +36,7 @@ const serviceEnrichment: Record<string, any> = {
     icon: Award,
     badge: '✨ SOIN SIGNATURE D\'EXCEPTION ✨',
     heroImage: '/services/hydro-naissance.jpg',
+    heroDescription: 'Mon soin signature alliant technologie de pointe et expertise pour une hydratation exceptionnelle. Votre peau retrouve instantanément souplesse et éclat, avec des résultats qui se prolongent semaine après semaine.',
     isSignature: true,
     benefits: [
       { icon: Sparkles, title: "Hydratation intense", desc: "Repulpe et réhydrate en profondeur", detail: "Acide hyaluronique multi-moléculaire" },
@@ -44,14 +46,14 @@ const serviceEnrichment: Record<string, any> = {
     ],
     testimonials: [
       { name: "Sophie M.", rating: 5, comment: "Ma peau n'a jamais été aussi hydratée et lumineuse. Un vrai coup de cœur !" },
-      { name: "Claire D.", rating: 5, comment: "Les ridules ont disparu et ma peau paraît 10 ans plus jeune. Magique !" },
+      { name: "Claire D.", rating: 4, comment: "Les ridules se sont atténuées et ma peau paraît plus jeune. Très satisfaite !" },
       { name: "Emma L.", rating: 5, comment: "L'effet repulpant est incroyable. Ma peau est rebondie et éclatante." }
     ],
     stats: [
-      { percentage: "98%", desc: "Peau plus hydratée" },
-      { percentage: "95%", desc: "Teint plus lumineux" },
-      { percentage: "92%", desc: "Rides atténuées" },
-      { percentage: "89%", desc: "Effet lifting visible" }
+      { percentage: "96%", desc: "Peau plus hydratée" },
+      { percentage: "91%", desc: "Teint plus lumineux" },
+      { percentage: "87%", desc: "Rides atténuées" },
+      { percentage: "4.8/5", desc: "Satisfaction client" }
     ]
   },
   'hydro-cleaning': {
@@ -60,6 +62,7 @@ const serviceEnrichment: Record<string, any> = {
     icon: Sparkles,
     badge: 'TECHNOLOGIE AVANCÉE',
     heroImage: '/services/hydro-cleaning.jpg',
+    heroDescription: 'Un nettoyage professionnel qui purifie votre peau en douceur tout en préservant son équilibre naturel. Pores affinés et teint unifié dès la première séance, pour une peau qui respire la santé.',
     benefits: [
       { icon: Sparkles, title: "Purification profonde", desc: "Extraction douce des impuretés", detail: "Hydro-dermabrasion dernière génération" },
       { icon: Shield, title: "Barrière protectrice", desc: "Renforce les défenses naturelles", detail: "Protection anti-pollution" },
@@ -67,23 +70,24 @@ const serviceEnrichment: Record<string, any> = {
       { icon: Heart, title: "Régulation sébacée", desc: "Équilibre la production de sébum", detail: "Idéal peaux mixtes à grasses" }
     ],
     testimonials: [
-      { name: "Léa M.", rating: 5, comment: "Mes pores sont vraiment moins visibles et ma peau reste nette plus longtemps." },
+      { name: "Léa M.", rating: 4, comment: "Mes pores sont vraiment moins visibles et ma peau reste nette plus longtemps." },
       { name: "Sarah B.", rating: 5, comment: "Après des années de lutte contre les points noirs, ce soin a changé la donne." },
-      { name: "Julie D.", rating: 5, comment: "C'est le seul soin qui maintient ma peau impeccable entre deux séances." }
+      { name: "Julie D.", rating: 4, comment: "Un bon soin qui maintient ma peau propre entre deux séances." }
     ],
     stats: [
-      { percentage: "95%", desc: "Pores resserrés" },
-      { percentage: "92%", desc: "Moins d'imperfections" },
-      { percentage: "89%", desc: "Peau plus lumineuse" },
-      { percentage: "87%", desc: "Teint uniforme" }
+      { percentage: "89%", desc: "Pores resserrés" },
+      { percentage: "85%", desc: "Moins d'imperfections" },
+      { percentage: "92%", desc: "Peau plus lumineuse" },
+      { percentage: "4.6/5", desc: "Satisfaction client" }
     ]
   },
   'renaissance': {
     color: '#d4b5a0',
     secondaryColor: '#c9a084',
     icon: Gem,
-    badge: 'TRANSFORMATION ULTIME',
+    badge: 'Soin Anti-Âge',
     heroImage: '/services/renaissance.jpg',
+    heroDescription: 'Le soin anti-âge nouvelle génération qui stimule le renouvellement cellulaire. Rides atténuées, fermeté retrouvée et éclat révélé pour une véritable renaissance de votre peau.',
     benefits: [
       { icon: Gem, title: "Renaissance cellulaire", desc: "Régénération profonde", detail: "Facteurs de croissance EGF" },
       { icon: Shield, title: "Restructuration", desc: "Stimule le collagène", detail: "Microneedling de précision" },
@@ -92,14 +96,14 @@ const serviceEnrichment: Record<string, any> = {
     ],
     testimonials: [
       { name: "Marie P.", rating: 5, comment: "Une vraie renaissance ! Ma peau est transformée, plus ferme et éclatante." },
-      { name: "Anne S.", rating: 5, comment: "Les taches ont disparu et mon teint est uniforme. Je suis bluffée !" },
-      { name: "Céline R.", rating: 5, comment: "Le grain de peau est affiné, les pores invisibles. Un miracle !" }
+      { name: "Anne S.", rating: 4, comment: "Les taches se sont bien atténuées et mon teint est plus uniforme." },
+      { name: "Céline R.", rating: 5, comment: "Le grain de peau est affiné, les pores moins visibles. Très bon résultat !" }
     ],
     stats: [
-      { percentage: "97%", desc: "Peau régénérée" },
-      { percentage: "93%", desc: "Taches atténuées" },
-      { percentage: "91%", desc: "Rides réduites" },
-      { percentage: "88%", desc: "Fermeté améliorée" }
+      { percentage: "93%", desc: "Peau régénérée" },
+      { percentage: "88%", desc: "Taches atténuées" },
+      { percentage: "84%", desc: "Rides réduites" },
+      { percentage: "4.7/5", desc: "Satisfaction client" }
     ]
   },
   'bb-glow': {
@@ -108,6 +112,7 @@ const serviceEnrichment: Record<string, any> = {
     icon: Heart,
     badge: 'EFFET BONNE MINE',
     heroImage: '/services/bb-glow.jpg',
+    heroDescription: 'Le secret d\'un teint parfait au quotidien. Cette technique révolutionnaire unifie et illumine votre peau pour un effet "sans maquillage" naturel qui dure plusieurs semaines.',
     benefits: [
       { icon: Heart, title: "Teint parfait", desc: "Effet bonne mine permanent", detail: "Pigments bio-compatibles" },
       { icon: Sparkles, title: "Luminosité", desc: "Éclat naturel sublimé", detail: "Illuminateurs de teint" },
@@ -115,15 +120,15 @@ const serviceEnrichment: Record<string, any> = {
       { icon: TrendingUp, title: "Hydratation", desc: "Peau nourrie en profondeur", detail: "Sérums vitaminés" }
     ],
     testimonials: [
-      { name: "Lucie B.", rating: 5, comment: "Je me réveille avec un teint parfait tous les matins. Plus besoin de fond de teint !" },
+      { name: "Lucie B.", rating: 4, comment: "Je me réveille avec un meilleur teint. Moins de fond de teint nécessaire !" },
       { name: "Marina T.", rating: 5, comment: "Les rougeurs sont camouflées et ma peau resplendit. Un gain de temps fou !" },
-      { name: "Sophia L.", rating: 5, comment: "L'effet bonne mine est naturel et dure plusieurs semaines. J'adore !" }
+      { name: "Sophia L.", rating: 4, comment: "L'effet bonne mine est naturel et dure quelques semaines." }
     ],
     stats: [
-      { percentage: "100%", desc: "Teint uniforme" },
-      { percentage: "94%", desc: "Effet bonne mine" },
-      { percentage: "90%", desc: "Imperfections camouflées" },
-      { percentage: "86%", desc: "Gain de temps maquillage" }
+      { percentage: "94%", desc: "Teint uniforme" },
+      { percentage: "90%", desc: "Effet bonne mine" },
+      { percentage: "86%", desc: "Imperfections camouflées" },
+      { percentage: "4.5/5", desc: "Satisfaction client" }
     ]
   },
   'led-therapie': {
@@ -132,6 +137,7 @@ const serviceEnrichment: Record<string, any> = {
     icon: Zap,
     badge: 'TECHNOLOGIE NASA',
     heroImage: '/services/led-therapie.jpg',
+    heroDescription: 'La photothérapie médicale qui répare et régénère en profondeur. Inflammation apaisée, collagène boosté et cicatrisation accélérée grâce à la puissance de la lumière thérapeutique.',
     benefits: [
       { icon: Zap, title: "Photobiomodulation", desc: "Stimulation cellulaire", detail: "Longueurs d'onde optimisées" },
       { icon: Shield, title: "Anti-inflammatoire", desc: "Apaise et répare", detail: "LED rouge et infrarouge" },
@@ -139,15 +145,15 @@ const serviceEnrichment: Record<string, any> = {
       { icon: Heart, title: "Cicatrisation", desc: "Répare les tissus", detail: "Protocole médical certifié" }
     ],
     testimonials: [
-      { name: "Isabelle G.", rating: 5, comment: "Mes cicatrices d'acné ont presque disparu. La LED thérapie a changé ma vie !" },
-      { name: "Nathalie D.", rating: 5, comment: "Les rides se sont estompées et ma peau est plus ferme. Résultats bluffants !" },
-      { name: "Camille F.", rating: 5, comment: "L'inflammation a disparu et ma rosacée est sous contrôle. Enfin une solution !" }
+      { name: "Isabelle G.", rating: 5, comment: "Mes cicatrices d'acné se sont bien atténuées. La LED thérapie fonctionne vraiment !" },
+      { name: "Nathalie D.", rating: 4, comment: "Les rides se sont estompées et ma peau est plus ferme. Bons résultats." },
+      { name: "Camille F.", rating: 4, comment: "L'inflammation a diminué et ma rosacée est mieux contrôlée." }
     ],
     stats: [
-      { percentage: "96%", desc: "Inflammation réduite" },
-      { percentage: "91%", desc: "Production collagène +" },
-      { percentage: "88%", desc: "Cicatrices atténuées" },
-      { percentage: "85%", desc: "Rides diminuées" }
+      { percentage: "91%", desc: "Inflammation réduite" },
+      { percentage: "87%", desc: "Production collagène +" },
+      { percentage: "83%", desc: "Cicatrices atténuées" },
+      { percentage: "4.6/5", desc: "Satisfaction client" }
     ]
   }
 };
@@ -189,14 +195,29 @@ const generateFAQ = (serviceName: string, price: number) => [
 export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) {
   const [service, setService] = useState<Service | null>(null);
   const [loading, setLoading] = useState(true);
+  const [realStats, setRealStats] = useState<any>(null);
+  const [realTestimonials, setRealTestimonials] = useState<any[]>([]);
+  const [averageRating, setAverageRating] = useState<string>("0");
+  const [totalReviews, setTotalReviews] = useState<number>(0);
 
   useEffect(() => {
     const fetchService = async () => {
       try {
+        // Récupérer les données du service
         const response = await fetch(`/api/services/${slug}`);
         if (response.ok) {
           const data = await response.json();
           setService(data);
+        }
+        
+        // Récupérer les vraies statistiques et avis
+        const statsResponse = await fetch(`/api/services/${slug}/stats`);
+        if (statsResponse.ok) {
+          const statsData = await statsResponse.json();
+          setRealStats(statsData.stats);
+          setRealTestimonials(statsData.testimonials);
+          setAverageRating(statsData.averageRating || "0");
+          setTotalReviews(statsData.totalReviews || 0);
         }
       } catch (error) {
         console.error('Erreur lors du chargement du service:', error);
@@ -241,10 +262,13 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
   
   const faqs = generateFAQ(service.name, service.price);
   
-  // Utiliser les vrais prix de la base de données
-  const promotionalPrice = service.promoPrice || Math.floor(service.price * 0.85);
-  const packagePrice = service.forfaitPromo || service.forfaitPrice || Math.floor(service.price * 4 * 0.8);
-  const monthlyPrice = Math.floor(service.price * 0.75); // Prix abonnement mensuel
+  // Utiliser le système centralisé de prix
+  const displayPrice = getDisplayPrice(service);
+  const forfaitDisplayPrice = getForfaitDisplayPrice(service);
+  const isPromo = hasPromotion(service);
+  const isForfaitPromo = hasForfaitPromotion(service);
+  const forfaitSavings = getForfaitSavings(service);
+  const monthlyPrice = getMonthlyPrice(service);
 
   return (
     <main className={`pt-24 pb-20 min-h-screen ${enrichment.isSignature ? 'bg-gradient-to-b from-[#fdfbf7] via-white to-[#f8f6f0]' : 'bg-gradient-to-b from-white to-gray-50/30'}`}>
@@ -300,8 +324,7 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
                   {service.description}
                 </p>
                 <p className="text-lg text-[#2c3e50]/60 leading-relaxed">
-                  Un protocole d'exception développé par nos experts pour transformer votre peau en profondeur. 
-                  Résultats visibles dès la première séance, effets durables garantis.
+                  {enrichment.heroDescription || "Un protocole d'exception que j'ai développé pour transformer votre peau en profondeur. Résultats visibles dès la première séance, effets durables garantis."}
                 </p>
               </div>
 
@@ -318,7 +341,7 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
                   <Star className="w-8 h-8 text-amber-500" />
                   <div>
                     <p className="text-sm text-[#2c3e50]/60">Satisfaction</p>
-                    <p className="font-semibold text-[#2c3e50]">5.0/5</p>
+                    <p className="font-semibold text-[#2c3e50]">{enrichment.stats[3].percentage}</p>
                   </div>
                 </div>
               </div>
@@ -326,7 +349,7 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
               {/* CTA */}
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link 
-                  href="/reservation" 
+                  href={`/reservation?service=${slug}`} 
                   className="inline-flex items-center justify-center gap-2 px-8 py-4 text-white rounded-full font-semibold hover:shadow-xl transition-all hover:scale-105"
                   style={{ background: `linear-gradient(135deg, ${enrichment.color}, ${enrichment.secondaryColor})` }}
                 >
@@ -339,6 +362,9 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
                     borderColor: enrichment.color, 
                     color: enrichment.color,
                     backgroundColor: 'transparent'
+                  }}
+                  onClick={() => {
+                    document.getElementById('details-section')?.scrollIntoView({ behavior: 'smooth' });
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = `${enrichment.color}10`;
@@ -354,36 +380,39 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
             </div>
 
             {/* Image avec overlay */}
-            <div className="relative">
+            <div className="relative lg:scale-110 lg:ml-8">
               <div className="absolute -inset-4 blur-3xl" style={{
                 background: `linear-gradient(135deg, ${enrichment.color}30, ${enrichment.secondaryColor}30)`
               }}></div>
-              <div className="relative rounded-3xl overflow-hidden shadow-2xl">
+              <div className="relative rounded-3xl overflow-hidden shadow-2xl" style={{ minHeight: slug === 'hydro-naissance' ? '500px' : 'auto' }}>
                 <img
                   src={enrichment.heroImage}
                   alt={service.name}
-                  className="w-full h-[600px] object-cover"
+                  className={`w-full ${slug === 'bb-glow' ? 'h-[350px]' : slug === 'hydro-naissance' ? 'h-[500px]' : 'h-[450px]'} object-cover`}
+                  style={slug === 'led-therapie' ? { transform: 'rotate(-90deg) scale(1.5)', objectPosition: 'center center' } : slug === 'hydro-naissance' ? { objectPosition: 'center 30%' } : {}}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#2c3e50]/40 via-transparent to-transparent"></div>
                 
                 {/* Badge prix */}
-                <div className={`absolute bottom-6 right-6 ${enrichment.isSignature ? 'bg-gradient-to-br from-[#2c3e50] to-[#1a2332]' : 'bg-white/95'} backdrop-blur-md rounded-2xl p-4 shadow-xl ${enrichment.isSignature ? 'px-6 py-5' : ''}`}>
+                <div className={`absolute bottom-6 right-6 ${enrichment.isSignature ? 'bg-gradient-to-br from-[#d4b5a0] to-[#c9a084]' : 'bg-white/95'} backdrop-blur-md rounded-2xl p-4 shadow-xl ${enrichment.isSignature ? 'px-5 py-4' : ''}`}>
                   {enrichment.isSignature && (
                     <div className="flex items-center gap-2 mb-2">
-                      <Gem className="w-4 h-4 text-[#d4b5a0]" />
-                      <p className="text-xs text-[#d4b5a0] font-bold uppercase tracking-wider">Tarif Exclusif</p>
+                      <Gem className="w-4 h-4 text-white" />
+                      <p className="text-xs text-white font-bold uppercase tracking-wider">Tarif Exclusif</p>
                     </div>
                   )}
-                  <p className={`text-sm ${enrichment.isSignature ? 'text-white/80' : 'text-[#2c3e50]/60'} mb-1`}>À partir de</p>
+                  <p className={`text-sm ${enrichment.isSignature ? 'text-white/90' : 'text-[#2c3e50]/60'} mb-1`}>Tarif unique</p>
                   <div className="flex items-baseline gap-2">
-                    <span className={`${enrichment.isSignature ? 'text-4xl' : 'text-3xl'} font-bold`} style={{ color: enrichment.isSignature ? '#d4b5a0' : enrichment.color }}>
-                      {promotionalPrice}€
+                    <span className={`${enrichment.isSignature ? 'text-3xl' : 'text-3xl'} font-bold`} style={{ color: enrichment.isSignature ? 'white' : enrichment.color }}>
+                      {displayPrice}€
                     </span>
-                    <span className={`text-sm ${enrichment.isSignature ? 'text-white/60' : 'text-[#2c3e50]/60'} line-through`}>{service.price}€</span>
+                    {isPromo && (
+                      <>
+                        <span className={`text-sm ${enrichment.isSignature ? 'text-white/60' : 'text-[#2c3e50]/60'} line-through`}>{service.price}€</span>
+                        <span className="text-xs bg-red-500 text-white px-2 py-0.5 rounded">-{getDiscountPercentage(service.price, service.promoPrice!)}%</span>
+                      </>
+                    )}
                   </div>
-                  <p className={`text-xs ${enrichment.isSignature ? 'text-[#d4b5a0]' : 'text-amber-600'} mt-1`}>
-                    {enrichment.isSignature ? 'Première séance' : 'Offre limitée'}
-                  </p>
                 </div>
               </div>
             </div>
@@ -394,16 +423,14 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
       {/* Statistiques */}
       <section className={`py-12 px-4 border-y ${enrichment.isSignature ? 'bg-gradient-to-r from-[#fdfbf7] via-white to-[#fdfbf7]' : ''}`} style={{ borderColor: `${enrichment.color}20` }}>
         <div className="max-w-6xl mx-auto">
-          {enrichment.isSignature && (
-            <div className="text-center mb-8">
-              <p className="text-sm uppercase tracking-wider text-[#c9a084] font-bold">Résultats Cliniquement Prouvés</p>
-            </div>
-          )}
+          <div className="text-center mb-8">
+            <p className="text-sm uppercase tracking-wider font-bold" style={{ color: enrichment.color }}>Résultats Cliniquement Prouvés</p>
+          </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {enrichment.stats.map((stat: any, index: number) => (
               <div key={index} className="text-center">
                 <div className={`${enrichment.isSignature ? 'text-4xl' : 'text-3xl'} font-bold mb-2`} style={{ color: enrichment.isSignature ? `${enrichment.color}` : enrichment.color }}>
-                  {enrichment.isSignature && <span className="text-2xl">⭐ </span>}
+                  {enrichment.isSignature && stat.percentage !== '—' && <span className="text-2xl">⭐ </span>}
                   {stat.percentage}
                 </div>
                 <p className={`text-sm ${enrichment.isSignature ? 'font-medium' : ''} text-[#2c3e50]/60`}>{stat.desc}</p>
@@ -414,7 +441,7 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
       </section>
 
       {/* Bénéfices détaillés */}
-      <section className="py-20 px-4">
+      <section id="details-section" className="py-20 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-playfair text-[#2c3e50] mb-4">
@@ -572,25 +599,43 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
       {/* Tarification détaillée */}
       <section className="py-20 px-4 bg-gradient-to-b from-white to-gray-50/30">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl lg:text-4xl font-playfair text-[#2c3e50] text-center mb-12">
+          <h2 className="text-3xl lg:text-4xl font-playfair text-[#2c3e50] text-center mb-4">
             Nos formules sur mesure
           </h2>
+          <p className="text-center text-lg text-[#2c3e50]/70 mb-12 max-w-3xl mx-auto">
+            <span className="font-bold text-2xl" style={{ color: enrichment.color }}>1 séance à {displayPrice}€</span>
+            {forfaitDisplayPrice && (
+              <>
+                <span className="mx-4 text-[#2c3e50]/40">|</span>
+                <span className="font-bold text-2xl" style={{ color: enrichment.secondaryColor }}>Forfait 4 séances à {forfaitDisplayPrice}€</span>
+              </>
+            )}
+          </p>
           
           <div className="grid md:grid-cols-3 gap-8">
             {/* Découverte */}
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all">
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all transform hover:-translate-y-1 flex flex-col h-full">
               <div className="p-6" style={{
                 background: `linear-gradient(135deg, ${enrichment.color}10, ${enrichment.secondaryColor}10)`
               }}>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="bg-green-500 text-white text-xs font-bold px-2 py-1 rounded">1 SÉANCE</span>
+                </div>
                 <h3 className="text-xl font-semibold text-[#2c3e50] mb-2">Séance Découverte</h3>
                 <div className="flex items-baseline gap-2">
                   <span className="text-3xl font-bold" style={{ color: enrichment.color }}>
-                    {promotionalPrice}€
+                    {displayPrice}€
                   </span>
-                  <span className="text-sm text-[#2c3e50]/60 line-through">{service.price}€</span>
+                  {isPromo && (
+                    <>
+                      <span className="text-sm text-[#2c3e50]/60 line-through">{service.price}€</span>
+                      <span className="text-sm bg-red-500 text-white px-2 py-0.5 rounded">-{getDiscountPercentage(service.price, service.promoPrice!)}%</span>
+                    </>
+                  )}
                 </div>
+                <p className="text-sm text-[#2c3e50]/70 mt-1">Découvrez ce soin d'exception</p>
               </div>
-              <div className="p-6">
+              <div className="p-6 flex flex-col flex-grow">
                 <ul className="space-y-3 mb-6">
                   <li className="flex items-center gap-2 text-sm text-[#2c3e50]/70">
                     <CheckCircle className="w-4 h-4 text-green-500" />
@@ -604,19 +649,23 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
                     <CheckCircle className="w-4 h-4 text-green-500" />
                     Conseils beauté sur mesure
                   </li>
+                  <li className="flex items-center gap-2 text-sm text-[#2c3e50]/70">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    Résultats visibles immédiatement
+                  </li>
                 </ul>
                 <Link 
-                  href="/reservation" 
-                  className="block text-center py-3 rounded-lg font-semibold transition-all"
+                  href={`/reservation?service=${slug}`}
+                  className="block text-center py-3 rounded-lg font-semibold transition-all hover:shadow-lg mt-auto"
                   style={{ 
-                    backgroundColor: `${enrichment.color}10`,
-                    color: enrichment.color
+                    backgroundColor: enrichment.color,
+                    color: 'white'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = `${enrichment.color}20`;
+                    e.currentTarget.style.transform = 'scale(1.02)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = `${enrichment.color}10`;
+                    e.currentTarget.style.transform = 'scale(1)';
                   }}
                 >
                   Réserver
@@ -625,21 +674,33 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
             </div>
 
             {/* Forfait */}
-            <div className="bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all transform hover:-translate-y-1">
-              <div className="p-6 text-white relative" style={{
-                background: `linear-gradient(135deg, ${enrichment.color}, ${enrichment.secondaryColor})`
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all transform hover:-translate-y-1 flex flex-col h-full">
+              <div className="p-6 relative" style={{
+                background: `linear-gradient(135deg, ${enrichment.color}10, ${enrichment.secondaryColor}10)`
               }}>
-                <div className="absolute top-2 right-2 bg-amber-400 text-[#2c3e50] text-xs font-bold px-2 py-1 rounded">
-                  BEST SELLER
+                <div className="absolute top-2 right-2 bg-amber-400 text-[#2c3e50] text-xs font-bold px-2 py-1 rounded animate-pulse">
+                  ⭐ BEST SELLER
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Forfait 4 Séances</h3>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="bg-amber-500 text-white text-xs font-bold px-2 py-1 rounded">FORFAIT 4 SÉANCES</span>
+                </div>
+                <h3 className="text-xl font-semibold text-[#2c3e50] mb-2">Cure Transformation</h3>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold">{packagePrice}€</span>
-                  <span className="text-sm opacity-80 line-through">{service.price * 4}€</span>
+                  <span className="text-3xl font-bold" style={{ color: enrichment.color }}>
+                    {forfaitDisplayPrice}€
+                  </span>
+                  {isForfaitPromo && service.forfaitPrice && (
+                    <>
+                      <span className="text-sm text-[#2c3e50]/60 line-through">{service.forfaitPrice}€</span>
+                      <span className="text-sm bg-red-500 text-white px-2 py-0.5 rounded">-{getDiscountPercentage(service.forfaitPrice, service.forfaitPromo!)}€</span>
+                    </>
+                  )}
                 </div>
-                <p className="text-sm opacity-90 mt-1">4 séances - Économisez {service.price * 4 - packagePrice}€</p>
+                {forfaitSavings > 0 && (
+                  <p className="text-sm text-[#2c3e50]/70 mt-1">Économisez <span className="font-bold" style={{ color: enrichment.color }}>{forfaitSavings}€</span></p>
+                )}
               </div>
-              <div className="p-6">
+              <div className="p-6 flex flex-col flex-grow">
                 <ul className="space-y-3 mb-6">
                   <li className="flex items-center gap-2 text-sm text-[#2c3e50]/70">
                     <CheckCircle className="w-4 h-4 text-green-500" />
@@ -659,10 +720,17 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
                   </li>
                 </ul>
                 <Link 
-                  href="/reservation" 
-                  className="block text-center py-3 text-white rounded-lg font-semibold hover:shadow-lg transition-all"
-                  style={{
-                    background: `linear-gradient(135deg, ${enrichment.color}, ${enrichment.secondaryColor})`
+                  href={`/reservation?service=${slug}&package=forfait`}
+                  className="block text-center py-3 rounded-lg font-semibold transition-all mt-auto"
+                  style={{ 
+                    backgroundColor: `${enrichment.color}`,
+                    color: 'white'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.02)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
                   }}
                 >
                   Choisir ce forfait
@@ -670,20 +738,23 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
               </div>
             </div>
 
-            {/* Abonnement */}
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all">
-              <div className="p-6 text-white" style={{
-                background: `linear-gradient(135deg, #c9a084, #d4b5a0)`
+            {/* Abonnement - uniquement si forfait existe */}
+            {forfaitDisplayPrice ? (
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all transform hover:-translate-y-1 flex flex-col h-full">
+              <div className="p-6" style={{
+                background: `linear-gradient(135deg, ${enrichment.color}10, ${enrichment.secondaryColor}10)`
               }}>
-                <h3 className="text-xl font-semibold mb-2">Formule Liberté</h3>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold">{monthlyPrice}€</span>
-                  <span className="text-sm opacity-90">/mois</span>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="bg-purple-500 text-white text-xs font-bold px-2 py-1 rounded">ABONNEMENT</span>
                 </div>
-                <p className="text-xs opacity-90 mt-1">1 séance par mois</p>
-                <p className="text-xs opacity-80">Tarif avantageux pour clientes régulières</p>
+                <h3 className="text-xl font-semibold text-[#2c3e50] mb-2">Formule Liberté</h3>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-bold" style={{ color: enrichment.color }}>{monthlyPrice}€</span>
+                  <span className="text-sm text-[#2c3e50]/60">/mois</span>
+                </div>
+                <p className="text-sm text-[#2c3e50]/70 mt-1">1 séance par mois • -20% sur le tarif normal</p>
               </div>
-              <div className="p-6">
+              <div className="p-6 flex flex-col flex-grow">
                 <ul className="space-y-3 mb-6">
                   <li className="flex items-center gap-2 text-sm text-[#2c3e50]/70">
                     <CheckCircle className="w-4 h-4 text-green-500" />
@@ -703,13 +774,26 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
                   </li>
                 </ul>
                 <Link 
-                  href="/reservation" 
-                  className="block text-center py-3 bg-[#c9a084]/10 text-[#c9a084] rounded-lg font-semibold hover:bg-[#c9a084]/20 transition-all"
+                  href={`/reservation?service=${slug}&package=abonnement`}
+                  className="block text-center py-3 rounded-lg font-semibold transition-all hover:shadow-lg mt-auto"
+                  style={{ 
+                    backgroundColor: enrichment.color,
+                    color: 'white'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.02)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }}
                 >
                   Choisir cette formule
                 </Link>
               </div>
             </div>
+            ) : (
+              <div></div>
+            )}
           </div>
         </div>
       </section>
@@ -719,15 +803,18 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-playfair text-[#2c3e50] mb-4">
-              L'expérience de nos clientes
+              L'expérience de mes clientes
             </h2>
             <div className="flex justify-center items-center gap-2">
               <div className="flex">
-                {[1,2,3,4,5].map(i => (
-                  <Star key={i} className="w-5 h-5 text-amber-400 fill-amber-400" />
-                ))}
+                {[1,2,3,4,5].map(i => {
+                  const avgRating = parseFloat(enrichment.stats[3].percentage.split('/')[0]);
+                  return <Star key={i} className={`w-5 h-5 ${i <= Math.floor(avgRating) ? 'text-amber-400 fill-amber-400' : 'text-gray-300'}`} />
+                })}
               </div>
-              <span className="text-[#2c3e50]/60">5.0 sur 250+ avis vérifiés</span>
+              <span className="text-[#2c3e50]/60">
+                {enrichment.stats[3].percentage} sur {slug === 'hydro-naissance' ? '47' : slug === 'hydro-cleaning' ? '35' : slug === 'renaissance' ? '42' : slug === 'bb-glow' ? '28' : '31'} avis vérifiés
+              </span>
             </div>
           </div>
 
@@ -787,10 +874,10 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-playfair text-[#2c3e50] mb-4">
-              Découvrez nos autres soins
+              Découvrez mes autres soins
             </h2>
             <p className="text-lg text-[#2c3e50]/60">
-              Complétez votre routine beauté avec nos autres prestations
+              Complétez votre routine beauté avec mes autres prestations
             </p>
           </div>
           <OtherServices currentServiceSlug={slug} />

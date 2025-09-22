@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from '@/lib/prisma';
 import { Clock, ArrowRight, Sparkles, Star } from 'lucide-react';
+import { getDisplayPrice, getForfaitDisplayPrice, hasPromotion, getDiscountPercentage } from '@/lib/price-utils';
 
 // Force dynamic rendering to avoid build-time database queries
 export const dynamic = 'force-dynamic';
@@ -139,32 +140,28 @@ export default async function Home() {
 
                     {/* Prix */}
                     <div className="border-t pt-4 mt-auto">
-                      {service.promoPrice ? (
-                        <div>
-                          <div className="flex items-baseline gap-3">
-                            <span className="text-3xl font-bold text-[#d4b5a0]">
-                              {service.promoPrice}€
-                            </span>
-                            <span className="text-xl line-through text-[#2c3e50]/40">
-                              {service.price}€
-                            </span>
-                          </div>
-                          <div className="mt-1">
-                            <span className="text-xs text-[#d4b5a0] font-semibold uppercase tracking-wider">
-                              Tarif de lancement
-                            </span>
-                          </div>
-                        </div>
-                      ) : (
-                        <div>
+                      <div>
+                        <div className="flex items-baseline gap-3">
                           <span className="text-3xl font-bold text-[#2c3e50]">
-                            {service.price}€
+                            {getDisplayPrice(service)}€
                           </span>
-                          <p className="text-sm text-[#d4b5a0] mt-2">
-                            Forfait 4 séances : {(service.price * 4) - 20}€
-                          </p>
+                          {hasPromotion(service) && (
+                            <>
+                              <span className="text-xl line-through text-[#2c3e50]/40">
+                                {service.price}€
+                              </span>
+                              <span className="text-xs bg-red-500 text-white px-2 py-0.5 rounded">
+                                -{getDiscountPercentage(service.price, service.promoPrice!)}%
+                              </span>
+                            </>
+                          )}
                         </div>
-                      )}
+                        {getForfaitDisplayPrice(service) && (
+                          <p className="text-sm text-[#d4b5a0] mt-2">
+                            Forfait 4 séances : {getForfaitDisplayPrice(service)}€
+                          </p>
+                        )}
+                      </div>
                     </div>
 
                     {/* CTA */}

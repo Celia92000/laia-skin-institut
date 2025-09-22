@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from 'next/navigation';
 import { Calendar, Clock, User, Phone, Mail, ChevronLeft, ChevronRight, Sparkles, CheckCircle, MapPin, Shield, AlertCircle, Lock, Eye, EyeOff } from "lucide-react";
+import { getDisplayPrice, getForfaitDisplayPrice, hasPromotion, getDiscountPercentage } from '@/lib/price-utils';
 
 function ReservationContent() {
   const searchParams = useSearchParams();
@@ -40,10 +41,14 @@ function ReservationContent() {
             name: service.name,
             description: service.shortDescription || service.description,
             duration: `${service.duration} min`,
-            price: `${service.price}€`,
-            promo: service.promoPrice ? `${service.promoPrice}€` : null,
-            forfait: service.forfaitPrice ? `${service.forfaitPrice}€` : null,
-            forfaitPromo: service.forfaitPromo ? `${service.forfaitPromo}€` : null,
+            price: service.price,
+            promoPrice: service.promoPrice,
+            forfaitPrice: service.forfaitPrice,
+            forfaitPromo: service.forfaitPromo,
+            displayPrice: getDisplayPrice(service),
+            forfaitDisplayPrice: getForfaitDisplayPrice(service),
+            hasPromo: hasPromotion(service),
+            discountPercent: hasPromotion(service) ? getDiscountPercentage(service.price, service.promoPrice) : 0,
             icon: service.slug === 'hydro-naissance' ? "👑" : 
                   service.slug === 'hydro-cleaning' ? "💧" :
                   service.slug === 'renaissance' ? "✨" :
@@ -78,13 +83,20 @@ function ReservationContent() {
   // Gérer les paramètres d'URL pour pré-sélectionner services et options
   useEffect(() => {
     const service = searchParams.get('service');
+    const packageType = searchParams.get('package');
     const option = searchParams.get('option');
     
     if (service) {
       // Les services arrivent déjà avec les bons IDs depuis les pages de prestations
       setSelectedServices([service]);
-      // Initialiser le package par défaut à 'single' (séance unique)
-      setSelectedPackages({[service]: 'single'});
+      // Gérer le type de package selon le paramètre URL
+      if (packageType === 'forfait') {
+        setSelectedPackages({[service]: 'forfait'});
+      } else if (packageType === 'abonnement') {
+        setSelectedPackages({[service]: 'abonnement'});
+      } else {
+        setSelectedPackages({[service]: 'single'});
+      }
     }
     if (option) {
       setSelectedOptions([option]);
@@ -285,28 +297,41 @@ function ReservationContent() {
   
   const calculateTotal = () => {
     let total = 0;
+    
+    // Calculer le prix des services sélectionnés
     selectedServices.forEach(serviceId => {
       const service = services.find(s => s.id === serviceId);
       if (service) {
-        const isPackage = selectedPackages[serviceId] === 'forfait';
-        if (isPackage) {
-          // Si forfait sélectionné
-          if (service.forfaitPromo) {
-            total += parseFloat(service.forfaitPromo.replace('€', ''));
-          } else if (service.forfait) {
-            total += parseFloat(service.forfait.replace('€', ''));
-          }
+        const packageType = selectedPackages[serviceId] || 'single';
+        
+        // Convertir tous les prix en nombres
+        let priceToAdd = 0;
+        
+        if (packageType === 'forfait') {
+          priceToAdd = Number(service.forfaitDisplayPrice) || Number(service.forfaitPrice) || 0;
+        } else if (packageType === 'abonnement') {
+          const basePrice = Number(service.displayPrice) || Number(service.price) || 0;
+          priceToAdd = Math.floor(basePrice * 0.8);
         } else {
-          // Si séance individuelle
-          if (service.promo) {
-            total += parseFloat(service.promo.replace('€', ''));
-          } else {
-            total += parseFloat(service.price.replace('€', ''));
-          }
+          // Séance individuelle (single)
+          priceToAdd = Number(service.displayPrice) || Number(service.price) || 0;
         }
+        
+        console.log(`Service ${service.name} (${packageType}): ${priceToAdd}€`);
+        total = total + priceToAdd;
       }
     });
-    return total;
+    
+    // Ajouter le prix des options (50€ chacune)
+    if (selectedOptions && selectedOptions.length > 0) {
+      selectedOptions.forEach(optionId => {
+        if (optionId === "bb-glow" || optionId === "led-therapie") {
+          total = total + 50;
+        }
+      });
+    }
+    
+    return Math.round(total);
   };
 
   return (
@@ -435,9 +460,14 @@ function ReservationContent() {
                                 }
                                 
                                 setSelectedServices(newServices);
-                                if (!((service.id === "hydro" || service.id === "renaissance") && newServices.includes("hydro-naissance"))) {
-                                  setSelectedPackages({...selectedPackages, [service.id]: "single"});
-                                }
+                                // Toujours ajouter le package single par défaut pour les nouveaux services
+                                const updatedPackages = {...selectedPackages};
+                                newServices.forEach(sid => {
+                                  if (!updatedPackages[sid]) {
+                                    updatedPackages[sid] = "single";
+                                  }
+                                });
+                                setSelectedPackages(updatedPackages);
                               } else {
                                 setSelectedServices(selectedServices.filter(id => id !== service.id));
                                 const newPackages = {...selectedPackages};
@@ -458,17 +488,17 @@ function ReservationContent() {
                                 </p>
                               </div>
                               <div className="text-right ml-4">
-                                {service.promo ? (
-                                  <>
-                                    <span className="text-lg line-through text-gray-400">{service.price}</span>
-                                    <br />
-                                    <span className="text-3xl font-bold text-green-600">{service.promo}</span>
-                                    <br />
-                                    <span className="text-xs text-green-600 font-semibold">Tarif lancement</span>
-                                  </>
-                                ) : (
-                                  <span className="text-3xl font-bold text-[#d4b5a0]">{service.price}</span>
-                                )}
+                                <div className="text-right">
+                                  <div className="flex items-baseline gap-2 justify-end">
+                                    <span className="text-3xl font-bold text-[#d4b5a0]">{service.displayPrice}€</span>
+                                    {service.hasPromo && (
+                                      <>
+                                        <span className="text-lg line-through text-gray-400">{service.price}€</span>
+                                        <span className="text-xs bg-red-500 text-white px-2 py-0.5 rounded">-{service.discountPercent}%</span>
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
                                 {selectedServices.includes(service.id) && (
                                   <CheckCircle className="w-6 h-6 text-[#d4b5a0] mt-2 ml-auto" />
                                 )}
@@ -486,7 +516,7 @@ function ReservationContent() {
                               <Sparkles className="w-4 h-4 mr-2 text-[#d4b5a0]" />
                               Choisissez votre formule
                             </h4>
-                            <div className="grid md:grid-cols-2 gap-3">
+                            <div className="grid md:grid-cols-3 gap-3">
                               <label className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${
                                 selectedPackages[service.id] === "single" 
                                   ? "border-[#d4b5a0] bg-white shadow-md" 
@@ -506,7 +536,7 @@ function ReservationContent() {
                                     <p className="text-xs text-[#2c3e50]/60 mt-1">Découvrir le soin</p>
                                   </div>
                                   <span className="text-lg font-bold text-[#d4b5a0]">
-                                    {service.promo || service.price}
+                                    {service.displayPrice}€
                                   </span>
                                 </div>
                               </label>
@@ -545,7 +575,33 @@ function ReservationContent() {
                                     <p className="text-xs text-[#2c3e50]/60 mt-1">Résultats optimaux</p>
                                   </div>
                                   <span className="text-lg font-bold text-green-600">
-                                    {service.forfaitPromo}
+                                    {service.forfaitDisplayPrice}€
+                                  </span>
+                                </div>
+                              </label>
+                              
+                              {/* Option Abonnement */}
+                              <label className={`p-3 border-2 rounded-lg cursor-pointer transition-all relative ${
+                                selectedPackages[service.id] === "abonnement" 
+                                  ? "border-purple-500 bg-purple-50 shadow-md" 
+                                  : "border-gray-200 hover:border-purple-300"
+                              }`}>
+                                <span className="absolute -top-2 right-2 bg-purple-500 text-white px-2 py-0.5 text-xs rounded-full font-semibold">
+                                  -20%
+                                </span>
+                                <input
+                                  type="radio"
+                                  name={`package-${service.id}`}
+                                  value="abonnement"
+                                  checked={selectedPackages[service.id] === "abonnement"}
+                                  onChange={(e) => setSelectedPackages({...selectedPackages, [service.id]: e.target.value})}
+                                  className="hidden"
+                                />
+                                <div className="flex flex-col">
+                                  <h5 className="font-semibold text-sm text-[#2c3e50]">Abonnement</h5>
+                                  <p className="text-xs text-[#2c3e50]/60 mt-1">1 séance/mois</p>
+                                  <span className="text-lg font-bold text-purple-600 mt-2">
+                                    {Math.floor(service.displayPrice * 0.8)}€/mois
                                   </span>
                                 </div>
                               </label>
@@ -596,8 +652,11 @@ function ReservationContent() {
                         </label>
                       )}
                       
-                      {/* LED Thérapie en option (sauf si déjà sélectionnée comme soin principal) */}
-                      {!selectedServices.includes("led-therapie") && (
+                      {/* LED Thérapie en option (sauf si déjà sélectionnée comme soin principal ou si incluse dans hydro-cleaning, hydro-naissance ou renaissance) */}
+                      {!selectedServices.includes("led-therapie") && 
+                       !selectedServices.includes("hydro-cleaning") && 
+                       !selectedServices.includes("hydro-naissance") && 
+                       !selectedServices.includes("renaissance") && (
                         <label className={`flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition-all ${
                           selectedOptions.includes("led-therapie")
                             ? "border-[#d4b5a0] bg-[#d4b5a0]/5"
@@ -606,7 +665,7 @@ function ReservationContent() {
                           <div className="flex items-center gap-3">
                             <input
                               type="checkbox"
-                              checked={selectedOptions.includes("led")}
+                              checked={selectedOptions.includes("led-therapie")}
                               onChange={(e) => {
                                 if (e.target.checked) {
                                   setSelectedOptions([...selectedOptions, "led-therapie"]);
@@ -632,39 +691,9 @@ function ReservationContent() {
                 {selectedServices.length > 0 && (
                   <div className="mt-6 p-4 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] rounded-xl text-white">
                     <div className="flex justify-between items-center">
-                      <span className="font-semibold text-lg">Total estimé :</span>
-                      <span className="text-2xl font-bold">
-                        {(() => {
-                          // Calcul du prix des services
-                          const servicesTotal = selectedServices.reduce((total, serviceId) => {
-                            const service = services.find(s => s.id === serviceId);
-                            if (!service) return total;
-                            
-                            const isPackage = selectedPackages[serviceId] === "forfait";
-                            let price = 0;
-                            
-                            if (isPackage && service.forfait) {
-                              price = parseInt(service.forfaitPromo.replace('€', ''));
-                            } else {
-                              price = parseInt((service.promo || service.price).replace('€', ''));
-                            }
-                            
-                            return total + price;
-                          }, 0);
-                          
-                          // Calcul du prix des options
-                          const optionsTotal = selectedOptions.reduce((total, optionId) => {
-                            if (optionId === "bbglow" || optionId === "led") {
-                              return total + 50; // Prix promo pour les options
-                            }
-                            return total;
-                          }, 0);
-                          
-                          return servicesTotal + optionsTotal;
-                        })()}€
-                      </span>
+                      <span className="font-semibold text-lg">Total :</span>
+                      <span className="text-2xl font-bold">{calculateTotal()}€</span>
                     </div>
-                    <p className="text-sm text-white/80 mt-1">Tarifs de lancement appliqués</p>
                   </div>
                 )}
                 
@@ -906,7 +935,6 @@ function ReservationContent() {
                       onChange={(e) => setFormData({...formData, phone: e.target.value})}
                       className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-[#d4b5a0] focus:outline-none transition-colors text-lg"
                       placeholder="06 12 34 56 78"
-                      disabled={isLoggedIn}
                     />
                   </div>
                   

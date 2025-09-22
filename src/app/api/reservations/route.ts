@@ -122,11 +122,20 @@ export async function POST(request: Request) {
       }
     }
 
+    // Déterminer si c'est un abonnement
+    let isSubscription = false;
+    if (packages) {
+      const packagesObj = typeof packages === 'string' ? JSON.parse(packages) : packages;
+      isSubscription = Object.values(packagesObj).includes('abonnement');
+    }
+    
     // Créer la réservation avec statut 'pending' (en attente de validation admin)
     const reservation = await prisma.reservation.create({
       data: {
         userId: userId,
         services: JSON.stringify(services),
+        packages: packages ? JSON.stringify(packages) : '{}',
+        isSubscription,
         date: new Date(date),
         time,
         notes,

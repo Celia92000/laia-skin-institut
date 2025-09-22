@@ -169,7 +169,7 @@ export default function AdminDashboardOptimized() {
             {!sidebarCollapsed && (
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-900">Laia Admin</p>
-                <p className="text-xs text-gray-500">admin@laiaskin.com</p>
+                <p className="text-xs text-gray-500">admin@laia.skin.com</p>
               </div>
             )}
           </div>

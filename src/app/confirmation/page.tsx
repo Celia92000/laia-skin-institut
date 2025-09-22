@@ -54,12 +54,11 @@ function ConfirmationContent() {
 
   const sendConfirmationEmail = async (reservationData: any) => {
     try {
-      await fetch('/api/send-email', {
+      await fetch('/api/send-reservation-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           to: reservationData.user.email,
-          subject: 'Confirmation de votre réservation - Laia Skin',
           reservation: reservationData
         })
       });
@@ -94,6 +93,7 @@ Laia Skin Institut
 5 allée Jean de la Fontaine
 92000 Nanterre
 Bâtiment 5, 2ème étage, Porte 523
+🔔 Interphone : JOLLY
 
 🚇 À 6 minutes à pied de la gare de Nanterre Université
 
@@ -110,7 +110,7 @@ Laia Skin Institut 🌸`;
   };
 
   const openWhatsApp = () => {
-    const phone = "33612345678"; // Remplacer par votre numéro
+    const phone = "33683717050"; // Numéro de Célia IVORRA - LAIA SKIN
     const message = localStorage.getItem('whatsappMessage') || '';
     window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
   };
@@ -131,12 +131,14 @@ Laia Skin Institut 🌸`;
     
     const icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
+PRODID:-//LAIA SKIN Institut//FR
 BEGIN:VEVENT
 DTSTART:${startDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z
 DTEND:${endDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z
 SUMMARY:Laia Skin - ${servicesList}
-DESCRIPTION:Rendez-vous chez Laia Skin\\nSoins: ${servicesList}\\nPrix: ${reservation.totalPrice}€
-LOCATION:À 6 minutes de la gare de Nanterre Université
+DESCRIPTION:Rendez-vous chez Laia Skin Institut\\nSoins: ${servicesList}\\nPrix: ${reservation.totalPrice}€\\n\\nBâtiment 5, 2ème étage, Porte 523\\nInterphone: JOLLY\\n\\nPaiement en espèces sur place
+LOCATION:5 allée Jean de la Fontaine, 92000 Nanterre (Interphone JOLLY)
+URL:https://www.instagram.com/laia.skin/
 END:VEVENT
 END:VCALENDAR`;
 
@@ -173,9 +175,9 @@ END:VCALENDAR`;
     <div className="min-h-screen bg-gradient-to-br from-[#fdfbf7] to-[#f8f6f0] py-12">
       <div className="max-w-4xl mx-auto px-4">
         {/* Confirmation Header */}
-        <div className="text-center mb-8 animate-fade-in-up">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full mb-4">
-            <CheckCircle className="w-12 h-12 text-white" />
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full mb-4 shadow-lg">
+            <span className="text-5xl">✓</span>
           </div>
           <h1 className="text-4xl font-serif font-bold text-[#2c3e50] mb-2">
             Réservation Confirmée !
@@ -301,7 +303,8 @@ END:VCALENDAR`;
                       <p className="text-sm font-semibold text-[#2c3e50]">
                         🏢 Bâtiment 5<br/>
                         🔢 2ème étage<br/>
-                        🚪 Porte 523
+                        🚪 Porte 523<br/>
+                        🔔 Interphone : JOLLY
                       </p>
                     </div>
                     <p className="text-sm text-[#2c3e50]/70 mt-2 flex items-center gap-2">
@@ -320,11 +323,7 @@ END:VCALENDAR`;
             </div>
             <div className="flex items-start gap-3">
               <Instagram className="w-5 h-5 text-[#d4b5a0] mt-0.5 flex-shrink-0" />
-              <p>Suivez-nous : <a href="https://www.instagram.com/laiaskin" target="_blank" className="text-[#d4b5a0] hover:underline">@laiaskin</a></p>
-            </div>
-            <div className="flex items-start gap-3">
-              <X className="w-5 h-5 text-[#d4b5a0] mt-0.5 flex-shrink-0" />
-              <p>Annulation gratuite jusqu'à 24h avant le rendez-vous</p>
+              <p>Suivez-nous : <a href="https://www.instagram.com/laia.skin/" target="_blank" className="text-[#d4b5a0] hover:text-[#c9a084] font-medium underline">@laia.skin</a></p>
             </div>
           </div>
         </div>

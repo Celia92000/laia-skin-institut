@@ -186,10 +186,10 @@ export async function GET() {
       openingHours: typeof openingHours === 'string' ? JSON.parse(openingHours) : openingHours,
       contact: {
         phone: '06 71 58 12 37',
-        email: 'contact@laiaskin.com',
+        email: 'contact@laia.skin.com',
         address: '1-11 Cr Alsace et Lorraine, 33000 Bordeaux',
         social: {
-          instagram: '@laiaskin',
+          instagram: '@laia.skin',
           facebook: 'laiaskin'
         }
       },

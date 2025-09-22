@@ -450,7 +450,7 @@ export default function EmailCampaigns() {
                 to_email: client.email,
                 client_name: client.name,
                 from_name: 'LAIA SKIN Institut',
-                reply_to: 'contact@laiaskininstitut.fr'
+                reply_to: 'contact@laia.skininstitut.fr'
               }
             })
           });

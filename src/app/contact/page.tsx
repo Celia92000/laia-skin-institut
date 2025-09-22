@@ -43,7 +43,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <h3 className="font-semibold mb-1">Instagram</h3>
-                    <a href="https://instagram.com/laiaskin" target="_blank" rel="noopener noreferrer" className="text-muted hover:text-primary transition-colors">@laiaskin</a>
+                    <a href="https://www.instagram.com/laia.skin/" target="_blank" rel="noopener noreferrer" className="text-muted hover:text-primary transition-colors">@laia.skin</a>
                     <p className="text-sm text-muted">Réponse rapide par DM</p>
                   </div>
                 </div>

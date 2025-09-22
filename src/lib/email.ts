@@ -62,7 +62,7 @@ export const emailTemplates = {
             </div>
             <div class="footer">
               <p>LAIA SKIN Institut | 123 Rue de la Beauté, 75001 Paris</p>
-              <p>Tel: 01 23 45 67 89 | Email: contact@laiaskin.fr</p>
+              <p>Tel: 01 23 45 67 89 | Email: contact@laia.skin.fr</p>
             </div>
           </div>
         </body>
@@ -200,7 +200,7 @@ export async function sendEmail(template: EmailTemplate): Promise<boolean> {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'LAIA SKIN <noreply@laiaskin.fr>',
+        from: 'LAIA SKIN <noreply@laia.skin.fr>',
         to: template.to,
         subject: template.subject,
         html: template.html,

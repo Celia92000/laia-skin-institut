@@ -32,7 +32,7 @@ export async function sendCustomEmail(
         </div>
         <div class="footer">
           <p>LAIA SKIN Institut<br>
-          contact@laiaskininstitut.fr<br>
+          contact@laia.skininstitut.fr<br>
           06 12 34 56 78</p>
         </div>
       </div>
@@ -63,7 +63,7 @@ export async function sendCustomEmail(
         message: message,
         subject: subject,
         from_name: 'LAIA SKIN Institut',
-        reply_to: 'contact@laiaskininstitut.fr'
+        reply_to: 'contact@laia.skininstitut.fr'
       }
     })
   });

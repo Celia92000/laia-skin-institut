@@ -1,8 +1,44 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
-import { Phone, Mail, MapPin, Clock, Instagram, Facebook, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { Phone, Mail, MapPin, Clock, Instagram, Facebook, Sparkles, CheckCircle } from "lucide-react";
 
 export default function Footer() {
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [subscribed, setSubscribed] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch("/api/newsletter/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setSubscribed(true);
+        setEmail("");
+        setTimeout(() => setSubscribed(false), 5000);
+      } else {
+        setError(data.error || "Erreur lors de l'inscription");
+      }
+    } catch (err) {
+      setError("Erreur de connexion");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <footer className="bg-accent text-white">
       {/* Main Footer */}
@@ -44,7 +80,7 @@ export default function Footer() {
                 <Facebook size={18} />
               </a>
               <a 
-                href="https://www.tiktok.com/@laiaskin" 
+                href="https://www.tiktok.com/@laia.skin" 
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center"
@@ -99,11 +135,31 @@ export default function Footer() {
           <div>
             <h4 className="font-playfair text-xl mb-4 text-white">Mes prestations</h4>
             <ul className="space-y-2">
-              <li className="text-base text-white/95">Hydro'Naissance</li>
-              <li className="text-base text-white/95">Hydro'Cleaning</li>
-              <li className="text-base text-white/95">Renaissance</li>
-              <li className="text-base text-white/95">BB Glow</li>
-              <li className="text-base text-white/95">LED Thérapie</li>
+              <li>
+                <Link href="/services/hydro-naissance" className="text-base text-white/95 hover:text-white transition-colors">
+                  Hydro'Naissance
+                </Link>
+              </li>
+              <li>
+                <Link href="/services/hydro-cleaning" className="text-base text-white/95 hover:text-white transition-colors">
+                  Hydro'Cleaning
+                </Link>
+              </li>
+              <li>
+                <Link href="/services/renaissance" className="text-base text-white/95 hover:text-white transition-colors">
+                  Renaissance
+                </Link>
+              </li>
+              <li>
+                <Link href="/services/bb-glow" className="text-base text-white/95 hover:text-white transition-colors">
+                  BB Glow
+                </Link>
+              </li>
+              <li>
+                <Link href="/services/led-therapie" className="text-base text-white/95 hover:text-white transition-colors">
+                  LED Thérapie
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -148,19 +204,33 @@ export default function Footer() {
                 <p className="text-sm text-white/90">Recevez mes offres et actualités</p>
               </div>
             </div>
-            <form className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-              <input
-                type="email"
-                placeholder="Votre email"
-                className="px-4 py-2 bg-white/10 border border-white/20 rounded-full text-sm placeholder-gray-500 focus:outline-none focus:border-primary w-full sm:w-64"
-              />
-              <button
-                type="submit"
-                className="px-6 py-2 bg-primary text-accent rounded-full hover:bg-primary-light transition-colors text-sm font-light whitespace-nowrap w-full sm:w-auto"
-              >
-                S'inscrire
-              </button>
-            </form>
+            {subscribed ? (
+              <div className="flex items-center gap-2 px-6 py-3 bg-green-600/20 border border-green-500/30 rounded-full">
+                <CheckCircle className="w-5 h-5 text-green-400" />
+                <span className="text-green-400 font-medium">Inscription réussie ! Bienvenue 🎉</span>
+              </div>
+            ) : (
+              <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                <input
+                  type="email"
+                  placeholder="Votre email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="px-4 py-2 bg-white/10 border border-white/20 rounded-full text-sm text-white placeholder-white/50 focus:outline-none focus:border-primary focus:bg-white/20 w-full sm:w-64"
+                />
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="px-6 py-2 bg-primary text-white rounded-full hover:bg-primary-light hover:shadow-lg transition-all text-sm font-medium whitespace-nowrap w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? "Inscription..." : "S'inscrire"}
+                </button>
+              </form>
+            )}
+            {error && (
+              <p className="text-red-400 text-sm mt-2">{error}</p>
+            )}
           </div>
         </div>
       </div>
@@ -173,13 +243,13 @@ export default function Footer() {
               © 2024 LAIA SKIN Institut. Tous droits réservés.
             </p>
             <div className="flex gap-6">
-              <Link href="#" className="text-sm text-white/80 hover:text-white transition-colors">
+              <Link href="/mentions-legales" className="text-sm text-white/80 hover:text-white transition-colors">
                 Mentions légales
               </Link>
-              <Link href="#" className="text-sm text-white/80 hover:text-white transition-colors">
+              <Link href="/politique-confidentialite" className="text-sm text-white/80 hover:text-white transition-colors">
                 Politique de confidentialité
               </Link>
-              <Link href="#" className="text-sm text-white/80 hover:text-white transition-colors">
+              <Link href="/cgv" className="text-sm text-white/80 hover:text-white transition-colors">
                 CGV
               </Link>
             </div>

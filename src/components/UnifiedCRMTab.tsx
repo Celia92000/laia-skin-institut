@@ -98,6 +98,43 @@ export default function UnifiedCRMTab({
     return { name: "Nouveau", color: "bg-gray-100 text-gray-600", level: 0, sessions: sessionCount };
   };
 
+  // Fonction pour vérifier l'utilisation de l'abonnement du mois en cours
+  const getSubscriptionStatus = (clientId: string) => {
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    
+    // Filtrer les réservations du client pour le mois en cours
+    const clientReservations = reservations.filter(r => 
+      r.userId === clientId && 
+      r.isSubscription === true
+    );
+    
+    // Vérifier s'il y a une réservation d'abonnement ce mois
+    const monthlySubscriptionUsed = clientReservations.some(r => {
+      const reservationDate = new Date(r.date);
+      return reservationDate.getMonth() === currentMonth && 
+             reservationDate.getFullYear() === currentYear &&
+             (r.status === 'confirmed' || r.status === 'completed');
+    });
+    
+    // Vérifier s'il y a une réservation d'abonnement à venir ce mois
+    const upcomingSubscription = clientReservations.find(r => {
+      const reservationDate = new Date(r.date);
+      return reservationDate.getMonth() === currentMonth && 
+             reservationDate.getFullYear() === currentYear &&
+             r.status === 'pending' &&
+             reservationDate >= new Date();
+    });
+    
+    return {
+      hasSubscription: clientReservations.length > 0,
+      monthlyUsed: monthlySubscriptionUsed,
+      upcoming: upcomingSubscription,
+      lastSubscriptionDate: clientReservations.length > 0 ? 
+        new Date(Math.max(...clientReservations.map(r => new Date(r.date).getTime()))) : null
+    };
+  };
+
   // Fonction pour calculer les anniversaires du mois
   const getBirthdayClients = () => {
     const currentMonth = new Date().getMonth();
@@ -389,16 +426,46 @@ export default function UnifiedCRMTab({
                           <p className="font-medium text-[#2c3e50] text-lg">{level.sessions}</p>
                           <p className="text-xs text-[#2c3e50]/60">séances</p>
                           <div className="flex gap-2 justify-center mt-1">
-                            {level.sessions % 6 > 0 && (
-                              <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">
-                                {level.sessions % 6}/6 pour -30€
-                              </span>
-                            )}
-                            {level.sessions > 0 && level.sessions % 6 === 0 && (
-                              <span className="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded-full animate-pulse">
-                                -30€ disponible !
-                              </span>
-                            )}
+                            {(() => {
+                              const subStatus = getSubscriptionStatus(client.id);
+                              if (subStatus.hasSubscription) {
+                                if (subStatus.monthlyUsed) {
+                                  return (
+                                    <span className="text-xs bg-purple-100 text-purple-600 px-2 py-0.5 rounded-full">
+                                      ✓ Abo utilisé ce mois
+                                    </span>
+                                  );
+                                } else if (subStatus.upcoming) {
+                                  return (
+                                    <span className="text-xs bg-yellow-100 text-yellow-600 px-2 py-0.5 rounded-full animate-pulse">
+                                      📅 Abo à venir
+                                    </span>
+                                  );
+                                } else {
+                                  return (
+                                    <span className="text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full">
+                                      ⚠️ Abo non utilisé
+                                    </span>
+                                  );
+                                }
+                              }
+                              
+                              if (level.sessions % 6 > 0) {
+                                return (
+                                  <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">
+                                    {level.sessions % 6}/6 pour -30€
+                                  </span>
+                                );
+                              }
+                              if (level.sessions > 0 && level.sessions % 6 === 0) {
+                                return (
+                                  <span className="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded-full animate-pulse">
+                                    -30€ disponible !
+                                  </span>
+                                );
+                              }
+                              return null;
+                            })()}
                           </div>
                         </div>
                       </td>

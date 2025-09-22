@@ -40,17 +40,62 @@ interface Review {
 export default function AdminPhotosReviews() {
   const [photos, setPhotos] = useState<ClientPhoto[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [activeTab, setActiveTab] = useState<'photos' | 'reviews' | 'gallery'>('photos');
+  const [activeTab, setActiveTab] = useState<'photos' | 'reviews' | 'gallery' | 'stats'>('stats');
   const [selectedPhoto, setSelectedPhoto] = useState<ClientPhoto | null>(null);
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'approved'>('all');
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [realStats, setRealStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Données de démonstration
+  // Charger les vraies données
   useEffect(() => {
-    // Simuler le chargement des photos reçues
+    fetchRealData();
+  }, []);
+
+  const fetchRealData = async () => {
+    try {
+      // Récupérer les vrais avis depuis la base de données
+      const reviewsResponse = await fetch('/api/reviews?approved=true');
+      const reviewsData = await reviewsResponse.json();
+      
+      if (reviewsData.reviews) {
+        setReviews(reviewsData.reviews.map((r: any) => ({
+          id: r.id,
+          clientId: r.userId,
+          clientName: r.user?.name || 'Client',
+          rating: r.rating,
+          comment: r.comment,
+          serviceName: r.serviceName || 'Service',
+          date: r.createdAt,
+          approved: r.approved,
+          featured: r.featured,
+          source: r.source || 'site'
+        })));
+      }
+
+      // Calculer les statistiques globales
+      const stats = {
+        totalReviews: reviewsData.stats?.total || 0,
+        averageRating: reviewsData.stats?.average || 0,
+        distribution: reviewsData.stats?.distribution || {},
+        bySource: {
+          email: reviewsData.reviews?.filter((r: any) => r.source === 'email').length || 0,
+          whatsapp: reviewsData.reviews?.filter((r: any) => r.source === 'whatsapp').length || 0,
+          google: reviewsData.reviews?.filter((r: any) => r.source === 'google').length || 0,
+          site: reviewsData.reviews?.filter((r: any) => r.source === 'site').length || 0
+        }
+      };
+      setRealStats(stats);
+    } catch (error) {
+      console.error('Erreur lors du chargement des données:', error);
+    } finally {
+      setLoading(false);
+    }
+
+    // Données de démonstration pour les photos
     setPhotos([
       {
         id: "1",
@@ -167,6 +212,16 @@ export default function AdminPhotosReviews() {
         {/* Tabs */}
         <div className="flex gap-2 border-b">
           <button
+            onClick={() => setActiveTab('stats')}
+            className={`px-4 py-2 font-medium transition-colors border-b-2 ${
+              activeTab === 'stats' 
+                ? 'text-[#d4b5a0] border-[#d4b5a0]' 
+                : 'text-gray-500 border-transparent hover:text-gray-700'
+            }`}
+          >
+            📊 Statistiques {realStats && `(${realStats.totalReviews} avis)`}
+          </button>
+          <button
             onClick={() => setActiveTab('photos')}
             className={`px-4 py-2 font-medium transition-colors border-b-2 ${
               activeTab === 'photos' 
@@ -184,7 +239,7 @@ export default function AdminPhotosReviews() {
                 : 'text-gray-500 border-transparent hover:text-gray-700'
             }`}
           >
-            Avis clients
+            Avis clients ({reviews.length})
           </button>
           <button
             onClick={() => setActiveTab('gallery')}
@@ -198,6 +253,95 @@ export default function AdminPhotosReviews() {
           </button>
         </div>
       </div>
+
+      {/* Contenu Statistiques */}
+      {activeTab === 'stats' && realStats && (
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h3 className="text-lg font-semibold text-[#2c3e50] mb-6">📊 Statistiques réelles des avis clients</h3>
+          
+          {/* Stats globales */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div className="bg-gradient-to-br from-[#d4b5a0]/10 to-[#c9a084]/10 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-2">
+                <MessageCircle className="w-5 h-5 text-[#d4b5a0]" />
+                <span className="text-2xl font-bold text-[#2c3e50]">{realStats.totalReviews}</span>
+              </div>
+              <p className="text-sm text-[#2c3e50]/60">Total des avis</p>
+            </div>
+            
+            <div className="bg-gradient-to-br from-amber-100 to-amber-50 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-2">
+                <Star className="w-5 h-5 text-amber-500" />
+                <span className="text-2xl font-bold text-[#2c3e50]">{realStats.averageRating.toFixed(1)}/5</span>
+              </div>
+              <p className="text-sm text-[#2c3e50]/60">Note moyenne</p>
+            </div>
+            
+            <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-2">
+                <MessageCircle className="w-5 h-5 text-blue-600" />
+                <span className="text-2xl font-bold text-[#2c3e50]">{realStats.bySource?.email || 0}</span>
+              </div>
+              <p className="text-sm text-[#2c3e50]/60">Avis par email</p>
+            </div>
+            
+            <div className="bg-gradient-to-br from-green-100 to-green-50 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-2">
+                <MessageCircle className="w-5 h-5 text-green-600" />
+                <span className="text-2xl font-bold text-[#2c3e50]">{realStats.bySource?.whatsapp || 0}</span>
+              </div>
+              <p className="text-sm text-[#2c3e50]/60">Avis WhatsApp</p>
+            </div>
+          </div>
+
+          {/* Distribution des notes */}
+          <div className="bg-gray-50 rounded-xl p-6 mb-8">
+            <h4 className="font-semibold text-[#2c3e50] mb-4">Distribution des notes</h4>
+            {[5, 4, 3, 2, 1].map(rating => {
+              const count = realStats.distribution?.[rating] || 0;
+              const percentage = realStats.totalReviews > 0 ? (count / realStats.totalReviews) * 100 : 0;
+              return (
+                <div key={rating} className="flex items-center gap-3 mb-3">
+                  <div className="flex items-center gap-1 w-20">
+                    <span className="text-sm font-medium text-[#2c3e50]">{rating}</span>
+                    <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                  </div>
+                  <div className="flex-1 bg-gray-200 rounded-full h-3 overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] rounded-full transition-all"
+                      style={{ width: `${percentage}%` }}
+                    />
+                  </div>
+                  <span className="text-sm text-[#2c3e50]/60 w-16 text-right">
+                    {count} ({percentage.toFixed(0)}%)
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Actions pour améliorer */}
+          <div className="bg-gradient-to-r from-[#d4b5a0]/10 to-[#c9a084]/10 rounded-xl p-6">
+            <h4 className="font-semibold text-[#2c3e50] mb-4">💡 Actions pour améliorer les avis</h4>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="flex items-start gap-3">
+                <Mail className="w-5 h-5 text-[#d4b5a0] mt-1" />
+                <div>
+                  <p className="font-medium text-[#2c3e50]">Email automatique post-soin</p>
+                  <p className="text-sm text-[#2c3e50]/70">Envoyez un email 24h après chaque soin</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <MessageCircle className="w-5 h-5 text-green-600 mt-1" />
+                <div>
+                  <p className="font-medium text-[#2c3e50]">WhatsApp Business</p>
+                  <p className="text-sm text-[#2c3e50]/70">Demandez les avis par WhatsApp, plus personnel</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Contenu Photos */}
       {activeTab === 'photos' && (

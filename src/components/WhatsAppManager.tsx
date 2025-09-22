@@ -23,7 +23,7 @@ export default function WhatsAppManager() {
   });
 
   // Numéro WhatsApp Business de l'institut
-  const BUSINESS_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+33612345678'; // Configuré via variable d'environnement
+  const BUSINESS_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+33683717050'; // Numéro de Célia IVORRA - LAIA SKIN
 
   // Générer un lien WhatsApp direct
   const generateWhatsAppLink = (phone: string, text: string) => {

@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
           to_email: client.email,
           client_name: client.name,
           from_name: 'LAIA SKIN Institut',
-          reply_to: 'contact@laiaskininstitut.fr'
+          reply_to: 'contact@laia.skininstitut.fr'
         };
 
         // Adapter les paramètres selon le trigger
@@ -168,7 +168,7 @@ export async function POST(request: NextRequest) {
         // Enregistrer dans l'historique
         await prisma.emailHistory.create({
           data: {
-            from: 'contact@laiaskininstitut.fr',
+            from: 'contact@laia.skininstitut.fr',
             to: client.email,
             subject: `${automation.name} - Envoi manuel`,
             content: `Automatisation déclenchée manuellement : ${automation.name}`,

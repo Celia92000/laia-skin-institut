@@ -153,12 +153,12 @@ export async function sendReservationConfirmationEmail(data: ReservationEmailDat
       </p>
       <p>
         📱 WhatsApp : 06 83 71 70 50<br>
-        📧 contact@laiaskin.fr
+        📧 contact@laia.skin.fr
       </p>
       <div class="social-links">
         <a href="https://www.instagram.com/laia.skin/">Instagram</a> • 
         <a href="https://www.facebook.com/profile.php?id=61578944046472">Facebook</a> • 
-        <a href="https://www.tiktok.com/@laiaskin">TikTok</a>
+        <a href="https://www.tiktok.com/@laia.skin">TikTok</a>
       </div>
     </div>
   </div>
@@ -222,7 +222,7 @@ Instagram : @laia.skin`;
       const { prisma } = await import('@/lib/prisma');
       await prisma.emailHistory.create({
         data: {
-          from: 'contact@laiaskin.fr',
+          from: 'contact@laia.skin.fr',
           to: data.to,
           subject: `Confirmation RDV - ${data.date} à ${data.time}`,
           content: 'Email de confirmation de réservation',

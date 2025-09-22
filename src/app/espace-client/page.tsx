@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Calendar, Clock, CheckCircle, XCircle, Gift, Star, RefreshCw, User, Award, TrendingUp, LogOut, Share2, Heart, History, Check, Edit2, X, CalendarDays, MessageSquare, ThumbsUp, Send, Camera, Edit } from "lucide-react";
+import { Calendar, Clock, CheckCircle, XCircle, Gift, Star, RefreshCw, User, Award, TrendingUp, LogOut, Share2, Heart, History, Check, Edit2, X, CalendarDays, MessageSquare, ThumbsUp, Send, Camera, Edit, Bell, AlertCircle } from "lucide-react";
 import AuthGuard from "@/components/AuthGuard";
 import { logout } from "@/lib/auth-client";
 
@@ -11,6 +11,7 @@ interface Reservation {
   id: string;
   services: string[];
   packages: {[key: string]: string};
+  isSubscription?: boolean;
   date: string;
   time: string;
   totalPrice: number;
@@ -38,6 +39,49 @@ export default function EspaceClient() {
   const [satisfaction, setSatisfaction] = useState(5);
   const [reviewPhotos, setReviewPhotos] = useState<string[]>([]);
   const [uploadedPhotos, setUploadedPhotos] = useState<File[]>([]);
+  
+  // Fonction pour vérifier le statut de l'abonnement
+  const getSubscriptionStatus = () => {
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    
+    // Filtrer les réservations d'abonnement
+    const subscriptionReservations = reservations.filter(r => r.isSubscription === true);
+    
+    if (subscriptionReservations.length === 0) {
+      return { hasSubscription: false };
+    }
+    
+    // Vérifier si l'abonnement du mois a été utilisé
+    const monthlyUsed = subscriptionReservations.some(r => {
+      const resDate = new Date(r.date);
+      return resDate.getMonth() === currentMonth && 
+             resDate.getFullYear() === currentYear &&
+             (r.status === 'confirmed' || r.status === 'completed');
+    });
+    
+    // Vérifier s'il y a un RDV d'abonnement à venir
+    const upcoming = subscriptionReservations.find(r => {
+      const resDate = new Date(r.date);
+      return resDate.getMonth() === currentMonth && 
+             resDate.getFullYear() === currentYear &&
+             r.status === 'pending' &&
+             resDate >= new Date();
+    });
+    
+    // Trouver le dernier service utilisé en abonnement
+    const lastSubscription = subscriptionReservations
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+    
+    const lastService = lastSubscription ? lastSubscription.services[0] : null;
+    
+    return { 
+      hasSubscription: true, 
+      monthlyUsed, 
+      upcoming,
+      lastService 
+    };
+  };
 
   const services = {
     "hydro-naissance": "Hydro'Naissance",
@@ -61,7 +105,7 @@ export default function EspaceClient() {
       // Permettre l'accès à tous les utilisateurs connectés (clients et admins)
       // Définir le nom en fonction du rôle et de l'email
       let displayName = 'Cliente';
-      if (userInfo.email === 'admin@laiaskin.com') {
+      if (userInfo.email === 'admin@laia.skin.com') {
         displayName = 'Laïa';
       } else if (userInfo.email === 'marie.dupont@email.com') {
         displayName = 'Marie';
@@ -308,6 +352,43 @@ export default function EspaceClient() {
             </div>
           )}
         </div>
+
+        {/* Notification d'abonnement */}
+        {(() => {
+          const subscriptionStatus = getSubscriptionStatus();
+          if (subscriptionStatus.hasSubscription && !subscriptionStatus.monthlyUsed && !subscriptionStatus.upcoming) {
+            return (
+              <div className="bg-gradient-to-r from-purple-50 to-purple-100 border-2 border-purple-300 rounded-2xl p-6 mb-8 shadow-lg">
+                <div className="flex items-start gap-4">
+                  <div className="bg-purple-500 rounded-full p-3 animate-pulse">
+                    <Bell className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-purple-900 mb-2 flex items-center gap-2">
+                      <AlertCircle className="w-5 h-5" />
+                      Votre rendez-vous mensuel vous attend !
+                    </h3>
+                    <p className="text-purple-700 mb-4">
+                      Votre abonnement Formule Liberté inclut une séance ce mois-ci. 
+                      <span className="font-semibold"> Ne perdez pas votre avantage !</span>
+                    </p>
+                    <p className="text-sm text-purple-600 mb-4">
+                      💜 Profitez de votre soin mensuel inclus - Valable jusqu'à la fin du mois
+                    </p>
+                    <Link
+                      href={`/reservation${subscriptionStatus.lastService ? `?service=${subscriptionStatus.lastService}&package=abonnement` : '?package=abonnement'}`}
+                      className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-3 rounded-xl font-semibold hover:from-purple-700 hover:to-purple-800 transition-all shadow-lg hover:shadow-xl"
+                    >
+                      <CalendarDays className="w-5 h-5" />
+                      Réserver mon RDV mensuel maintenant
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            );
+          }
+          return null;
+        })()}
 
         {/* Tabs */}
         <div className="flex gap-4 mb-8 overflow-x-auto">
@@ -613,7 +694,7 @@ export default function EspaceClient() {
                             <>
                               <button
                                 onClick={() => {
-                                  alert('Pour modifier votre rendez-vous, contactez-nous sur Instagram @laiaskin ou appelez-nous.');
+                                  alert('Pour modifier votre rendez-vous, contactez-nous sur Instagram @laia.skin ou appelez-nous.');
                                   // Ici on pourrait ouvrir un modal de modification
                                 }}
                                 className="flex items-center gap-1 px-3 py-2 bg-[#d4b5a0] text-white rounded-lg text-sm hover:bg-[#c9a084] transition-all"

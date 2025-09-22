@@ -8,33 +8,33 @@ export default function APropos() {
         {/* Hero Section avec présentation de Laïa */}
         <section className="max-w-6xl mx-auto px-4 mb-20">
           <div className="text-center mb-16">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-playfair font-normal text-[#2c3e50] mb-6 animate-fade-in-up tracking-normal">
-              Laïa, Experte Beauté
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-light text-[#2c3e50] mb-8 animate-fade-in-up tracking-wide">
+              LAÏA, EXPERTE BEAUTÉ
             </h1>
-            <p className="font-playfair text-lg sm:text-xl md:text-2xl text-[#2c3e50]/70 max-w-3xl mx-auto animate-fade-in-up animation-delay-200 tracking-wide leading-relaxed">
-              Bienvenue dans mon univers ! Je suis Laïa, et j'ai créé ici plus qu'un institut :
-              <br className="hidden md:block" />
-              un cocon bienveillant où retrouver confiance et sérénité.
+            <p className="text-base sm:text-lg text-[#2c3e50]/60 max-w-3xl mx-auto animate-fade-in-up animation-delay-200 font-light leading-relaxed">
+              Bienvenue dans mon univers ! Je suis Laïa, et j'ai créé ici plus qu'un institut : un cocon bienveillant où retrouver confiance et sérénité.
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <div className="animate-fade-in-up animation-delay-400">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-playfair font-light text-[#2c3e50] mb-6 tracking-wide">Mon Parcours</h2>
-              <p className="font-playfair text-base md:text-lg text-[#2c3e50]/70 mb-6 leading-relaxed tracking-wide">
+              <h2 className="text-2xl sm:text-3xl font-light text-[#2c3e50] mb-6 tracking-wide uppercase">
+                Mon Parcours
+              </h2>
+              <p className="text-sm md:text-base text-[#2c3e50]/60 mb-6 leading-relaxed font-light">
                 Titulaire d'un CAP et d'un BTS en Esthétique-Cosmétique, mon parcours professionnel 
                 s'est enrichi au fil d'expériences variées : du monde commercial à l'univers administratif, 
                 jusqu'à la gestion de projets d'envergure. Ces compétences plurielles ont progressivement 
                 façonné ma vision : celle d'un institut où l'excellence technique rencontre l'art du soin personnalisé.
               </p>
-              <p className="font-playfair text-base md:text-lg text-[#2c3e50]/70 mb-6 leading-relaxed tracking-wide">
+              <p className="text-sm md:text-base text-[#2c3e50]/60 mb-6 leading-relaxed font-light">
                 Au cœur de ces expériences professionnelles, une aspiration profonde demeurait : 
                 insuffler davantage d'humanité dans ma pratique, créer des instants où la transformation 
                 visible s'accompagne d'un regain de confiance intérieure. Cette quête m'a naturellement 
                 conduite à perfectionner ma maîtrise des protocoles avancés du visage, renouant ainsi 
                 avec l'essence première de ma vocation : sublimer et révéler.
               </p>
-              <p className="font-playfair text-base md:text-lg text-[#2c3e50] mb-6 font-medium leading-relaxed tracking-wide">
+              <p className="text-sm md:text-base text-[#2c3e50]/70 mb-6 leading-relaxed">
                 Aujourd'hui, mon engagement est simple et sincère : vous accueillir dans un espace 
                 où vous vous sentez écoutée, comprise et valorisée. Mon objectif ? Vous aider à 
                 retrouver confiance en votre beauté naturelle, avec des résultats visibles et durables.
@@ -54,7 +54,7 @@ export default function APropos() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#2c3e50]/60 via-transparent to-transparent"></div>
                     <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                      <h3 className="text-2xl font-serif mb-2">Fondatrice LAIA SKIN Institut</h3>
+                      <h3 className="text-xl font-light mb-2 tracking-wide">FONDATRICE LAIA SKIN INSTITUT</h3>
                       <div className="space-y-2 text-sm">
                         <div className="flex items-center gap-2">
                           <GraduationCap className="w-4 h-4" />
@@ -82,14 +82,14 @@ export default function APropos() {
           {/* Citation de Laïa */}
           <div className="mt-16 bg-white rounded-2xl p-8 shadow-xl relative">
             <div className="absolute -top-6 left-8 text-6xl text-[#d4b5a0]/30 font-serif">"</div>
-            <p className="font-playfair text-xl md:text-2xl text-[#2c3e50]/80 italic text-center px-8 leading-relaxed tracking-wide">
+            <p className="text-base md:text-lg text-[#2c3e50]/60 text-center px-8 leading-relaxed font-light">
               Chaque séance est une rencontre unique. J'aime prendre le temps de vraiment vous écouter, 
               comprendre vos besoins et adapter mes soins pour que vous repartiez non seulement avec 
               une peau transformée, mais aussi avec cette étincelle dans le regard qui dit 
               'je me sens bien dans ma peau'.
             </p>
             <div className="absolute -bottom-6 right-8 text-6xl text-[#d4b5a0]/30 font-serif rotate-180">"</div>
-            <p className="text-center mt-6 text-[#d4b5a0] font-serif text-xl">— Laïa</p>
+            <p className="text-center mt-6 text-[#d4b5a0] text-sm tracking-widest uppercase">— Laïa</p>
           </div>
         </section>
 
@@ -97,8 +97,8 @@ export default function APropos() {
         <section className="bg-white py-20">
           <div className="max-w-6xl mx-auto px-4">
             <div className="text-center mb-16">
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-playfair font-normal text-[#2c3e50] mb-6 tracking-normal">Mes Valeurs</h2>
-              <p className="font-serif text-base md:text-lg text-[#2c3e50]/60 max-w-2xl mx-auto tracking-wide leading-relaxed italic">
+              <h2 className="text-3xl sm:text-4xl font-light text-[#2c3e50] mb-6 tracking-wide uppercase">Mes Valeurs</h2>
+              <p className="text-sm md:text-base text-[#2c3e50]/50 max-w-2xl mx-auto leading-relaxed font-light">
                 Les principes qui guident chacun de mes gestes et définissent l'expérience LAIA SKIN
               </p>
             </div>
@@ -108,8 +108,8 @@ export default function APropos() {
                 <div className="w-20 h-20 bg-gradient-to-br from-[#d4b5a0]/20 to-[#c9a084]/20 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:from-[#d4b5a0]/30 group-hover:to-[#c9a084]/30 transition-all">
                   <Heart className="text-[#d4b5a0]" size={32} />
                 </div>
-                <h3 className="text-xl font-serif text-[#2c3e50] mb-4">Bienveillance</h3>
-                <p className="text-[#2c3e50]/70">
+                <h3 className="text-lg font-normal text-[#2c3e50] mb-4 tracking-wider uppercase">Bienveillance</h3>
+                <p className="text-sm text-[#2c3e50]/60 font-light">
                   Un accueil chaleureux et sans jugement, où vous vous sentez en sécurité
                 </p>
               </div>
@@ -118,8 +118,8 @@ export default function APropos() {
                 <div className="w-20 h-20 bg-gradient-to-br from-[#d4b5a0]/20 to-[#c9a084]/20 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:from-[#d4b5a0]/30 group-hover:to-[#c9a084]/30 transition-all">
                   <Shield className="text-[#d4b5a0]" size={32} />
                 </div>
-                <h3 className="text-xl font-serif text-[#2c3e50] mb-4">Confiance</h3>
-                <p className="text-[#2c3e50]/70">
+                <h3 className="text-lg font-normal text-[#2c3e50] mb-4 tracking-wider uppercase">Confiance</h3>
+                <p className="text-sm text-[#2c3e50]/60 font-light">
                   Restaurer votre estime de vous-même et révéler votre beauté unique
                 </p>
               </div>
@@ -128,8 +128,8 @@ export default function APropos() {
                 <div className="w-20 h-20 bg-gradient-to-br from-[#d4b5a0]/20 to-[#c9a084]/20 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:from-[#d4b5a0]/30 group-hover:to-[#c9a084]/30 transition-all">
                   <Sparkles className="text-[#d4b5a0]" size={32} />
                 </div>
-                <h3 className="text-xl font-serif text-[#2c3e50] mb-4">Ressourcement</h3>
-                <p className="text-[#2c3e50]/70">
+                <h3 className="text-lg font-normal text-[#2c3e50] mb-4 tracking-wider uppercase">Ressourcement</h3>
+                <p className="text-sm text-[#2c3e50]/60 font-light">
                   Créer un véritable cocon de détente pour vous reconnecter à vous-même
                 </p>
               </div>
@@ -138,8 +138,8 @@ export default function APropos() {
                 <div className="w-20 h-20 bg-gradient-to-br from-[#d4b5a0]/20 to-[#c9a084]/20 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:from-[#d4b5a0]/30 group-hover:to-[#c9a084]/30 transition-all">
                   <Users className="text-[#d4b5a0]" size={32} />
                 </div>
-                <h3 className="text-xl font-serif text-[#2c3e50] mb-4">Respect</h3>
-                <p className="text-[#2c3e50]/70">
+                <h3 className="text-lg font-normal text-[#2c3e50] mb-4 tracking-wider uppercase">Respect</h3>
+                <p className="text-sm text-[#2c3e50]/60 font-light">
                   Honorer votre rythme, vos besoins et votre individualité
                 </p>
               </div>
@@ -148,8 +148,8 @@ export default function APropos() {
                 <div className="w-20 h-20 bg-gradient-to-br from-[#d4b5a0]/20 to-[#c9a084]/20 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:from-[#d4b5a0]/30 group-hover:to-[#c9a084]/30 transition-all">
                   <Star className="text-[#d4b5a0]" size={32} />
                 </div>
-                <h3 className="text-xl font-serif text-[#2c3e50] mb-4">Authenticité</h3>
-                <p className="text-[#2c3e50]/70">
+                <h3 className="text-lg font-normal text-[#2c3e50] mb-4 tracking-wider uppercase">Authenticité</h3>
+                <p className="text-sm text-[#2c3e50]/60 font-light">
                   Créer un environnement où vous pouvez être vous-même sans masque
                 </p>
               </div>
@@ -162,8 +162,8 @@ export default function APropos() {
           <div className="max-w-6xl mx-auto px-4">
             <div className="grid md:grid-cols-2 gap-16 items-center">
               <div>
-                <h2 className="text-4xl font-serif text-[#2c3e50] mb-6">Mon Expertise à votre Service</h2>
-                <p className="text-[#2c3e50]/80 mb-8">
+                <h2 className="text-3xl font-light text-[#2c3e50] mb-6 tracking-wide uppercase">Mon Expertise à votre Service</h2>
+                <p className="text-sm text-[#2c3e50]/60 mb-8 font-light leading-relaxed">
                   Forte de mes formations et de mon expérience pluridisciplinaire, j'ai développé une 
                   approche unique qui allie technicité et dimension humaine. Chaque soin est pensé 
                   pour répondre précisément à vos besoins tout en créant un moment de pure détente.
@@ -175,8 +175,8 @@ export default function APropos() {
                       <CheckCircle className="text-[#d4b5a0]" size={20} />
                     </div>
                     <div>
-                      <h3 className="font-semibold mb-2 text-[#2c3e50]">Diagnostic Personnalisé</h3>
-                      <p className="text-[#2c3e50]/70 text-sm">
+                      <h3 className="font-medium mb-2 text-[#2c3e50] text-base">Diagnostic Personnalisé</h3>
+                      <p className="text-[#2c3e50]/60 text-xs font-light">
                         Une analyse approfondie de votre peau pour créer un protocole sur-mesure
                       </p>
                     </div>
@@ -187,8 +187,8 @@ export default function APropos() {
                       <CheckCircle className="text-[#d4b5a0]" size={20} />
                     </div>
                     <div>
-                      <h3 className="font-semibold mb-2 text-[#2c3e50]">Techniques Avancées</h3>
-                      <p className="text-[#2c3e50]/70 text-sm">
+                      <h3 className="font-medium mb-2 text-[#2c3e50] text-base">Techniques Avancées</h3>
+                      <p className="text-[#2c3e50]/60 text-xs font-light">
                         Maîtrise des dernières innovations en soins du visage pour des résultats optimaux
                       </p>
                     </div>
@@ -199,8 +199,8 @@ export default function APropos() {
                       <CheckCircle className="text-[#d4b5a0]" size={20} />
                     </div>
                     <div>
-                      <h3 className="font-semibold mb-2 text-[#2c3e50]">Suivi Attentif</h3>
-                      <p className="text-[#2c3e50]/70 text-sm">
+                      <h3 className="font-medium mb-2 text-[#2c3e50] text-base">Suivi Attentif</h3>
+                      <p className="text-[#2c3e50]/60 text-xs font-light">
                         Un accompagnement continu pour optimiser et pérenniser les résultats
                       </p>
                     </div>
@@ -210,38 +210,38 @@ export default function APropos() {
 
               <div className="space-y-8">
                 <div className="bg-white rounded-2xl p-8 shadow-xl">
-                  <h3 className="text-2xl font-serif text-[#2c3e50] mb-4">Mes Formations</h3>
+                  <h3 className="text-xl font-light text-[#2c3e50] mb-4 tracking-wide uppercase">Mes Formations</h3>
                   <div className="space-y-4">
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-gradient-to-br from-[#d4b5a0]/30 to-[#c9a084]/30 rounded-full flex items-center justify-center">
                         <Award className="text-[#d4b5a0]" size={16} />
                       </div>
-                      <span className="text-[#2c3e50]/80">CAP Esthétique Cosmétique Parfumerie</span>
+                      <span className="text-sm text-[#2c3e50]/60 font-light">CAP Esthétique Cosmétique Parfumerie</span>
                     </div>
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-gradient-to-br from-[#d4b5a0]/30 to-[#c9a084]/30 rounded-full flex items-center justify-center">
                         <Award className="text-[#d4b5a0]" size={16} />
                       </div>
-                      <span className="text-[#2c3e50]/80">BTS Esthétique Cosmétique</span>
+                      <span className="text-sm text-[#2c3e50]/60 font-light">BTS Esthétique Cosmétique</span>
                     </div>
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-gradient-to-br from-[#d4b5a0]/30 to-[#c9a084]/30 rounded-full flex items-center justify-center">
                         <Award className="text-[#d4b5a0]" size={16} />
                       </div>
-                      <span className="text-[#2c3e50]/80">Formation Techniques Avancées du Visage</span>
+                      <span className="text-sm text-[#2c3e50]/60 font-light">Formation Techniques Avancées du Visage</span>
                     </div>
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-gradient-to-br from-[#d4b5a0]/30 to-[#c9a084]/30 rounded-full flex items-center justify-center">
                         <Award className="text-[#d4b5a0]" size={16} />
                       </div>
-                      <span className="text-[#2c3e50]/80">Gestion de Projets & Management</span>
+                      <span className="text-sm text-[#2c3e50]/60 font-light">Gestion de Projets & Management</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="bg-gradient-to-br from-[#d4b5a0] to-[#c9a084] rounded-2xl p-8 text-white">
-                  <h3 className="text-2xl font-serif mb-4">Mon Engagement</h3>
-                  <p className="opacity-95 text-sm">
+                  <h3 className="text-xl font-light mb-4 tracking-wide uppercase">Mon Engagement</h3>
+                  <p className="opacity-90 text-sm font-light leading-relaxed">
                     Je m'engage à vous offrir bien plus qu'un simple soin : une expérience transformative 
                     où technique et bienveillance se conjuguent pour révéler votre beauté naturelle et 
                     restaurer votre confiance en vous.
@@ -256,8 +256,8 @@ export default function APropos() {
         <section className="bg-white py-20">
           <div className="max-w-6xl mx-auto px-4">
             <div className="text-center mb-16">
-              <h2 className="text-4xl font-serif text-[#2c3e50] mb-6">Ce que disent mes clientes</h2>
-              <p className="text-lg text-[#2c3e50]/70">
+              <h2 className="text-3xl font-light text-[#2c3e50] mb-6 tracking-wide uppercase">Ce que disent mes clientes</h2>
+              <p className="text-base text-[#2c3e50]/60 font-light">
                 Leur confiance et leur satisfaction sont ma plus belle récompense
               </p>
             </div>
@@ -269,7 +269,7 @@ export default function APropos() {
                     <Star key={i} className="w-5 h-5 text-[#d4b5a0] fill-current" />
                   ))}
                 </div>
-                <p className="text-[#2c3e50]/80 italic mb-6 text-lg">
+                <p className="text-[#2c3e50]/60 mb-6 text-base font-light italic">
                   "Laïa est une véritable artiste de la beauté. Son écoute, sa douceur et son 
                   professionnalisme font de chaque rendez-vous un moment privilégié. Ma peau n'a 
                   jamais été aussi belle !"
@@ -290,7 +290,7 @@ export default function APropos() {
                     <Star key={i} className="w-5 h-5 text-[#d4b5a0] fill-current" />
                   ))}
                 </div>
-                <p className="text-[#2c3e50]/80 italic mb-6 text-lg">
+                <p className="text-[#2c3e50]/60 mb-6 text-base font-light italic">
                   "Un institut où l'on se sent unique et précieuse. Laïa prend vraiment le temps de 
                   comprendre nos besoins et adapte ses soins en conséquence. Les résultats sont 
                   spectaculaires !"
@@ -311,10 +311,10 @@ export default function APropos() {
         {/* Call to Action */}
         <section className="py-20">
           <div className="max-w-4xl mx-auto text-center px-4">
-            <h2 className="text-4xl font-serif text-[#2c3e50] mb-6">
+            <h2 className="text-3xl font-light text-[#2c3e50] mb-6 tracking-wide uppercase">
               Prête à vivre l'expérience LAIA SKIN ?
             </h2>
-            <p className="text-xl text-[#2c3e50]/70 mb-10">
+            <p className="text-base text-[#2c3e50]/60 mb-10 font-light leading-relaxed">
               Offrez-vous un moment de transformation et laissez-moi révéler 
               l'éclat naturel de votre peau dans un cadre bienveillant.
             </p>

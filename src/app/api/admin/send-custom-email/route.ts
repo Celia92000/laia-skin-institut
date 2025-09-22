@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
         <p>
           📍 23 rue de la Beauté, 75001 Paris<br>
           📞 06 12 34 56 78<br>
-          ✉️ <a href="mailto:contact@laiaskininstitut.fr">contact@laiaskininstitut.fr</a><br>
+          ✉️ <a href="mailto:contact@laia.skininstitut.fr">contact@laia.skininstitut.fr</a><br>
           🌐 <a href="https://laiaskininstitut.fr">laiaskininstitut.fr</a>
         </p>
       </div>
@@ -80,8 +80,8 @@ export async function POST(request: NextRequest) {
           to_email: to,
           to_name: clientName,
           from_name: 'LAIA SKIN Institut',
-          from_email: 'contact@laiaskininstitut.fr',
-          reply_to: 'contact@laiaskininstitut.fr',
+          from_email: 'contact@laia.skininstitut.fr',
+          reply_to: 'contact@laia.skininstitut.fr',
           cc_email: '',
           bcc_email: '',
           // Utiliser les champs du template de confirmation de manière créative
@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
       // Enregistrer dans l'historique
       await prisma.emailHistory.create({
         data: {
-          from: 'contact@laiaskininstitut.fr',
+          from: 'contact@laia.skininstitut.fr',
           to: to,
           subject: subject,
           content: message,
@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
       // Enregistrer l'échec dans l'historique
       await prisma.emailHistory.create({
         data: {
-          from: 'contact@laiaskininstitut.fr',
+          from: 'contact@laia.skininstitut.fr',
           to: to,
           subject: subject,
           content: message,

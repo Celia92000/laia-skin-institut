@@ -38,7 +38,7 @@ export default function JsonLd() {
     "image": "https://laia-skin.fr/laia-skin-facade.jpg",
     "sameAs": [
       "https://www.facebook.com/laiaskin",
-      "https://www.instagram.com/laiaskin",
+      "https://www.instagram.com/laia.skin/",
       "https://www.linkedin.com/company/laiaskin"
     ],
     "potentialAction": {

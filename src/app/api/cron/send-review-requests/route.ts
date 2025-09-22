@@ -165,7 +165,7 @@ export async function GET(request: Request) {
         // Enregistrer dans l'historique
         await prisma.emailHistory.create({
           data: {
-            from: 'contact@laiaskininstitut.fr',
+            from: 'contact@laia.skininstitut.fr',
             to: reservation.user.email,
             subject: `✨ Demande d'avis`,
             content: `Demande d'avis automatique pour le soin ${serviceNames}`,
@@ -363,7 +363,7 @@ export async function POST(request: Request) {
     // Enregistrer dans l'historique
     await prisma.emailHistory.create({
       data: {
-        from: 'contact@laiaskininstitut.fr',
+        from: 'contact@laia.skininstitut.fr',
         to: reservation.user.email,
         subject: `✨ Demande d'avis`,
         content: `Demande d'avis manuelle pour le soin ${serviceNames}`,

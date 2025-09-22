@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
   <div class="wrapper">
     <div class="container">
       <div class="header">
-        <h1>LAIA SKIN Institut</h1>
+        <h1>LAIA SKIN INSTITUT</h1>
       </div>
       <div class="content">
         <p>Bonjour ${clientName || 'Cliente'},</p>
@@ -87,15 +87,15 @@ export async function POST(request: NextRequest) {
         <div class="signature">
           <p>À très bientôt,<br>
           <strong>Laïa</strong><br>
-          LAIA SKIN Institut</p>
+          LAIA SKIN INSTITUT</p>
         </div>
       </div>
       <div class="footer">
         <p>
-          📍 23 rue de la Beauté, 75001 Paris<br>
-          📞 06 12 34 56 78<br>
-          ✉️ <a href="mailto:contact@laiaskininstitut.fr">contact@laiaskininstitut.fr</a><br>
-          🌐 <a href="https://laiaskininstitut.fr">laiaskininstitut.fr</a>
+          📍 5 allée Jean de la Fontaine, 92000 Nanterre<br>
+          📞 06 83 71 70 50<br>
+          ✉️ <a href="mailto:contact@laia-skin.fr">contact@laia-skin.fr</a><br>
+          📸 <a href="https://www.instagram.com/laia.skin/">@laia.skin</a>
         </p>
       </div>
     </div>
@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
       try {
         await prisma.emailHistory.create({
           data: {
-            from: 'contact@laiaskininstitut.fr',
+            from: 'contact@laia.skininstitut.fr',
             to: to,
             subject: subject,
             content: message,
@@ -159,7 +159,7 @@ export async function POST(request: NextRequest) {
       try {
         await prisma.emailHistory.create({
           data: {
-            from: 'contact@laiaskininstitut.fr',
+            from: 'contact@laia.skininstitut.fr',
             to: to,
             subject: subject,
             content: message,

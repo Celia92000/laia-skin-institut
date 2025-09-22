@@ -427,7 +427,7 @@ LAIA SKIN Institut`
                         <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                           <p className="text-sm text-yellow-800">
                             <strong>Service ID :</strong> default_service<br/>
-                            <strong>De :</strong> contact@laiaskininstitut.fr<br/>
+                            <strong>De :</strong> contact@laia.skininstitut.fr<br/>
                             <strong>User ID :</strong> QK6MriGN3B0UqkIoS
                           </p>
                         </div>

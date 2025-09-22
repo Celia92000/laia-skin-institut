@@ -136,8 +136,8 @@ export default function MotPasseOublie() {
           <div className="mt-6 p-4 bg-[#fdfbf7] rounded-lg">
             <h3 className="font-semibold text-[#2c3e50] mb-2">Identifiants de test :</h3>
             <ul className="space-y-1 text-sm text-[#2c3e50]/70">
-              <li>• Admin : admin@laiaskin.com / admin123</li>
-              <li>• Propriétaire : celia@laiaskin.com / celia2024</li>
+              <li>• Admin : admin@laia.skin.com / admin123</li>
+              <li>• Propriétaire : celia@laia.skin.com / celia2024</li>
               <li>• Client test : marie.dupont@email.com / client123</li>
             </ul>
           </div>

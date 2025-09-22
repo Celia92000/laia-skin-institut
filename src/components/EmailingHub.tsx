@@ -119,7 +119,7 @@ export default function EmailingHub() {
                 Emails actifs
               </span>
               <span className="text-gray-600">
-                Email professionnel : <strong>contact@laiaskininstitut.fr</strong>
+                Email professionnel : <strong>contact@laia.skininstitut.fr</strong>
               </span>
             </div>
           </div>

@@ -100,7 +100,7 @@ export async function sendEmailWithSendGrid(data: EmailData): Promise<boolean> {
       <p style="margin-top: 10px;">
         <a href="https://www.instagram.com/laia.skin/" style="color: #d4b5a0;">Instagram</a> | 
         <a href="https://www.facebook.com/profile.php?id=61578944046472" style="color: #d4b5a0;">Facebook</a> | 
-        <a href="https://www.tiktok.com/@laiaskin" style="color: #d4b5a0;">TikTok</a>
+        <a href="https://www.tiktok.com/@laia.skin" style="color: #d4b5a0;">TikTok</a>
       </p>
     </div>
   </div>
@@ -137,7 +137,7 @@ Instagram : @laia.skin`;
 
   const mailData: SendGridMailData = {
     to: data.to,
-    from: process.env.EMAIL_FROM || 'noreply@laiaskin.fr',
+    from: process.env.EMAIL_FROM || 'noreply@laia.skin.fr',
     subject: `Confirmation RDV - ${data.date} à ${data.time}`,
     text: textContent,
     html: htmlContent
@@ -200,7 +200,7 @@ export function checkSendGridConfig(): boolean {
   
   if (!hasFromEmail) {
     console.log('⚠️ Email d\'envoi manquant:');
-    console.log('Ajoutez dans .env.local: EMAIL_FROM=contact@laiaskin.fr');
+    console.log('Ajoutez dans .env.local: EMAIL_FROM=contact@laia.skin.fr');
   }
   
   return hasApiKey && hasFromEmail;

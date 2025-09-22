@@ -1218,6 +1218,15 @@ export default function AdminDashboard() {
                           )}
                         </div>
 
+                        {/* Badge abonnement si applicable */}
+                        {reservation.isSubscription && (
+                          <div className="mb-3 flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-purple-100 to-purple-50 border border-purple-200 rounded-lg">
+                            <span className="text-purple-600">🔔</span>
+                            <span className="text-sm font-medium text-purple-700">Abonnement mensuel</span>
+                            <span className="text-xs text-purple-600">Séance du mois</span>
+                          </div>
+                        )}
+                        
                         {/* Services */}
                         <div className="mb-3">
                           <div className="text-xs text-[#2c3e50]/60 mb-1">Services</div>

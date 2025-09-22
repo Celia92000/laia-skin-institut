@@ -48,7 +48,7 @@ export default function EmailDashboard() {
           </div>
           <div className="text-right">
             <p className="text-sm text-blue-100">Adresse email professionnelle</p>
-            <p className="font-semibold">contact@laiaskininstitut.fr</p>
+            <p className="font-semibold">contact@laia.skininstitut.fr</p>
           </div>
         </div>
 

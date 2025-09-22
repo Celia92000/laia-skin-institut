@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
                 subject: data.subject,
                 message: data.content,
                 from_name: 'LAIA SKIN Institut',
-                reply_to: 'contact@laiaskininstitut.fr',
+                reply_to: 'contact@laia.skininstitut.fr',
                 service_name: data.subject,
                 review_link: 'https://laiaskin.fr',
                 loyalty_progress: '',
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
           // Créer l'historique
           await prisma.emailHistory.create({
             data: {
-              from: 'contact@laiaskininstitut.fr',
+              from: 'contact@laia.skininstitut.fr',
               to: recipient.email,
               subject: data.subject,
               content: data.content,

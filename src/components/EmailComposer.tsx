@@ -524,7 +524,7 @@ Laïa`
         {/* Send Button */}
         <div className="mt-6 flex items-center justify-between">
           <div className="text-sm text-gray-600">
-            Envoyé depuis : <strong>contact@laiaskininstitut.fr</strong>
+            Envoyé depuis : <strong>contact@laia.skininstitut.fr</strong>
           </div>
           <button
             onClick={handleSendEmail}

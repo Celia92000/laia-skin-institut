@@ -96,7 +96,7 @@ export async function GET(request: Request) {
       <p>Pour réserver, contactez-nous :</p>
       <ul>
         <li>📞 WhatsApp : 06 83 71 70 50</li>
-        <li>✉️ Email : contact@laiaskininstitut.fr</li>
+        <li>✉️ Email : contact@laia.skininstitut.fr</li>
       </ul>
       
       <p>Nous avons hâte de célébrer avec vous !</p>
@@ -124,7 +124,7 @@ export async function GET(request: Request) {
         // Enregistrer dans l'historique
         await prisma.emailHistory.create({
           data: {
-            from: 'contact@laiaskininstitut.fr',
+            from: 'contact@laia.skininstitut.fr',
             to: user.email,
             subject: `🎂 Joyeux anniversaire ${user.name} !`,
             content: 'Email d\'anniversaire automatique',

@@ -22,7 +22,7 @@ export async function sendEmailWithEmailJS(data: EmailJSData): Promise<boolean> 
       to_email: data.to,
       to_name: data.clientName,
       from_name: 'LAIA SKIN Institut',
-      reply_to: 'contact@laiaskin.fr',
+      reply_to: 'contact@laia.skin.fr',
       
       // Détails de la réservation
       client_name: data.clientName,

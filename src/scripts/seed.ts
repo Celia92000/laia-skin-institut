@@ -15,7 +15,7 @@ async function main() {
   const adminPassword = await bcrypt.hash('admin123', 12);
   const admin = await prisma.user.create({
     data: {
-      email: 'admin@laiaskin.com',
+      email: 'admin@laia.skin.com',
       password: adminPassword,
       name: 'Laia Admin',
       phone: '0600000000',
@@ -24,7 +24,7 @@ async function main() {
       totalSpent: 0
     }
   });
-  console.log('✅ Admin créé : admin@laiaskin.com / admin123');
+  console.log('✅ Admin créé : admin@laia.skin.com / admin123');
 
   // Créer des clients de test
   const clientPassword = await bcrypt.hash('client123', 12);
@@ -222,7 +222,7 @@ async function main() {
 
   console.log('\n🎉 Base de données initialisée avec succès !');
   console.log('\n📝 Pour tester :');
-  console.log('1. Admin : admin@laiaskin.com / admin123');
+  console.log('1. Admin : admin@laia.skin.com / admin123');
   console.log('2. Client : sophie.martin@email.com / client123');
   console.log('3. Le site est accessible sur : http://localhost:3001');
 }

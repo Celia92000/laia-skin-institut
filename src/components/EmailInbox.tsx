@@ -46,7 +46,7 @@ export default function EmailInbox() {
         id: '1',
         from: 'Marie Dupont',
         fromEmail: 'marie.dupont@email.com',
-        to: 'contact@laiaskininstitut.fr',
+        to: 'contact@laia.skininstitut.fr',
         subject: 'Question sur le soin Hydro\'Naissance',
         body: `Bonjour Laïa,
 
@@ -66,7 +66,7 @@ Marie`,
         id: '2',
         from: 'Sophie Martin',
         fromEmail: 'sophie.martin@email.com',
-        to: 'contact@laiaskininstitut.fr',
+        to: 'contact@laia.skininstitut.fr',
         subject: 'Re: Confirmation de rendez-vous',
         body: `Merci pour la confirmation !
 
@@ -83,7 +83,7 @@ Sophie`,
         id: '3',
         from: 'Julie Bernard',
         fromEmail: 'julie.bernard@email.com',
-        to: 'contact@laiaskininstitut.fr',
+        to: 'contact@laia.skininstitut.fr',
         subject: 'Demande de tarifs forfaits',
         body: `Bonjour,
 
@@ -180,7 +180,7 @@ Julie`,
               <Globe className="w-6 h-6 text-blue-600" />
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">Webmail Gandi</h3>
-                <p className="text-sm text-gray-600">contact@laiaskininstitut.fr</p>
+                <p className="text-sm text-gray-600">contact@laia.skininstitut.fr</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -216,7 +216,7 @@ Julie`,
                 Pour accéder à votre boîte mail, connectez-vous avec :
               </p>
               <ul className="text-sm text-blue-700 mt-2 space-y-1">
-                <li>• Email : <strong>contact@laiaskininstitut.fr</strong></li>
+                <li>• Email : <strong>contact@laia.skininstitut.fr</strong></li>
                 <li>• Mot de passe : <strong>Bubule11@!!</strong></li>
               </ul>
               <p className="text-xs text-blue-600 mt-3">
