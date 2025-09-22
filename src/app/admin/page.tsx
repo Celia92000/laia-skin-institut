@@ -6,7 +6,6 @@ import { Calendar, Clock, CheckCircle, XCircle, Gift, User, Award, TrendingUp, U
 import AuthGuard from "@/components/AuthGuard";
 import AdminCalendarEnhanced from "@/components/AdminCalendarEnhanced";
 import AdminServicesTab from "@/components/AdminServicesTab";
-import AdminScheduleTab from "@/components/AdminScheduleTab";
 import AdminDashboardOptimized from "@/components/AdminDashboardOptimized";
 import UnifiedCRMTab, { type Client } from "@/components/UnifiedCRMTab";
 import PlanningCalendar from "@/components/PlanningCalendar";
@@ -878,17 +877,6 @@ export default function AdminDashboard() {
             }`}
           >
             Gestion Services
-          </button>
-          <button
-            onClick={() => setActiveTab("schedule")}
-            className={`px-3 sm:px-6 py-2 sm:py-3 rounded-full font-medium transition-all whitespace-nowrap flex-shrink-0 text-sm sm:text-base ${
-              activeTab === "schedule"
-                ? "bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white shadow-lg"
-                : "bg-white text-[#2c3e50] hover:shadow-md"
-            }`}
-          >
-            <Clock className="w-4 h-4 inline mr-2" />
-            Horaires
           </button>
           <button
             onClick={() => setActiveTab("emailing")}
@@ -2380,9 +2368,6 @@ export default function AdminDashboard() {
 
           {/* Onglet Services */}
           {activeTab === "services" && <AdminServicesTab />}
-          
-          {/* Onglet Horaires */}
-          {activeTab === "schedule" && <AdminScheduleTab />}
           
           {activeTab === "whatsapp" && <WhatsAppHub />}
           
