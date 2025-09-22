@@ -95,10 +95,10 @@ export default function AdminDashboard() {
   // Services par défaut (au cas où la BDD est vide)
   const defaultServices = {
     "hydro-naissance": "Hydro'Naissance",
-    "hydro": "Hydro'Cleaning",
+    "hydro-cleaning": "Hydro'Cleaning",
     "renaissance": "Renaissance",
-    "bbglow": "BB Glow",
-    "led": "LED Thérapie"
+    "bb-glow": "BB Glow",
+    "led-therapie": "LED Thérapie"
   };
 
   // Utiliser les services de la BDD ou les services par défaut
@@ -270,10 +270,41 @@ export default function AdminDashboard() {
           r.id === reservationId ? { ...r, status } : r
         ));
         
+        // Trouver la réservation pour avoir les infos du client
+        const reservation = reservations.find(r => r.id === reservationId);
+        
         // Si le soin est validé, les points sont automatiquement ajoutés
         if (status === 'completed') {
           fetchClients(); // Rafraîchir les données clients
           fetchLoyaltyProfiles(); // Rafraîchir les profils de fidélité
+          alert(`✅ Soin validé pour ${reservation?.userName || 'le client'}`);
+        }
+        
+        // Si le client était absent, notifier et enregistrer
+        if (status === 'no_show' && reservation) {
+          // Envoyer une notification WhatsApp au client
+          try {
+            await fetch('/api/notifications/no-show', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                reservationId: reservation.id,
+                clientEmail: reservation.userEmail,
+                clientName: reservation.userName,
+                date: reservation.date,
+                time: reservation.time,
+                services: reservation.services
+              })
+            });
+          } catch (error) {
+            console.error('Erreur envoi notification no-show:', error);
+          }
+          
+          alert(`⚠️ Client absent enregistré pour ${reservation.userName || 'le client'}. Une notification a été envoyée.`);
+          fetchClients(); // Rafraîchir pour mettre à jour l'historique
         }
       }
     } catch (error) {
@@ -1051,6 +1082,7 @@ export default function AdminDashboard() {
                     <QuickActionModal
                       date={quickActionDate}
                       onClose={() => setShowQuickActionModal(false)}
+                      dbServices={dbServices}
                       onCreateReservation={async (data) => {
                         // Créer la réservation
                         await fetch('/api/admin/reservations', {
@@ -1296,9 +1328,7 @@ export default function AdminDashboard() {
                     reservations={reservations.map(r => ({
                       ...r,
                       totalPrice: r.totalPrice || 0,
-                      services: r.services.map((serviceId: string) => 
-                        services[serviceId as keyof typeof services] || serviceId
-                      ),
+                      services: r.services || [],
                       paymentStatus: r.paymentStatus || 'pending'
                     }))}
                     services={services}
@@ -1325,11 +1355,8 @@ export default function AdminDashboard() {
               <div className="space-y-4">
                 {(() => {
                   const validationReservations = reservations.filter(r => {
-                    // Ne montrer que les réservations confirmées dont la date/heure est passée
-                    if (r.status !== 'confirmed') return false;
-                    const dateStr = typeof r.date === 'string' ? r.date.split('T')[0] : r.date.toISOString().split('T')[0];
-                    const reservationDateTime = new Date(`${dateStr}T${r.time}`);
-                    return reservationDateTime < new Date();
+                    // Montrer toutes les réservations confirmées (pas encore validées comme effectuées)
+                    return r.status === 'confirmed';
                   });
 
                   if (validationReservations.length === 0) {
@@ -1338,7 +1365,7 @@ export default function AdminDashboard() {
                         <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
                         <p className="text-lg font-medium text-[#2c3e50]">Aucun soin à valider</p>
                         <p className="text-[#2c3e50]/60 mt-2">
-                          Les soins confirmés apparaîtront ici après l'heure du rendez-vous
+                          Les soins confirmés apparaîtront ici pour validation après le rendez-vous
                         </p>
                       </div>
                     );
@@ -2349,8 +2376,42 @@ export default function AdminDashboard() {
 
       {/* Modal Nouvelle Réservation */}
       {showNewReservationModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div 
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={(e) => {
+            // Si on clique sur le fond (backdrop) et pas sur le contenu
+            if (e.target === e.currentTarget) {
+              // Vérifier si des données ont été saisies
+              const hasData = newReservation.client || newReservation.email || 
+                             newReservation.phone || newReservation.services.length > 0 || 
+                             newReservation.notes;
+              
+              if (hasData) {
+                // Demander confirmation avant de fermer
+                if (confirm('Vous avez des données non sauvegardées. Voulez-vous vraiment fermer ?')) {
+                  setShowNewReservationModal(false);
+                  // Réinitialiser le formulaire
+                  setNewReservation({
+                    client: '',
+                    email: '',
+                    phone: '',
+                    date: new Date().toISOString().split('T')[0],
+                    time: '09:00',
+                    services: [],
+                    notes: '',
+                    status: 'confirmed',
+                    source: 'admin',
+                    totalPrice: 0
+                  });
+                }
+              } else {
+                // Pas de données, on peut fermer directement
+                setShowNewReservationModal(false);
+              }
+            }
+          }}
+        >
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-xl font-bold text-[#2c3e50] mb-4">Nouvelle réservation</h3>
             
             <div className="space-y-4">
@@ -2418,36 +2479,35 @@ export default function AdminDashboard() {
               <div>
                 <label className="block text-sm font-medium text-[#2c3e50] mb-2">Services*</label>
                 <div className="space-y-2">
-                  {Object.entries(services).map(([key, name]) => (
-                    <label key={key} className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={newReservation.services.includes(key)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setNewReservation({
-                              ...newReservation,
-                              services: [...newReservation.services, key]
-                            });
-                          } else {
-                            setNewReservation({
-                              ...newReservation,
-                              services: newReservation.services.filter(s => s !== key)
-                            });
-                          }
-                        }}
-                        className="w-4 h-4 text-[#d4b5a0] border-[#d4b5a0]/20 rounded focus:ring-[#d4b5a0]"
-                      />
-                      <span className="text-sm text-[#2c3e50]">{String(name)}</span>
-                      <span className="text-xs text-[#2c3e50]/60 ml-auto">
-                        {key === 'hydro-naissance' && '99€ (lancement)'}
-                        {key === 'hydro' && '70€ (lancement)'}
-                        {key === 'renaissance' && '70€ (lancement)'}
-                        {key === 'bbglow' && '50€ (lancement)'}
-                        {key === 'led' && '50€ (lancement)'}
-                      </span>
-                    </label>
-                  ))}
+                  {dbServices && dbServices
+                    .filter(service => service.active)
+                    .map((service) => (
+                      <label key={service.slug} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={newReservation.services.includes(service.slug)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setNewReservation({
+                                ...newReservation,
+                                services: [...newReservation.services, service.slug]
+                              });
+                            } else {
+                              setNewReservation({
+                                ...newReservation,
+                                services: newReservation.services.filter(s => s !== service.slug)
+                              });
+                            }
+                          }}
+                          className="w-4 h-4 text-[#d4b5a0] border-[#d4b5a0]/20 rounded focus:ring-[#d4b5a0]"
+                        />
+                        <span className="text-sm text-[#2c3e50]">{service.name}</span>
+                        <span className="text-xs text-[#2c3e50]/60 ml-auto">
+                          {service.duration} min - {service.promoPrice || service.price}€
+                        </span>
+                      </label>
+                    ))
+                  }
                 </div>
               </div>
 
@@ -2469,15 +2529,9 @@ export default function AdminDashboard() {
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-[#2c3e50]">Prix total</span>
                     <span className="text-xl font-bold text-[#d4b5a0]">
-                      {newReservation.services.reduce((sum, service) => {
-                        const prices: { [key: string]: number } = {
-                          "hydro-naissance": 90,
-                          "hydro": 75,
-                          "renaissance": 85,
-                          "bbglow": 120,
-                          "led": 60
-                        };
-                        return sum + (prices[service] || 0);
+                      {newReservation.services.reduce((sum, serviceSlug) => {
+                        const service = dbServices.find(s => s.slug === serviceSlug);
+                        return sum + (service ? (service.promoPrice || service.price) : 0);
                       }, 0)}€
                     </span>
                   </div>
@@ -2507,8 +2561,38 @@ export default function AdminDashboard() {
 
       {/* Modal Modifier Réservation */}
       {showEditReservationModal && editingReservation && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div 
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={(e) => {
+            // Si on clique sur le fond (backdrop)
+            if (e.target === e.currentTarget) {
+              // Vérifier si des modifications ont été faites
+              const originalReservation = reservations.find(r => r.id === editingReservation.id);
+              const hasChanges = originalReservation && (
+                originalReservation.userName !== editingReservation.userName ||
+                originalReservation.userEmail !== editingReservation.userEmail ||
+                originalReservation.phone !== editingReservation.phone ||
+                originalReservation.date !== editingReservation.date ||
+                originalReservation.time !== editingReservation.time ||
+                originalReservation.notes !== editingReservation.notes ||
+                JSON.stringify(originalReservation.services) !== JSON.stringify(editingReservation.services)
+              );
+              
+              if (hasChanges) {
+                // Demander confirmation avant de fermer
+                if (confirm('Vous avez des modifications non sauvegardées. Voulez-vous vraiment fermer ?')) {
+                  setShowEditReservationModal(false);
+                  setEditingReservation(null);
+                }
+              } else {
+                // Pas de modifications, on peut fermer directement
+                setShowEditReservationModal(false);
+                setEditingReservation(null);
+              }
+            }
+          }}
+        >
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-xl font-bold text-[#2c3e50] mb-4">Modifier la réservation</h3>
             
             <div className="space-y-4">
@@ -2599,11 +2683,11 @@ export default function AdminDashboard() {
                       />
                       <span className="text-sm text-[#2c3e50]">{String(name)}</span>
                       <span className="text-xs text-[#2c3e50]/60 ml-auto">
-                        {key === 'hydro-naissance' && '99€ (lancement)'}
-                        {key === 'hydro' && '70€ (lancement)'}
-                        {key === 'renaissance' && '70€ (lancement)'}
-                        {key === 'bbglow' && '50€ (lancement)'}
-                        {key === 'led' && '50€ (lancement)'}
+                        {key === 'hydro-naissance' && '90€'}
+                        {key === 'hydro-cleaning' && '70€'}
+                        {key === 'renaissance' && '70€'}
+                        {key === 'bb-glow' && '70€'}
+                        {key === 'led-therapie' && '50€'}
                       </span>
                     </label>
                   ))}

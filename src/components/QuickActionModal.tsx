@@ -45,11 +45,11 @@ export default function QuickActionModal({
 
   const calculateTotalPrice = () => {
     const prices: Record<string, number> = {
-      'hydro-naissance': 99,
-      'hydro': 70,
+      'hydro-naissance': 90,
+      'hydro-cleaning': 70,
       'renaissance': 70,
-      'bbglow': 50,
-      'led': 50
+      'bb-glow': 70,
+      'led-therapie': 50
     };
     return selectedServices.reduce((sum, service) => sum + (prices[service] || 0), 0);
   };
@@ -98,8 +98,45 @@ export default function QuickActionModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      onClick={(e) => {
+        // Si on clique sur le fond (backdrop)
+        if (e.target === e.currentTarget) {
+          // Vérifier si des données ont été saisies
+          if (mode === 'reservation') {
+            const hasData = selectedServices.length > 0 || notes || 
+                           (isNewClient && (newClient.name || newClient.email || newClient.phone)) ||
+                           (!isNewClient && selectedClient);
+            
+            if (hasData) {
+              // Demander confirmation avant de fermer
+              if (confirm('Vous avez des données non sauvegardées. Voulez-vous vraiment fermer ?')) {
+                onClose();
+              }
+            } else {
+              onClose();
+            }
+          } else if (mode === 'block') {
+            const hasBlockData = blockReason || blockType !== 'personal';
+            if (hasBlockData) {
+              if (confirm('Vous avez des données non sauvegardées. Voulez-vous vraiment fermer ?')) {
+                onClose();
+              }
+            } else {
+              onClose();
+            }
+          } else {
+            // Mode 'choose', on peut fermer directement
+            onClose();
+          }
+        }
+      }}
+    >
+      <div 
+        className="bg-white rounded-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* En-tête */}
         <div className="sticky top-0 bg-white border-b border-gray-200 p-6">
           <div className="flex justify-between items-start">
@@ -269,32 +306,40 @@ export default function QuickActionModal({
               <div>
                 <label className="block text-sm font-medium text-[#2c3e50] mb-2">Services</label>
                 <div className="space-y-2">
-                  {Object.entries(services).map(([key, name]) => (
-                    <label key={key} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="checkbox"
-                          checked={selectedServices.includes(key)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedServices([...selectedServices, key]);
-                            } else {
-                              setSelectedServices(selectedServices.filter(s => s !== key));
-                            }
-                          }}
-                          className="w-4 h-4 text-[#d4b5a0] border-gray-300 rounded focus:ring-[#d4b5a0]"
-                        />
-                        <span className="text-sm">{name}</span>
-                      </div>
-                      <span className="text-sm font-medium text-gray-500">
-                        {key === 'hydro-naissance' && '99€'}
-                        {key === 'hydro' && '70€'}
-                        {key === 'renaissance' && '70€'}
-                        {key === 'bbglow' && '50€'}
-                        {key === 'led' && '50€'}
-                      </span>
-                    </label>
-                  ))}
+                  {dbServices && dbServices
+                    .filter(service => service.active)
+                    .map((service) => (
+                      <label key={service.slug} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            checked={selectedServices.includes(service.slug)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedServices([...selectedServices, service.slug]);
+                              } else {
+                                setSelectedServices(selectedServices.filter(s => s !== service.slug));
+                              }
+                            }}
+                            className="w-4 h-4 text-[#d4b5a0] border-gray-300 rounded focus:ring-[#d4b5a0]"
+                          />
+                          <div>
+                            <span className="text-sm font-medium">{service.name}</span>
+                            <span className="text-xs text-gray-500 ml-2">{service.duration} min</span>
+                          </div>
+                        </div>
+                        <span className="text-sm font-medium text-[#d4b5a0]">
+                          {service.promoPrice || service.price}€
+                          {service.promoPrice && (
+                            <span className="text-xs text-gray-500 line-through ml-1">{service.price}€</span>
+                          )}
+                        </span>
+                      </label>
+                    ))
+                  }
+                  {(!dbServices || dbServices.length === 0) && (
+                    <p className="text-sm text-gray-500">Chargement des services...</p>
+                  )}
                 </div>
               </div>
 

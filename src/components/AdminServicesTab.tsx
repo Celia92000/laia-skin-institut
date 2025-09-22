@@ -872,6 +872,14 @@ export default function AdminServicesTab() {
                       </span>
                     </div>
                     
+                    {service.forfaitPrice && (
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
+                          Forfait: {service.forfaitPromo || service.forfaitPrice}€
+                        </span>
+                      </div>
+                    )}
+                    
                     <div className="flex items-center gap-1">
                       <Clock className="w-4 h-4 text-[#d4b5a0]" />
                       <span className="text-[#2c3e50]">{service.duration} min</span>
@@ -940,6 +948,43 @@ export default function AdminServicesTab() {
               {/* Expanded Details */}
               {expandedServices.has(service.id) && (
                 <div className="mt-6 pt-6 border-t border-[#d4b5a0]/10 space-y-4">
+                  {/* Tarification complète */}
+                  <div className="bg-[#d4b5a0]/5 rounded-lg p-4">
+                    <h4 className="font-medium text-[#2c3e50] mb-3">💰 Tarification complète</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <div>
+                        <span className="text-xs text-[#2c3e50]/60">Séance unique</span>
+                        <p className="font-semibold text-lg text-[#2c3e50]">
+                          {service.promoPrice ? (
+                            <>
+                              <span className="line-through text-sm text-[#2c3e50]/40">{service.price}€</span>
+                              {' '}
+                              <span className="text-[#d4b5a0]">{service.promoPrice}€</span>
+                            </>
+                          ) : (
+                            `${service.price}€`
+                          )}
+                        </p>
+                      </div>
+                      {service.forfaitPrice && (
+                        <div>
+                          <span className="text-xs text-[#2c3e50]/60">Forfait 4 séances</span>
+                          <p className="font-semibold text-lg text-green-600">
+                            {service.forfaitPromo ? (
+                              <>
+                                <span className="line-through text-sm text-[#2c3e50]/40">{service.forfaitPrice}€</span>
+                                {' '}
+                                {service.forfaitPromo}€
+                              </>
+                            ) : (
+                              `${service.forfaitPrice}€`
+                            )}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
                   <div>
                     <h4 className="font-medium text-[#2c3e50] mb-2">Description complète</h4>
                     <p className="text-sm text-[#2c3e50]/70 whitespace-pre-line">{service.description}</p>

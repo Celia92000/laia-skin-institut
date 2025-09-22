@@ -24,10 +24,10 @@ export default function AdminCalendar({ reservations, onDateSelect }: AdminCalen
 
   const services = {
     "hydro-naissance": "Hydro'Naissance",
-    "hydro": "Hydro'Cleaning",
+    "hydro-cleaning": "Hydro'Cleaning",
     "renaissance": "Renaissance",
-    "bbglow": "BB Glow",
-    "led": "LED Thérapie"
+    "bb-glow": "BB Glow",
+    "led-therapie": "LED Thérapie"
   };
 
   // Obtenir le premier jour du mois

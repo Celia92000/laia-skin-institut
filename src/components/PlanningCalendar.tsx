@@ -84,17 +84,11 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
     '21:00', '21:30', '22:00', '22:30', '23:00'
   ];
 
-  // Helper pour obtenir le prix d'un service
-  const getServicePrice = (serviceName: string): number => {
-    const prices: Record<string, number> = {
-      'BB Glow': 130,
-      'Hydrocleaning': 89,
-      'Microneedling': 110,
-      'Thérapie LED': 45,
-      'Renaissance': 180,
-      'Éclat Suprême': 150
-    };
-    return prices[serviceName] || 0;
+  // Helper pour obtenir le prix d'un service depuis la base de données
+  const getServicePrice = (serviceSlug: string): number => {
+    if (!dbServices) return 0;
+    const service = dbServices.find(s => s.slug === serviceSlug);
+    return service ? (service.promoPrice || service.price) : 0;
   };
 
   // Helper pour obtenir la durée d'un service en minutes
@@ -1285,8 +1279,19 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
 
       {/* Modal détail jour (depuis vue mois) */}
       {showDayDetail && selectedDate && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+        <div 
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={(e) => {
+            // Si on clique sur le fond (backdrop)
+            if (e.target === e.currentTarget) {
+              setShowDayDetail(false);
+            }
+          }}
+        >
+          <div 
+            className="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-bold text-[#2c3e50]">
                 {selectedDate.toLocaleDateString('fr-FR', { 
@@ -1502,8 +1507,35 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
 
       {/* Modal de création rapide de réservation */}
       {showQuickReservation && selectedSlot && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
+        <div 
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          onClick={(e) => {
+            // Si on clique sur le fond (backdrop)
+            if (e.target === e.currentTarget) {
+              // Vérifier si des données ont été saisies
+              const hasData = selectedService || clientName || clientEmail || clientPhone;
+              
+              if (hasData) {
+                // Demander confirmation avant de fermer
+                if (confirm('Vous avez des données non sauvegardées. Voulez-vous vraiment fermer ?')) {
+                  setShowQuickReservation(false);
+                  setSelectedSlot(null);
+                  setSelectedService('');
+                  setClientName('');
+                  setClientEmail('');
+                  setClientPhone('');
+                }
+              } else {
+                setShowQuickReservation(false);
+                setSelectedSlot(null);
+              }
+            }
+          }}
+        >
+          <div 
+            className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-2xl font-bold text-[#2c3e50]">
                 Nouvelle réservation
@@ -1558,12 +1590,14 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4b5a0] focus:border-transparent"
                 >
                   <option value="">Sélectionner une prestation</option>
-                  <option value="BB Glow">BB Glow - 90 min - 130€</option>
-                  <option value="Hydrocleaning">Hydrocleaning - 60 min - 89€</option>
-                  <option value="Microneedling">Microneedling - 75 min - 110€</option>
-                  <option value="Thérapie LED">Thérapie LED - 30 min - 45€</option>
-                  <option value="Renaissance">Renaissance - 120 min - 180€</option>
-                  <option value="Éclat Suprême">Éclat Suprême - 90 min - 150€</option>
+                  {dbServices && dbServices
+                    .filter(s => s.active)
+                    .map(service => (
+                      <option key={service.slug} value={service.slug}>
+                        {service.name} - {service.duration} min - {service.promoPrice || service.price}€
+                      </option>
+                    ))
+                  }
                 </select>
                 {selectedSlot.slots && selectedSlot.slots.length > 1 && selectedService && (
                   <p className="text-sm text-amber-600 mt-2">

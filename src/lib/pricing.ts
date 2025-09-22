@@ -1,86 +1,107 @@
+// IMPORTANT : Ces données sont pour référence seulement
+// Les prix officiels sont dans la base de données et doivent être synchronisés
 export interface ServicePricing {
   name: string;
   duration: string;
-  classicPrice: number;
-  launchPrice: number;
-  package4Classic: number;
-  package4Launch: number;
+  price: number;
+  promoPrice?: number;
+  forfait?: {
+    price: number;
+    label: string;
+  };
   canBeOption?: boolean;
 }
 
+// Prix synchronisés avec la base de données
+// Hydro'Naissance : 90€ (forfait 4 séances : 340€ soit 90x4-20)
+// Hydro'Cleaning : 70€ (forfait 4 séances : 260€ soit 70x4-20)
+// Renaissance : 70€ (forfait 4 séances : 260€ soit 70x4-20)
+// BB Glow : 70€ (forfait 4 séances : 260€ soit 70x4-20)
+// LED Thérapie : 50€ (forfait 4 séances : 180€ soit 50x4-20)
 export const servicePricing: Record<string, ServicePricing> = {
   "hydro-naissance": {
     name: "Hydro'Naissance",
-    duration: "1h30",
-    classicPrice: 120,
-    launchPrice: 99,
-    package4Classic: 440,
-    package4Launch: 390
+    duration: "75min",
+    price: 90,
+    forfait: {
+      price: 340,
+      label: "Forfait 4 séances (-20€)"
+    }
   },
-  "hydro": {
+  "hydro-cleaning": {
     name: "Hydro'Cleaning",
-    duration: "1h",
-    classicPrice: 90,
-    launchPrice: 70,
-    package4Classic: 340,
-    package4Launch: 260
+    duration: "75min",
+    price: 70,
+    forfait: {
+      price: 260,
+      label: "Forfait 4 séances (-20€)"
+    }
   },
   "renaissance": {
     name: "Renaissance",
-    duration: "1h15",
-    classicPrice: 90,
-    launchPrice: 70,
-    package4Classic: 340,
-    package4Launch: 260
+    duration: "75min",
+    price: 70,
+    forfait: {
+      price: 260,
+      label: "Forfait 4 séances (-20€)"
+    }
   },
-  "bbglow": {
+  "bb-glow": {
     name: "BB Glow",
-    duration: "1h",
-    classicPrice: 70,
-    launchPrice: 50,
-    package4Classic: 240,
-    package4Launch: 260,
+    duration: "75min",
+    price: 70,
+    forfait: {
+      price: 260,
+      label: "Forfait 4 séances (-20€)"
+    },
     canBeOption: true
   },
-  "led": {
+  "led-therapie": {
     name: "LED Thérapie",
     duration: "45min",
-    classicPrice: 70,
-    launchPrice: 50,
-    package4Classic: 240,
-    package4Launch: 260,
+    price: 50,
+    forfait: {
+      price: 180,
+      label: "Forfait 4 séances (-20€)"
+    },
     canBeOption: true
   }
 };
 
-// Fonction pour obtenir le prix actuel (lancement par défaut)
-export function getCurrentPrice(serviceId: string, useLaunchPrice: boolean = true): number {
+// Fonction pour obtenir le prix actuel
+export function getCurrentPrice(serviceId: string): number {
   const service = servicePricing[serviceId];
   if (!service) return 0;
-  return useLaunchPrice ? service.launchPrice : service.classicPrice;
+  return service.promoPrice || service.price;
 }
 
 // Fonction pour obtenir le prix du forfait
-export function getPackagePrice(serviceId: string, useLaunchPrice: boolean = true): number {
+export function getPackagePrice(serviceId: string): number {
   const service = servicePricing[serviceId];
-  if (!service) return 0;
-  return useLaunchPrice ? service.package4Launch : service.package4Classic;
+  if (!service || !service.forfait) return 0;
+  return service.forfait.price;
 }
 
 // Fonction pour calculer le prix total d'une réservation
-export function calculateTotalPrice(services: string[], useLaunchPrice: boolean = true): number {
+export function calculateTotalPrice(services: string[], packages?: Record<string, string>): number {
   return services.reduce((total, serviceId) => {
-    return total + getCurrentPrice(serviceId, useLaunchPrice);
+    const packageType = packages?.[serviceId];
+    if (packageType === 'forfait') {
+      return total + getPackagePrice(serviceId);
+    }
+    return total + getCurrentPrice(serviceId);
   }, 0);
 }
 
 // Fonction pour formater le prix avec les détails
-export function formatPriceDetails(serviceId: string, useLaunchPrice: boolean = true): string {
+export function formatPriceDetails(serviceId: string, packageType?: string): string {
   const service = servicePricing[serviceId];
   if (!service) return "";
   
-  const price = useLaunchPrice ? service.launchPrice : service.classicPrice;
-  const type = useLaunchPrice ? "lancement" : "classique";
+  if (packageType === 'forfait' && service.forfait) {
+    return `${service.duration} • ${service.forfait.price}€ (${service.forfait.label})`;
+  }
   
-  return `${service.duration} • ${price}€ (${type})`;
+  const price = service.promoPrice || service.price;
+  return `${service.duration} • ${price}€`;
 }

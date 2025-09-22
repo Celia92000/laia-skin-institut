@@ -26,7 +26,7 @@ export default function ClientDashboard() {
       date: "15 Décembre 2024",
       time: "14:00",
       service: "LAIA Hydro'Cleaning",
-      price: "89€",
+      price: "70€",
       status: "confirmé"
     },
     {

@@ -46,16 +46,22 @@ export async function GET(request: Request) {
         continue;
       }
 
+      // Vérifier si l'utilisateur accepte les notifications WhatsApp
+      if (reservation.user.whatsappNotifications === false) {
+        console.log(`🔕 ${reservation.user?.name} a désactivé les rappels WhatsApp`);
+        continue;
+      }
+
       try {
         // Préparer les services
         const services = JSON.parse(reservation.services as string);
         const serviceNames = services.map((s: string) => {
           const serviceMap: any = {
             'hydro-naissance': "Hydro'Naissance",
-            'hydro': "Hydro'Cleaning", 
+            'hydro-cleaning': "Hydro'Cleaning", 
             'renaissance': 'Renaissance',
-            'bbglow': 'BB Glow',
-            'led': 'LED Thérapie'
+            'bb-glow': 'BB Glow',
+            'led-therapie': 'LED Thérapie'
           };
           return serviceMap[s] || s;
         });
@@ -138,10 +144,10 @@ export async function POST(request: Request) {
     const serviceNames = services.map((s: string) => {
       const serviceMap: any = {
         'hydro-naissance': "Hydro'Naissance",
-        'hydro': "Hydro'Cleaning",
+        'hydro-cleaning': "Hydro'Cleaning",
         'renaissance': 'Renaissance',
-        'bbglow': 'BB Glow',
-        'led': 'LED Thérapie'
+        'bb-glow': 'BB Glow',
+        'led-therapie': 'LED Thérapie'
       };
       return serviceMap[s] || s;
     });

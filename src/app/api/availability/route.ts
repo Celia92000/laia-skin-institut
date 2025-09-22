@@ -97,7 +97,7 @@ export async function GET(request: Request) {
         duration = 90; // 1h30
       } else if (services.includes('hydro') || services.includes('renaissance')) {
         duration = 60; // 1h
-      } else if (services.includes('bbglow') || services.includes('led')) {
+      } else if (services.includes('bb-glow') || services.includes('led')) {
         duration = 30; // 30min
       }
       

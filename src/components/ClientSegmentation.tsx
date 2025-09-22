@@ -118,7 +118,7 @@ export default function EmailCampaigns() {
         { value: 'hydrafacial', label: "Hydra'Naissance" },
         { value: 'microneedling', label: 'Microneedling' },
         { value: 'peeling', label: 'Peeling' },
-        { value: 'led', label: 'LED Therapy' },
+        { value: 'led-therapie', label: 'LED Therapy' },
         { value: 'massage', label: 'Massage' }
       ]
     },

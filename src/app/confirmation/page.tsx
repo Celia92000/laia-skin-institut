@@ -13,10 +13,10 @@ function ConfirmationContent() {
 
   const services = {
     "hydro-naissance": { name: "Hydro'Naissance", icon: "👑" },
-    "hydro": { name: "Hydro'Cleaning", icon: "💧" },
+    "hydro-cleaning": { name: "Hydro'Cleaning", icon: "💧" },
     "renaissance": { name: "Renaissance", icon: "✨" },
-    "bbglow": { name: "BB Glow", icon: "🌟" },
-    "led": { name: "LED Thérapie", icon: "💡" }
+    "bb-glow": { name: "BB Glow", icon: "🌟" },
+    "led-therapie": { name: "LED Thérapie", icon: "💡" }
   };
 
   useEffect(() => {

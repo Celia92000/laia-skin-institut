@@ -145,18 +145,85 @@ export default function UnifiedCRMTab({
     });
   };
 
-  // Filtrage des clients
-  const filteredClients = clients.filter(client => {
-    const matchesSearch = client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (client.phone && client.phone.includes(searchTerm));
+  // Filtrage et tri des clients
+  const filteredClients = (() => {
+    let filtered = clients.filter(client => {
+      const matchesSearch = client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            (client.phone && client.phone.includes(searchTerm));
+      
+      // Filtre par niveau
+      if (filterLevel !== "all") {
+        const clientReservations = reservations.filter(r => r.userEmail === client.email);
+        const level = getLoyaltyLevel(clientReservations);
+        if (level.level !== parseInt(filterLevel)) return false;
+      }
+      
+      return matchesSearch;
+    });
     
-    if (filterLevel === "all") return matchesSearch;
+    // Ajouter des données pour le tri
+    const clientsWithData = filtered.map(client => {
+      const clientReservations = reservations.filter(r => r.userEmail === client.email);
+      const noShowCount = clientReservations.filter(r => r.status === 'no_show').length;
+      const lastVisit = clientReservations
+        .filter(r => r.status === 'completed')
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+      
+      return {
+        ...client,
+        reservationCount: clientReservations.length,
+        noShowCount,
+        totalSpent: client.totalSpent || 0,
+        lastVisitDate: lastVisit ? new Date(lastVisit.date) : null
+      };
+    });
     
-    const clientReservations = reservations.filter(r => r.userEmail === client.email);
-    const level = getLoyaltyLevel(clientReservations);
-    return matchesSearch && level.level === parseInt(filterLevel);
-  });
+    // Appliquer les filtres spéciaux depuis le select
+    const filterValue = document.querySelector('select[onChange*="noshow"]')?.value;
+    if (filterValue === 'noshow') {
+      filtered = clientsWithData.filter(c => c.noShowCount > 0);
+    } else if (filterValue === 'active') {
+      const threeMonthsAgo = new Date();
+      threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+      filtered = clientsWithData.filter(c => c.lastVisitDate && c.lastVisitDate > threeMonthsAgo);
+    } else if (filterValue === 'inactive') {
+      const threeMonthsAgo = new Date();
+      threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+      filtered = clientsWithData.filter(c => !c.lastVisitDate || c.lastVisitDate <= threeMonthsAgo);
+    } else {
+      filtered = clientsWithData;
+    }
+    
+    // Appliquer le tri depuis le select de tri
+    const sortValue = document.querySelector('select[onChange*="Tri par"]')?.value;
+    if (sortValue) {
+      filtered.sort((a, b) => {
+        switch(sortValue) {
+          case 'name':
+            return a.name.localeCompare(b.name);
+          case 'name-desc':
+            return b.name.localeCompare(a.name);
+          case 'spent':
+            return (a.totalSpent || 0) - (b.totalSpent || 0);
+          case 'spent-desc':
+            return (b.totalSpent || 0) - (a.totalSpent || 0);
+          case 'visits':
+            return a.reservationCount - b.reservationCount;
+          case 'visits-desc':
+            return b.reservationCount - a.reservationCount;
+          case 'recent':
+            return (b.lastVisitDate?.getTime() || 0) - (a.lastVisitDate?.getTime() || 0);
+          case 'oldest':
+            return (a.lastVisitDate?.getTime() || 0) - (b.lastVisitDate?.getTime() || 0);
+          default:
+            return 0;
+        }
+      });
+    }
+    
+    return filtered;
+  })();
 
   // Statistiques globales
   const stats = {
@@ -321,6 +388,46 @@ export default function UnifiedCRMTab({
               <option value="2">Premium</option>
               <option value="3">VIP</option>
             </select>
+            
+            {/* Nouveau filtre par statut d'activité */}
+            <select
+              className="px-4 py-2 border border-[#d4b5a0]/20 rounded-lg focus:border-[#d4b5a0] focus:outline-none"
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === 'noshow') {
+                  setSearchTerm('no_show');
+                } else if (value === 'active') {
+                  // Logique pour filtrer les clients actifs
+                }
+              }}
+            >
+              <option value="all">Toute activité</option>
+              <option value="active">Actifs (- 3 mois)</option>
+              <option value="inactive">Inactifs (+ 3 mois)</option>
+              <option value="noshow">Avec absences</option>
+            </select>
+            
+            {/* Options de tri */}
+            <div className="flex items-center gap-2 border-l pl-3 ml-3 border-gray-200">
+              <span className="text-sm text-gray-500">Tri:</span>
+              <select
+                className="px-3 py-2 border border-[#d4b5a0]/20 rounded-lg focus:border-[#d4b5a0] focus:outline-none text-sm"
+                onChange={(e) => {
+                  // La logique de tri sera implémentée dans le filtrage
+                  const sortType = e.target.value;
+                  console.log('Tri par:', sortType);
+                }}
+              >
+                <option value="name">Nom A-Z</option>
+                <option value="name-desc">Nom Z-A</option>
+                <option value="spent">CA croissant</option>
+                <option value="spent-desc">CA décroissant</option>
+                <option value="visits">Visites croissantes</option>
+                <option value="visits-desc">Visites décroissantes</option>
+                <option value="recent">Plus récents</option>
+                <option value="oldest">Plus anciens</option>
+              </select>
+            </div>
           </div>
           
           <div className="flex gap-3">
@@ -662,6 +769,23 @@ export default function UnifiedCRMTab({
                                       
                                       {/* Statistiques */}
                                       <div className="pt-3 border-t border-purple-200">
+                                        {/* Alerte No-Show si applicable */}
+                                        {(() => {
+                                          const noShows = reservations
+                                            .filter(r => r.userEmail === client.email && r.status === 'no_show')
+                                            .length;
+                                          if (noShows > 0) {
+                                            return (
+                                              <div className="mb-3 p-2 bg-orange-50 border border-orange-200 rounded-lg">
+                                                <p className="text-xs font-semibold text-orange-600">
+                                                  ⚠️ {noShows} absence{noShows > 1 ? 's' : ''} non justifiée{noShows > 1 ? 's' : ''}
+                                                </p>
+                                              </div>
+                                            );
+                                          }
+                                          return null;
+                                        })()}
+                                        
                                         <div className="grid grid-cols-2 gap-3 text-sm">
                                           <div>
                                             <p className="text-[#2c3e50]/60">Total séances</p>
@@ -803,33 +927,63 @@ export default function UnifiedCRMTab({
                                 {reservations
                                   .filter(r => r.userEmail === client.email)
                                   .slice(0, 5)
-                                  .map((reservation, idx) => (
-                                    <div key={idx} className="p-3 bg-white rounded-lg border border-[#d4b5a0]/20">
-                                      <div className="flex justify-between items-start">
-                                        <div>
-                                          <p className="text-sm font-medium text-[#2c3e50]">
-                                            {reservation.services.join(', ')}
-                                          </p>
-                                          <p className="text-xs text-[#2c3e50]/60">
-                                            {new Date(reservation.date).toLocaleDateString('fr-FR')} à {reservation.time}
-                                          </p>
+                                  .map((reservation, idx) => {
+                                    // Mapper les IDs de services aux noms
+                                    const serviceNames = reservation.services.map(serviceId => {
+                                      const serviceMap: any = {
+                                        'hydro-naissance': "Hydro'Naissance",
+                                        'hydro-cleaning': "Hydro'Cleaning",
+                                        'renaissance': 'Renaissance',
+                                        'bb-glow': 'BB Glow',
+                                        'led-therapie': 'LED Thérapie'
+                                      };
+                                      return serviceMap[serviceId] || serviceId;
+                                    });
+                                    
+                                    return (
+                                      <div key={idx} className="p-3 bg-white rounded-lg border border-[#d4b5a0]/20 hover:shadow-md transition-shadow">
+                                        <div className="flex justify-between items-start">
+                                          <div className="flex-1">
+                                            <p className="text-sm font-medium text-[#2c3e50]">
+                                              {serviceNames.join(', ')}
+                                            </p>
+                                            <p className="text-xs text-[#2c3e50]/60">
+                                              {new Date(reservation.date).toLocaleDateString('fr-FR')} à {reservation.time}
+                                            </p>
+                                            {/* Affichage des remarques particulières si présentes */}
+                                            {reservation.notes && (
+                                              <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded">
+                                                <p className="text-xs font-medium text-amber-700 mb-1">Remarques :</p>
+                                                <p className="text-xs text-amber-600 italic">{reservation.notes}</p>
+                                              </div>
+                                            )}
+                                          </div>
+                                          <div className="flex flex-col items-end gap-1">
+                                            <span className={`text-xs px-2 py-1 rounded-full ${
+                                              reservation.status === 'completed' 
+                                                ? 'bg-blue-100 text-blue-600'
+                                                : reservation.status === 'confirmed' 
+                                                ? 'bg-green-100 text-green-600' 
+                                                : reservation.status === 'cancelled' 
+                                                ? 'bg-red-100 text-red-600'
+                                                : reservation.status === 'no_show'
+                                                ? 'bg-orange-100 text-orange-600'
+                                                : 'bg-yellow-100 text-yellow-600'
+                                            }`}>
+                                              {reservation.status === 'completed' ? '✓ Effectué' :
+                                               reservation.status === 'confirmed' ? 'Confirmé' : 
+                                               reservation.status === 'cancelled' ? 'Annulé' : 
+                                               reservation.status === 'no_show' ? '✗ Absent' :
+                                               'En attente'}
+                                            </span>
+                                            <p className="text-sm font-medium text-[#d4b5a0]">
+                                              {reservation.totalPrice}€
+                                            </p>
+                                          </div>
                                         </div>
-                                        <span className={`text-xs px-2 py-1 rounded-full ${
-                                          reservation.status === 'confirmed' 
-                                            ? 'bg-green-100 text-green-600' 
-                                            : reservation.status === 'cancelled' 
-                                            ? 'bg-red-100 text-red-600'
-                                            : 'bg-yellow-100 text-yellow-600'
-                                        }`}>
-                                          {reservation.status === 'confirmed' ? 'Confirmé' : 
-                                           reservation.status === 'cancelled' ? 'Annulé' : 'En attente'}
-                                        </span>
                                       </div>
-                                      <p className="text-sm font-medium text-[#d4b5a0] mt-1">
-                                        {reservation.totalPrice}€
-                                      </p>
-                                    </div>
-                                  ))}
+                                    );
+                                  })}
                                 {reservations.filter(r => r.userEmail === client.email).length === 0 && (
                                   <p className="text-sm text-[#2c3e50]/60">Aucune réservation</p>
                                 )}
@@ -874,8 +1028,17 @@ export default function UnifiedCRMTab({
 
       {/* Modal pour ajouter une évolution */}
       {showEvolutionModal && selectedClientForEvolution && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div 
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={(e) => {
+            // Si on clique sur le fond (backdrop)
+            if (e.target === e.currentTarget) {
+              setShowEvolutionModal(false);
+              setSelectedClientForEvolution(null);
+            }
+          }}
+        >
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 border-b border-[#d4b5a0]/20">
               <div className="flex justify-between items-center">
                 <h3 className="text-xl font-semibold text-[#2c3e50]">
@@ -925,7 +1088,7 @@ export default function UnifiedCRMTab({
                     <option value="hydro-naissance">Hydro'Naissance</option>
                     <option value="hydro">Hydro'Cleaning</option>
                     <option value="renaissance">Renaissance</option>
-                    <option value="bbglow">BB Glow</option>
+                    <option value="bb-glow">BB Glow</option>
                     <option value="led">LED Thérapie</option>
                   </select>
                 </div>

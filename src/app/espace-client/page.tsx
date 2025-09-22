@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Calendar, Clock, CheckCircle, XCircle, Gift, Star, RefreshCw, User, Award, TrendingUp, LogOut, Share2, Heart, History, Check, Edit2, X, CalendarDays, MessageSquare, ThumbsUp, Send, Camera, Edit, Bell, AlertCircle } from "lucide-react";
 import AuthGuard from "@/components/AuthGuard";
+import Modal from "@/components/Modal";
 import { logout } from "@/lib/auth-client";
 
 interface Reservation {
@@ -39,6 +40,10 @@ export default function EspaceClient() {
   const [satisfaction, setSatisfaction] = useState(5);
   const [reviewPhotos, setReviewPhotos] = useState<string[]>([]);
   const [uploadedPhotos, setUploadedPhotos] = useState<File[]>([]);
+  const [dbServices, setDbServices] = useState<any[]>([]);
+  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [whatsappNotifications, setWhatsappNotifications] = useState(true);
+  const [savingPreferences, setSavingPreferences] = useState(false);
   
   // Fonction pour vérifier le statut de l'abonnement
   const getSubscriptionStatus = () => {
@@ -83,13 +88,19 @@ export default function EspaceClient() {
     };
   };
 
-  const services = {
+  // Services par défaut (au cas où la BDD est vide)
+  const defaultServices = {
     "hydro-naissance": "Hydro'Naissance",
-    "hydro": "Hydro'Cleaning",
+    "hydro-cleaning": "Hydro'Cleaning",
     "renaissance": "Renaissance",
-    "bbglow": "BB Glow",
-    "led": "LED Thérapie"
+    "bb-glow": "BB Glow",
+    "led-therapie": "LED Thérapie"
   };
+  
+  // Utiliser les services de la BDD ou les services par défaut
+  const services = dbServices.length > 0 
+    ? Object.fromEntries(dbServices.map(s => [s.slug, s.name]))
+    : defaultServices;
 
   useEffect(() => {
     const checkAuth = () => {
@@ -126,10 +137,77 @@ export default function EspaceClient() {
 
       fetchUserData();
       fetchReservations();
+      fetchServices();
+      fetchPreferences();
     };
 
     checkAuth();
   }, [router]);
+
+  const fetchServices = async () => {
+    try {
+      const response = await fetch('/api/services');
+      if (response.ok) {
+        const data = await response.json();
+        setDbServices(data);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la récupération des services:', error);
+    }
+  };
+
+  const fetchPreferences = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/user/preferences', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setEmailNotifications(data.emailNotifications);
+        setWhatsappNotifications(data.whatsappNotifications);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la récupération des préférences:', error);
+    }
+  };
+
+  const updatePreference = async (type: 'email' | 'whatsapp', value: boolean) => {
+    setSavingPreferences(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/user/preferences', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ...(type === 'email' ? { emailNotifications: value } : { whatsappNotifications: value })
+        })
+      });
+      
+      if (response.ok) {
+        if (type === 'email') {
+          setEmailNotifications(value);
+        } else {
+          setWhatsappNotifications(value);
+        }
+        // Afficher une notification de succès
+        const message = value 
+          ? `Les notifications ${type === 'email' ? 'email' : 'WhatsApp'} ont été réactivées`
+          : `Les notifications ${type === 'email' ? 'email' : 'WhatsApp'} ont été désactivées`;
+        alert(message);
+      }
+    } catch (error) {
+      console.error('Erreur mise à jour préférences:', error);
+      alert('Erreur lors de la mise à jour des préférences');
+    } finally {
+      setSavingPreferences(false);
+    }
+  };
 
   const fetchUserData = async () => {
     try {
@@ -193,8 +271,8 @@ export default function EspaceClient() {
           },
           {
             id: '3',
-            services: ['bbglow'],
-            packages: { 'bbglow': 'forfait' },
+            services: ['bb-glow'],
+            packages: { 'bb-glow': 'forfait' },
             date: '2024-12-10',
             time: '11:00',
             totalPrice: 360,
@@ -242,9 +320,9 @@ export default function EspaceClient() {
     router.push('/reservation');
   };
 
-  const getLoyaltyLevel = (points: number, totalSpent: number) => {
-    // Système basé sur les points ET le montant dépensé
-    if (points >= 400 || totalSpent >= 1200) {
+  const getLoyaltyLevel = (reservationCount: number) => {
+    // Système basé sur le nombre de soins réservés
+    if (reservationCount >= 20) {
       return { 
         name: "VIP Diamond 💎", 
         color: "text-purple-600", 
@@ -253,20 +331,20 @@ export default function EspaceClient() {
         discount: 20
       };
     }
-    if (points >= 250 || totalSpent >= 750) {
+    if (reservationCount >= 10) {
       return { 
         name: "Gold ⭐", 
         color: "text-yellow-600", 
-        nextLevel: 400,
+        nextLevel: 20,
         benefits: "15% de réduction + Accès prioritaire",
         discount: 15
       };
     }
-    if (points >= 100 || totalSpent >= 300) {
+    if (reservationCount >= 5) {
       return { 
         name: "Silver 🌟", 
         color: "text-gray-600", 
-        nextLevel: 250,
+        nextLevel: 10,
         benefits: "10% de réduction",
         discount: 10
       };
@@ -274,13 +352,13 @@ export default function EspaceClient() {
     return { 
       name: "Découverte", 
       color: "text-[#d4b5a0]", 
-      nextLevel: 100,
+      nextLevel: 5,
       benefits: "5% dès le 2ème soin",
       discount: 5
     };
   };
 
-  const loyalty = userData ? getLoyaltyLevel(userData.loyaltyPoints, userData.totalSpent) : null;
+  const loyalty = getLoyaltyLevel(reservations.length);
 
   if (loading) {
     return (
@@ -324,31 +402,36 @@ export default function EspaceClient() {
                     </h2>
                   </div>
                   <p className="text-[#2c3e50]/70 mb-1">
-                    {userData.loyaltyPoints} points de fidélité
+                    {reservations.length} réservations totales
                   </p>
-                  {loyalty.nextLevel && (
-                    <p className="text-sm text-[#2c3e50]/60">
-                      Plus que {loyalty.nextLevel - userData.loyaltyPoints} points pour atteindre le niveau supérieur !
-                    </p>
-                  )}
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-[#2c3e50]/60 mb-1">Total dépensé</p>
-                  <p className="text-2xl font-bold text-[#d4b5a0]">{userData.totalSpent}€</p>
+                  <p className="text-sm text-[#2c3e50]/60 mb-1">Niveau fidélité</p>
+                  <p className="text-2xl font-bold text-[#d4b5a0]">
+                    {Math.floor(reservations.length / 5) + 1}
+                  </p>
                 </div>
               </div>
               
-              {/* Progress bar */}
-              {loyalty.nextLevel && (
-                <div className="mt-4">
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] h-2 rounded-full transition-all duration-500"
-                      style={{ width: `${(userData.loyaltyPoints % 150) / 1.5}%` }}
-                    ></div>
-                  </div>
+              {/* Barre de progression des soins */}
+              <div className="mt-4">
+                <div className="flex justify-between text-xs text-[#2c3e50]/60 mb-1">
+                  <span>{reservations.length} soins total</span>
+                  <span>Prochain palier : {Math.ceil((reservations.length + 1) / 5) * 5} soins</span>
                 </div>
-              )}
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] h-2 rounded-full transition-all duration-500"
+                    style={{ width: `${Math.min((reservations.length % 5) * 20 || (reservations.length > 0 && reservations.length % 5 === 0 ? 100 : 0), 100)}%` }}
+                  ></div>
+                </div>
+                <p className="text-xs text-[#2c3e50]/60 mt-2">
+                  {5 - (reservations.length % 5) === 5
+                    ? 'Palier atteint ! Encore 5 soins pour le prochain niveau.'
+                    : `Plus que ${5 - (reservations.length % 5)} soins pour atteindre le prochain niveau !`
+                  }
+                </p>
+              </div>
             </div>
           )}
         </div>
@@ -474,7 +557,7 @@ export default function EspaceClient() {
                 <div className="bg-gradient-to-br from-[#fdfbf7] to-white rounded-xl p-6 border border-[#d4b5a0]/20">
                   <Calendar className="w-8 h-8 text-[#d4b5a0] mb-2" />
                   <p className="text-3xl font-bold text-[#2c3e50]">
-                    {reservations.filter(r => r.status === 'confirmed').length}
+                    {reservations.filter(r => r.status === 'confirmed' || r.status === 'pending').length}
                   </p>
                   <p className="text-[#2c3e50]/60">À venir</p>
                 </div>
@@ -482,26 +565,28 @@ export default function EspaceClient() {
                 <div className="bg-gradient-to-br from-[#fdfbf7] to-white rounded-xl p-6 border border-[#d4b5a0]/20">
                   <Award className="w-8 h-8 text-[#d4b5a0] mb-2" />
                   <p className="text-3xl font-bold text-[#2c3e50]">
-                    {userData?.loyaltyPoints || 0}
+                    {reservations.length}
                   </p>
-                  <p className="text-[#2c3e50]/60">Points fidélité</p>
+                  <p className="text-[#2c3e50]/60">Total soins</p>
                 </div>
               </div>
               
               {/* Prochaine réservation avec actions */}
-              {reservations.filter(r => r.status === 'confirmed').length > 0 && (
+              {reservations.filter(r => r.status === 'confirmed' || r.status === 'pending').length > 0 && (
                 <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-6 mb-6">
                   <div className="flex justify-between items-start mb-3">
-                    <h3 className="text-lg font-semibold text-[#2c3e50]">Prochain rendez-vous</h3>
+                    <h3 className="text-lg font-semibold text-[#2c3e50]">Prochains rendez-vous</h3>
                     <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium">
-                      À VENIR
+                      {reservations.filter(r => r.status === 'confirmed' || r.status === 'pending').length} À VENIR
                     </span>
                   </div>
-                  {reservations
-                    .filter(r => r.status === 'confirmed')
-                    .slice(0, 1)
-                    .map(reservation => (
-                      <div key={reservation.id}>
+                  <div className="space-y-4">
+                    {reservations
+                      .filter(r => r.status === 'confirmed' || r.status === 'pending')
+                      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                      .slice(0, 2)
+                      .map((reservation, index) => (
+                      <div key={reservation.id} className={index > 0 ? "pt-4 border-t border-green-200" : ""}>
                         <div className="flex items-center gap-4 mb-3">
                           <Calendar className="w-5 h-5 text-green-600" />
                           <span className="font-medium text-[#2c3e50]">
@@ -517,27 +602,20 @@ export default function EspaceClient() {
                         <div className="flex flex-wrap gap-2 mb-4">
                           {reservation.services.map((serviceId: string) => (
                             <span key={serviceId} className="px-3 py-1 bg-white rounded-full text-sm">
-                              {services[serviceId as keyof typeof services]}
+                              {services[serviceId] || serviceId}
                             </span>
                           ))}
                         </div>
                         
                         {/* Actions rapides pour le prochain RDV */}
                         <div className="flex gap-2 pt-3 border-t border-green-200">
-                          <button
-                            onClick={() => {
-                              const newDate = prompt('Nouvelle date (format: JJ/MM/AAAA) :');
-                              const newTime = prompt('Nouvelle heure (format: HH:MM) :');
-                              if (newDate && newTime) {
-                                alert(`Rendez-vous modifié pour le ${newDate} à ${newTime}. Vous recevrez un email de confirmation.`);
-                                window.location.reload();
-                              }
-                            }}
+                          <Link
+                            href={`/espace-client/modifier-reservation/${reservation.id}/choix`}
                             className="flex items-center gap-1 px-3 py-1.5 bg-white text-green-700 rounded-lg text-sm hover:bg-green-50 transition-all"
                           >
                             <Edit2 className="w-4 h-4" />
                             Modifier
-                          </button>
+                          </Link>
                           <button
                             onClick={() => {
                               if (confirm('Voulez-vous vraiment annuler ce rendez-vous ?')) {
@@ -553,6 +631,7 @@ export default function EspaceClient() {
                         </div>
                       </div>
                     ))}
+                  </div>
                 </div>
               )}
               
@@ -645,7 +724,7 @@ export default function EspaceClient() {
                         <div className="flex flex-wrap gap-2">
                           {reservation.services.map((serviceId: string) => (
                             <span key={serviceId} className="px-3 py-1 bg-[#d4b5a0]/10 rounded-full text-sm">
-                              {services[serviceId as keyof typeof services]}
+                              {services[serviceId] || serviceId}
                               {reservation.packages && reservation.packages[serviceId] === 'forfait' && ' (Forfait 4 séances)'}
                             </span>
                           ))}
@@ -672,36 +751,25 @@ export default function EspaceClient() {
                                 <X className="w-4 h-4" />
                                 Annuler
                               </button>
-                              <button
-                                onClick={() => {
-                                  const newDate = prompt('Nouvelle date (format: JJ/MM/AAAA) :');
-                                  const newTime = prompt('Nouvelle heure (format: HH:MM) :');
-                                  if (newDate && newTime) {
-                                    alert(`Rendez-vous modifié pour le ${newDate} à ${newTime}. Vous recevrez un email de confirmation.`);
-                                    // Ici, appeler l'API pour modifier
-                                    window.location.reload();
-                                  }
-                                }}
+                              <Link
+                                href={`/espace-client/modifier-reservation/${reservation.id}/choix`}
                                 className="flex items-center gap-1 px-3 py-2 border border-[#d4b5a0] text-[#d4b5a0] rounded-lg text-sm hover:bg-[#d4b5a0]/10 transition-all"
                               >
                                 <Edit2 className="w-4 h-4" />
                                 Modifier
-                              </button>
+                              </Link>
                             </>
                           )}
                           
                           {reservation.status === 'pending' && (
                             <>
-                              <button
-                                onClick={() => {
-                                  alert('Pour modifier votre rendez-vous, contactez-nous sur Instagram @laia.skin ou appelez-nous.');
-                                  // Ici on pourrait ouvrir un modal de modification
-                                }}
+                              <Link
+                                href={`/espace-client/modifier-reservation/${reservation.id}/choix`}
                                 className="flex items-center gap-1 px-3 py-2 bg-[#d4b5a0] text-white rounded-lg text-sm hover:bg-[#c9a084] transition-all"
                               >
                                 <Edit className="w-4 h-4" />
                                 Modifier
-                              </button>
+                              </Link>
                               <button
                                 onClick={() => {
                                   if (confirm('Voulez-vous vraiment annuler ce rendez-vous ?\n\nCette action est irréversible.')) {
@@ -769,18 +837,29 @@ export default function EspaceClient() {
                     {/* Carte de fidélité visuelle */}
                     <div className="bg-white/20 rounded-xl p-4">
                       <div className="grid grid-cols-6 gap-2 mb-3">
-                        {[1, 2, 3, 4, 5, 6].map((num) => (
-                          <div 
-                            key={num}
-                            className={`w-full aspect-square rounded-lg flex items-center justify-center text-lg font-bold ${
-                              num <= 3 ? 'bg-white text-[#d4b5a0]' : 'bg-white/30 text-white'
-                            }`}
-                          >
-                            {num <= 3 ? '✓' : num}
-                          </div>
-                        ))}
+                        {[1, 2, 3, 4, 5, 6].map((num) => {
+                          const completedCount = reservations.length;
+                          const effectiveCount = completedCount % 6;
+                          const finalCount = effectiveCount === 0 && completedCount > 0 ? 6 : effectiveCount;
+                          return (
+                            <div 
+                              key={num}
+                              className={`w-full aspect-square rounded-lg flex items-center justify-center text-lg font-bold ${
+                                num <= finalCount ? 'bg-white text-[#d4b5a0]' : 'bg-white/30 text-white'
+                              }`}
+                            >
+                              {num <= finalCount ? '✓' : num}
+                            </div>
+                          );
+                        })}
                       </div>
-                      <p className="text-sm">3 soins validés sur 6</p>
+                      <p className="text-sm">
+                        {(() => {
+                          const count = reservations.length;
+                          const effectiveCount = count % 6;
+                          return effectiveCount === 0 && count > 0 ? '6 soins validés sur 6' : `${effectiveCount} soin${effectiveCount > 1 ? 's' : ''} validé${effectiveCount > 1 ? 's' : ''} sur 6`;
+                        })()}
+                      </p>
                       <p className="text-xs mt-1 font-bold">Dès le 1er soin ! -20€ au 6ème soin</p>
                     </div>
                   </div>
@@ -796,18 +875,46 @@ export default function EspaceClient() {
                     {/* Carte de fidélité visuelle forfaits */}
                     <div className="bg-white/20 rounded-xl p-4">
                       <div className="grid grid-cols-4 gap-3 mb-3">
-                        {[1, 2, 3, 4].map((num) => (
-                          <div 
-                            key={num}
-                            className={`w-full aspect-square rounded-lg flex items-center justify-center text-xl font-bold ${
-                              num <= 1 ? 'bg-white text-purple-600' : 'bg-white/30 text-white'
-                            }`}
-                          >
-                            {num <= 1 ? '✓' : num}
-                          </div>
-                        ))}
+                        {[1, 2, 3, 4].map((num) => {
+                          const forfaitCount = reservations.filter(r => {
+                            if (r.status !== 'completed') return false;
+                            try {
+                              const packages = r.packages ? JSON.parse(r.packages) : {};
+                              return Object.values(packages).some(p => p === 'forfait');
+                            } catch {
+                              return false;
+                            }
+                          }).length;
+                          const effectiveCount = forfaitCount % 4;
+                          const finalCount = effectiveCount === 0 && forfaitCount > 0 ? 4 : effectiveCount;
+                          return (
+                            <div 
+                              key={num}
+                              className={`w-full aspect-square rounded-lg flex items-center justify-center text-xl font-bold ${
+                                num <= finalCount ? 'bg-white text-purple-600' : 'bg-white/30 text-white'
+                              }`}
+                            >
+                              {num <= finalCount ? '✓' : num}
+                            </div>
+                          );
+                        })}
                       </div>
-                      <p className="text-sm">1 forfait validé sur 4</p>
+                      <p className="text-sm">
+                        {(() => {
+                          const forfaitCount = reservations.filter(r => {
+                            if (r.status !== 'completed') return false;
+                            try {
+                              const packages = r.packages ? JSON.parse(r.packages) : {};
+                              return Object.values(packages).some(p => p === 'forfait');
+                            } catch {
+                              return false;
+                            }
+                          }).length;
+                          const effectiveCount = forfaitCount % 4;
+                          const finalCount = effectiveCount === 0 && forfaitCount > 0 ? 4 : effectiveCount;
+                          return `${finalCount} forfait${finalCount > 1 ? 's' : ''} validé${finalCount > 1 ? 's' : ''} sur 4`;
+                        })()}
+                      </p>
                       <p className="text-xs mt-1 font-bold">Dès le 1er forfait ! -40€ au 4ème forfait</p>
                     </div>
                   </div>
@@ -944,7 +1051,7 @@ export default function EspaceClient() {
               <div className="bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white rounded-xl p-8 mb-6">
                 <h3 className="text-xl font-semibold mb-4">Partagez votre expérience</h3>
                 <p className="mb-6">
-                  Recommandez nos soins à vos proches et gagnez 50 points de fidélité pour chaque nouveau client parrainé !
+                  Recommandez nos soins à vos proches et recevez <strong>10€ de réduction</strong> sur votre prochain soin pour chaque nouveau client parrainé !
                 </p>
                 <div className="bg-white/20 rounded-lg p-4 text-center">
                   <p className="text-sm mb-2">Votre code de parrainage</p>
@@ -982,18 +1089,41 @@ export default function EspaceClient() {
                 </div>
                 
                 <div className="border border-[#d4b5a0]/20 rounded-xl p-6">
-                  <h3 className="font-semibold text-[#2c3e50] mb-4">Partager sur les réseaux</h3>
-                  <div className="space-y-3">
-                    <button className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                      Partager sur Facebook
-                    </button>
-                    <button className="w-full px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:opacity-90 transition-opacity">
-                      Partager sur Instagram
-                    </button>
-                    <button className="w-full px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
-                      Partager sur WhatsApp
-                    </button>
+                  <h3 className="font-semibold text-[#2c3e50] mb-4">💡 Comment ça marche ?</h3>
+                  <div className="space-y-3 text-[#2c3e50]/80">
+                    <div className="flex gap-3">
+                      <span className="flex-shrink-0 w-6 h-6 bg-[#d4b5a0] text-white rounded-full flex items-center justify-center text-sm font-bold">1</span>
+                      <p className="text-sm">Partagez votre code parrainage <strong className="text-[#d4b5a0]">{`LAIA${userData?.name?.substring(0, 4).toUpperCase() || 'CODE'}`}</strong> à vos proches</p>
+                    </div>
+                    <div className="flex gap-3">
+                      <span className="flex-shrink-0 w-6 h-6 bg-[#d4b5a0] text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
+                      <p className="text-sm">Votre filleul(e) indique votre code lors de sa réservation</p>
+                    </div>
+                    <div className="flex gap-3">
+                      <span className="flex-shrink-0 w-6 h-6 bg-[#d4b5a0] text-white rounded-full flex items-center justify-center text-sm font-bold">3</span>
+                      <p className="text-sm">Vous recevez automatiquement <strong>10€ de réduction</strong> sur votre prochain soin</p>
+                    </div>
+                    <div className="flex gap-3">
+                      <span className="flex-shrink-0 w-6 h-6 bg-[#d4b5a0] text-white rounded-full flex items-center justify-center text-sm font-bold">4</span>
+                      <p className="text-sm">Votre filleul(e) bénéficie aussi de <strong>10€ de réduction</strong> sur son premier soin</p>
+                    </div>
                   </div>
+                  
+                  {/* Boutons de partage désactivés pour le moment */}
+                  {/*<div className="mt-4 pt-4 border-t border-[#d4b5a0]/20">
+                    <p className="text-xs text-[#2c3e50]/60 mb-3">Partager sur les réseaux :</p>
+                    <div className="space-y-2">
+                      <button className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                        Partager sur Facebook
+                      </button>
+                      <button className="w-full px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:opacity-90 transition-opacity text-sm">
+                        Partager sur Instagram
+                      </button>
+                      <button className="w-full px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm">
+                        Partager sur WhatsApp
+                      </button>
+                    </div>
+                  </div>*/}
                 </div>
               </div>
               
@@ -1178,16 +1308,37 @@ export default function EspaceClient() {
                 </div>
 
                 <div className="mt-8 pt-8 border-t border-gray-200">
-                  <h3 className="text-lg font-semibold text-[#2c3e50] mb-4">Préférences</h3>
+                  <h3 className="text-lg font-semibold text-[#2c3e50] mb-4">Préférences de notification</h3>
                   <div className="space-y-3">
-                    <label className="flex items-center gap-3">
-                      <input type="checkbox" className="w-4 h-4 text-[#d4b5a0]" defaultChecked />
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        className="w-4 h-4 text-[#d4b5a0] rounded focus:ring-[#d4b5a0]" 
+                        checked={emailNotifications}
+                        onChange={(e) => updatePreference('email', e.target.checked)}
+                        disabled={savingPreferences}
+                      />
                       <span className="text-[#2c3e50]/70">Recevoir les offres exclusives par email</span>
                     </label>
-                    <label className="flex items-center gap-3">
-                      <input type="checkbox" className="w-4 h-4 text-[#d4b5a0]" defaultChecked />
-                      <span className="text-[#2c3e50]/70">Rappel de rendez-vous par SMS</span>
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        className="w-4 h-4 text-[#d4b5a0] rounded focus:ring-[#d4b5a0]" 
+                        checked={whatsappNotifications}
+                        onChange={(e) => updatePreference('whatsapp', e.target.checked)}
+                        disabled={savingPreferences}
+                      />
+                      <span className="text-[#2c3e50]/70">Rappel de rendez-vous par WhatsApp</span>
                     </label>
+                    {savingPreferences && (
+                      <p className="text-sm text-[#2c3e50]/60 italic">Enregistrement...</p>
+                    )}
+                  </div>
+                  <div className="mt-4 p-4 bg-[#fdfbf7] rounded-lg">
+                    <p className="text-sm text-[#2c3e50]/70">
+                      📌 <strong>Note :</strong> Si vous désactivez les rappels WhatsApp, vous ne recevrez plus de notifications automatiques la veille de vos rendez-vous. 
+                      Vous pouvez réactiver cette option à tout moment.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -1197,13 +1348,30 @@ export default function EspaceClient() {
       </div>
 
       {/* Modal d'évaluation */}
-      {showReviewModal && selectedReservation && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-bold text-[#2c3e50] mb-4">
-              Évaluer votre soin
-            </h3>
-            
+      <Modal
+        isOpen={showReviewModal && selectedReservation !== null}
+        onClose={() => {
+          if (reviewText || rating !== 5 || reviewPhotos.length > 0) {
+            if (window.confirm('Voulez-vous vraiment fermer ? Votre avis ne sera pas sauvegardé.')) {
+              setShowReviewModal(false);
+              setSelectedReservation(null);
+              setRating(5);
+              setSatisfaction(5);
+              setReviewText('');
+              setReviewPhotos([]);
+              setUploadedPhotos([]);
+            }
+          } else {
+            setShowReviewModal(false);
+            setSelectedReservation(null);
+          }
+        }}
+        title="Évaluer votre soin"
+        size="md"
+        preventCloseOnClickOutside={reviewText.length > 0 || reviewPhotos.length > 0}
+      >
+        {selectedReservation && (
+          <div className="p-6">
             <div className="mb-4">
               <p className="font-medium text-[#2c3e50]">
                 {selectedReservation.services.map(s => services[s as keyof typeof services]).join(', ')}
@@ -1421,8 +1589,8 @@ export default function EspaceClient() {
               </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
     </div>
     </AuthGuard>
   );

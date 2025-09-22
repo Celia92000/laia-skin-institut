@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { client, email, phone, date, time, services, notes, totalPrice, status, source } = body;
+    const { client, email, phone, date, time, services, notes, totalPrice, status, source, packages } = body;
 
     // Créer ou trouver le client
     let clientUser = await prisma.user.findFirst({
@@ -52,11 +52,32 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Recalculer le prix total basé sur les services de la base de données
+    let calculatedPrice = 0;
+    const dbServices = await prisma.service.findMany();
+    
+    for (const serviceId of services) {
+      const service = dbServices.find(s => s.slug === serviceId);
+      if (service) {
+        // Vérifier si c'est un forfait ou un service simple
+        const packageType = packages && packages[serviceId];
+        if (packageType === 'forfait' && service.forfaitPrice) {
+          calculatedPrice += service.forfaitPrice;
+        } else {
+          // Utiliser le prix promo s'il existe, sinon le prix normal
+          calculatedPrice += service.promoPrice || service.price;
+        }
+      }
+    }
+    
+    // Utiliser le prix calculé pour garantir l'exactitude
+    const finalPrice = calculatedPrice > 0 ? calculatedPrice : totalPrice;
+    
     // Incrémenter le compteur de séances du client
     await prisma.user.update({
       where: { id: clientUser.id },
       data: {
-        totalSpent: { increment: totalPrice },
+        totalSpent: { increment: finalPrice },
         lastVisit: new Date()
       }
     });
@@ -66,9 +87,10 @@ export async function POST(request: NextRequest) {
       data: {
         userId: clientUser.id,
         services: JSON.stringify(services),
+        packages: packages ? JSON.stringify(packages) : '{}',
         date: new Date(date),
         time,
-        totalPrice,
+        totalPrice: finalPrice,
         status: status || 'confirmed',
         notes,
         source: source || 'admin'

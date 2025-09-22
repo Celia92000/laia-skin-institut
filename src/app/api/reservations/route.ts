@@ -122,6 +122,29 @@ export async function POST(request: Request) {
       }
     }
 
+    // Recalculer le prix total basé sur les services de la base de données
+    let calculatedPrice = 0;
+    const dbServices = await prisma.service.findMany();
+    
+    for (const serviceId of services) {
+      const service = dbServices.find(s => s.slug === serviceId);
+      if (service) {
+        // Vérifier si c'est un forfait ou un service simple
+        const packageType = packages && packages[serviceId];
+        if (packageType === 'forfait' && service.forfaitPrice) {
+          calculatedPrice += service.forfaitPrice;
+        } else {
+          // Utiliser le prix promo s'il existe, sinon le prix normal
+          calculatedPrice += service.promoPrice || service.price;
+        }
+      }
+    }
+    
+    // Utiliser le prix calculé pour garantir l'exactitude
+    const finalPrice = calculatedPrice > 0 ? calculatedPrice : totalPrice;
+    
+    console.log('Prix calculé:', calculatedPrice, 'Prix reçu:', totalPrice, 'Prix final:', finalPrice);
+    
     // Déterminer si c'est un abonnement
     let isSubscription = false;
     if (packages) {
@@ -139,7 +162,7 @@ export async function POST(request: Request) {
         date: new Date(date),
         time,
         notes,
-        totalPrice,
+        totalPrice: finalPrice,
         status: 'pending' // Toujours en attente de validation admin
       }
     });
@@ -169,10 +192,10 @@ export async function POST(request: Request) {
           'hydronaissance': "Hydro'Naissance",
           'hydro-naissance': "Hydro'Naissance",
           'hydrocleaning': "Hydro'Cleaning",
-          'hydro': "Hydro'Cleaning", 
+          'hydro-cleaning': "Hydro'Cleaning", 
           'renaissance': 'Renaissance',
-          'bbglow': 'BB Glow',
-          'led': 'LED Thérapie',
+          'bb-glow': 'BB Glow',
+          'led-therapie': 'LED Thérapie',
           'ledtherapy': 'LED Thérapie'
         };
         return serviceMap[s] || s;

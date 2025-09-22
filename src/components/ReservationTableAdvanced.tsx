@@ -134,6 +134,15 @@ export default function ReservationTableAdvanced({
       } else if (sortField === 'totalPrice') {
         aVal = a.totalPrice;
         bVal = b.totalPrice;
+      } else if (sortField === 'userName') {
+        aVal = (a.userName || '').toLowerCase();
+        bVal = (b.userName || '').toLowerCase();
+      } else if (sortField === 'status') {
+        aVal = a.status || 'pending';
+        bVal = b.status || 'pending';
+      } else if (sortField === 'paymentStatus') {
+        aVal = a.paymentStatus || 'pending';
+        bVal = b.paymentStatus || 'pending';
       }
 
       if (sortDirection === 'asc') {
@@ -362,7 +371,17 @@ export default function ReservationTableAdvanced({
                   </div>
                 </th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Heure</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Client</th>
+                <th 
+                  className="px-4 py-3 text-left cursor-pointer hover:bg-gray-100 transition-colors"
+                  onClick={() => toggleSort('userName')}
+                >
+                  <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                    Client
+                    {sortField === 'userName' && (
+                      sortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                    )}
+                  </div>
+                </th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Services</th>
                 <th 
                   className="px-4 py-3 text-left cursor-pointer hover:bg-gray-100 transition-colors"
@@ -375,9 +394,29 @@ export default function ReservationTableAdvanced({
                     )}
                   </div>
                 </th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Statut</th>
+                <th 
+                  className="px-4 py-3 text-left cursor-pointer hover:bg-gray-100 transition-colors"
+                  onClick={() => toggleSort('status')}
+                >
+                  <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                    Statut
+                    {sortField === 'status' && (
+                      sortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                    )}
+                  </div>
+                </th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Source</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Paiement</th>
+                <th 
+                  className="px-4 py-3 text-left cursor-pointer hover:bg-gray-100 transition-colors"
+                  onClick={() => toggleSort('paymentStatus')}
+                >
+                  <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                    Paiement
+                    {sortField === 'paymentStatus' && (
+                      sortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                    )}
+                  </div>
+                </th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
               </tr>
             </thead>
@@ -417,8 +456,21 @@ export default function ReservationTableAdvanced({
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <div className="text-sm">
-                          {reservation.services.map(s => services[s] || s).join(', ')}
+                        <div className="space-y-1">
+                          <div className="text-sm">
+                            {reservation.services && reservation.services.length > 0 
+                              ? reservation.services.map((s: string) => services[s] || s).join(', ')
+                              : 'Aucun service'
+                            }
+                          </div>
+                          {/* Affichage des remarques si présentes */}
+                          {reservation.notes && (
+                            <div className="bg-amber-50 px-2 py-1 rounded border border-amber-200">
+                              <p className="text-xs text-amber-700">
+                                <span className="font-medium">Note :</span> {reservation.notes}
+                              </p>
+                            </div>
+                          )}
                         </div>
                       </td>
                       <td className="px-4 py-3">

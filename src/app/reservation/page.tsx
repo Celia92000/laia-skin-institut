@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from 'next/navigation';
 import { Calendar, Clock, User, Phone, Mail, ChevronLeft, ChevronRight, Sparkles, CheckCircle, MapPin, Shield, AlertCircle, Lock, Eye, EyeOff } from "lucide-react";
@@ -28,6 +28,7 @@ function ReservationContent() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [services, setServices] = useState<any[]>([]);
+  const hasChanges = useRef(false);
 
   // Charger les services depuis la base de données
   useEffect(() => {
@@ -45,6 +46,7 @@ function ReservationContent() {
             promoPrice: service.promoPrice,
             forfaitPrice: service.forfaitPrice,
             forfaitPromo: service.forfaitPromo,
+            forfait: service.forfaitPrice && service.forfaitPrice > 0, // Ajouter le champ forfait
             displayPrice: getDisplayPrice(service),
             forfaitDisplayPrice: getForfaitDisplayPrice(service),
             hasPromo: hasPromotion(service),
@@ -126,6 +128,32 @@ function ReservationContent() {
       fetchAvailableSlots();
     }
   }, [selectedDate]);
+
+  // Détecter les changements dans le formulaire
+  useEffect(() => {
+    if (selectedServices.length > 0 || selectedDate || selectedTime || 
+        formData.name || formData.email || formData.phone || formData.notes) {
+      hasChanges.current = true;
+    } else {
+      hasChanges.current = false;
+    }
+  }, [selectedServices, selectedDate, selectedTime, formData]);
+
+  // Prévenir la fermeture accidentelle de la page
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasChanges.current) {
+        e.preventDefault();
+        e.returnValue = 'Vous avez des modifications non sauvegardées. Voulez-vous vraiment quitter cette page ?';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
 
   const fetchAvailableSlots = async () => {
     try {
@@ -309,9 +337,6 @@ function ReservationContent() {
         
         if (packageType === 'forfait') {
           priceToAdd = Number(service.forfaitDisplayPrice) || Number(service.forfaitPrice) || 0;
-        } else if (packageType === 'abonnement') {
-          const basePrice = Number(service.displayPrice) || Number(service.price) || 0;
-          priceToAdd = Math.floor(basePrice * 0.8);
         } else {
           // Séance individuelle (single)
           priceToAdd = Number(service.displayPrice) || Number(service.price) || 0;
@@ -436,15 +461,15 @@ function ReservationContent() {
                                 
                                 // Si on sélectionne Hydro'Naissance, on retire Hydro'Cleaning et Renaissance
                                 if (service.id === "hydro-naissance") {
-                                  newServices = newServices.filter(id => id !== "hydro" && id !== "renaissance");
+                                  newServices = newServices.filter(id => id !== "hydro-cleaning" && id !== "renaissance");
                                 }
                                 
                                 // Si on sélectionne Hydro'Cleaning ou Renaissance, on retire Hydro'Naissance
-                                if (service.id === "hydro" || service.id === "renaissance") {
+                                if (service.id === "hydro-cleaning" || service.id === "renaissance") {
                                   newServices = newServices.filter(id => id !== "hydro-naissance");
                                   
                                   // Si l'autre est déjà sélectionné, proposer Hydro'Naissance
-                                  if ((service.id === "hydro" && newServices.includes("renaissance")) ||
+                                  if ((service.id === "hydro-cleaning" && newServices.includes("renaissance")) ||
                                       (service.id === "renaissance" && newServices.includes("hydro"))) {
                                     if (confirm("Vous avez sélectionné Hydro'Cleaning et Renaissance. Voulez-vous plutôt choisir le soin combiné Hydro'Naissance qui est plus avantageux ?")) {
                                       newServices = ["hydro-naissance"];
@@ -516,7 +541,7 @@ function ReservationContent() {
                               <Sparkles className="w-4 h-4 mr-2 text-[#d4b5a0]" />
                               Choisissez votre formule
                             </h4>
-                            <div className="grid md:grid-cols-3 gap-3">
+                            <div className="grid md:grid-cols-2 gap-3">
                               <label className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${
                                 selectedPackages[service.id] === "single" 
                                   ? "border-[#d4b5a0] bg-white shadow-md" 
@@ -546,12 +571,12 @@ function ReservationContent() {
                                   ? "border-[#d4b5a0] bg-white shadow-md" 
                                   : "border-gray-200 hover:border-[#d4b5a0]/50"
                               }`}>
-                                {(service.id === "hydro" || service.id === "renaissance") && (
+                                {(service.id === "hydro-cleaning" || service.id === "renaissance") && (
                                   <span className="absolute -top-2 right-2 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white px-2 py-0.5 text-xs rounded-full font-semibold">
                                     -20€
                                   </span>
                                 )}
-                                {service.id === "led" && (
+                                {service.id === "led-therapie" && (
                                   <span className="absolute -top-2 right-2 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white px-2 py-0.5 text-xs rounded-full font-semibold">
                                     -40€
                                   </span>
@@ -576,32 +601,6 @@ function ReservationContent() {
                                   </div>
                                   <span className="text-lg font-bold text-green-600">
                                     {service.forfaitDisplayPrice}€
-                                  </span>
-                                </div>
-                              </label>
-                              
-                              {/* Option Abonnement */}
-                              <label className={`p-3 border-2 rounded-lg cursor-pointer transition-all relative ${
-                                selectedPackages[service.id] === "abonnement" 
-                                  ? "border-purple-500 bg-purple-50 shadow-md" 
-                                  : "border-gray-200 hover:border-purple-300"
-                              }`}>
-                                <span className="absolute -top-2 right-2 bg-purple-500 text-white px-2 py-0.5 text-xs rounded-full font-semibold">
-                                  -20%
-                                </span>
-                                <input
-                                  type="radio"
-                                  name={`package-${service.id}`}
-                                  value="abonnement"
-                                  checked={selectedPackages[service.id] === "abonnement"}
-                                  onChange={(e) => setSelectedPackages({...selectedPackages, [service.id]: e.target.value})}
-                                  className="hidden"
-                                />
-                                <div className="flex flex-col">
-                                  <h5 className="font-semibold text-sm text-[#2c3e50]">Abonnement</h5>
-                                  <p className="text-xs text-[#2c3e50]/60 mt-1">1 séance/mois</p>
-                                  <span className="text-lg font-bold text-purple-600 mt-2">
-                                    {Math.floor(service.displayPrice * 0.8)}€/mois
                                   </span>
                                 </div>
                               </label>

@@ -165,7 +165,7 @@ async function main() {
   await prisma.reservation.create({
     data: {
       userId: client3.id,
-      services: JSON.stringify(['bbglow']),
+      services: JSON.stringify(['bb-glow']),
       date: tomorrow,
       time: '11:00',
       totalPrice: 70,

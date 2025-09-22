@@ -34,10 +34,10 @@ export default function AdminCalendarEnhanced({ reservations, onDateSelect }: Ad
 
   const services = {
     "hydro-naissance": "Hydro'Naissance",
-    "hydro": "Hydro'Cleaning",
+    "hydro-cleaning": "Hydro'Cleaning",
     "renaissance": "Renaissance",
-    "bbglow": "BB Glow",
-    "led": "LED Thérapie"
+    "bb-glow": "BB Glow",
+    "led-therapie": "LED Thérapie"
   };
 
   const monthNames = [
@@ -263,37 +263,124 @@ export default function AdminCalendarEnhanced({ reservations, onDateSelect }: Ad
               <div className="space-y-3">
                 {getReservationsForDay(currentDate)
                   .sort((a, b) => a.time.localeCompare(b.time))
-                  .map(reservation => (
-                    <div key={reservation.id} className="bg-white p-4 rounded-lg shadow-sm">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <Clock className="w-4 h-4 text-[#d4b5a0]" />
-                            <span className="font-semibold text-[#2c3e50]">{reservation.time}</span>
-                          </div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <User className="w-4 h-4 text-[#2c3e50]/60" />
-                            <span className="text-sm text-[#2c3e50]">{reservation.userName}</span>
-                          </div>
-                          <div className="flex flex-wrap gap-1 mt-2">
-                            {reservation.isSubscription && (
-                              <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium">
-                                📅 Abonnement
+                  .map(reservation => {
+                    // Calculer les détails du prix pour chaque service
+                    const serviceDetails = reservation.services.map(serviceId => {
+                      const packageType = reservation.packages?.[serviceId] || 'single';
+                      const serviceInfo = servicePricing[serviceId as keyof typeof servicePricing];
+                      if (!serviceInfo) return null;
+                      
+                      let price = serviceInfo.price;
+                      let label = '';
+                      
+                      if (packageType === 'forfait' && serviceInfo.forfait) {
+                        price = serviceInfo.forfait.price;
+                        label = serviceInfo.forfait.label;
+                      } else if (serviceInfo.promoPrice) {
+                        price = serviceInfo.promoPrice;
+                        label = 'Tarif promo';
+                      }
+                      
+                      return {
+                        name: services[serviceId as keyof typeof services] || serviceId,
+                        price,
+                        label,
+                        packageType
+                      };
+                    }).filter(Boolean);
+                    
+                    const statusColors = {
+                      'pending': 'bg-yellow-100 text-yellow-700',
+                      'confirmed': 'bg-green-100 text-green-700',
+                      'completed': 'bg-blue-100 text-blue-700',
+                      'cancelled': 'bg-red-100 text-red-700',
+                      'no_show': 'bg-gray-100 text-gray-700'
+                    };
+                    
+                    const statusLabels = {
+                      'pending': 'En attente',
+                      'confirmed': 'Confirmé',
+                      'completed': 'Terminé',
+                      'cancelled': 'Annulé',
+                      'no_show': 'Absent'
+                    };
+                    
+                    return (
+                      <div key={reservation.id} className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer border border-[#d4b5a0]/10">
+                        <div className="flex justify-between items-start mb-3">
+                          <div className="flex items-center gap-3">
+                            <div className="bg-[#d4b5a0]/10 p-2 rounded-lg">
+                              <Clock className="w-5 h-5 text-[#d4b5a0]" />
+                            </div>
+                            <div>
+                              <span className="font-bold text-lg text-[#2c3e50]">{reservation.time}</span>
+                              <span className={`ml-3 px-2 py-1 rounded-full text-xs font-medium ${statusColors[reservation.status as keyof typeof statusColors] || 'bg-gray-100 text-gray-700'}`}>
+                                {statusLabels[reservation.status as keyof typeof statusLabels] || reservation.status}
                               </span>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-xl font-bold text-[#d4b5a0]">{reservation.totalPrice}€</span>
+                            {reservation.paymentStatus === 'paid' && (
+                              <div className="text-xs text-green-600 font-medium mt-1">✓ Payé</div>
                             )}
-                            {reservation.services.map(serviceId => (
-                              <span key={serviceId} className="px-2 py-1 bg-[#d4b5a0]/10 rounded text-xs">
-                                {services[serviceId as keyof typeof services]}
-                              </span>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2 mb-3">
+                          <div className="flex items-center gap-2">
+                            <User className="w-4 h-4 text-[#2c3e50]/60" />
+                            <span className="font-medium text-[#2c3e50]">{reservation.userName || 'Client'}</span>
+                          </div>
+                          
+                          {reservation.userEmail && (
+                            <div className="flex items-center gap-2">
+                              <Mail className="w-4 h-4 text-[#2c3e50]/60" />
+                              <span className="text-sm text-[#2c3e50]/80">{reservation.userEmail}</span>
+                            </div>
+                          )}
+                          
+                          {reservation.phone && (
+                            <div className="flex items-center gap-2">
+                              <Phone className="w-4 h-4 text-[#2c3e50]/60" />
+                              <span className="text-sm text-[#2c3e50]/80">{reservation.phone}</span>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="border-t border-[#d4b5a0]/10 pt-3">
+                          <div className="font-medium text-sm text-[#2c3e50] mb-2">Prestations :</div>
+                          <div className="space-y-1">
+                            {serviceDetails.map((detail, idx) => detail && (
+                              <div key={idx} className="flex justify-between items-center">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm text-[#2c3e50]">{detail.name}</span>
+                                  {detail.packageType === 'forfait' && (
+                                    <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded text-xs font-medium">
+                                      Forfait
+                                    </span>
+                                  )}
+                                  {reservation.isSubscription && (
+                                    <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium">
+                                      Abo
+                                    </span>
+                                  )}
+                                </div>
+                                <span className="text-sm font-medium text-[#d4b5a0]">{detail.price}€</span>
+                              </div>
                             ))}
                           </div>
                         </div>
-                        <div className="text-right">
-                          <span className="text-lg font-bold text-[#d4b5a0]">{reservation.totalPrice}€</span>
-                        </div>
+                        
+                        {reservation.notes && (
+                          <div className="mt-3 p-2 bg-gray-50 rounded-lg">
+                            <div className="text-xs text-gray-600 font-medium mb-1">Notes :</div>
+                            <div className="text-xs text-gray-700">{reservation.notes}</div>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
               </div>
             )}
             
