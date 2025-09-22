@@ -70,6 +70,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Informations client requises' }, { status: 400 });
     }
 
+    // Récupérer les services de la base de données pour obtenir les durées
+    const dbServices = await prisma.service.findMany({
+      where: {
+        slug: { in: services }
+      }
+    });
+
+    // Calculer la durée totale de la nouvelle réservation
+    let totalDurationMinutes = 0;
+    for (const serviceSlug of services) {
+      const service = dbServices.find(s => s.slug === serviceSlug);
+      if (service) {
+        totalDurationMinutes += service.duration;
+      }
+    }
+    // Ajouter 15 minutes de préparation
+    totalDurationMinutes += 15;
+
     // Vérifier qu'il n'y a pas déjà une réservation à ce créneau
     const existingReservation = await prisma.reservation.findFirst({
       where: {
@@ -87,7 +105,7 @@ export async function POST(request: Request) {
       }, { status: 409 }); // 409 Conflict
     }
 
-    // Vérifier qu'il y a au moins 15 minutes avant et après les autres réservations
+    // Vérifier les conflits avec les autres réservations
     const allReservations = await prisma.reservation.findMany({
       where: {
         date: new Date(date),
@@ -104,27 +122,61 @@ export async function POST(request: Request) {
     };
 
     const requestedTimeMinutes = timeToMinutes(time);
+    const requestedEndTime = requestedTimeMinutes + totalDurationMinutes;
 
     // Vérifier chaque réservation existante
     for (const reservation of allReservations) {
-      const existingTimeMinutes = timeToMinutes(reservation.time);
-      const timeDifference = Math.abs(requestedTimeMinutes - existingTimeMinutes);
+      // Récupérer les services de la réservation existante pour calculer sa durée
+      const existingServices = JSON.parse(reservation.services || '[]');
+      let existingDuration = 0;
       
-      // Si la différence est inférieure à 90 minutes (durée du soin + 15 min de préparation)
-      if (timeDifference < 90 && timeDifference > 0) {
-        const nextAvailableTime = new Date(date);
-        nextAvailableTime.setHours(0, existingTimeMinutes + 90, 0, 0);
-        const nextTimeStr = nextAvailableTime.toTimeString().slice(0, 5);
+      for (const existingServiceSlug of existingServices) {
+        const service = await prisma.service.findUnique({
+          where: { slug: existingServiceSlug }
+        });
+        if (service) {
+          existingDuration += service.duration;
+        }
+      }
+      // Ajouter 15 minutes de préparation à la réservation existante
+      existingDuration += 15;
+
+      const existingTimeMinutes = timeToMinutes(reservation.time);
+      const existingEndTime = existingTimeMinutes + existingDuration;
+
+      // Vérifier les chevauchements
+      // Cas 1: La nouvelle réservation commence pendant une réservation existante
+      // Cas 2: La nouvelle réservation finit pendant une réservation existante  
+      // Cas 3: La nouvelle réservation englobe une réservation existante
+      // Cas 4: Une réservation existante est englobée dans la nouvelle
+      
+      const hasConflict = 
+        (requestedTimeMinutes >= existingTimeMinutes && requestedTimeMinutes < existingEndTime) || // Commence pendant
+        (requestedEndTime > existingTimeMinutes && requestedEndTime <= existingEndTime) || // Finit pendant
+        (requestedTimeMinutes <= existingTimeMinutes && requestedEndTime >= existingEndTime) || // Englobe
+        (existingTimeMinutes >= requestedTimeMinutes && existingEndTime <= requestedEndTime); // Est englobé
+
+      if (hasConflict) {
+        // Calculer le prochain créneau disponible
+        const nextAvailableMinutes = existingEndTime;
+        const nextHours = Math.floor(nextAvailableMinutes / 60);
+        const nextMinutes = nextAvailableMinutes % 60;
+        const nextTimeStr = `${String(nextHours).padStart(2, '0')}:${String(nextMinutes).padStart(2, '0')}`;
+        
+        // Déterminer le nom du service pour un message plus clair
+        const serviceName = dbServices[0]?.name || 'le soin';
+        const existingServiceName = existingServices.length > 0 ? 
+          (await prisma.service.findUnique({ where: { slug: existingServices[0] } }))?.name || 'un soin' : 
+          'un soin';
         
         return NextResponse.json({ 
-          error: `Un soin est déjà prévu proche de cet horaire. Il faut au minimum 1h30 entre chaque soin (75 min de soin + 15 min de préparation). Prochain créneau disponible après ${reservation.time}: ${nextTimeStr}` 
+          error: `Ce créneau entre en conflit avec ${existingServiceName} prévu de ${reservation.time} à ${String(Math.floor(existingEndTime/60)).padStart(2,'0')}:${String(existingEndTime%60).padStart(2,'0')}. Le prochain créneau disponible pour ${serviceName} (${Math.floor(totalDurationMinutes/60)}h${totalDurationMinutes%60 > 0 ? String(totalDurationMinutes%60).padStart(2,'0') : ''}) est à partir de ${nextTimeStr}.`
         }, { status: 409 });
       }
     }
 
     // Recalculer le prix total basé sur les services de la base de données
     let calculatedPrice = 0;
-    const dbServices = await prisma.service.findMany();
     
     for (const serviceId of services) {
       const service = dbServices.find(s => s.slug === serviceId);
