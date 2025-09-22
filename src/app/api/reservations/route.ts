@@ -10,13 +10,24 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { services, packages, date, time, notes, totalPrice, clientInfo } = body;
     
+    // Validation : vérifier qu'il y a au moins un service
+    if (!services || !Array.isArray(services) || services.length === 0) {
+      return NextResponse.json({ 
+        error: 'Veuillez sélectionner au moins un service pour votre réservation.' 
+      }, { status: 400 });
+    }
+    
     // Vérifier si le créneau est disponible (horaires de travail et dates bloquées)
     const reservationDate = new Date(date);
     const available = await isSlotAvailable(reservationDate, time);
     
     if (!available) {
+      // Déterminer la raison de l'indisponibilité
+      const dayOfWeek = reservationDate.getDay();
+      const dayNames = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+      
       return NextResponse.json({ 
-        error: 'Ce créneau n\'est pas disponible. Veuillez choisir un autre horaire.' 
+        error: `Ce créneau n'est pas disponible. L'institut est fermé le ${dayNames[dayOfWeek]} à ${time} ou cette date est bloquée. Veuillez choisir un autre horaire.` 
       }, { status: 409 });
     }
     
@@ -193,7 +204,15 @@ export async function POST(request: Request) {
     }
     
     // Utiliser le prix calculé pour garantir l'exactitude
-    const finalPrice = calculatedPrice > 0 ? calculatedPrice : totalPrice;
+    // Si aucun prix n'est calculé et aucun prix fourni, utiliser 0
+    const finalPrice = calculatedPrice > 0 ? calculatedPrice : (totalPrice || 0);
+    
+    // Validation du prix
+    if (finalPrice <= 0) {
+      return NextResponse.json({ 
+        error: 'Le prix total de la réservation doit être supérieur à zéro. Veuillez vérifier votre sélection.' 
+      }, { status: 400 });
+    }
     
     console.log('Prix calculé:', calculatedPrice, 'Prix reçu:', totalPrice, 'Prix final:', finalPrice);
     
