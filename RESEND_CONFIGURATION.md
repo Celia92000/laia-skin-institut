@@ -1,9 +1,13 @@
 # Configuration Resend pour l'envoi d'emails
 
 ## ⚠️ Problème actuel
-Actuellement, Resend est en mode test et ne peut envoyer des emails qu'à l'adresse vérifiée : **celia.ivorra95@hotmail.fr**
+Actuellement, Resend est en mode test avec 2 limitations :
+1. **Expéditeur** : Les emails partent de `onboarding@resend.dev` au lieu de `contact@laia-skin.fr`
+2. **Destinataires** : Ne peut envoyer qu'à votre adresse vérifiée : **celia.ivorra95@hotmail.fr**
 
-Si un client réserve avec une autre adresse email, il ne recevra pas de confirmation.
+Résultat : 
+- Vos clients ne reçoivent pas leurs confirmations
+- Les emails ne sont pas professionnels (mauvaise adresse d'envoi)
 
 ## 🔧 Solution : Configurer un domaine vérifié
 
@@ -29,10 +33,11 @@ Si un client réserve avec une autre adresse email, il ne recevra pas de confirm
    - La vérification peut prendre jusqu'à 48h
 
 5. **Mettez à jour l'adresse d'envoi**
-   Dans le fichier `.env.local`, changez :
+   Dans le fichier `.env.local`, décommentez la ligne :
    ```
-   RESEND_FROM_EMAIL=contact@laiaskininstitut.fr
+   RESEND_FROM_EMAIL="LAIA SKIN INSTITUT <contact@laia-skin.fr>"
    ```
+   (Enlevez le # au début de la ligne)
 
 ### 📝 Exemple de configuration DNS (chez votre hébergeur)
 
@@ -45,10 +50,11 @@ CNAME   resend2._domainkey     [valeur fournie par Resend]
 
 ## 🚀 Une fois configuré
 
-- ✅ Tous les clients recevront leurs confirmations de réservation
-- ✅ Les emails partiront de `contact@laiaskininstitut.fr`
-- ✅ Meilleure délivrabilité (moins de spam)
-- ✅ Possibilité d'envoyer des campagnes marketing
+- ✅ **Les emails partiront de `contact@laia-skin.fr`** (professionnel)
+- ✅ **Tous les clients recevront leurs confirmations** (plus de limitation)
+- ✅ **Vous recevrez une copie sur `contact@laia-skin.fr`**
+- ✅ **Meilleure délivrabilité** (moins de risque spam)
+- ✅ **Image professionnelle** de votre institut
 
 ## 💡 Alternative temporaire
 

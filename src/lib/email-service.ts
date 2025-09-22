@@ -266,8 +266,12 @@ export async function sendConfirmationEmail({
     `;
 
     // Envoyer l'email au client
+    // NOTE: Pour utiliser contact@laia-skin.fr, vous devez d'abord vérifier votre domaine dans Resend
+    // Suivez le guide RESEND_CONFIGURATION.md sur votre bureau
+    const fromEmail = process.env.RESEND_FROM_EMAIL || 'LAIA SKIN INSTITUT <onboarding@resend.dev>';
+    
     const { data, error } = await resend.emails.send({
-      from: 'LAIA SKIN INSTITUT <onboarding@resend.dev>',
+      from: fromEmail,
       to,
       subject: `✨ Confirmation de votre réservation - ${date} à ${time}`,
       html: htmlContent
@@ -291,7 +295,7 @@ export async function sendConfirmationEmail({
       `;
 
       await resend.emails.send({
-        from: 'LAIA SKIN INSTITUT <onboarding@resend.dev>',
+        from: fromEmail,
         to: 'contact@laia-skin.fr',
         subject: `🔔 Nouvelle réservation - ${date} à ${time}`,
         html: adminNotification
