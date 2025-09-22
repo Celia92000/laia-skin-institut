@@ -43,7 +43,7 @@ export async function PATCH(
 
   try {
     const body = await request.json();
-    const { status } = body;
+    const { status, paymentStatus, paymentAmount, paymentMethod, paymentDate, paymentNotes } = body;
     const reservationId = id;
 
     // Récupérer la réservation actuelle
@@ -130,12 +130,21 @@ export async function PATCH(
       updatedAt: new Date()
     };
 
-    // Si on marque comme complété, marquer aussi comme payé
-    if (status === 'completed') {
-      updateData.paymentStatus = 'paid';
-      updateData.paymentDate = new Date();
-      updateData.paymentAmount = reservation.totalPrice;
-      updateData.paymentMethod = 'cash'; // Par défaut, peut être modifié après
+    // Ajouter les données de paiement si elles sont fournies
+    if (paymentStatus) {
+      updateData.paymentStatus = paymentStatus;
+    }
+    if (paymentAmount !== undefined) {
+      updateData.paymentAmount = paymentAmount;
+    }
+    if (paymentMethod) {
+      updateData.paymentMethod = paymentMethod;
+    }
+    if (paymentDate) {
+      updateData.paymentDate = paymentDate;
+    }
+    if (paymentNotes !== undefined) {
+      updateData.paymentNotes = paymentNotes;
     }
 
     // Mettre à jour le statut de la réservation

@@ -38,7 +38,7 @@ export async function PUT(
     } else {
       // Pour les avis normaux, on peut tout modifier
       const updateData: any = {};
-      if (data.published !== undefined) updateData.published = data.published;
+      if (data.published !== undefined) updateData.approved = data.published;
       if (data.response !== undefined) updateData.response = data.response;
       if (data.photos !== undefined) updateData.photos = JSON.stringify(data.photos);
       

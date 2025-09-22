@@ -240,7 +240,7 @@ export default function Footer() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-white/80">
-              © 2024 LAIA SKIN Institut. Tous droits réservés.
+              © 2024 LAIA SKIN INSTITUT. Tous droits réservés.
             </p>
             <div className="flex gap-6">
               <Link href="/mentions-legales" className="text-sm text-white/80 hover:text-white transition-colors">

@@ -36,6 +36,7 @@ model User {
   notifications  Notification[]
   referralsMade  Referral[]        @relation("ReferralReferrer")
   referredBy     Referral?         @relation("ReferralReferred")
+  leads          Lead[]
 }
 
 model Reservation {
@@ -202,7 +203,7 @@ model Review {
   rating        Int
   comment       String
   response      String?
-  approved      Boolean  @default(true)
+  approved      Boolean  @default(false)
   featured      Boolean  @default(false)
   source        String   @default("site") // site, email, whatsapp, google
   googleReview  Boolean  @default(false)
@@ -266,6 +267,22 @@ model Package {
   maxUses     Int?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model Lead {
+  id          String   @id @default(cuid())
+  name        String
+  email       String   @unique
+  phone       String?
+  subject     String?
+  message     String?
+  source      String   @default("contact_form") // contact_form, instagram, facebook, phone
+  status      String   @default("new") // new, contacted, qualified, converted, lost
+  notes       String?
+  userId      String?  // Lien vers User si converti en client
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User?    @relation(fields: [userId], references: [id])
 }
 
 model EmailHistory {

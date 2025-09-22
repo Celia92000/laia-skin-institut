@@ -11,6 +11,11 @@ const config: Config = {
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
         serif: ['Playfair Display', 'serif'],
+        inter: ['var(--font-inter)', 'sans-serif'],
+        playfair: ['var(--font-playfair)', 'serif'],
+        poppins: ['var(--font-poppins)', 'sans-serif'],
+        cormorant: ['var(--font-cormorant)', 'serif'],
+        lora: ['var(--font-lora)', 'serif'],
       },
       colors: {
         'laia-gold': '#d4b5a0',

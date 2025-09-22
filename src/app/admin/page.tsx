@@ -29,6 +29,7 @@ import ReservationTableAdvanced from "@/components/ReservationTableAdvanced";
 import QuickActionModal from "@/components/QuickActionModal";
 import { logout } from "@/lib/auth-client";
 import { servicePricing, getCurrentPrice, calculateTotalPrice } from "@/lib/pricing";
+import ValidationPaymentModal from "@/components/ValidationPaymentModal";
 
 interface Reservation {
   id: string;
@@ -81,6 +82,8 @@ export default function AdminDashboard() {
   const [lastCheckedReservations, setLastCheckedReservations] = useState<string[]>([]);
   const [newReservationCount, setNewReservationCount] = useState(0);
   const [planningSubTab, setPlanningSubTab] = useState<'calendar' | 'availability' | 'list'>('calendar');
+  const [showValidationModal, setShowValidationModal] = useState(false);
+  const [reservationToValidate, setReservationToValidate] = useState<Reservation | null>(null);
   const [newReservation, setNewReservation] = useState({
     client: '',
     email: '',
@@ -252,8 +255,85 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleValidationPayment = async (data: any) => {
+    if (!reservationToValidate) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/admin/reservations/${reservationToValidate.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+
+      if (response.ok) {
+        fetchReservations();
+        fetchClients();
+        fetchLoyaltyProfiles();
+        
+        let message = data.status === 'completed' 
+          ? `✅ Soin validé pour ${reservationToValidate.userName}`
+          : `⚠️ ${reservationToValidate.userName} était absent`;
+        
+        if (data.paymentStatus === 'paid') {
+          message += ` - Paiement de ${data.paymentAmount}€ enregistré`;
+        }
+        
+        alert(message);
+        setShowValidationModal(false);
+        setReservationToValidate(null);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la validation:', error);
+      alert('Erreur lors de la validation');
+    }
+  };
+
   const updateReservationStatus = async (reservationId: string, status: string) => {
     try {
+      const reservation = reservations.find(r => r.id === reservationId);
+      
+      // Si on marque comme terminé et que ce n'est pas encore payé
+      if (status === 'completed' && reservation && reservation.paymentStatus !== 'paid') {
+        const shouldMarkAsPaid = confirm('Le client a-t-il payé ?');
+        
+        if (shouldMarkAsPaid) {
+          // Ouvrir le modal de paiement ou demander les infos
+          const amount = prompt('Montant payé (laisser vide pour le montant total) :', reservation.totalPrice.toString());
+          const paymentAmount = amount ? parseFloat(amount) : reservation.totalPrice;
+          
+          const paymentMethod = prompt('Méthode de paiement (CB, Espèces, Virement) :', 'CB');
+          
+          const token = localStorage.getItem('token');
+          const response = await fetch(`/api/admin/reservations/${reservationId}`, {
+            method: 'PATCH',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+              status,
+              paymentStatus: 'paid',
+              paymentAmount,
+              paymentMethod: paymentMethod || 'CB',
+              paymentDate: new Date().toISOString()
+            })
+          });
+
+          if (response.ok) {
+            fetchReservations();
+            fetchClients();
+            fetchLoyaltyProfiles();
+            alert(`✅ Soin validé et paiement de ${paymentAmount}€ enregistré !`);
+          }
+          return;
+        }
+      }
+      
+      // Cas normal ou si pas de paiement
       const token = localStorage.getItem('token');
       const response = await fetch(`/api/admin/reservations/${reservationId}`, {
         method: 'PATCH',
@@ -265,22 +345,16 @@ export default function AdminDashboard() {
       });
 
       if (response.ok) {
-        // Mettre à jour la liste localement
         setReservations(prev => prev.map(r => 
           r.id === reservationId ? { ...r, status } : r
         ));
         
-        // Trouver la réservation pour avoir les infos du client
-        const reservation = reservations.find(r => r.id === reservationId);
-        
-        // Si le soin est validé, les points sont automatiquement ajoutés
         if (status === 'completed') {
-          fetchClients(); // Rafraîchir les données clients
-          fetchLoyaltyProfiles(); // Rafraîchir les profils de fidélité
-          alert(`✅ Soin validé pour ${reservation?.userName || 'le client'}`);
+          fetchClients();
+          fetchLoyaltyProfiles();
+          alert(`✅ Soin validé pour ${reservation?.userName || 'le client'} (sans paiement)`);
         }
         
-        // Si le client était absent, notifier et enregistrer
         if (status === 'no_show' && reservation) {
           // Envoyer une notification WhatsApp au client
           try {
@@ -706,6 +780,7 @@ export default function AdminDashboard() {
       <div className="min-h-screen bg-gradient-to-br from-[#fdfbf7] to-[#f8f6f0] pt-32 pb-20">
         <div className="max-w-7xl mx-auto px-4">
         
+        
         {/* Notification de nouvelles réservations */}
         {showNotification && (
           <div className="mb-6 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl p-4 shadow-xl animate-pulse">
@@ -807,24 +882,14 @@ export default function AdminDashboard() {
             )}
           </button>
           <button
-            onClick={() => setActiveTab("validation")}
+            onClick={() => setActiveTab("validation-paiements")}
             className={`px-3 sm:px-6 py-2 sm:py-3 rounded-full font-medium transition-all whitespace-nowrap flex-shrink-0 text-sm sm:text-base ${
-              activeTab === "validation"
+              activeTab === "validation-paiements" || activeTab === "validation" || activeTab === "paiements"
                 ? "bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white shadow-lg"
                 : "bg-white text-[#2c3e50] hover:shadow-md"
             }`}
           >
-            Validation Soins
-          </button>
-          <button
-            onClick={() => setActiveTab("paiements")}
-            className={`px-3 sm:px-6 py-2 sm:py-3 rounded-full font-medium transition-all whitespace-nowrap flex-shrink-0 text-sm sm:text-base ${
-              activeTab === "paiements"
-                ? "bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white shadow-lg"
-                : "bg-white text-[#2c3e50] hover:shadow-md"
-            }`}
-          >
-            Paiements
+            Soins & Paiements
           </button>
           <button
             onClick={() => setActiveTab("fidelite")}
@@ -1343,35 +1408,50 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {activeTab === "validation" && (
+          {(activeTab === "validation-paiements" || activeTab === "validation" || activeTab === "paiements") && (
             <div>
-              <h2 className="text-2xl font-serif font-bold text-[#2c3e50] mb-6">
-                Validation des Soins Effectués
-              </h2>
-              <p className="text-[#2c3e50]/70 mb-6">
-                Confirmez la présence des clients après leur rendez-vous pour attribuer les points de fidélité
-              </p>
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h2 className="text-2xl font-serif font-bold text-[#2c3e50] mb-2">
+                    Gestion des Soins & Paiements
+                  </h2>
+                  <p className="text-[#2c3e50]/70">
+                    Validez les rendez-vous effectués et enregistrez les paiements
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => exportPayments('csv')}
+                    className="px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2 text-sm"
+                  >
+                    <Download className="w-4 h-4" />
+                    Export
+                  </button>
+                  <button
+                    onClick={() => exportPayments('detailed')}
+                    className="px-4 py-2 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2 text-sm"
+                  >
+                    <FileText className="w-4 h-4" />
+                    Livre de Recettes
+                  </button>
+                </div>
+              </div>
 
-              <div className="space-y-4">
-                {(() => {
-                  const validationReservations = reservations.filter(r => {
-                    // Montrer toutes les réservations confirmées (pas encore validées comme effectuées)
-                    return r.status === 'confirmed';
-                  });
-
-                  if (validationReservations.length === 0) {
-                    return (
-                      <div className="text-center py-12 bg-gray-50 rounded-xl">
-                        <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
-                        <p className="text-lg font-medium text-[#2c3e50]">Aucun soin à valider</p>
-                        <p className="text-[#2c3e50]/60 mt-2">
-                          Les soins confirmés apparaîtront ici pour validation après le rendez-vous
-                        </p>
-                      </div>
-                    );
-                  }
-
-                  return validationReservations.map((reservation) => (
+              {/* Section des soins à valider */}
+              {(() => {
+                const validationReservations = reservations.filter(r => r.status === 'confirmed');
+                
+                if (validationReservations.length > 0) {
+                  return (
+                    <>
+                      <h3 className="text-lg font-semibold text-[#2c3e50] mb-4 flex items-center gap-2">
+                        <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm">
+                          {validationReservations.length}
+                        </span>
+                        Soins à valider
+                      </h3>
+                      <div className="space-y-4 mb-8">
+                        {validationReservations.map((reservation) => (
                   <div key={reservation.id} className="border border-[#d4b5a0]/20 rounded-xl p-6">
                     <div className="flex justify-between items-start mb-4">
                       <div>
@@ -1395,10 +1475,48 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <span className="text-xl font-bold text-[#d4b5a0] block mb-2">{reservation.totalPrice}€</span>
-                        <span className="text-sm text-green-600">
-                          +{Math.floor(reservation.totalPrice / 10)} points
-                        </span>
+                        <span className="text-xl font-bold text-[#d4b5a0] block">{reservation.totalPrice}€</span>
+                        {(() => {
+                          const client = clients.find(c => c.id === reservation.userId);
+                          const loyaltyProfile = loyaltyProfiles.find(p => p.userId === reservation.userId);
+                          
+                          if (loyaltyProfile) {
+                            // Utiliser le compteur officiel de la base de données
+                            const currentCount = loyaltyProfile.individualServicesCount || 0;
+                            const nextCount = currentCount + 1;
+                            const positionInCycle = nextCount % 6;
+                            
+                            if (positionInCycle === 0) {
+                              return (
+                                <div className="text-right">
+                                  <span className="text-sm text-green-600 font-bold animate-pulse">
+                                    🎁 6ème séance !
+                                  </span>
+                                  <br />
+                                  <span className="text-xs text-green-500">
+                                    -30€ de réduction disponible
+                                  </span>
+                                </div>
+                              );
+                            } else {
+                              return (
+                                <div className="text-right">
+                                  <span className="text-sm text-gray-600">
+                                    Séance {positionInCycle}/6
+                                  </span>
+                                  <br />
+                                  <span className="text-xs text-gray-400">
+                                    {6 - positionInCycle} avant réduction
+                                  </span>
+                                </div>
+                              );
+                            }
+                          } else if (client) {
+                            // Fallback si pas de profil de fidélité
+                            return <span className="text-sm text-gray-500">1ère séance</span>;
+                          }
+                          return null;
+                        })()}
                       </div>
                     </div>
 
@@ -1406,16 +1524,14 @@ export default function AdminDashboard() {
                       {reservation.status === 'confirmed' && (
                         <>
                           <button
-                            onClick={() => updateReservationStatus(reservation.id, 'completed')}
-                            className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                            onClick={() => {
+                              setReservationToValidate(reservation);
+                              setShowValidationModal(true);
+                            }}
+                            className="w-full px-4 py-3 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white font-medium rounded-lg hover:from-[#c9a084] hover:to-[#b89574] transition-all shadow-lg flex items-center justify-center gap-2"
                           >
-                            ✓ Client venu - Valider
-                          </button>
-                          <button
-                            onClick={() => updateReservationStatus(reservation.id, 'no_show')}
-                            className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
-                          >
-                            ✗ Client absent
+                            <CheckCircle className="w-5 h-5" />
+                            Valider le rendez-vous & Gérer le paiement
                           </button>
                         </>
                       )}
@@ -1431,22 +1547,147 @@ export default function AdminDashboard() {
                       )}
                     </div>
                   </div>
-                  ));
-                })()}
+                        ))}
+                      </div>
+                    </>
+                  );
+                }
+                return null;
+              })()}
+
+              {/* Section des paiements à gérer */}
+              <h3 className="text-lg font-semibold text-[#2c3e50] mb-4 flex items-center gap-2">
+                <Euro className="w-5 h-5 text-[#d4b5a0]" />
+                Historique des soins & paiements
+              </h3>
+              
+              {/* Liste des réservations à facturer/payées */}
+              <div className="space-y-4">
+                {reservations
+                  .filter(r => r.status === 'completed' || r.status === 'no_show')
+                  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                  .slice(0, 20) // Limiter à 20 derniers pour la performance
+                  .map((reservation) => (
+                    <div key={reservation.id} className="border border-[#d4b5a0]/20 rounded-xl p-6">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <div className="flex items-center gap-3 mb-2">
+                          <User className="w-5 h-5 text-[#d4b5a0]" />
+                          <span className="font-semibold text-[#2c3e50]">{reservation.userName}</span>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            reservation.paymentStatus === 'paid' 
+                              ? 'bg-green-100 text-green-600'
+                              : reservation.paymentStatus === 'partial'
+                              ? 'bg-blue-100 text-blue-600'
+                              : reservation.paymentStatus === 'no_show'
+                              ? 'bg-orange-100 text-orange-600'
+                              : 'bg-red-100 text-red-600'
+                          }`}>
+                            {reservation.paymentStatus === 'paid' ? '✓ Payé' : 
+                             reservation.paymentStatus === 'partial' ? '⚠ Acompte' :
+                             reservation.paymentStatus === 'no_show' ? '⚠ Absent' : 
+                             'Non payé'}
+                          </span>
+                        </div>
+                        <p className="text-sm text-[#2c3e50]/60 mb-1">
+                          {new Date(reservation.date).toLocaleDateString('fr-FR')} à {reservation.time}
+                        </p>
+                        <p className="text-sm text-[#2c3e50]/70">
+                          Services: {(() => {
+                            try {
+                              const servicesList = typeof reservation.services === 'string' ? JSON.parse(reservation.services) : reservation.services;
+                              return Array.isArray(servicesList) 
+                                ? servicesList.map((s: string) => services[s as keyof typeof services] || s).join(', ')
+                                : reservation.services;
+                            } catch {
+                              if (typeof reservation.services === 'string' && reservation.services in services) {
+                                return services[reservation.services as keyof typeof services];
+                              }
+                              return reservation.services;
+                            }
+                          })()}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-[#d4b5a0]">{reservation.totalPrice}€</p>
+                        {reservation.paymentAmount && reservation.paymentAmount !== reservation.totalPrice && (
+                          <p className="text-sm text-[#2c3e50]/60">Payé: {reservation.paymentAmount}€</p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {reservation.paymentStatus !== 'paid' && reservation.paymentStatus !== 'no_show' && reservation.paymentStatus !== 'partial' && (
+                      <PaymentSectionEnhanced
+                        reservation={reservation}
+                        loyaltyProfiles={loyaltyProfiles}
+                        recordPayment={recordPayment}
+                      />
+                    )}
+                    
+                    {(reservation.paymentStatus === 'paid' || reservation.paymentStatus === 'no_show' || reservation.paymentStatus === 'partial') && (
+                      <div className="border-t border-[#d4b5a0]/10 pt-4">
+                        <div className="flex justify-between items-center">
+                          <div className="text-sm text-[#2c3e50]/60">
+                            {reservation.paymentStatus === 'no_show' ? (
+                              <>
+                                <p className="text-orange-600 font-medium">Client absent</p>
+                                <p>Date du rendez-vous: {new Date(reservation.date).toLocaleDateString('fr-FR')}</p>
+                                {reservation.paymentNotes && <p>Notes: {reservation.paymentNotes}</p>}
+                              </>
+                            ) : reservation.paymentStatus === 'partial' ? (
+                              <>
+                                <p className="text-blue-600 font-medium">Acompte reçu ({reservation.paymentAmount}€)</p>
+                                <p>Date: {new Date(reservation.paymentDate || '').toLocaleDateString('fr-FR')}</p>
+                                <p>Méthode: {reservation.paymentMethod === 'cash' ? 'Espèces' : reservation.paymentMethod === 'card' ? 'Carte' : 'Virement'}</p>
+                                {reservation.paymentNotes && <p>Notes: {reservation.paymentNotes}</p>}
+                              </>
+                            ) : (
+                              <>
+                                <p>Payé le: {new Date(reservation.paymentDate || '').toLocaleDateString('fr-FR')}</p>
+                                <p>Méthode: {reservation.paymentMethod === 'cash' ? 'Espèces' : reservation.paymentMethod === 'card' ? 'Carte' : 'Virement'}</p>
+                                {reservation.paymentNotes && <p>Notes: {reservation.paymentNotes}</p>}
+                              </>
+                            )}
+                          </div>
+                          <div className="flex gap-2">
+                            {reservation.paymentStatus !== 'no_show' && (
+                              <>
+                                <button
+                                  onClick={() => openEditModal(reservation)}
+                                  className="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-all text-sm"
+                                >
+                                  <Edit2 className="w-4 h-4 inline mr-1" />
+                                  Modifier
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    if (confirm('Êtes-vous sûr de vouloir annuler ce paiement ?')) {
+                                      recordPayment(reservation.id, undefined, { reset: true });
+                                    }
+                                  }}
+                                  className="px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-all text-sm"
+                                >
+                                  <X className="w-4 h-4 inline mr-1" />
+                                  Annuler
+                                </button>
+                                <InvoiceButton reservation={{
+                                  ...reservation,
+                                  client: reservation.userName || 'Client',
+                                  email: reservation.userEmail
+                                }} />
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
           )}
 
-          {activeTab === "paiements" && (
-            <div>
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-serif font-bold text-[#2c3e50]">
-                  Gestion des Paiements & Livre de Recettes
-                </h2>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => exportPayments('csv')}
-                    className="px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2"
+
                   >
                     <Download className="w-4 h-4" />
                     Export Simple
@@ -1665,7 +1906,7 @@ export default function AdminDashboard() {
               {/* Liste des réservations à facturer */}
               <div className="space-y-4">
                 {reservations
-                  .filter(r => r.status === 'completed')
+                  .filter(r => r.status === 'completed' || r.status === 'no_show')
                   .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                   .map((reservation) => (
                     <div key={reservation.id} className="border border-[#d4b5a0]/20 rounded-xl p-6">
@@ -1677,9 +1918,16 @@ export default function AdminDashboard() {
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                             reservation.paymentStatus === 'paid' 
                               ? 'bg-green-100 text-green-600'
+                              : reservation.paymentStatus === 'partial'
+                              ? 'bg-blue-100 text-blue-600'
+                              : reservation.paymentStatus === 'no_show'
+                              ? 'bg-orange-100 text-orange-600'
                               : 'bg-red-100 text-red-600'
                           }`}>
-                            {reservation.paymentStatus === 'paid' ? '✓ Payé' : 'Non payé'}
+                            {reservation.paymentStatus === 'paid' ? '✓ Payé' : 
+                             reservation.paymentStatus === 'partial' ? '⚠ Acompte' :
+                             reservation.paymentStatus === 'no_show' ? '⚠ Absent' : 
+                             'Non payé'}
                           </span>
                         </div>
                         <p className="text-sm text-[#2c3e50]/60 mb-1">
@@ -1716,7 +1964,7 @@ export default function AdminDashboard() {
                       </div>
                     </div>
                     
-                    {reservation.paymentStatus !== 'paid' && (
+                    {reservation.paymentStatus !== 'paid' && reservation.paymentStatus !== 'no_show' && reservation.paymentStatus !== 'partial' && (
                       <PaymentSectionEnhanced
                         reservation={reservation}
                         loyaltyProfiles={loyaltyProfiles}
@@ -1724,39 +1972,60 @@ export default function AdminDashboard() {
                       />
                     )}
                     
-                    {reservation.paymentStatus === 'paid' && (
+                    {(reservation.paymentStatus === 'paid' || reservation.paymentStatus === 'no_show' || reservation.paymentStatus === 'partial') && (
                       <div className="border-t border-[#d4b5a0]/10 pt-4">
                         <div className="flex justify-between items-center">
                           <div className="text-sm text-[#2c3e50]/60">
-                            <p>Payé le: {new Date(reservation.paymentDate || '').toLocaleDateString('fr-FR')}</p>
-                            <p>Méthode: {reservation.paymentMethod === 'cash' ? 'Espèces' : reservation.paymentMethod === 'card' ? 'Carte' : 'Virement'}</p>
-                            {reservation.paymentNotes && <p>Notes: {reservation.paymentNotes}</p>}
+                            {reservation.paymentStatus === 'no_show' ? (
+                              <>
+                                <p className="text-orange-600 font-medium">Client absent</p>
+                                <p>Date du rendez-vous: {new Date(reservation.date).toLocaleDateString('fr-FR')}</p>
+                                {reservation.paymentNotes && <p>Notes: {reservation.paymentNotes}</p>}
+                              </>
+                            ) : reservation.paymentStatus === 'partial' ? (
+                              <>
+                                <p className="text-blue-600 font-medium">Acompte reçu ({reservation.paymentAmount}€)</p>
+                                <p>Date: {new Date(reservation.paymentDate || '').toLocaleDateString('fr-FR')}</p>
+                                <p>Méthode: {reservation.paymentMethod === 'cash' ? 'Espèces' : reservation.paymentMethod === 'card' ? 'Carte' : 'Virement'}</p>
+                                {reservation.paymentNotes && <p>Notes: {reservation.paymentNotes}</p>}
+                              </>
+                            ) : (
+                              <>
+                                <p>Payé le: {new Date(reservation.paymentDate || '').toLocaleDateString('fr-FR')}</p>
+                                <p>Méthode: {reservation.paymentMethod === 'cash' ? 'Espèces' : reservation.paymentMethod === 'card' ? 'Carte' : 'Virement'}</p>
+                                {reservation.paymentNotes && <p>Notes: {reservation.paymentNotes}</p>}
+                              </>
+                            )}
                           </div>
                           <div className="flex gap-2">
-                            <button
-                              onClick={() => openEditModal(reservation)}
-                              className="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-all text-sm"
-                            >
-                              <Edit2 className="w-4 h-4 inline mr-1" />
-                              Modifier
-                            </button>
-                            <button
-                              onClick={() => {
-                                if (confirm('Êtes-vous sûr de vouloir annuler ce paiement ?')) {
-                                  // Réinitialiser le statut de paiement
-                                  recordPayment(reservation.id, undefined, { reset: true });
-                                }
-                              }}
-                              className="px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-all text-sm"
-                            >
-                              <X className="w-4 h-4 inline mr-1" />
-                              Annuler paiement
-                            </button>
-                            <InvoiceButton reservation={{
-                              ...reservation,
-                              client: reservation.userName || 'Client',
-                              email: reservation.userEmail
-                            }} />
+                            {reservation.paymentStatus !== 'no_show' && (
+                              <>
+                                <button
+                                  onClick={() => openEditModal(reservation)}
+                                  className="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-all text-sm"
+                                >
+                                  <Edit2 className="w-4 h-4 inline mr-1" />
+                                  Modifier
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    if (confirm('Êtes-vous sûr de vouloir annuler ce paiement ?')) {
+                                      // Réinitialiser le statut de paiement
+                                      recordPayment(reservation.id, undefined, { reset: true });
+                                    }
+                                  }}
+                                  className="px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-all text-sm"
+                                >
+                                  <X className="w-4 h-4 inline mr-1" />
+                                  Annuler paiement
+                                </button>
+                                <InvoiceButton reservation={{
+                                  ...reservation,
+                                  client: reservation.userName || 'Client',
+                                  email: reservation.userEmail
+                                }} />
+                              </>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -2772,6 +3041,17 @@ export default function AdminDashboard() {
         </div>
       )}
       </div>
+      
+      {/* Modal de validation et paiement */}
+      <ValidationPaymentModal
+        reservation={reservationToValidate}
+        isOpen={showValidationModal}
+        onClose={() => {
+          setShowValidationModal(false);
+          setReservationToValidate(null);
+        }}
+        onValidate={handleValidationPayment}
+      />
     </div>
     </AuthGuard>
   );

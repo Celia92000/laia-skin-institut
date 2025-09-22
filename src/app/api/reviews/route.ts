@@ -83,7 +83,7 @@ export async function POST(request: Request) {
         rating,
         comment,
         source: source || 'site',
-        approved: true, // Auto-approuver les avis depuis email/site
+        approved: false, // Les avis doivent être approuvés manuellement
         googleReview: rating === 5 // Suggérer Google pour 5 étoiles
       }
     });

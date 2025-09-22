@@ -5,7 +5,8 @@ import {
   User, Phone, Mail, Calendar, Heart, TrendingUp, Award, Edit2, Save, X,
   ChevronDown, ChevronUp, Search, Filter, Download, Plus, Gift, Cake,
   CreditCard, FileText, AlertCircle, Star, Eye, History, UserCheck, Settings,
-  Camera, Video, Image, Upload, Trash2, PlayCircle, Send, Paperclip
+  Camera, Video, Image, Upload, Trash2, PlayCircle, Send, Paperclip,
+  Target, Users, UserX, ArrowRight, MessageSquare, Clock
 } from "lucide-react";
 import ClientDetailModal from "@/components/ClientDetailModal";
 
@@ -33,6 +34,34 @@ export interface Client {
   reservationCount?: number;
 }
 
+interface Lead {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  subject?: string;
+  message?: string;
+  source: string;
+  status: string;
+  notes?: string;
+  userId?: string;
+  createdAt: string;
+  user?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
+interface LeadStats {
+  total: number;
+  new: number;
+  contacted: number;
+  qualified: number;
+  converted: number;
+  lost: number;
+}
+
 interface UnifiedCRMTabProps {
   clients: Client[];
   setClients: (clients: Client[]) => void;
@@ -46,6 +75,11 @@ export default function UnifiedCRMTab({
   loyaltyProfiles, 
   reservations 
 }: UnifiedCRMTabProps) {
+  const [activeTab, setActiveTab] = useState<'clients' | 'leads'>('clients');
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [leadStats, setLeadStats] = useState<LeadStats | null>(null);
+  const [leadStatusFilter, setLeadStatusFilter] = useState('all');
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterLevel, setFilterLevel] = useState("all");
   const [expandedClient, setExpandedClient] = useState<string | null>(null);
@@ -309,8 +343,135 @@ export default function UnifiedCRMTab({
     }
   }, [expandedClient]);
 
+  // Charger les leads
+  useEffect(() => {
+    if (activeTab === 'leads') {
+      fetchLeads();
+    }
+  }, [activeTab, leadStatusFilter]);
+
+  const fetchLeads = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const url = leadStatusFilter === 'all' 
+        ? '/api/admin/leads'
+        : `/api/admin/leads?status=${leadStatusFilter}`;
+        
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setLeads(data.leads);
+        setLeadStats(data.stats);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la récupération des leads:', error);
+    }
+  };
+
+  const handleUpdateLeadStatus = async (leadId: string, newStatus: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/admin/leads', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id: leadId, status: newStatus })
+      });
+      
+      if (response.ok) {
+        await fetchLeads();
+        setSelectedLead(null);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du lead:', error);
+    }
+  };
+
+  const handleConvertLead = async (leadId: string) => {
+    if (!confirm('Convertir ce lead en client ?')) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/admin/leads', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ leadId })
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        alert(result.message);
+        await fetchLeads();
+        setSelectedLead(null);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la conversion du lead:', error);
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      new: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Nouveau' },
+      contacted: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'Contacté' },
+      qualified: { bg: 'bg-purple-100', text: 'text-purple-700', label: 'Qualifié' },
+      converted: { bg: 'bg-green-100', text: 'text-green-700', label: 'Converti' },
+      lost: { bg: 'bg-red-100', text: 'text-red-700', label: 'Perdu' }
+    };
+    
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.new;
+    
+    return (
+      <span className={`px-2 py-1 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
+        {config.label}
+      </span>
+    );
+  };
+
   return (
     <div className="space-y-6">
+      {/* Tabs */}
+      <div className="flex gap-2 mb-6">
+        <button
+          onClick={() => setActiveTab('clients')}
+          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            activeTab === 'clients'
+              ? 'bg-[#d4b5a0] text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          <Users className="w-4 h-4 inline mr-2" />
+          Clients ({clients.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('leads')}
+          className={`px-4 py-2 rounded-lg font-medium transition-colors relative ${
+            activeTab === 'leads'
+              ? 'bg-[#d4b5a0] text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          <Target className="w-4 h-4 inline mr-2" />
+          Leads
+          {leadStats && leadStats.new > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+              {leadStats.new}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {activeTab === 'clients' ? (
+        <>
       {/* Header avec statistiques */}
       <div className="bg-gradient-to-r from-[#d4b5a0]/10 to-[#c9a084]/10 rounded-xl p-6">
         <h2 className="text-2xl font-serif font-bold text-[#2c3e50] mb-4">
@@ -1549,6 +1710,231 @@ export default function UnifiedCRMTab({
             saveClientChanges(clientId);
           }}
         />
+      )}
+      </>
+      ) : (
+        /* Section Leads */
+        <div className="space-y-4">
+          {/* Statistiques des leads */}
+          {leadStats && (
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
+              <div className="bg-gray-50 rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-gray-700">{leadStats.total}</div>
+                <div className="text-sm text-gray-500">Total</div>
+              </div>
+              <div className="bg-blue-50 rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-blue-700">{leadStats.new}</div>
+                <div className="text-sm text-blue-500">Nouveaux</div>
+              </div>
+              <div className="bg-yellow-50 rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-yellow-700">{leadStats.contacted}</div>
+                <div className="text-sm text-yellow-500">Contactés</div>
+              </div>
+              <div className="bg-purple-50 rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-purple-700">{leadStats.qualified}</div>
+                <div className="text-sm text-purple-500">Qualifiés</div>
+              </div>
+              <div className="bg-green-50 rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-green-700">{leadStats.converted}</div>
+                <div className="text-sm text-green-500">Convertis</div>
+              </div>
+              <div className="bg-red-50 rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-red-700">{leadStats.lost}</div>
+                <div className="text-sm text-red-500">Perdus</div>
+              </div>
+            </div>
+          )}
+
+          {/* Filtres */}
+          <div className="flex gap-2 mb-4">
+            <select
+              value={leadStatusFilter}
+              onChange={(e) => setLeadStatusFilter(e.target.value)}
+              className="px-4 py-2 border border-[#d4b5a0]/30 rounded-lg focus:ring-2 focus:ring-[#d4b5a0]"
+            >
+              <option value="all">Tous les statuts</option>
+              <option value="new">Nouveaux</option>
+              <option value="contacted">Contactés</option>
+              <option value="qualified">Qualifiés</option>
+              <option value="converted">Convertis</option>
+              <option value="lost">Perdus</option>
+            </select>
+          </div>
+
+          {/* Liste des leads */}
+          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-[#d4b5a0]/10">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[#2c3e50] uppercase tracking-wider">Lead</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[#2c3e50] uppercase tracking-wider">Contact</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[#2c3e50] uppercase tracking-wider">Source</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[#2c3e50] uppercase tracking-wider">Statut</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[#2c3e50] uppercase tracking-wider">Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[#2c3e50] uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {leads.map((lead) => (
+                    <tr 
+                      key={lead.id}
+                      className="hover:bg-gray-50 cursor-pointer"
+                      onClick={() => setSelectedLead(lead)}
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm font-medium text-[#2c3e50]">{lead.name}</div>
+                          {lead.subject && (
+                            <div className="text-xs text-gray-500">{lead.subject}</div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm">
+                          <div className="flex items-center gap-1">
+                            <Mail className="w-3 h-3 text-gray-400" />
+                            {lead.email}
+                          </div>
+                          {lead.phone && (
+                            <div className="flex items-center gap-1 mt-1">
+                              <Phone className="w-3 h-3 text-gray-400" />
+                              {lead.phone}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm text-gray-600 capitalize">
+                          {lead.source.replace('_', ' ')}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {getStatusBadge(lead.status)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(lead.createdAt).toLocaleDateString('fr-FR')}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedLead(lead);
+                          }}
+                          className="text-[#d4b5a0] hover:text-[#c9a084]"
+                        >
+                          Voir
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Modal détail lead */}
+          {selectedLead && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+                <div className="flex justify-between items-start mb-4">
+                  <h2 className="text-xl font-bold text-[#2c3e50]">Détails du Lead</h2>
+                  <button 
+                    onClick={() => setSelectedLead(null)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Nom</label>
+                      <p className="text-[#2c3e50]">{selectedLead.name}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+                      <div>{getStatusBadge(selectedLead.status)}</div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                      <p className="text-[#2c3e50]">{selectedLead.email}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+                      <p className="text-[#2c3e50]">{selectedLead.phone || '-'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Source</label>
+                      <p className="text-[#2c3e50] capitalize">{selectedLead.source.replace('_', ' ')}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                      <p className="text-[#2c3e50]">
+                        {new Date(selectedLead.createdAt).toLocaleDateString('fr-FR')}
+                      </p>
+                    </div>
+                  </div>
+
+                  {selectedLead.subject && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Sujet</label>
+                      <p className="text-[#2c3e50]">{selectedLead.subject}</p>
+                    </div>
+                  )}
+
+                  {selectedLead.message && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                      <p className="text-[#2c3e50] bg-gray-50 p-3 rounded-lg">{selectedLead.message}</p>
+                    </div>
+                  )}
+
+                  {selectedLead.notes && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Notes internes</label>
+                      <p className="text-[#2c3e50] bg-yellow-50 p-3 rounded-lg">{selectedLead.notes}</p>
+                    </div>
+                  )}
+
+                  {selectedLead.user && (
+                    <div className="bg-green-50 p-3 rounded-lg">
+                      <p className="text-green-700">
+                        <UserCheck className="w-4 h-4 inline mr-1" />
+                        Converti en client: {selectedLead.user.name} ({selectedLead.user.email})
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2 pt-4">
+                    <select
+                      value={selectedLead.status}
+                      onChange={(e) => handleUpdateLeadStatus(selectedLead.id, e.target.value)}
+                      className="flex-1 px-3 py-2 border border-[#d4b5a0]/30 rounded-lg focus:ring-2 focus:ring-[#d4b5a0]"
+                    >
+                      <option value="new">Nouveau</option>
+                      <option value="contacted">Contacté</option>
+                      <option value="qualified">Qualifié</option>
+                      <option value="converted">Converti</option>
+                      <option value="lost">Perdu</option>
+                    </select>
+                    
+                    {selectedLead.status !== 'converted' && !selectedLead.userId && (
+                      <button
+                        onClick={() => handleConvertLead(selectedLead.id)}
+                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center gap-2"
+                      >
+                        <ArrowRight className="w-4 h-4" />
+                        Convertir en client
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

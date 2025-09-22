@@ -179,47 +179,128 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-24 bg-gradient-to-br from-[#fdfbf7] to-[#f8f6f0]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-serif font-bold text-[#2c3e50] mb-4">
-              L'Excellence à votre Service
+      {/* Features Section - Refined Elegant Typography */}
+      <section className="py-28 sm:py-32 md:py-40 relative overflow-hidden">
+        {/* Sophisticated Background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#fdfbf7] via-white to-[#f8f6f0]">
+          <div className="absolute inset-0 opacity-[0.02]" style={{ 
+            backgroundImage: 'radial-gradient(circle at 2px 2px, #d4b5a0 1px, transparent 1px)', 
+            backgroundSize: '50px 50px' 
+          }}></div>
+        </div>
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Refined Title Section */}
+          <div className="text-center mb-24">
+            <div className="mb-2">
+              <span className="font-inter text-xs md:text-sm text-[#d4b5a0] tracking-[0.3em] uppercase font-medium">Notre philosophie</span>
+            </div>
+            <h2 className="font-playfair text-4xl md:text-5xl lg:text-6xl text-[#2c3e50] mb-6">
+              <span className="font-light">L'Excellence</span>
+              <span className="block mt-2 font-normal italic text-[#d4b5a0]">à votre Service</span>
             </h2>
-            <p className="text-lg text-[#2c3e50]/70 max-w-2xl mx-auto">
-              Notre engagement pour votre beauté et votre bien-être
+            <div className="flex items-center justify-center gap-4 mb-8">
+              <div className="w-20 h-[0.5px] bg-gradient-to-r from-transparent to-[#d4b5a0]"></div>
+              <div className="w-1.5 h-1.5 rounded-full bg-[#d4b5a0]"></div>
+              <div className="w-20 h-[0.5px] bg-gradient-to-l from-transparent to-[#d4b5a0]"></div>
+            </div>
+            <p className="font-inter text-lg md:text-xl text-[#2c3e50]/50 max-w-3xl mx-auto font-light leading-relaxed tracking-wide">
+              Un engagement authentique pour révéler votre beauté naturelle
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-12">
-            <div className="text-center">
-              <div className="w-24 h-24 bg-gradient-to-br from-[#d4b5a0] to-[#c9a084] rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
-                <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
+          <div className="grid md:grid-cols-3 gap-16 lg:gap-20">
+            {/* Expertise Card - Refined */}
+            <div className="group">
+              <div className="text-center transform transition-all duration-700 hover:-translate-y-3">
+                <div className="relative mb-10">
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#d4b5a0]/10 to-transparent rounded-full blur-2xl scale-150 group-hover:scale-175 transition-transform duration-700"></div>
+                  <div className="relative w-32 h-32 mx-auto">
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#d4b5a0]/20 to-[#c9a084]/20 rounded-full animate-pulse"></div>
+                    <div className="relative w-full h-full bg-gradient-to-br from-[#d4b5a0] to-[#c9a084] rounded-full flex items-center justify-center shadow-2xl group-hover:shadow-3xl transition-shadow duration-500">
+                      <svg className="w-14 h-14 text-white" fill="none" stroke="currentColor" strokeWidth="1" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+                <h3 className="font-playfair text-2xl md:text-3xl text-[#2c3e50] mb-5">
+                  <span className="font-light">Expertise</span>
+                  <span className="block text-lg md:text-xl font-normal italic text-[#d4b5a0] mt-1">Certifiée</span>
+                </h3>
+                <p className="font-inter text-[#2c3e50]/60 leading-relaxed text-sm md:text-base px-6 font-light tracking-wide">
+                  Plus d'une décennie dédiée à l'art de sublimer votre peau avec des techniques d'exception
+                </p>
               </div>
-              <h3 className="text-2xl font-serif font-semibold text-[#2c3e50] mb-4">Expertise Certifiée</h3>
-              <p className="text-[#2c3e50]/70">Plus de 10 ans d'expérience dans les soins esthétiques de prestige</p>
             </div>
 
-            <div className="text-center">
-              <div className="w-24 h-24 bg-gradient-to-br from-[#d4b5a0] to-[#c9a084] rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
-                <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
+            {/* Technology Card - Refined */}
+            <div className="group">
+              <div className="text-center transform transition-all duration-700 hover:-translate-y-3">
+                <div className="relative mb-10">
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#d4b5a0]/10 to-transparent rounded-full blur-2xl scale-150 group-hover:scale-175 transition-transform duration-700"></div>
+                  <div className="relative w-32 h-32 mx-auto">
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#d4b5a0]/20 to-[#c9a084]/20 rounded-full animate-pulse animation-delay-200"></div>
+                    <div className="relative w-full h-full bg-gradient-to-br from-[#d4b5a0] to-[#c9a084] rounded-full flex items-center justify-center shadow-2xl group-hover:shadow-3xl transition-shadow duration-500">
+                      <svg className="w-14 h-14 text-white" fill="none" stroke="currentColor" strokeWidth="1" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+                <h3 className="font-playfair text-2xl md:text-3xl text-[#2c3e50] mb-5">
+                  <span className="font-light">Technologies</span>
+                  <span className="block text-lg md:text-xl font-normal italic text-[#d4b5a0] mt-1">Innovantes</span>
+                </h3>
+                <p className="font-inter text-[#2c3e50]/60 leading-relaxed text-sm md:text-base px-6 font-light tracking-wide">
+                  Équipements de pointe minutieusement sélectionnés pour leur efficacité cliniquement prouvée
+                </p>
               </div>
-              <h3 className="text-2xl font-serif font-semibold text-[#2c3e50] mb-4">Technologies Avancées</h3>
-              <p className="text-[#2c3e50]/70">Équipements de dernière génération pour des résultats optimaux</p>
             </div>
 
-            <div className="text-center">
-              <div className="w-24 h-24 bg-gradient-to-br from-[#d4b5a0] to-[#c9a084] rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
-                <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            {/* Personalized Card - Refined */}
+            <div className="group">
+              <div className="text-center transform transition-all duration-700 hover:-translate-y-3">
+                <div className="relative mb-10">
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#d4b5a0]/10 to-transparent rounded-full blur-2xl scale-150 group-hover:scale-175 transition-transform duration-700"></div>
+                  <div className="relative w-32 h-32 mx-auto">
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#d4b5a0]/20 to-[#c9a084]/20 rounded-full animate-pulse animation-delay-400"></div>
+                    <div className="relative w-full h-full bg-gradient-to-br from-[#d4b5a0] to-[#c9a084] rounded-full flex items-center justify-center shadow-2xl group-hover:shadow-3xl transition-shadow duration-500">
+                      <svg className="w-14 h-14 text-white" fill="none" stroke="currentColor" strokeWidth="1" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+                <h3 className="font-playfair text-2xl md:text-3xl text-[#2c3e50] mb-5">
+                  <span className="font-light">Approche</span>
+                  <span className="block text-lg md:text-xl font-normal italic text-[#d4b5a0] mt-1">Sur-Mesure</span>
+                </h3>
+                <p className="font-inter text-[#2c3e50]/60 leading-relaxed text-sm md:text-base px-6 font-light tracking-wide">
+                  Chaque protocole est méticuleusement conçu pour répondre à vos besoins uniques
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Signature Quote */}
+          <div className="mt-32 text-center">
+            <div className="max-w-4xl mx-auto relative">
+              <div className="absolute -top-10 left-1/2 transform -translate-x-1/2">
+                <svg className="w-16 h-16 text-[#d4b5a0]/20" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-serif font-semibold text-[#2c3e50] mb-4">Approche Personnalisée</h3>
-              <p className="text-[#2c3e50]/70">Des protocoles sur-mesure adaptés à chaque type de peau</p>
+              <p className="font-playfair text-2xl md:text-3xl lg:text-4xl text-[#2c3e50]/60 italic font-light leading-relaxed tracking-wide px-8">
+                La vraie beauté réside dans l'harmonie parfaite entre science, art et attention personnalisée
+              </p>
+              <div className="mt-10">
+                <div className="inline-block">
+                  <p className="font-inter text-sm text-[#d4b5a0] font-medium tracking-[0.3em] uppercase">Laïa Gherbi</p>
+                  <p className="font-inter text-xs text-[#2c3e50]/40 mt-2 tracking-wider">Fondatrice & Experte en soins esthétiques</p>
+                  <div className="w-24 h-[0.5px] bg-gradient-to-r from-transparent via-[#d4b5a0] to-transparent mx-auto mt-4"></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -47,30 +47,30 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL('https://laia-skin.fr'),
   title: {
-    default: "LAIA SKIN Institut - Soins Esthétiques Haut de Gamme à Paris",
-    template: "%s | LAIA SKIN Institut"
+    default: "LAIA SKIN INSTITUT - Soins Esthétiques Haut de Gamme à Paris",
+    template: "%s | LAIA SKIN INSTITUT"
   },
   description: "Institut de beauté spécialisé dans les soins innovants du visage : HydroFacial, BB Glow, Microneedling, LED Thérapie. Réservation en ligne 24/7. Paris.",
   keywords: ["institut beauté Paris", "soin visage", "hydrofacial", "bb glow", "led thérapie", "microneedling", "esthétique", "LAIA SKIN", "soins anti-âge", "rajeunissement visage"],
-  authors: [{ name: "LAIA SKIN Institut" }],
-  creator: "LAIA SKIN Institut",
-  publisher: "LAIA SKIN Institut",
+  authors: [{ name: "LAIA SKIN INSTITUT" }],
+  creator: "LAIA SKIN INSTITUT",
+  publisher: "LAIA SKIN INSTITUT",
   formatDetection: {
     email: false,
     address: false,
     telephone: false,
   },
   openGraph: {
-    title: "LAIA SKIN Institut - Soins Esthétiques Premium",
+    title: "LAIA SKIN INSTITUT - Soins Esthétiques Premium",
     description: "Découvrez nos soins innovants pour révéler votre beauté naturelle",
     url: "https://laia-skin.fr",
-    siteName: "LAIA SKIN Institut",
+    siteName: "LAIA SKIN INSTITUT",
     images: [
       {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "LAIA SKIN Institut de Beauté",
+        alt: "LAIA SKIN INSTITUT de Beauté",
       },
     ],
     locale: "fr_FR",
@@ -78,7 +78,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "LAIA SKIN Institut",
+    title: "LAIA SKIN INSTITUT",
     description: "Institut de beauté premium à Paris",
     images: ["/twitter-image.jpg"],
   },
