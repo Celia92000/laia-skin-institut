@@ -18,8 +18,7 @@ export async function GET(request: Request) {
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
       select: {
-        emailNotifications: true,
-        whatsappNotifications: true
+        preferences: true
       }
     });
 
@@ -27,10 +26,22 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Utilisateur non trouvé' }, { status: 404 });
     }
 
-    return NextResponse.json({
-      emailNotifications: user.emailNotifications !== false, // Par défaut true
-      whatsappNotifications: user.whatsappNotifications !== false // Par défaut true
-    });
+    // Parse preferences from JSON string
+    let userPreferences = {
+      emailNotifications: true,
+      whatsappNotifications: true
+    };
+
+    if (user.preferences) {
+      try {
+        const parsed = JSON.parse(user.preferences);
+        userPreferences = { ...userPreferences, ...parsed };
+      } catch (e) {
+        console.error('Error parsing user preferences:', e);
+      }
+    }
+
+    return NextResponse.json(userPreferences);
 
   } catch (error) {
     console.error('Erreur récupération préférences:', error);
@@ -54,21 +65,39 @@ export async function PUT(request: Request) {
     const body = await request.json();
     const { emailNotifications, whatsappNotifications } = body;
 
+    // Get current preferences
+    const currentUser = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      select: { preferences: true }
+    });
+
+    let currentPreferences = {};
+    if (currentUser?.preferences) {
+      try {
+        currentPreferences = JSON.parse(currentUser.preferences);
+      } catch (e) {
+        console.error('Error parsing current preferences:', e);
+      }
+    }
+
+    // Update preferences
+    const updatedPreferences = {
+      ...currentPreferences,
+      ...(emailNotifications !== undefined && { emailNotifications }),
+      ...(whatsappNotifications !== undefined && { whatsappNotifications })
+    };
+
     const user = await prisma.user.update({
       where: { id: decoded.userId },
       data: {
-        ...(emailNotifications !== undefined && { emailNotifications }),
-        ...(whatsappNotifications !== undefined && { whatsappNotifications })
+        preferences: JSON.stringify(updatedPreferences)
       }
     });
 
     return NextResponse.json({
       success: true,
       message: 'Préférences mises à jour',
-      preferences: {
-        emailNotifications: user.emailNotifications,
-        whatsappNotifications: user.whatsappNotifications
-      }
+      preferences: updatedPreferences
     });
 
   } catch (error) {
