@@ -2,7 +2,7 @@
 
 ## ⚠️ Problème actuel
 Actuellement, Resend est en mode test avec 2 limitations :
-1. **Expéditeur** : Les emails partent de `onboarding@resend.dev` au lieu de `contact@laia-skin.fr`
+1. **Expéditeur** : Les emails partent de `onboarding@resend.dev` au lieu de `contact@laia.skininstitut.fr`
 2. **Destinataires** : Ne peut envoyer qu'à votre adresse vérifiée : **celia.ivorra95@hotmail.fr**
 
 Résultat : 
@@ -35,7 +35,7 @@ Résultat :
 5. **Mettez à jour l'adresse d'envoi**
    Dans le fichier `.env.local`, décommentez la ligne :
    ```
-   RESEND_FROM_EMAIL="LAIA SKIN INSTITUT <contact@laia-skin.fr>"
+   RESEND_FROM_EMAIL="LAIA SKIN INSTITUT <contact@laia.skininstitut.fr>"
    ```
    (Enlevez le # au début de la ligne)
 
@@ -50,9 +50,9 @@ CNAME   resend2._domainkey     [valeur fournie par Resend]
 
 ## 🚀 Une fois configuré
 
-- ✅ **Les emails partiront de `contact@laia-skin.fr`** (professionnel)
+- ✅ **Les emails partiront de `contact@laia.skininstitut.fr`** (professionnel)
 - ✅ **Tous les clients recevront leurs confirmations** (plus de limitation)
-- ✅ **Vous recevrez une copie sur `contact@laia-skin.fr`**
+- ✅ **Vous recevrez une copie sur `contact@laia.skininstitut.fr`**
 - ✅ **Meilleure délivrabilité** (moins de risque spam)
 - ✅ **Image professionnelle** de votre institut
 
