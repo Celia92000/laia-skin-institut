@@ -285,7 +285,8 @@ export async function POST(request: Request) {
           time: time,
           services: serviceNames,
           totalPrice: totalPrice,
-          reservationId: reservation.id
+          reservationId: reservation.id,
+          notes: notes
         });
         
         if (emailSent) {

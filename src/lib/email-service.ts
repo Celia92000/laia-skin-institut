@@ -155,6 +155,7 @@ interface SendConfirmationEmailParams {
   services: string[];
   totalPrice: number;
   reservationId: string;
+  notes?: string;
 }
 
 export async function sendConfirmationEmail({
@@ -164,7 +165,8 @@ export async function sendConfirmationEmail({
   time,
   services,
   totalPrice,
-  reservationId
+  reservationId,
+  notes
 }: SendConfirmationEmailParams) {
   // Si pas de clé API configurée, simuler l'envoi
   if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY === 'demo_key') {
@@ -263,6 +265,7 @@ export async function sendConfirmationEmail({
       </html>
     `;
 
+    // Envoyer l'email au client
     const { data, error } = await resend.emails.send({
       from: 'LAIA SKIN INSTITUT <onboarding@resend.dev>',
       to,
@@ -273,6 +276,30 @@ export async function sendConfirmationEmail({
     if (error) {
       console.error('Erreur envoi email:', error);
       return false;
+    }
+
+    // Envoyer une copie à l'admin
+    try {
+      const adminNotification = `
+        <h2>🔔 Nouvelle réservation confirmée</h2>
+        <p><strong>Client:</strong> ${clientName} (${to})</p>
+        <p><strong>Date:</strong> ${date}</p>
+        <p><strong>Heure:</strong> ${time}</p>
+        <p><strong>Services:</strong> ${services.join(', ')}</p>
+        <p><strong>Total:</strong> ${totalPrice}€</p>
+        ${notes ? `<p><strong>Notes:</strong> ${notes}</p>` : ''}
+      `;
+
+      await resend.emails.send({
+        from: 'LAIA SKIN INSTITUT <onboarding@resend.dev>',
+        to: 'contact@laia-skin.fr',
+        subject: `🔔 Nouvelle réservation - ${date} à ${time}`,
+        html: adminNotification
+      });
+      console.log('✅ Copie envoyée à contact@laia-skin.fr');
+    } catch (adminError) {
+      console.error('⚠️ Erreur envoi copie admin:', adminError);
+      // On ne bloque pas l'envoi principal si la copie admin échoue
     }
 
     console.log('✅ Email de confirmation envoyé:', to);
