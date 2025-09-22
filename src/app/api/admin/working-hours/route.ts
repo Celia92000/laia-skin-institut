@@ -25,30 +25,19 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
 
-    // Récupérer les créneaux bloqués futurs ou d'aujourd'hui
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    const blockedSlots = await prisma.blockedSlot.findMany({
-      where: {
-        date: {
-          gte: today
-        }
-      },
-      orderBy: [
-        { date: 'asc' },
-        { time: 'asc' }
-      ]
+    // Récupérer les horaires de travail
+    const workingHours = await prisma.workingHours.findMany({
+      orderBy: { dayOfWeek: 'asc' }
     });
 
-    return NextResponse.json(blockedSlots);
+    return NextResponse.json(workingHours);
   } catch (error) {
-    console.error('Erreur lors de la récupération des créneaux bloqués:', error);
+    console.error('Erreur lors de la récupération des horaires:', error);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }
 
-export async function POST(request: Request) {
+export async function PUT(request: Request) {
   try {
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
     
@@ -71,21 +60,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
 
-    const { date, allDay, time, reason } = await request.json();
+    const workingHours = await request.json();
 
-    // Créer le créneau bloqué
-    const blockedSlot = await prisma.blockedSlot.create({
-      data: {
-        date: new Date(date),
-        allDay: allDay || false,
-        time: allDay ? null : time,
-        reason: reason || 'Indisponible'
-      }
-    });
+    // Mettre à jour chaque jour
+    const updates = workingHours.map((hour: any) => 
+      prisma.workingHours.update({
+        where: { id: hour.id },
+        data: {
+          isOpen: hour.isOpen,
+          startTime: hour.startTime,
+          endTime: hour.endTime
+        }
+      })
+    );
 
-    return NextResponse.json(blockedSlot);
+    await prisma.$transaction(updates);
+
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Erreur lors de la création du créneau bloqué:', error);
+    console.error('Erreur lors de la mise à jour des horaires:', error);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }
