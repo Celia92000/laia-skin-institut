@@ -20,6 +20,13 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;  /* Chrome, Safari and Opera */
   }
+  
+  /* Prevent vertical scrolling on tabs */
+  .no-vertical-scroll {
+    overflow-y: hidden !important;
+    overflow-x: auto;
+    touch-action: pan-x;
+  }
 }
 
 @layer base {

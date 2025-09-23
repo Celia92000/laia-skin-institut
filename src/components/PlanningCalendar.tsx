@@ -60,13 +60,25 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
   const [localServices, setLocalServices] = useState<any[]>([]);
   const [isBlockMode, setIsBlockMode] = useState(false);
 
+  // Debug: vérifier les props
+  useEffect(() => {
+    if (services) {
+      console.log('PlanningCalendar services type:', typeof services, Object.entries(services).slice(0, 1));
+    }
+  }, [services]);
+
   useEffect(() => {
     fetchBlockedSlots();
   }, []);
 
   const fetchBlockedSlots = async () => {
     try {
-      const response = await fetch('/api/admin/blocked-slots');
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/admin/blocked-slots', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       if (response.ok) {
         const data = await response.json();
         setBlockedSlots(data);
@@ -98,12 +110,24 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
       return reservation.serviceDuration;
     }
     
-    // Sinon, chercher dans dbServices si disponible
-    if (dbServices && reservation?.services && reservation.services.length > 0) {
-      const serviceId = reservation.services[0];
-      const service = dbServices.find(s => s.id === serviceId);
-      if (service?.duration) {
-        return service.duration;
+    // Chercher dans dbServices par slug ou nom
+    if (dbServices) {
+      // Si on a un tableau de services dans la réservation
+      if (reservation?.services && reservation.services.length > 0) {
+        const serviceSlug = reservation.services[0];
+        const service = dbServices.find(s => s.slug === serviceSlug || s.name === serviceName);
+        if (service?.duration) {
+          return service.duration;
+        }
+      }
+      
+      // Sinon chercher par nom de service
+      if (serviceName || reservation?.serviceName) {
+        const name = serviceName || reservation.serviceName;
+        const service = dbServices.find(s => s.name === name);
+        if (service?.duration) {
+          return service.duration;
+        }
       }
     }
     
@@ -430,7 +454,7 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
           >
-            {timeSlots.map(time => {
+            {timeSlots.map((time, index) => {
               const reservation = dayReservations.find(r => r.time === time);
               const isBlocked = blockedSlots.some(slot => 
                 slot.date === formatDateLocal(currentDate) && 
@@ -443,7 +467,7 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
               const isInReservedRange = dayReservations.some(r => {
                 const resStart = timeToMinutes(r.time);
                 // Récupérer la durée du service ou utiliser la durée par défaut
-                const resDuration = r.serviceDuration || getServiceDuration(r.serviceName || '', r);
+                const resDuration = r.serviceDuration || getServiceDuration(r.serviceName || '', dbServices);
                 const resEnd = resStart + resDuration + 15; // +15 min préparation
                 return timeMin >= resStart && timeMin < resEnd;
               });
@@ -454,24 +478,14 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
               let showReservationBlock = false;
               
               if (isReservationStart && reservation) {
-                const duration = reservation.serviceDuration || getServiceDuration(reservation.serviceName || '', reservation);
+                const duration = reservation.serviceDuration || getServiceDuration(reservation.serviceName || '', dbServices);
                 reservationSpan = Math.ceil((duration + 15) / 30); // Nombre de créneaux de 30 min (incluant préparation)
                 showReservationBlock = true;
               }
 
               // Ne pas afficher les créneaux qui sont dans la continuité d'une réservation
               if (!showReservationBlock && isInReservedRange && !reservation) {
-                return (
-                  <div
-                    key={time}
-                    className="p-3 rounded-lg border-2 bg-orange-50 border-orange-200 cursor-not-allowed opacity-75 select-none"
-                  >
-                    <div className="flex items-center justify-between text-gray-500">
-                      <span className="text-sm font-medium">{time}</span>
-                      <span className="text-xs">Occupé</span>
-                    </div>
-                  </div>
-                );
+                return null; // On masque complètement les créneaux qui font partie d'une réservation
               }
 
               return (
@@ -479,7 +493,7 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
                   key={time}
                   className={`relative ${showReservationBlock ? '' : 'p-3'} rounded-lg border-2 transition-all select-none ${
                     reservation 
-                      ? 'bg-blue-50 border-blue-200 hover:bg-blue-100 cursor-pointer' 
+                      ? 'bg-gradient-to-b from-blue-500 to-blue-400 text-white border-blue-600 hover:from-blue-600 hover:to-blue-500 cursor-pointer shadow-lg' 
                       : isInReservedRange
                       ? 'bg-orange-50 border-orange-200 cursor-not-allowed opacity-75'
                       : isBlocked
@@ -487,10 +501,10 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
                       : isSelected
                       ? 'bg-yellow-100 border-yellow-400 cursor-pointer'
                       : 'bg-green-50 border-green-200 hover:bg-green-100 cursor-pointer'
-                  } ${showReservationBlock ? `row-span-${reservationSpan}` : ''}`}
+                  }`}
                   style={showReservationBlock ? {
-                    gridRow: `span ${reservationSpan}`,
-                    minHeight: `${reservationSpan * 60}px`
+                    minHeight: `${reservationSpan * 65 - 8}px`,
+                    marginBottom: `${(reservationSpan - 1) * 8}px`
                   } : {}}
                   onMouseDown={() => !reservation && handleMouseDown(time)}
                   onMouseEnter={() => handleMouseEnter(time)}
@@ -562,27 +576,31 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
                 >
                   {showReservationBlock && reservation ? (
                     // Affichage étendu pour les réservations
-                    <div className="p-3 h-full flex flex-col justify-between bg-gradient-to-b from-blue-100 to-blue-50">
+                    <div className="p-3 h-full flex flex-col justify-between">
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <span className="font-bold text-[#2c3e50]">{time}</span>
-                          <span className="text-xs text-blue-600">
-                            {Math.floor((reservation.serviceDuration || getServiceDuration(reservation.serviceName || '', reservation)) / 60)}h
-                            {((reservation.serviceDuration || getServiceDuration(reservation.serviceName || '', reservation)) % 60) > 0 ? 
-                              `${(reservation.serviceDuration || getServiceDuration(reservation.serviceName || '', reservation)) % 60}min` : ''}
+                          <span className="font-bold text-white">{time}</span>
+                          <span className="text-xs text-white/90 bg-white/20 px-2 py-0.5 rounded-full">
+                            {Math.floor((reservation.serviceDuration || getServiceDuration(reservation.serviceName || '', dbServices)) / 60)}h
+                            {((reservation.serviceDuration || getServiceDuration(reservation.serviceName || '', dbServices)) % 60) > 0 ? 
+                              `${(reservation.serviceDuration || getServiceDuration(reservation.serviceName || '', dbServices)) % 60}min` : ''}
                           </span>
                         </div>
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <User className="w-4 h-4 text-blue-700" />
-                            <span className="text-sm font-semibold text-blue-800">
+                            <User className="w-4 h-4 text-white/90" />
+                            <span className="text-sm font-semibold text-white">
                               {reservation.userName}
                             </span>
                           </div>
-                          <div className="text-xs text-blue-700">
-                            {reservation.serviceName || reservation.services?.[0]?.name || reservation.service || 'Service'}
+                          <div className="text-xs text-white/80">
+                            {reservation.serviceName || 
+                             (typeof reservation.services?.[0] === 'object' ? reservation.services[0].name : 
+                              (services && reservation.services?.[0] && typeof services[reservation.services[0]] === 'string' ? services[reservation.services[0]] : null) || 
+                              reservation.services?.[0]) || 
+                             'Service'}
                           </div>
-                          <div className="text-sm font-semibold text-blue-900">
+                          <div className="text-lg font-bold text-white">
                             {reservation.totalPrice}€
                           </div>
                         </div>
@@ -611,6 +629,28 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
         )}
       </div>
     );
+  };
+
+  // Fonction pour calculer le nombre de créneaux pour une réservation
+  const getReservationSlots = (reservation: any): number => {
+    const duration = getServiceDuration(reservation.serviceName, dbServices);
+    // Chaque créneau est de 30 minutes
+    return Math.ceil(duration / 30);
+  };
+
+  // Fonction pour vérifier si un créneau est occupé par une réservation
+  const isTimeSlotOccupied = (date: Date, time: string, reservations: any[]): any => {
+    for (const reservation of reservations) {
+      const resTime = reservation.time;
+      const resTimeIndex = timeSlots.indexOf(resTime);
+      const duration = getReservationSlots(reservation);
+      const checkTimeIndex = timeSlots.indexOf(time);
+      
+      if (resTimeIndex <= checkTimeIndex && checkTimeIndex < resTimeIndex + duration) {
+        return reservation;
+      }
+    }
+    return null;
   };
 
   // Vue Semaine
@@ -763,7 +803,8 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
               {[0, 1, 2, 3, 4, 5, 6].map(dayOffset => {
                 const date = new Date(startOfWeek);
                 date.setDate(startOfWeek.getDate() + dayOffset);
-                const reservation = getReservationsForDate(date).find(r => r.time === time);
+                const dayReservations = getReservationsForDate(date);
+                const occupyingReservation = isTimeSlotOccupied(date, time, dayReservations);
                 const dateStr = formatDateLocal(date);
                 const isBlocked = blockedSlots.some(slot => 
                   slot.date === dateStr && 
@@ -771,26 +812,44 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
                 );
                 const isSelected = weekSelectedSlots.some(s => s.date === dateStr && s.time === time);
 
+                // Si c'est le début d'une réservation, on calcule la durée
+                const isStartOfReservation = occupyingReservation && occupyingReservation.time === time;
+                const reservationSlots = isStartOfReservation ? getReservationSlots(occupyingReservation) : 0;
+                
+                // Style différent si le créneau est occupé ou début de réservation
+                let bgClass = '';
+                if (occupyingReservation) {
+                  if (isStartOfReservation) {
+                    bgClass = 'bg-blue-500 text-white hover:bg-blue-600 font-semibold rounded-t-lg';
+                  } else {
+                    bgClass = 'bg-blue-300 hover:bg-blue-400';
+                  }
+                } else if (isBlocked) {
+                  bgClass = 'bg-red-100 hover:bg-red-200 border-red-300';
+                } else if (isSelected) {
+                  bgClass = 'bg-yellow-100 border-yellow-400';
+                } else {
+                  bgClass = 'hover:bg-green-100';
+                }
+
                 return (
                   <div
                     key={`${dayOffset}-${time}`}
-                    className={`p-1 border-t text-xs cursor-pointer transition-all select-none ${
-                      reservation 
-                        ? 'bg-blue-100 hover:bg-blue-200' 
-                        : isBlocked
-                        ? 'bg-red-100 hover:bg-red-200 border-red-300'
-                        : isSelected
-                        ? 'bg-yellow-100 border-yellow-400'
-                        : 'hover:bg-green-100'
+                    className={`p-1 border-t text-xs cursor-pointer transition-all select-none ${bgClass} ${
+                      isStartOfReservation && reservationSlots > 1 ? 'relative' : ''
                     }`}
-                    onMouseDown={() => isBlockMode && !reservation && !isBlocked && handleWeekMouseDown(time, date)}
+                    style={isStartOfReservation && reservationSlots > 1 ? {
+                      gridRow: `span ${reservationSlots}`,
+                      minHeight: `${reservationSlots * 40}px`
+                    } : {}}
+                    onMouseDown={() => isBlockMode && !occupyingReservation && !isBlocked && handleWeekMouseDown(time, date)}
                     onMouseEnter={() => handleWeekMouseEnter(time, date)}
                     onClick={async () => {
                       if (isDragging) return;
                       
-                      if (reservation) {
+                      if (occupyingReservation) {
                         // Afficher les détails de la réservation
-                        setSelectedReservation(reservation);
+                        setSelectedReservation(occupyingReservation);
                         setShowReservationDetail(true);
                       } else if (isBlockMode) {
                         // En mode blocage
@@ -845,7 +904,7 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
                       } else {
                         // En mode normal, ouvrir le formulaire de création
                         // (même si le créneau est bloqué, on peut vouloir voir le détail)
-                        if (!isBlocked) {
+                        if (!isBlocked && !occupyingReservation) {
                           setSelectedSlot({ 
                             date: date, 
                             time: time,
@@ -856,10 +915,16 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
                       }
                     }}
                   >
-                    {reservation && (
-                      <div className="truncate">
-                        <p className="font-semibold text-blue-900">
-                          {reservation.userName?.split(' ')[0]}
+                    {isStartOfReservation && (
+                      <div className="text-xs">
+                        <p className="font-semibold truncate">
+                          {occupyingReservation.userName?.split(' ')[0]}
+                        </p>
+                        <p className="text-[10px] opacity-90">
+                          {occupyingReservation.serviceName}
+                        </p>
+                        <p className="text-[10px] opacity-80">
+                          {getServiceDuration(occupyingReservation.serviceName, dbServices)} min
                         </p>
                       </div>
                     )}
@@ -1357,6 +1422,11 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
                       <p className="font-semibold text-[#2c3e50]">
                         {reservation.time} - {reservation.userName}
                       </p>
+                      <p className="text-sm text-[#2c3e50]/60">
+                        {reservation.serviceName || (reservation.services && reservation.services.length > 0 ? 
+                          (services && typeof services[reservation.services[0]] === 'string' ? services[reservation.services[0]] : reservation.services[0]) : 
+                          'Service')}
+                      </p>
                       <p className="text-sm text-[#2c3e50]/70">
                         {reservation.totalPrice}€
                       </p>
@@ -1446,8 +1516,14 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
                   {selectedReservation.services && selectedReservation.services.length > 0 ? (
                     selectedReservation.services.map((service: any, index: number) => (
                       <div key={index} className="flex justify-between items-center text-sm">
-                        <span>{service.name || service}</span>
-                        {service.price && <span className="font-medium">{service.price}€</span>}
+                        <span>
+                          {typeof service === 'string' 
+                            ? (services && typeof services[service] === 'string' ? services[service] : service)
+                            : service.name || 'Service'}
+                        </span>
+                        {typeof service === 'object' && service.price && (
+                          <span className="font-medium">{service.price}€</span>
+                        )}
                       </div>
                     ))
                   ) : (

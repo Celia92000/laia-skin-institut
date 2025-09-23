@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Gift, Star, Award, TrendingUp, Calendar, User, CheckCircle, Euro, Cake, Heart, Users, AlertCircle, Download, Plus, Edit2, X } from 'lucide-react';
+import { Gift, Star, Award, TrendingUp, Calendar, User, CheckCircle, Euro, Cake, Heart, Users, AlertCircle, Download, Plus, Edit2, X, Settings, Save } from 'lucide-react';
 
 interface LoyaltyProfile {
   id: string;
@@ -24,14 +24,46 @@ interface AdminLoyaltyTabProps {
   reservations: any[];
   loyaltyProfiles: LoyaltyProfile[];
   onPointsAdd?: (clientId: string, points: number) => void;
+  onServicesModify?: (profileId: string, delta: number) => void;
+  onPackagesModify?: (profileId: string, delta: number) => void;
 }
 
-export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles, onPointsAdd }: AdminLoyaltyTabProps) {
+export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles, onPointsAdd, onServicesModify, onPackagesModify }: AdminLoyaltyTabProps) {
   const [selectedClient, setSelectedClient] = useState<string | null>(null);
   const [showAddPointsModal, setShowAddPointsModal] = useState(false);
   const [bonusPoints, setBonusPoints] = useState(0);
   const [bonusReason, setBonusReason] = useState('');
   const [filter, setFilter] = useState<'all' | 'ready' | 'birthday'>('all');
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [loyaltySettings, setLoyaltySettings] = useState({
+    serviceThreshold: 6,
+    serviceDiscount: 20,
+    packageThreshold: 4, 
+    packageDiscount: 40,
+    birthdayDiscount: 10,
+    referralBonus: 1,
+    reviewBonus: 1
+  });
+  const [editingSettings, setEditingSettings] = useState(false);
+
+  // Charger les paramètres de fidélité au montage
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/admin/loyalty-settings', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const settings = await response.json();
+          setLoyaltySettings(settings);
+        }
+      } catch (error) {
+        console.error('Erreur chargement paramètres:', error);
+      }
+    };
+    loadSettings();
+  }, []);
 
   // Calcul des statistiques globales
   const stats = {
@@ -49,8 +81,8 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
   // Clients avec réductions disponibles
   const getClientsWithRewards = () => {
     return loyaltyProfiles.filter(profile => {
-      const isReady6thService = profile.individualServicesCount === 5;
-      const isReady4thPackage = profile.packagesCount === 3;
+      const isReady6thService = profile.individualServicesCount === (loyaltySettings.serviceThreshold - 1);
+      const isReady4thPackage = profile.packagesCount === (loyaltySettings.packageThreshold - 1);
       const hasBirthday = profile.user.birthDate && 
         new Date(profile.user.birthDate).getMonth() === new Date().getMonth();
       
@@ -81,11 +113,101 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
     }
   };
 
+  const handleModifyServices = async (profileId: string, delta: number) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/admin/loyalty/${profileId}/services`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ delta })
+      });
+      
+      if (response.ok) {
+        // Actualiser les données
+        onServicesModify?.(profileId, delta);
+      }
+    } catch (error) {
+      console.error('Erreur modification soins:', error);
+    }
+  };
+
+  const handleModifyPackages = async (profileId: string, delta: number) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/admin/loyalty/${profileId}/packages`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ delta })
+      });
+      
+      if (response.ok) {
+        // Actualiser les données
+        onPackagesModify?.(profileId, delta);
+      }
+    } catch (error) {
+      console.error('Erreur modification forfaits:', error);
+    }
+  };
+
+  const handleApplyDiscount = async (profile: LoyaltyProfile, discountType: 'service' | 'package' | 'birthday', amount: number) => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Créer une note de réduction dans le profil du client
+      const response = await fetch('/api/admin/loyalty/apply-discount', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userId: profile.userId,
+          discountType,
+          amount,
+          description: discountType === 'service' ? `Réduction 6ème soin: -${amount}€` :
+                       discountType === 'package' ? `Réduction 4ème forfait: -${amount}€` :
+                       `Réduction anniversaire: -${amount}€`
+        })
+      });
+
+      if (response.ok) {
+        // Réinitialiser le compteur si nécessaire
+        if (discountType === 'service') {
+          await handleModifyServices(profile.id, -6); // Reset à 0
+        } else if (discountType === 'package') {
+          await handleModifyPackages(profile.id, -4); // Reset à 0
+        }
+        
+        alert(`✅ Réduction de ${amount}€ appliquée pour ${profile.user.name}\n\nLa réduction sera automatiquement déduite lors de la prochaine réservation.`);
+      } else {
+        alert('❌ Erreur lors de l\'application de la réduction');
+      }
+    } catch (error) {
+      console.error('Erreur application réduction:', error);
+      alert('❌ Erreur lors de l\'application de la réduction');
+    }
+  };
+
   return (
     <div>
-      <h2 className="text-2xl font-serif font-bold text-[#2c3e50] mb-6">
-        Programme de Fidélité
-      </h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-serif font-bold text-[#2c3e50]">
+          Programme de Fidélité
+        </h2>
+        <button
+          onClick={() => setShowSettingsModal(true)}
+          className="px-4 py-2 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2"
+        >
+          <Settings className="w-4 h-4" />
+          Gérer les réductions
+        </button>
+      </div>
 
       {/* Statistiques rapides */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
@@ -202,6 +324,7 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
                   <div className="flex gap-2">
                     {isReady6th && (
                       <button
+                        onClick={() => handleApplyDiscount(profile, 'service', 20)}
                         className="px-4 py-2 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2"
                       >
                         <Euro className="w-4 h-4" />
@@ -210,6 +333,7 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
                     )}
                     {isReady4th && (
                       <button
+                        onClick={() => handleApplyDiscount(profile, 'package', 40)}
                         className="px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2"
                       >
                         <Euro className="w-4 h-4" />
@@ -218,6 +342,7 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
                     )}
                     {hasBirthday && (
                       <button
+                        onClick={() => handleApplyDiscount(profile, 'birthday', 10)}
                         className="px-4 py-2 bg-gradient-to-r from-pink-500 to-pink-600 text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2"
                       >
                         <Cake className="w-4 h-4" />
@@ -324,9 +449,25 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <span className="text-sm font-medium">{profile.individualServicesCount}</span>
-                        <div className="w-20 bg-gray-200 rounded-full h-2 mt-1">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleModifyServices(profile.id, -1)}
+                          className="w-6 h-6 bg-red-100 text-red-600 rounded-full hover:bg-red-200 flex items-center justify-center"
+                          title="Retirer un soin"
+                        >
+                          -
+                        </button>
+                        <span className="text-sm font-medium min-w-[20px] text-center">{profile.individualServicesCount}</span>
+                        <button
+                          onClick={() => handleModifyServices(profile.id, 1)}
+                          className="w-6 h-6 bg-green-100 text-green-600 rounded-full hover:bg-green-200 flex items-center justify-center"
+                          title="Ajouter un soin"
+                        >
+                          +
+                        </button>
+                      </div>
+                      <div className="mt-2">
+                        <div className="w-full bg-gray-200 rounded-full h-2">
                           <div 
                             className="bg-[#d4b5a0] h-2 rounded-full transition-all"
                             style={{ width: `${progress6}%` }}
@@ -338,9 +479,25 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <span className="text-sm font-medium">{profile.packagesCount}</span>
-                        <div className="w-20 bg-gray-200 rounded-full h-2 mt-1">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleModifyPackages(profile.id, -1)}
+                          className="w-6 h-6 bg-red-100 text-red-600 rounded-full hover:bg-red-200 flex items-center justify-center"
+                          title="Retirer un forfait"
+                        >
+                          -
+                        </button>
+                        <span className="text-sm font-medium min-w-[20px] text-center">{profile.packagesCount}</span>
+                        <button
+                          onClick={() => handleModifyPackages(profile.id, 1)}
+                          className="w-6 h-6 bg-green-100 text-green-600 rounded-full hover:bg-green-200 flex items-center justify-center"
+                          title="Ajouter un forfait"
+                        >
+                          +
+                        </button>
+                      </div>
+                      <div className="mt-2">
+                        <div className="w-full bg-gray-200 rounded-full h-2">
                           <div 
                             className="bg-purple-500 h-2 rounded-full transition-all"
                             style={{ width: `${progress4}%` }}
@@ -378,6 +535,199 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
         </div>
       </div>
 
+      {/* Modal de configuration des réductions */}
+      {showSettingsModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-[#2c3e50]">Configuration des Réductions</h3>
+              <button
+                onClick={() => {
+                  setShowSettingsModal(false);
+                  setEditingSettings(false);
+                }}
+                className="p-2 hover:bg-gray-100 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              {/* Carte Soins Individuels */}
+              <div className="bg-gradient-to-r from-[#d4b5a0]/10 to-[#c9a084]/10 rounded-xl p-5">
+                <h4 className="font-bold text-[#2c3e50] mb-4 flex items-center gap-2">
+                  <Gift className="w-5 h-5 text-[#d4b5a0]" />
+                  Carte Soins Individuels
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[#2c3e50]/70 mb-1">
+                      Nombre de soins requis
+                    </label>
+                    <input
+                      type="number"
+                      value={loyaltySettings.serviceThreshold}
+                      onChange={(e) => setLoyaltySettings({...loyaltySettings, serviceThreshold: parseInt(e.target.value)})}
+                      disabled={!editingSettings}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4b5a0] disabled:bg-gray-100"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[#2c3e50]/70 mb-1">
+                      Montant de la réduction (€)
+                    </label>
+                    <input
+                      type="number"
+                      value={loyaltySettings.serviceDiscount}
+                      onChange={(e) => setLoyaltySettings({...loyaltySettings, serviceDiscount: parseInt(e.target.value)})}
+                      disabled={!editingSettings}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4b5a0] disabled:bg-gray-100"
+                    />
+                  </div>
+                </div>
+                <p className="text-sm text-[#2c3e50]/60 mt-2">
+                  Actuellement : {loyaltySettings.serviceThreshold}ème soin = -{loyaltySettings.serviceDiscount}€
+                </p>
+              </div>
+
+              {/* Carte Forfaits */}
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-5">
+                <h4 className="font-bold text-[#2c3e50] mb-4 flex items-center gap-2">
+                  <Star className="w-5 h-5 text-purple-600" />
+                  Carte Forfaits Premium
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[#2c3e50]/70 mb-1">
+                      Nombre de forfaits requis
+                    </label>
+                    <input
+                      type="number"
+                      value={loyaltySettings.packageThreshold}
+                      onChange={(e) => setLoyaltySettings({...loyaltySettings, packageThreshold: parseInt(e.target.value)})}
+                      disabled={!editingSettings}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 disabled:bg-gray-100"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[#2c3e50]/70 mb-1">
+                      Montant de la réduction (€)
+                    </label>
+                    <input
+                      type="number"
+                      value={loyaltySettings.packageDiscount}
+                      onChange={(e) => setLoyaltySettings({...loyaltySettings, packageDiscount: parseInt(e.target.value)})}
+                      disabled={!editingSettings}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 disabled:bg-gray-100"
+                    />
+                  </div>
+                </div>
+                <p className="text-sm text-[#2c3e50]/60 mt-2">
+                  Actuellement : {loyaltySettings.packageThreshold}ème forfait = -{loyaltySettings.packageDiscount}€
+                </p>
+              </div>
+
+              {/* Réductions spéciales */}
+              <div className="bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl p-5">
+                <h4 className="font-bold text-[#2c3e50] mb-4 flex items-center gap-2">
+                  <Cake className="w-5 h-5 text-pink-600" />
+                  Réductions Spéciales
+                </h4>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-[#2c3e50]/70 mb-1">
+                      Réduction anniversaire (€)
+                    </label>
+                    <input
+                      type="number"
+                      value={loyaltySettings.birthdayDiscount}
+                      onChange={(e) => setLoyaltySettings({...loyaltySettings, birthdayDiscount: parseInt(e.target.value)})}
+                      disabled={!editingSettings}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 disabled:bg-gray-100"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[#2c3e50]/70 mb-1">
+                      Bonus parrainage (soins gratuits)
+                    </label>
+                    <input
+                      type="number"
+                      value={loyaltySettings.referralBonus}
+                      onChange={(e) => setLoyaltySettings({...loyaltySettings, referralBonus: parseInt(e.target.value)})}
+                      disabled={!editingSettings}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 disabled:bg-gray-100"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[#2c3e50]/70 mb-1">
+                      Bonus avis Google (soins gratuits)
+                    </label>
+                    <input
+                      type="number"
+                      value={loyaltySettings.reviewBonus}
+                      onChange={(e) => setLoyaltySettings({...loyaltySettings, reviewBonus: parseInt(e.target.value)})}
+                      disabled={!editingSettings}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 disabled:bg-gray-100"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                {!editingSettings ? (
+                  <button
+                    onClick={() => setEditingSettings(true)}
+                    className="px-6 py-2 bg-[#d4b5a0] text-white rounded-lg hover:bg-[#c4a590] flex items-center gap-2"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                    Modifier
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => setEditingSettings(false)}
+                      className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      onClick={async () => {
+                        try {
+                          const token = localStorage.getItem('token');
+                          const response = await fetch('/api/admin/loyalty-settings', {
+                            method: 'PUT',
+                            headers: {
+                              'Authorization': `Bearer ${token}`,
+                              'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(loyaltySettings)
+                          });
+                          
+                          if (response.ok) {
+                            alert('✅ Paramètres de fidélité mis à jour avec succès !');
+                            setEditingSettings(false);
+                          } else {
+                            alert('❌ Erreur lors de la sauvegarde des paramètres');
+                          }
+                        } catch (error) {
+                          console.error('Erreur sauvegarde:', error);
+                          alert('❌ Erreur lors de la sauvegarde des paramètres');
+                        }
+                      }}
+                      className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
+                    >
+                      <Save className="w-4 h-4" />
+                      Enregistrer
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal ajout de points bonus */}
       {showAddPointsModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -400,7 +750,7 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-[#2c3e50] mb-2">
-                  Nombre de points
+                  Nombre de soins/forfaits
                 </label>
                 <input
                   type="number"

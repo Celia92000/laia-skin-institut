@@ -6,7 +6,7 @@ import WhatsAppCampaigns from './WhatsAppCampaigns';
 import WhatsAppAutomations from './WhatsAppAutomations';
 import WhatsAppReal from './WhatsAppReal';
 import WhatsAppHistory from './WhatsAppHistory';
-import WhatsAppTemplateManager from './WhatsAppTemplateManager';
+import WhatsAppSimple from './WhatsAppSimple';
 
 export default function WhatsAppHub() {
   const [activeSubTab, setActiveSubTab] = useState<'templates' | 'conversations' | 'campaigns' | 'automations'>('templates');
@@ -70,7 +70,7 @@ export default function WhatsAppHub() {
       </div>
 
       {/* Contenu des sous-onglets */}
-      {activeSubTab === 'templates' && <WhatsAppTemplateManager />}
+      {activeSubTab === 'templates' && <WhatsAppSimple />}
       {activeSubTab === 'conversations' && <WhatsAppReal />}
       {activeSubTab === 'campaigns' && <WhatsAppCampaigns />}
       {activeSubTab === 'automations' && <WhatsAppAutomations />}

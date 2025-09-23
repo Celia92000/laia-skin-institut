@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Clock, User, Euro, Calendar, Grid3x3, List, CalendarDays, Mail, Phone } from "lucide-react";
-import { servicePricing, formatPriceDetails } from "@/lib/pricing";
+// import { servicePricing, formatPriceDetails } from "@/lib/pricing";
 
 interface Reservation {
   id: string;
@@ -12,6 +12,7 @@ interface Reservation {
   userEmail?: string;
   phone?: string;
   services: string[];
+  serviceName?: string; // Nom du service principal depuis la DB
   packages?: Record<string, string>;
   isSubscription?: boolean;
   totalPrice: number;
@@ -264,30 +265,36 @@ export default function AdminCalendarEnhanced({ reservations, onDateSelect }: Ad
                 {getReservationsForDay(currentDate)
                   .sort((a, b) => a.time.localeCompare(b.time))
                   .map(reservation => {
-                    // Calculer les détails du prix pour chaque service
-                    const serviceDetails = reservation.services.map(serviceId => {
-                      const packageType = reservation.packages?.[serviceId] || 'single';
-                      const serviceInfo = servicePricing[serviceId as keyof typeof servicePricing];
-                      if (!serviceInfo) return null;
-                      
-                      let price = serviceInfo.price;
-                      let label = '';
-                      
-                      if (packageType === 'forfait' && serviceInfo.forfait) {
-                        price = serviceInfo.forfait.price;
-                        label = serviceInfo.forfait.label;
-                      } else if (serviceInfo.promoPrice) {
-                        price = serviceInfo.promoPrice;
-                        label = 'Tarif promo';
-                      }
-                      
-                      return {
-                        name: services[serviceId as keyof typeof services] || serviceId,
-                        price,
-                        label,
-                        packageType
-                      };
-                    }).filter(Boolean);
+                    // S'assurer que services est un tableau
+                    const servicesList = reservation.services && Array.isArray(reservation.services) 
+                      ? reservation.services 
+                      : [];
+                    
+                    // Si pas de services dans le tableau mais qu'il y a serviceName, l'utiliser
+                    const serviceDetails = servicesList.length > 0 
+                      ? servicesList.map(serviceId => {
+                          const packageType = reservation.packages?.[serviceId] || 'single';
+                          // const serviceInfo = servicePricing[serviceId as keyof typeof servicePricing];
+                          // if (!serviceInfo) return null;
+                          
+                          let price = 70; // Prix par défaut
+                          let label = '';
+                          
+                          return {
+                            name: services[serviceId as keyof typeof services] || serviceId,
+                            price,
+                            label,
+                            packageType
+                          };
+                        }).filter(Boolean)
+                      : (reservation as any).serviceName 
+                        ? [{
+                            name: (reservation as any).serviceName,
+                            price: reservation.totalPrice,
+                            label: '',
+                            packageType: 'single'
+                          }]
+                        : [];
                     
                     const statusColors = {
                       'pending': 'bg-yellow-100 text-yellow-700',
@@ -635,19 +642,29 @@ export default function AdminCalendarEnhanced({ reservations, onDateSelect }: Ad
                             <div className="mb-2">
                               <div className="text-xs text-[#2c3e50]/60 mb-1">Prestations</div>
                               <div className="flex flex-wrap gap-2">
-                                {reservation.services.map(serviceId => (
-                                  <div key={serviceId} className="bg-[#d4b5a0]/10 px-3 py-1.5 rounded-lg">
+                                {reservation.services && reservation.services.length > 0 ? (
+                                  reservation.services.map(serviceId => (
+                                    <div key={serviceId} className="bg-[#d4b5a0]/10 px-3 py-1.5 rounded-lg">
+                                      <span className="text-sm font-medium text-[#2c3e50]">
+                                        {services[serviceId as keyof typeof services] || serviceId}
+                                        {reservation.packages && reservation.packages[serviceId] === 'abonnement' && (
+                                          <span className="ml-2 text-xs text-purple-600 font-medium">(Abo)</span>
+                                        )}
+                                      </span>
+                                      {/* {servicePricing[serviceId as keyof typeof servicePricing] && (
+                                        <span className="text-xs text-[#2c3e50]/60 ml-2">• {servicePricing[serviceId as keyof typeof servicePricing]?.duration}</span>
+                                      )} */}
+                                    </div>
+                                  ))
+                                ) : reservation.serviceName ? (
+                                  <div className="bg-[#d4b5a0]/10 px-3 py-1.5 rounded-lg">
                                     <span className="text-sm font-medium text-[#2c3e50]">
-                                      {services[serviceId as keyof typeof services] || serviceId}
-                                      {reservation.packages && reservation.packages[serviceId] === 'abonnement' && (
-                                        <span className="ml-2 text-xs text-purple-600 font-medium">(Abo)</span>
-                                      )}
+                                      {reservation.serviceName}
                                     </span>
-                                    {servicePricing[serviceId] && (
-                                      <span className="text-xs text-[#2c3e50]/60 ml-2">• {formatPriceDetails(serviceId, true)}</span>
-                                    )}
                                   </div>
-                                ))}
+                                ) : (
+                                  <span className="text-xs text-[#2c3e50]/60">Aucun service</span>
+                                )}
                               </div>
                             </div>
                             

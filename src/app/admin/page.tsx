@@ -6,9 +6,11 @@ import { Calendar, Clock, CheckCircle, XCircle, Gift, User, Award, TrendingUp, U
 import AuthGuard from "@/components/AuthGuard";
 import AdminCalendarEnhanced from "@/components/AdminCalendarEnhanced";
 import AdminServicesTab from "@/components/AdminServicesTab";
+import AdminProductsTab from "@/components/AdminProductsTab";
 import AdminDashboardOptimized from "@/components/AdminDashboardOptimized";
 import UnifiedCRMTab, { type Client } from "@/components/UnifiedCRMTab";
 import PlanningCalendar from "@/components/PlanningCalendar";
+import PlanningCalendarDebug from "@/components/PlanningCalendarDebug";
 import AdminDisponibilitesTabSync from "@/components/AdminDisponibilitesTabSync";
 import { InvoiceButton } from "@/components/InvoiceGenerator";
 import PaymentSectionEnhanced from "@/components/PaymentSectionEnhanced";
@@ -28,7 +30,7 @@ import RevenueAnalytics from "@/components/RevenueAnalytics";
 import ReservationTableAdvanced from "@/components/ReservationTableAdvanced";
 import QuickActionModal from "@/components/QuickActionModal";
 import { logout } from "@/lib/auth-client";
-import { servicePricing, getCurrentPrice, calculateTotalPrice } from "@/lib/pricing";
+import { getCurrentPrice, calculateTotalPrice } from "@/lib/pricing";
 import ValidationPaymentModal from "@/components/ValidationPaymentModal";
 
 interface Reservation {
@@ -84,6 +86,7 @@ export default function AdminDashboard() {
   const [planningSubTab, setPlanningSubTab] = useState<'calendar' | 'availability' | 'list'>('calendar');
   const [showValidationModal, setShowValidationModal] = useState(false);
   const [reservationToValidate, setReservationToValidate] = useState<Reservation | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState<'total' | 'pending' | 'completed' | 'revenue' | null>(null);
   const [newReservation, setNewReservation] = useState({
     client: '',
     email: '',
@@ -105,9 +108,21 @@ export default function AdminDashboard() {
   };
 
   // Utiliser les services de la BDD ou les services par défaut
+  // S'assurer que services contient uniquement des strings
   const services = dbServices.length > 0 
-    ? Object.fromEntries(dbServices.map(s => [s.id, s.name]))
+    ? Object.fromEntries(dbServices.map(s => [s.slug, String(s.name)]))
     : defaultServices;
+  
+  // Vérifier et nettoyer services pour s'assurer qu'il ne contient que des strings
+  const cleanServices: Record<string, string> = {};
+  for (const [key, value] of Object.entries(services)) {
+    if (typeof value !== 'string') {
+      console.error(`services[${key}] n'est pas une string:`, value);
+      cleanServices[key] = String(value);
+    } else {
+      cleanServices[key] = value;
+    }
+  }
 
   useEffect(() => {
     const checkAuth = () => {
@@ -151,7 +166,17 @@ export default function AdminDashboard() {
       });
       if (response.ok) {
         const data = await response.json();
-        setDbServices(data);
+        // S'assurer que les données sont sérialisables
+        const cleanedData = data.map((s: any) => ({
+          id: s.id,
+          slug: s.slug,
+          name: String(s.name),
+          price: Number(s.price),
+          promoPrice: s.promoPrice ? Number(s.promoPrice) : null,
+          duration: Number(s.duration),
+          active: Boolean(s.active)
+        }));
+        setDbServices(cleanedData);
       }
     } catch (error) {
       console.error('Erreur lors de la récupération des services:', error);
@@ -477,7 +502,7 @@ export default function AdminDashboard() {
       const token = localStorage.getItem('token');
       
       // Calculer le prix total en fonction des services sélectionnés
-      const totalPrice = calculateTotalPrice(newReservation.services, true); // true pour tarif lancement
+      const totalPrice = calculateTotalPrice(newReservation.services);
 
       const response = await fetch('/api/admin/reservations', {
         method: 'POST',
@@ -609,7 +634,7 @@ export default function AdminDashboard() {
         .sort((a, b) => new Date(a.paymentDate || a.date).getTime() - new Date(b.paymentDate || b.date).getTime())
         .map(r => {
           const servicesStr = (typeof r.services === 'string' ? JSON.parse(r.services) : r.services)
-            .map((s: string) => services[s as keyof typeof services] || s).join(', ');
+            .map((s: string) => cleanServices[s as keyof typeof cleanServices] || s).join(', ');
           const ht = (r.paymentAmount || r.totalPrice) / 1.2;
           const tva = (r.paymentAmount || r.totalPrice) - ht;
           
@@ -675,7 +700,7 @@ export default function AdminDashboard() {
         .map(r => [
           new Date(r.paymentDate || '').toLocaleDateString('fr-FR'),
           r.userName || '',
-          (typeof r.services === 'string' ? JSON.parse(r.services) : r.services).map((s: string) => services[s as keyof typeof services]).join(', '),
+          (typeof r.services === 'string' ? JSON.parse(r.services) : r.services).map((s: string) => cleanServices[s as keyof typeof cleanServices]).join(', '),
           `${r.paymentAmount || r.totalPrice}€`,
           r.paymentMethod === 'cash' ? 'Espèces' : 
           r.paymentMethod === 'card' ? 'Carte' : 
@@ -800,29 +825,46 @@ export default function AdminDashboard() {
             </button>
           </div>
 
-          {/* Stats */}
+          {/* Stats - Cliquables */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-gradient-to-br from-[#d4b5a0]/10 to-[#c9a084]/10 rounded-xl p-4">
+            <button
+              onClick={() => setShowDetailsModal('total')}
+              className="bg-gradient-to-br from-[#d4b5a0]/10 to-[#c9a084]/10 rounded-xl p-4 hover:shadow-md transition-all text-left group"
+            >
               <p className="text-sm text-[#2c3e50]/60 mb-1">Réservations totales</p>
               <p className="text-2xl font-bold text-[#2c3e50]">{stats.totalReservations}</p>
-            </div>
-            <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-4">
+              <p className="text-xs text-[#2c3e50]/50 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Cliquez pour voir la liste →</p>
+            </button>
+            <button
+              onClick={() => setShowDetailsModal('pending')}
+              className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-4 hover:shadow-md transition-all text-left group"
+            >
               <p className="text-sm text-[#2c3e50]/60 mb-1">En attente</p>
               <p className="text-2xl font-bold text-yellow-600">{stats.pendingReservations}</p>
-            </div>
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4">
+              <p className="text-xs text-yellow-600/70 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Cliquez pour confirmer →</p>
+            </button>
+            <button
+              onClick={() => setShowDetailsModal('completed')}
+              className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 hover:shadow-md transition-all text-left group"
+            >
               <p className="text-sm text-[#2c3e50]/60 mb-1">Terminés aujourd'hui</p>
               <p className="text-2xl font-bold text-green-600">{stats.completedToday}</p>
-            </div>
-            <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4">
+              <p className="text-xs text-green-600/70 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Voir détails →</p>
+            </button>
+            <button
+              onClick={() => setShowDetailsModal('revenue')}
+              className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 hover:shadow-md transition-all text-left group"
+            >
               <p className="text-sm text-[#2c3e50]/60 mb-1">Revenus totaux</p>
               <p className="text-2xl font-bold text-purple-600">{stats.totalRevenue}€</p>
-            </div>
+              <p className="text-xs text-purple-600/70 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Voir détails →</p>
+            </button>
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-8 overflow-x-auto pb-2 scrollbar-hide">
+        {/* Tabs - Sans mouvement vertical */}
+        <div className="bg-white rounded-2xl shadow-lg p-4 mb-6">
+          <div className="flex gap-2 no-vertical-scroll scrollbar-hide" style={{ overflowY: 'hidden', overflowX: 'auto', touchAction: 'pan-x' }}>
           <button
             onClick={() => setActiveTab("stats")}
             className={`px-3 sm:px-6 py-2 sm:py-3 rounded-full font-medium transition-all whitespace-nowrap flex-shrink-0 text-sm sm:text-base ${
@@ -841,12 +883,21 @@ export default function AdminDashboard() {
                 : "bg-white text-[#2c3e50] hover:shadow-md"
             }`}
           >
-            Planning du jour
-            {reservations.filter(r => r.status === 'pending').length > 0 && (
-              <span className="absolute -top-2 -right-2 px-2 py-1 bg-yellow-500 text-white text-xs rounded-full animate-pulse">
-                {reservations.filter(r => r.status === 'pending').length}
-              </span>
-            )}
+            <span className="relative group">
+              Planning du jour
+              {reservations.filter(r => r.status === 'pending').length > 0 && (
+                <>
+                  <span className="absolute -top-3 -right-6 z-20 px-1.5 py-0.5 bg-yellow-500 text-white text-[10px] font-bold rounded-full animate-pulse shadow-lg min-w-[18px] text-center">
+                    {reservations.filter(r => r.status === 'pending').length}
+                  </span>
+                  <div className="absolute top-8 right-0 bg-gray-900 text-white text-xs rounded-lg p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-30 whitespace-nowrap pointer-events-none">
+                    <div className="font-bold mb-1">Réservations en attente</div>
+                    <div>{reservations.filter(r => r.status === 'pending').length} à confirmer</div>
+                    <div className="absolute -top-2 right-4 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[6px] border-b-gray-900"></div>
+                  </div>
+                </>
+              )}
+            </span>
           </button>
           <button
             onClick={() => setActiveTab("soins-paiements")}
@@ -866,29 +917,43 @@ export default function AdminDashboard() {
                 : "bg-white text-[#2c3e50] hover:shadow-md"
             }`}
           >
-            Gestion Fidélité
-            {(() => {
-              const clientsWithRewards = clients.filter(client => {
-                const clientReservations = reservations.filter(r => 
-                  r.userEmail === client.email && r.status !== 'cancelled'
-                );
-                const sessionCount = clientReservations.length;
-                const has6Sessions = sessionCount > 0 && sessionCount % 6 === 0;
-                const currentMonth = new Date().getMonth();
-                const hasBirthday = client.birthdate && 
-                  new Date(client.birthdate).getMonth() === currentMonth;
-                return has6Sessions || hasBirthday;
-              });
-              
-              if (clientsWithRewards.length > 0) {
-                return (
-                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold animate-pulse">
-                    {clientsWithRewards.length}
-                  </span>
-                );
-              }
-              return null;
-            })()}
+            <span className="relative group">
+              Gestion Fidélité
+              {(() => {
+                const clientsWithRewards = clients.filter(client => {
+                  const clientReservations = reservations.filter(r => 
+                    r.userEmail === client.email && r.status !== 'cancelled'
+                  );
+                  const sessionCount = clientReservations.length;
+                  const has6Sessions = sessionCount > 0 && sessionCount % 6 === 0;
+                  const currentMonth = new Date().getMonth();
+                  const hasBirthday = client.birthdate && 
+                    new Date(client.birthdate).getMonth() === currentMonth;
+                  return has6Sessions || hasBirthday;
+                });
+                
+                if (clientsWithRewards.length > 0) {
+                  const birthdayCount = clients.filter(c => c.birthdate && 
+                    new Date(c.birthdate).getMonth() === new Date().getMonth()).length;
+                  const rewardCount = clientsWithRewards.length - birthdayCount;
+                  
+                  return (
+                    <>
+                      <span className="absolute -top-3 -right-6 z-20 bg-red-500 text-white text-[10px] rounded-full min-w-[18px] px-1.5 py-0.5 flex items-center justify-center font-bold animate-pulse shadow-lg">
+                        {clientsWithRewards.length}
+                      </span>
+                      <div className="absolute top-8 right-0 bg-gray-900 text-white text-xs rounded-lg p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-30 whitespace-nowrap pointer-events-none">
+                        <div className="font-bold mb-1">Réductions disponibles</div>
+                        {rewardCount > 0 && <div>{rewardCount} client(s) - 6ème séance</div>}
+                        {birthdayCount > 0 && <div>{birthdayCount} anniversaire(s)</div>}
+                        <div className="absolute -top-2 right-4 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[6px] border-b-gray-900"></div>
+                      </div>
+                    </>
+                  );
+                }
+                return null;
+              })()}
+            </span>
           </button>
           <button
             onClick={() => setActiveTab("crm")}
@@ -909,6 +974,16 @@ export default function AdminDashboard() {
             }`}
           >
             Gestion Services
+          </button>
+          <button
+            onClick={() => setActiveTab("products")}
+            className={`px-3 sm:px-6 py-2 sm:py-3 rounded-full font-medium transition-all whitespace-nowrap flex-shrink-0 text-sm sm:text-base ${
+              activeTab === "products"
+                ? "bg-gradient-to-r from-purple-500 to-purple-700 text-white shadow-lg"
+                : "bg-white text-[#2c3e50] hover:shadow-md"
+            }`}
+          >
+            Produits
           </button>
           <button
             onClick={() => setActiveTab("emailing")}
@@ -943,6 +1018,7 @@ export default function AdminDashboard() {
             <Star className="w-4 h-4 inline mr-2" />
             Avis & Photos
           </button>
+          </div>
         </div>
 
         {/* Content */}
@@ -963,9 +1039,14 @@ export default function AdminDashboard() {
                   services: r.services || []
                 }))} 
                 services={services}
+                onStatClick={(type: string) => {
+                  if (type === 'revenue') setShowDetailsModal('revenue');
+                  if (type === 'services') setActiveTab('services');
+                  if (type === 'average') setShowDetailsModal('revenue');
+                }}
               />
               
-              {/* Évolution des revenus */}
+              {/* Évolution des revenus et autres statistiques */}
               <AdminStatsEnhanced />
               
               {/* Statistiques des sources */}
@@ -1051,7 +1132,7 @@ export default function AdminDashboard() {
                             </span>
                           </div>
                           <p className="text-sm mt-2 font-medium text-[#d4b5a0]">
-                            {reservation.services.map((s: string) => services[s as keyof typeof services] || s).join(', ')}
+                            {reservation.services.map((s: string) => cleanServices[s as keyof typeof cleanServices] || s).join(', ')}
                           </p>
                           <div className="flex gap-2 mt-3">
                             <button
@@ -1090,17 +1171,20 @@ export default function AdminDashboard() {
                         date: typeof r.date === 'string' ? r.date : r.date.toISOString(),
                         userName: r.userName || 'Client',
                         userEmail: r.userEmail || '',
-                        serviceName: r.services && r.services.length > 0 
-                          ? r.services.map((s: string) => services[s as keyof typeof services] || s).join(', ')
-                          : 'Service non défini',
+                        serviceName: r.serviceName || (r.services && r.services.length > 0 
+                          ? r.services.map((s: string) => {
+                              const serviceName = cleanServices[s as keyof typeof cleanServices];
+                              return typeof serviceName === 'string' ? serviceName : s;
+                            }).join(', ')
+                          : 'Service non défini'),
                         serviceDuration: r.services && r.services.length > 0
-                          ? r.services.reduce((total: number, serviceId: string) => {
-                              const service = dbServices.find(s => s.id === serviceId);
+                          ? r.services.reduce((total: number, serviceSlug: string) => {
+                              const service = dbServices.find(s => s.slug === serviceSlug);
                               return total + (service?.duration || 60);
                             }, 0)
                           : 60
                       }))}
-                    services={services}
+                    services={cleanServices}
                     dbServices={dbServices}
                     onNewReservation={() => setShowNewReservationModal(true)}
                     onDateClick={(date) => {
@@ -1114,7 +1198,7 @@ export default function AdminDashboard() {
                     <QuickActionModal
                       date={quickActionDate}
                       onClose={() => setShowQuickActionModal(false)}
-                      dbServices={dbServices}
+                      services={dbServices}
                       onCreateReservation={async (data) => {
                         // Créer la réservation
                         await fetch('/api/admin/reservations', {
@@ -1141,7 +1225,7 @@ export default function AdminDashboard() {
                         fetchReservations();
                         setShowQuickActionModal(false);
                       }}
-                      services={services}
+                      services={cleanServices}
                       existingClients={clients}
                     />
                   )}
@@ -1300,7 +1384,7 @@ export default function AdminDashboard() {
                                 key={serviceId} 
                                 className="px-2 py-1 bg-[#d4b5a0]/10 rounded-full text-xs font-medium text-[#2c3e50]"
                               >
-                                {services[serviceId as keyof typeof services]}
+                                {cleanServices[serviceId as keyof typeof cleanServices]}
                                 {reservation.packages && reservation.packages[serviceId] === 'forfait' && (
                                   <span className="ml-1 text-xs px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded-full font-medium">
                                     Forfait 4 séances
@@ -1363,7 +1447,7 @@ export default function AdminDashboard() {
                       services: r.services || [],
                       paymentStatus: r.paymentStatus || 'pending'
                     }))}
-                    services={services}
+                    services={cleanServices}
                     onEdit={openEditModal}
                     onCancel={(reservation) => cancelReservation(reservation.id)}
                     onStatusChange={(id, status) => updateReservationStatus(id, status as any)}
@@ -1444,15 +1528,15 @@ export default function AdminDashboard() {
                                 
                                 if (Array.isArray(servicesList)) {
                                   return servicesList.map((s: string) => 
-                                    services[s as keyof typeof services] || s
+                                    cleanServices[s as keyof typeof cleanServices] || s
                                   ).join(', ');
                                 } else {
                                   return reservation.services || 'Service non spécifié';
                                 }
                               } catch {
                                 // Si ce n'est pas du JSON, c'est probablement une chaîne simple
-                                if (typeof reservation.services === 'string' && reservation.services in services) {
-                                  return services[reservation.services as keyof typeof services];
+                                if (typeof reservation.services === 'string' && reservation.services in cleanServices) {
+                                  return cleanServices[reservation.services as keyof typeof cleanServices];
                                 }
                                 return reservation.services || 'Service non spécifié';
                               }
@@ -1549,14 +1633,14 @@ export default function AdminDashboard() {
                                   
                                   if (Array.isArray(servicesList)) {
                                     return servicesList.map((s: string) => 
-                                      services[s as keyof typeof services] || s
+                                      cleanServices[s as keyof typeof cleanServices] || s
                                     ).join(', ');
                                   } else {
                                     return reservation.services || 'Service non spécifié';
                                   }
                                 } catch {
-                                  if (typeof reservation.services === 'string' && reservation.services in services) {
-                                    return services[reservation.services as keyof typeof services];
+                                  if (typeof reservation.services === 'string' && reservation.services in cleanServices) {
+                                    return cleanServices[reservation.services as keyof typeof cleanServices];
                                   }
                                   return reservation.services || 'Service non spécifié';
                                 }
@@ -1904,12 +1988,12 @@ export default function AdminDashboard() {
                               // Essayer de parser si c'est du JSON
                               const servicesList = typeof reservation.services === 'string' ? JSON.parse(reservation.services) : reservation.services;
                               return Array.isArray(servicesList) 
-                                ? servicesList.map((s: string) => services[s as keyof typeof services] || s).join(', ')
+                                ? servicesList.map((s: string) => cleanServices[s as keyof typeof cleanServices] || s).join(', ')
                                 : reservation.services;
                             } catch {
                               // Si ce n'est pas du JSON, c'est probablement une chaîne simple
-                              if (typeof reservation.services === 'string' && reservation.services in services) {
-                                return services[reservation.services as keyof typeof services];
+                              if (typeof reservation.services === 'string' && reservation.services in cleanServices) {
+                                return cleanServices[reservation.services as keyof typeof cleanServices];
                               }
                               return reservation.services;
                             }
@@ -2024,7 +2108,7 @@ export default function AdminDashboard() {
                       <div className="flex items-center gap-3 mb-4">
                         <div className="relative">
                           <AlertCircle className="w-6 h-6 text-green-600 animate-pulse" />
-                          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                          <span className="absolute -top-1 -right-1 z-10 bg-red-500 text-white text-xs rounded-full min-w-[20px] h-5 px-1 flex items-center justify-center font-bold shadow-lg">
                             {clientsWithRewards.length}
                           </span>
                         </div>
@@ -2542,7 +2626,7 @@ export default function AdminDashboard() {
                                     {new Date(reservation.date).toLocaleDateString('fr-FR')}
                                   </span>
                                   <span className="text-sm text-[#2c3e50]/60 ml-3">
-                                    {reservation.services.map(s => services[s as keyof typeof services]).join(', ')}
+                                    {reservation.services.map(s => cleanServices[s as keyof typeof cleanServices]).join(', ')}
                                   </span>
                                 </div>
                                 <span className="text-sm font-medium text-[#d4b5a0]">{reservation.totalPrice}€</span>
@@ -2581,6 +2665,7 @@ export default function AdminDashboard() {
 
           {/* Onglet Services */}
           {activeTab === "services" && <AdminServicesTab />}
+          {activeTab === "products" && <AdminProductsTab />}
           
           {activeTab === "whatsapp" && <WhatsAppHub />}
           
@@ -2694,6 +2779,19 @@ export default function AdminDashboard() {
                 <div className="space-y-2">
                   {dbServices && dbServices
                     .filter(service => service.active)
+                    .sort((a, b) => {
+                      // Ordre personnalisé : Hydro'Naissance en 1er, Hydro'Cleaning en 2e
+                      const order = {
+                        'hydro-naissance': 1,
+                        'hydro-cleaning': 2,
+                        'renaissance': 3,
+                        'bb-glow': 4,
+                        'led-therapie': 5
+                      };
+                      const aOrder = order[a.slug as keyof typeof order] || 999;
+                      const bOrder = order[b.slug as keyof typeof order] || 999;
+                      return aOrder - bOrder;
+                    })
                     .map((service) => (
                       <label key={service.slug} className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -2980,6 +3078,368 @@ export default function AdminDashboard() {
               >
                 Enregistrer les modifications
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modals de détails pour les statistiques */}
+      {showDetailsModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div className="p-6 border-b border-gray-100">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-[#2c3e50]">
+                  {showDetailsModal === 'total' && 'Toutes les réservations'}
+                  {showDetailsModal === 'pending' && 'Réservations en attente'}
+                  {showDetailsModal === 'completed' && 'Réservations terminées aujourd\'hui'}
+                  {showDetailsModal === 'revenue' && 'Détails des revenus'}
+                </h2>
+                <button
+                  onClick={() => setShowDetailsModal(null)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6 overflow-y-auto max-h-[70vh]">
+              {/* Liste des réservations totales */}
+              {showDetailsModal === 'total' && (
+                <div className="space-y-3">
+                  {reservations.map(reservation => (
+                    <div key={reservation.id} className="bg-gray-50 rounded-lg p-4 hover:shadow-md transition-all">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-semibold text-[#2c3e50]">{reservation.userName}</p>
+                          <p className="text-sm text-gray-600">{new Date(reservation.date).toLocaleDateString('fr-FR')} à {reservation.time}</p>
+                          <p className="text-sm text-gray-500">
+                            {(typeof reservation.services === 'string' ? JSON.parse(reservation.services) : reservation.services)
+                              .map((s: string) => cleanServices[s as keyof typeof cleanServices] || s).join(', ')}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            reservation.status === 'confirmed' ? 'bg-green-100 text-green-700' :
+                            reservation.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                            reservation.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                            'bg-blue-100 text-blue-700'
+                          }`}>
+                            {reservation.status === 'confirmed' ? 'Confirmé' :
+                             reservation.status === 'pending' ? 'En attente' :
+                             reservation.status === 'cancelled' ? 'Annulé' : 'Terminé'}
+                          </span>
+                          <p className="text-sm font-bold text-[#2c3e50] mt-2">{reservation.totalPrice}€</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Liste des réservations en attente */}
+              {showDetailsModal === 'pending' && (
+                <div className="space-y-3">
+                  {reservations.filter(r => r.status === 'pending').map(reservation => (
+                    <div key={reservation.id} className="bg-yellow-50 rounded-lg p-4 hover:shadow-md transition-all">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-semibold text-[#2c3e50]">{reservation.userName}</p>
+                          <p className="text-sm text-gray-600">{new Date(reservation.date).toLocaleDateString('fr-FR')} à {reservation.time}</p>
+                          <p className="text-sm text-gray-500">
+                            {(typeof reservation.services === 'string' ? JSON.parse(reservation.services) : reservation.services)
+                              .map((s: string) => cleanServices[s as keyof typeof cleanServices] || s).join(', ')}
+                          </p>
+                          <p className="text-sm text-gray-500 mt-1">📱 {reservation.phone}</p>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setReservationToValidate(reservation);
+                            setShowValidationModal(true);
+                            setShowDetailsModal(null);
+                          }}
+                          className="px-3 py-1 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:shadow-lg transition-all text-sm"
+                        >
+                          Confirmer
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {reservations.filter(r => r.status === 'pending').length === 0 && (
+                    <p className="text-center text-gray-500 py-8">Aucune réservation en attente</p>
+                  )}
+                </div>
+              )}
+
+              {/* Liste des réservations terminées aujourd'hui */}
+              {showDetailsModal === 'completed' && (
+                <div className="space-y-3">
+                  {reservations
+                    .filter(r => r.status === 'completed' && 
+                      new Date(r.date).toDateString() === new Date().toDateString())
+                    .map(reservation => (
+                    <div key={reservation.id} className="bg-green-50 rounded-lg p-4 hover:shadow-md transition-all">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-semibold text-[#2c3e50]">{reservation.userName}</p>
+                          <p className="text-sm text-gray-600">Terminé à {reservation.time}</p>
+                          <p className="text-sm text-gray-500">
+                            {(typeof reservation.services === 'string' ? JSON.parse(reservation.services) : reservation.services)
+                              .map((s: string) => cleanServices[s as keyof typeof cleanServices] || s).join(', ')}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-bold text-green-600">{reservation.totalPrice}€</p>
+                          {reservation.paymentStatus === 'paid' && (
+                            <span className="text-xs text-green-600">✓ Payé</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Détails des revenus */}
+              {showDetailsModal === 'revenue' && (
+                <div>
+                  {/* Vue d'ensemble des périodes */}
+                  <div className="grid grid-cols-4 gap-4 mb-6">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4">
+                      <p className="text-sm text-gray-600">Aujourd'hui</p>
+                      <p className="text-2xl font-bold text-blue-600">
+                        {reservations
+                          .filter(r => r.paymentStatus === 'paid' && 
+                            new Date(r.paymentDate || r.date).toDateString() === new Date().toDateString())
+                          .reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice), 0)}€
+                      </p>
+                      <p className="text-xs text-blue-500 mt-1">
+                        {reservations.filter(r => r.paymentStatus === 'paid' && 
+                          new Date(r.paymentDate || r.date).toDateString() === new Date().toDateString()).length} paiements
+                      </p>
+                    </div>
+                    <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4">
+                      <p className="text-sm text-gray-600">Cette semaine</p>
+                      <p className="text-2xl font-bold text-green-600">
+                        {reservations
+                          .filter(r => {
+                            if (r.paymentStatus !== 'paid') return false;
+                            const payDate = new Date(r.paymentDate || r.date);
+                            const weekAgo = new Date();
+                            weekAgo.setDate(weekAgo.getDate() - 7);
+                            return payDate >= weekAgo;
+                          })
+                          .reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice), 0)}€
+                      </p>
+                      <p className="text-xs text-green-500 mt-1">
+                        {reservations.filter(r => {
+                          if (r.paymentStatus !== 'paid') return false;
+                          const payDate = new Date(r.paymentDate || r.date);
+                          const weekAgo = new Date();
+                          weekAgo.setDate(weekAgo.getDate() - 7);
+                          return payDate >= weekAgo;
+                        }).length} paiements
+                      </p>
+                    </div>
+                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4">
+                      <p className="text-sm text-gray-600">Ce mois</p>
+                      <p className="text-2xl font-bold text-purple-600">
+                        {reservations
+                          .filter(r => {
+                            if (r.paymentStatus !== 'paid') return false;
+                            const payDate = new Date(r.paymentDate || r.date);
+                            return payDate.getMonth() === new Date().getMonth() && 
+                                   payDate.getFullYear() === new Date().getFullYear();
+                          })
+                          .reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice), 0)}€
+                      </p>
+                      <p className="text-xs text-purple-500 mt-1">
+                        {reservations.filter(r => {
+                          if (r.paymentStatus !== 'paid') return false;
+                          const payDate = new Date(r.paymentDate || r.date);
+                          return payDate.getMonth() === new Date().getMonth() && 
+                                 payDate.getFullYear() === new Date().getFullYear();
+                        }).length} paiements
+                      </p>
+                    </div>
+                    <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4">
+                      <p className="text-sm text-gray-600">Total année</p>
+                      <p className="text-2xl font-bold text-orange-600">
+                        {reservations
+                          .filter(r => {
+                            if (r.paymentStatus !== 'paid') return false;
+                            const payDate = new Date(r.paymentDate || r.date);
+                            return payDate.getFullYear() === new Date().getFullYear();
+                          })
+                          .reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice), 0)}€
+                      </p>
+                      <p className="text-xs text-orange-500 mt-1">
+                        {reservations.filter(r => {
+                          if (r.paymentStatus !== 'paid') return false;
+                          const payDate = new Date(r.paymentDate || r.date);
+                          return payDate.getFullYear() === new Date().getFullYear();
+                        }).length} paiements
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Statistiques par méthode de paiement */}
+                  <div className="bg-gray-50 rounded-xl p-4 mb-6">
+                    <h3 className="font-bold text-[#2c3e50] mb-3">Répartition par méthode de paiement</h3>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="bg-white rounded-lg p-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <CreditCard className="w-4 h-4 text-blue-600" />
+                          <p className="text-sm text-gray-600">Carte bancaire</p>
+                        </div>
+                        <p className="text-xl font-bold text-blue-600">
+                          {reservations
+                            .filter(r => r.paymentStatus === 'paid' && r.paymentMethod === 'card')
+                            .reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice), 0)}€
+                        </p>
+                      </div>
+                      <div className="bg-white rounded-lg p-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Euro className="w-4 h-4 text-green-600" />
+                          <p className="text-sm text-gray-600">Espèces</p>
+                        </div>
+                        <p className="text-xl font-bold text-green-600">
+                          {reservations
+                            .filter(r => r.paymentStatus === 'paid' && r.paymentMethod === 'cash')
+                            .reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice), 0)}€
+                        </p>
+                      </div>
+                      <div className="bg-white rounded-lg p-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Receipt className="w-4 h-4 text-purple-600" />
+                          <p className="text-sm text-gray-600">Virement</p>
+                        </div>
+                        <p className="text-xl font-bold text-purple-600">
+                          {reservations
+                            .filter(r => r.paymentStatus === 'paid' && r.paymentMethod === 'transfer')
+                            .reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice), 0)}€
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Services les plus rentables */}
+                  <div className="bg-gray-50 rounded-xl p-4 mb-6">
+                    <h3 className="font-bold text-[#2c3e50] mb-3">Services les plus rentables</h3>
+                    <div className="space-y-2">
+                      {(() => {
+                        const serviceRevenues: {[key: string]: number} = {};
+                        reservations
+                          .filter(r => r.paymentStatus === 'paid')
+                          .forEach(r => {
+                            const servicesList = typeof r.services === 'string' ? JSON.parse(r.services) : r.services;
+                            servicesList.forEach((s: string) => {
+                              const serviceName = cleanServices[s as keyof typeof cleanServices] || s;
+                              serviceRevenues[serviceName] = (serviceRevenues[serviceName] || 0) + (r.totalPrice / servicesList.length);
+                            });
+                          });
+                        
+                        return Object.entries(serviceRevenues)
+                          .sort(([,a], [,b]) => b - a)
+                          .slice(0, 5)
+                          .map(([service, revenue]) => (
+                            <div key={service} className="flex justify-between items-center bg-white p-2 rounded">
+                              <span className="text-sm">{service}</span>
+                              <span className="font-bold text-[#2c3e50]">{Math.round(revenue)}€</span>
+                            </div>
+                          ));
+                      })()}
+                    </div>
+                  </div>
+
+                  {/* Détails fiscaux */}
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
+                    <h3 className="font-bold text-[#2c3e50] mb-3">Détails fiscaux (TVA 20%)</h3>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-600">Total HT</p>
+                        <p className="text-xl font-bold">
+                          {Math.round(stats.totalRevenue / 1.2)}€
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">TVA collectée</p>
+                        <p className="text-xl font-bold">
+                          {Math.round(stats.totalRevenue - (stats.totalRevenue / 1.2))}€
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Total TTC</p>
+                        <p className="text-xl font-bold text-purple-600">
+                          {stats.totalRevenue}€
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Historique détaillé des transactions */}
+                  <div>
+                    <h3 className="font-bold text-[#2c3e50] mb-3">Historique complet des transactions</h3>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-gray-100">
+                          <tr>
+                            <th className="text-left p-2">Date</th>
+                            <th className="text-left p-2">Client</th>
+                            <th className="text-left p-2">Service</th>
+                            <th className="text-left p-2">Méthode</th>
+                            <th className="text-right p-2">Montant</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {reservations
+                            .filter(r => r.paymentStatus === 'paid')
+                            .sort((a, b) => new Date(b.paymentDate || b.date).getTime() - new Date(a.paymentDate || a.date).getTime())
+                            .map(reservation => (
+                            <tr key={reservation.id} className="border-b hover:bg-gray-50">
+                              <td className="p-2">
+                                {new Date(reservation.paymentDate || reservation.date).toLocaleDateString('fr-FR')}
+                              </td>
+                              <td className="p-2">{reservation.userName}</td>
+                              <td className="p-2 text-xs">
+                                {(typeof reservation.services === 'string' ? JSON.parse(reservation.services) : reservation.services)
+                                  .map((s: string) => cleanServices[s as keyof typeof cleanServices] || s)
+                                  .join(', ')
+                                  .substring(0, 30)}...
+                              </td>
+                              <td className="p-2">
+                                <span className={`px-2 py-1 rounded text-xs ${
+                                  reservation.paymentMethod === 'card' ? 'bg-blue-100 text-blue-700' :
+                                  reservation.paymentMethod === 'cash' ? 'bg-green-100 text-green-700' :
+                                  'bg-purple-100 text-purple-700'
+                                }`}>
+                                  {reservation.paymentMethod === 'card' ? 'CB' :
+                                   reservation.paymentMethod === 'cash' ? 'Espèces' : 'Virement'}
+                                </span>
+                              </td>
+                              <td className="p-2 text-right font-bold">
+                                {reservation.paymentAmount || reservation.totalPrice}€
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Bouton export */}
+                  <div className="mt-6 flex justify-end">
+                    <button
+                      onClick={() => exportPayments('detailed')}
+                      className="px-4 py-2 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2"
+                    >
+                      <Download className="w-4 h-4" />
+                      Exporter en CSV
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

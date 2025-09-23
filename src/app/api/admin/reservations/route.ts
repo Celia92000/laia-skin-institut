@@ -55,10 +55,16 @@ export async function POST(request: NextRequest) {
     // Recalculer le prix total basé sur les services de la base de données
     let calculatedPrice = 0;
     const dbServices = await prisma.service.findMany();
+    let primaryServiceId = null;
     
     for (const serviceId of services) {
-      const service = dbServices.find(s => s.slug === serviceId);
+      const service = dbServices.find(s => s.slug === serviceId || s.name.toLowerCase().replace(/['\s]/g, '-') === serviceId);
       if (service) {
+        // Prendre le premier service comme service principal
+        if (!primaryServiceId) {
+          primaryServiceId = service.id;
+        }
+        
         // Vérifier si c'est un forfait ou un service simple
         const packageType = packages && packages[serviceId];
         if (packageType === 'forfait' && service.forfaitPrice) {
@@ -82,11 +88,12 @@ export async function POST(request: NextRequest) {
       }
     });
     
-    // Créer la réservation
+    // Créer la réservation avec le service principal
     const reservation = await prisma.reservation.create({
       data: {
         userId: clientUser.id,
-        services: JSON.stringify(services),
+        serviceId: primaryServiceId, // Lier le service principal
+        services: JSON.stringify(services), // Garder aussi la liste pour compatibilité
         packages: packages ? JSON.stringify(packages) : '{}',
         date: new Date(date),
         time,
@@ -151,7 +158,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
 
-    // Récupérer toutes les réservations avec les infos clients
+    // Récupérer toutes les réservations avec les infos clients et services
     const reservations = await prisma.reservation.findMany({
       include: {
         user: {
@@ -161,7 +168,8 @@ export async function GET(request: NextRequest) {
             email: true,
             phone: true
           }
-        }
+        },
+        service: true
       },
       orderBy: {
         date: 'desc'
@@ -169,27 +177,43 @@ export async function GET(request: NextRequest) {
     });
 
     // Formater les données
-    const formattedReservations = reservations.map(r => ({
-      id: r.id,
-      userId: r.userId,
-      userName: r.user.name,
-      userEmail: r.user.email,
-      phone: r.user.phone, // Changé de userPhone à phone
-      services: JSON.parse(r.services),
-      date: r.date.toISOString(),
-      time: r.time,
-      totalPrice: r.totalPrice,
-      status: r.status,
-      notes: r.notes,
-      source: r.source || 'site',
-      createdAt: r.createdAt.toISOString(),
-      paymentStatus: r.paymentStatus,
-      paymentDate: r.paymentDate?.toISOString(),
-      paymentAmount: r.paymentAmount,
-      paymentMethod: r.paymentMethod,
-      invoiceNumber: r.invoiceNumber,
-      paymentNotes: r.paymentNotes
-    }));
+    const formattedReservations = reservations.map(r => {
+      // Si la réservation a un service lié, utiliser son slug
+      let services = [];
+      if (r.service) {
+        services = [r.service.slug || r.service.name.toLowerCase().replace(/['\s]/g, '-')];
+      } else if (r.services) {
+        // Sinon, utiliser le champ JSON services s'il existe
+        try {
+          services = JSON.parse(r.services);
+        } catch {
+          services = [];
+        }
+      }
+      
+      return {
+        id: r.id,
+        userId: r.userId,
+        userName: r.user.name,
+        userEmail: r.user.email,
+        phone: r.user.phone,
+        services: services,
+        serviceName: r.service?.name, // Ajouter le nom du service pour l'affichage
+        date: r.date.toISOString(),
+        time: r.time,
+        totalPrice: r.totalPrice,
+        status: r.status,
+        notes: r.notes,
+        source: r.source || 'site',
+        createdAt: r.createdAt.toISOString(),
+        paymentStatus: r.paymentStatus,
+        paymentDate: r.paymentDate?.toISOString(),
+        paymentAmount: r.paymentAmount,
+        paymentMethod: r.paymentMethod,
+        invoiceNumber: r.invoiceNumber,
+        paymentNotes: r.paymentNotes
+      };
+    });
 
     return NextResponse.json(formattedReservations);
   } catch (error) {

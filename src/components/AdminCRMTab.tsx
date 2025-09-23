@@ -6,7 +6,8 @@ import {
   UserPlus, Filter, Download, ChevronDown, ChevronUp,
   MessageSquare, AlertCircle, TrendingUp, Gift, X,
   Clock, Star, Users, Target, UserCheck, UserX,
-  ArrowRight
+  ArrowRight, Edit2, Save, User, MapPin, FileText,
+  Heart, Activity, CreditCard
 } from "lucide-react";
 
 interface User {
@@ -75,6 +76,8 @@ export default function AdminCRMTab() {
   const [leadStatusFilter, setLeadStatusFilter] = useState('all');
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [noteContent, setNoteContent] = useState("");
+  const [isEditingClient, setIsEditingClient] = useState(false);
+  const [editedClient, setEditedClient] = useState<User | null>(null);
 
   useEffect(() => {
     if (activeTab === 'clients') {
@@ -172,6 +175,31 @@ export default function AdminCRMTab() {
       }
     } catch (error) {
       console.error('Erreur lors de la conversion du lead:', error);
+    }
+  };
+
+  const handleSaveClient = async () => {
+    if (!editedClient) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/admin/clients/${editedClient.id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(editedClient)
+      });
+      
+      if (response.ok) {
+        await fetchClients();
+        setSelectedClient(editedClient);
+        setIsEditingClient(false);
+        alert('Client mis à jour avec succès');
+      }
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du client:', error);
     }
   };
 
@@ -639,15 +667,73 @@ export default function AdminCRMTab() {
           <div className="bg-white rounded-xl p-6 max-w-4xl w-full mx-4 max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-start mb-6">
               <div>
-                <h2 className="text-2xl font-bold text-[#2c3e50]">{selectedClient.name}</h2>
-                <p className="text-gray-500">{selectedClient.email}</p>
+                <h2 className="text-2xl font-bold text-[#2c3e50]">
+                  {isEditingClient ? (
+                    <input
+                      type="text"
+                      value={editedClient?.name || ''}
+                      onChange={(e) => setEditedClient({...editedClient!, name: e.target.value})}
+                      className="border-b-2 border-[#d4b5a0] focus:outline-none text-2xl font-bold"
+                    />
+                  ) : (
+                    selectedClient.name
+                  )}
+                </h2>
+                <p className="text-gray-500 mt-1">
+                  {isEditingClient ? (
+                    <input
+                      type="email"
+                      value={editedClient?.email || ''}
+                      onChange={(e) => setEditedClient({...editedClient!, email: e.target.value})}
+                      className="border-b border-gray-300 focus:outline-none"
+                    />
+                  ) : (
+                    selectedClient.email
+                  )}
+                </p>
               </div>
-              <button 
-                onClick={() => setSelectedClient(null)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex gap-2">
+                {!isEditingClient ? (
+                  <button
+                    onClick={() => {
+                      setIsEditingClient(true);
+                      setEditedClient({...selectedClient});
+                    }}
+                    className="p-2 text-[#d4b5a0] hover:bg-[#d4b5a0]/10 rounded-lg transition-colors"
+                    title="Modifier"
+                  >
+                    <Edit2 className="w-5 h-5" />
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={handleSaveClient}
+                      className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                      title="Enregistrer"
+                    >
+                      <Save className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsEditingClient(false);
+                        setEditedClient(null);
+                      }}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Annuler"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </>
+                )}
+                {!isEditingClient && (
+                  <button 
+                    onClick={() => setSelectedClient(null)}
+                    className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -655,25 +741,59 @@ export default function AdminCRMTab() {
               <div className="space-y-4">
                 <h3 className="font-medium text-[#2c3e50] border-b pb-2">Informations personnelles</h3>
                 
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Téléphone:</span>
-                    <span className="font-medium">{selectedClient.phone || '-'}</span>
+                <div className="space-y-3 text-sm">
+                  <div>
+                    <label className="text-gray-600 block mb-1">📞 Téléphone:</label>
+                    {isEditingClient ? (
+                      <input
+                        type="tel"
+                        value={editedClient?.phone || ''}
+                        onChange={(e) => setEditedClient({...editedClient!, phone: e.target.value})}
+                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#d4b5a0]"
+                        placeholder="+33 6 12 34 56 78"
+                      />
+                    ) : (
+                      <span className="font-medium">{selectedClient.phone || 'Non renseigné'}</span>
+                    )}
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Type de peau:</span>
-                    <span className="font-medium">{selectedClient.skinType || '-'}</span>
+                  <div>
+                    <label className="text-gray-600 block mb-1">🌸 Type de peau:</label>
+                    {isEditingClient ? (
+                      <select
+                        value={editedClient?.skinType || ''}
+                        onChange={(e) => setEditedClient({...editedClient!, skinType: e.target.value})}
+                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#d4b5a0]"
+                      >
+                        <option value="">Sélectionner</option>
+                        <option value="Normale">Normale</option>
+                        <option value="Sèche">Sèche</option>
+                        <option value="Grasse">Grasse</option>
+                        <option value="Mixte">Mixte</option>
+                        <option value="Sensible">Sensible</option>
+                      </select>
+                    ) : (
+                      <span className="font-medium">{selectedClient.skinType || 'Non renseigné'}</span>
+                    )}
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Date de naissance:</span>
-                    <span className="font-medium">
-                      {selectedClient.birthDate 
-                        ? new Date(selectedClient.birthDate).toLocaleDateString('fr-FR')
-                        : '-'}
-                    </span>
+                  <div>
+                    <label className="text-gray-600 block mb-1">🎂 Date de naissance:</label>
+                    {isEditingClient ? (
+                      <input
+                        type="date"
+                        value={editedClient?.birthDate ? editedClient.birthDate.split('T')[0] : ''}
+                        onChange={(e) => setEditedClient({...editedClient!, birthDate: e.target.value})}
+                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#d4b5a0]"
+                      />
+                    ) : (
+                      <span className="font-medium">
+                        {selectedClient.birthDate 
+                          ? new Date(selectedClient.birthDate).toLocaleDateString('fr-FR')
+                          : 'Non renseigné'}
+                      </span>
+                    )}
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Client depuis:</span>
+                  <div>
+                    <label className="text-gray-600 block mb-1">📅 Client depuis:</label>
                     <span className="font-medium">
                       {new Date(selectedClient.createdAt).toLocaleDateString('fr-FR')}
                     </span>
@@ -715,61 +835,103 @@ export default function AdminCRMTab() {
               </div>
 
               {/* Notes médicales */}
-              {(selectedClient.allergies || selectedClient.medicalNotes) && (
-                <div className="space-y-4 md:col-span-2">
+              <div className="space-y-4 md:col-span-2">
+                <h3 className="font-medium text-[#2c3e50] border-b pb-2 flex items-center gap-2">
+                  <Heart className="w-4 h-4 text-red-500" />
+                  Informations médicales
+                </h3>
+                
+                <div className="bg-red-50 rounded-lg p-3">
+                  <p className="text-sm font-medium text-red-700 mb-2">🌿 Allergies:</p>
+                  {isEditingClient ? (
+                    <textarea
+                      value={editedClient?.allergies || ''}
+                      onChange={(e) => setEditedClient({...editedClient!, allergies: e.target.value})}
+                      className="w-full px-3 py-2 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-300"
+                      rows={2}
+                      placeholder="Aucune allergie connue"
+                    />
+                  ) : (
+                    <p className="text-sm text-red-600">{selectedClient.allergies || 'Aucune allergie connue'}</p>
+                  )}
+                </div>
+                
+                <div className="bg-yellow-50 rounded-lg p-3">
+                  <p className="text-sm font-medium text-yellow-700 mb-2">📝 Notes médicales:</p>
+                  {isEditingClient ? (
+                    <textarea
+                      value={editedClient?.medicalNotes || ''}
+                      onChange={(e) => setEditedClient({...editedClient!, medicalNotes: e.target.value})}
+                      className="w-full px-3 py-2 border border-yellow-200 rounded-lg focus:ring-2 focus:ring-yellow-300"
+                      rows={3}
+                      placeholder="Aucune note médicale"
+                    />
+                  ) : (
+                    <p className="text-sm text-yellow-600">{selectedClient.medicalNotes || 'Aucune note médicale'}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Notes admin et Préférences */}
+              <div className="space-y-4 md:col-span-2">
+                <div>
                   <h3 className="font-medium text-[#2c3e50] border-b pb-2 flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 text-red-500" />
-                    Informations médicales
+                    <FileText className="w-4 h-4 text-gray-500" />
+                    Notes internes
                   </h3>
-                  
-                  {selectedClient.allergies && (
-                    <div className="bg-red-50 rounded-lg p-3">
-                      <p className="text-sm font-medium text-red-700 mb-1">Allergies:</p>
-                      <p className="text-sm text-red-600">{selectedClient.allergies}</p>
-                    </div>
-                  )}
-                  
-                  {selectedClient.medicalNotes && (
-                    <div className="bg-yellow-50 rounded-lg p-3">
-                      <p className="text-sm font-medium text-yellow-700 mb-1">Notes médicales:</p>
-                      <p className="text-sm text-yellow-600">{selectedClient.medicalNotes}</p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Notes admin */}
-              {selectedClient.adminNotes && (
-                <div className="space-y-4 md:col-span-2">
-                  <h3 className="font-medium text-[#2c3e50] border-b pb-2">Notes internes</h3>
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <p className="text-sm text-gray-700">{selectedClient.adminNotes}</p>
+                  <div className="bg-gray-50 rounded-lg p-3 mt-3">
+                    {isEditingClient ? (
+                      <textarea
+                        value={editedClient?.adminNotes || ''}
+                        onChange={(e) => setEditedClient({...editedClient!, adminNotes: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-300"
+                        rows={3}
+                        placeholder="Ajouter des notes internes..."
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-700">{selectedClient.adminNotes || 'Aucune note interne'}</p>
+                    )}
                   </div>
                 </div>
-              )}
 
-              {/* Préférences */}
-              {selectedClient.preferences && (
-                <div className="space-y-4 md:col-span-2">
-                  <h3 className="font-medium text-[#2c3e50] border-b pb-2">Préférences</h3>
-                  <div className="bg-[#d4b5a0]/10 rounded-lg p-3">
-                    <p className="text-sm text-[#2c3e50]">{selectedClient.preferences}</p>
+                <div>
+                  <h3 className="font-medium text-[#2c3e50] border-b pb-2 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-[#d4b5a0]" />
+                    Préférences
+                  </h3>
+                  <div className="bg-[#d4b5a0]/10 rounded-lg p-3 mt-3">
+                    {isEditingClient ? (
+                      <textarea
+                        value={editedClient?.preferences || ''}
+                        onChange={(e) => setEditedClient({...editedClient!, preferences: e.target.value})}
+                        className="w-full px-3 py-2 border border-[#d4b5a0]/30 rounded-lg focus:ring-2 focus:ring-[#d4b5a0]"
+                        rows={3}
+                        placeholder="Préférences de la cliente (horaires, produits, soins préférés...)"
+                      />
+                    ) : (
+                      <p className="text-sm text-[#2c3e50]">{selectedClient.preferences || 'Aucune préférence enregistrée'}</p>
+                    )}
                   </div>
                 </div>
-              )}
+              </div>
             </div>
 
-            <div className="mt-6 flex gap-3 justify-end">
-              <button
-                onClick={() => {
-                  setNoteContent(selectedClient.adminNotes || "");
-                  setShowNoteModal(true);
-                }}
-                className="px-4 py-2 border border-[#d4b5a0] text-[#d4b5a0] rounded-lg hover:bg-[#d4b5a0]/10"
-              >
-                <MessageSquare className="w-4 h-4 inline mr-2" />
-                Modifier les notes
-              </button>
+            {/* Historique des visites */}
+            <div className="mt-6 pt-6 border-t">
+              <h3 className="font-medium text-[#2c3e50] mb-3 flex items-center gap-2">
+                <Activity className="w-4 h-4" />
+                Historique récent
+              </h3>
+              <div className="text-sm text-gray-600">
+                <p className="flex items-center gap-2 mb-2">
+                  <Calendar className="w-4 h-4" />
+                  Dernière visite: {selectedClient.lastVisit ? new Date(selectedClient.lastVisit).toLocaleDateString('fr-FR') : 'Aucune visite'}
+                </p>
+                <p className="flex items-center gap-2">
+                  <CreditCard className="w-4 h-4" />
+                  Panier moyen: {selectedClient._count?.reservations ? (selectedClient.totalSpent / selectedClient._count.reservations).toFixed(2) : '0'}€
+                </p>
+              </div>
             </div>
           </div>
         </div>
