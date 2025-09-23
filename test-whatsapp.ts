@@ -1,52 +1,69 @@
-// Charger les variables d'environnement en premier
-import * as dotenv from 'dotenv';
-dotenv.config({ path: '.env.local' });
-
-import { sendWhatsAppMessage, formatPhoneNumber } from './src/lib/whatsapp-meta';
+// Script de test WhatsApp en mode direct (génère des liens)
+import { sendWhatsAppMessage } from './src/lib/whatsapp';
 
 async function testWhatsApp() {
-  console.log('🚀 Test envoi WhatsApp...\n');
+  console.log('🎯 Test du système WhatsApp\n');
+  console.log('Mode actuel: DIRECT (génère des liens wa.me)\n');
   
-  // Configuration depuis .env.local
-  console.log('📱 Configuration:');
-  console.log('  - Phone Number ID:', process.env.WHATSAPP_PHONE_NUMBER_ID ? '✅' : '❌');
-  console.log('  - Access Token:', process.env.WHATSAPP_ACCESS_TOKEN ? '✅' : '❌');
-  console.log('  - API Version:', process.env.WHATSAPP_API_VERSION || 'v18.0');
+  const testNumber = '+33612345678'; // Remplacez par votre numéro
   
-  // Numéro de test (le vôtre)
-  const testNumber = '+33683717050';
-  const formattedNumber = formatPhoneNumber(testNumber);
+  console.log('📱 Test 1: Message simple');
+  const result1 = await sendWhatsAppMessage({
+    to: testNumber,
+    message: 'Bonjour ! Ceci est un test de LAIA SKIN Institut 💕'
+  }, 'direct');
   
-  console.log('\n📞 Numéro de test:', testNumber);
-  console.log('📞 Numéro formaté:', formattedNumber);
-  
-  // Message de test
-  const testMessage = `✨ *Test LAIA SKIN Institut* ✨
-
-Ceci est un message de test pour vérifier que WhatsApp fonctionne correctement.
-
-Si vous recevez ce message, la configuration est OK ! ✅
-
-*LAIA SKIN Institut* 💕`;
-
-  console.log('\n📨 Envoi du message de test...');
-  
-  try {
-    const result = await sendWhatsAppMessage({
-      to: testNumber,
-      message: testMessage
-    });
-    
-    if (result.success) {
-      console.log('✅ Message envoyé avec succès !');
-      console.log('📱 Message ID:', result.messageId);
-    } else {
-      console.log('❌ Échec de l\'envoi:', result.error);
-    }
-  } catch (error) {
-    console.error('❌ Erreur:', error);
+  if (result1) {
+    console.log('✅ Lien WhatsApp généré avec succès');
+    const cleanNumber = testNumber.replace('+', '');
+    const encodedMsg = encodeURIComponent('Bonjour ! Ceci est un test de LAIA SKIN Institut 💕');
+    console.log(`📲 Ouvrez ce lien: https://wa.me/${cleanNumber}?text=${encodedMsg}`);
   }
+  
+  console.log('\n📱 Test 2: Message de confirmation RDV');
+  const confirmationMessage = `✨ LAIA SKIN Institut ✨
+
+Votre réservation est confirmée !
+
+📅 Date : 25 septembre 2024
+⏰ Heure : 14h00
+💆‍♀️ Service : Soin Hydratant Intense
+💰 Total : 75€
+
+À très bientôt ! 💕`;
+  
+  const result2 = await sendWhatsAppMessage({
+    to: testNumber,
+    message: confirmationMessage
+  }, 'direct');
+  
+  if (result2) {
+    console.log('✅ Message de confirmation prêt');
+    const cleanNumber = testNumber.replace('+', '');
+    const encodedMsg = encodeURIComponent(confirmationMessage).substring(0, 100);
+    console.log(`📲 Lien: https://wa.me/${cleanNumber}?text=${encodedMsg}...`);
+  }
+  
+  console.log('\n' + '='.repeat(60));
+  console.log('📋 PROCHAINES ÉTAPES POUR ACTIVER WHATSAPP:');
+  console.log('='.repeat(60));
+  console.log('\n1️⃣  OPTION SIMPLE (Twilio):');
+  console.log('   • Créez un compte sur twilio.com');
+  console.log('   • Activez le WhatsApp Sandbox');
+  console.log('   • Copiez vos identifiants dans .env.local');
+  console.log('   • Changez WHATSAPP_PROVIDER="twilio"');
+  
+  console.log('\n2️⃣  OPTION PRO (Meta Business):');
+  console.log('   • Créez une app sur developers.facebook.com');
+  console.log('   • Configurez WhatsApp Business');
+  console.log('   • Obtenez votre Access Token');
+  console.log('   • Changez WHATSAPP_PROVIDER="meta"');
+  
+  console.log('\n📖 Guide complet: CONFIGURATION_WHATSAPP.md');
+  console.log('='.repeat(60));
 }
 
-// Lancer le test
+// Remplacez le numéro par le vôtre pour tester
+console.log('⚠️  Remplacez +33612345678 par votre numéro dans le fichier !');
+console.log('');
 testWhatsApp();

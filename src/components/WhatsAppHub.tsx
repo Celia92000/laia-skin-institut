@@ -1,14 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
-import { MessageCircle, Send, Zap, MessageSquare } from 'lucide-react';
+import { MessageCircle, Send, Zap, MessageSquare, FileText } from 'lucide-react';
 import WhatsAppCampaigns from './WhatsAppCampaigns';
 import WhatsAppAutomations from './WhatsAppAutomations';
 import WhatsAppReal from './WhatsAppReal';
 import WhatsAppHistory from './WhatsAppHistory';
+import WhatsAppTemplateManager from './WhatsAppTemplateManager';
 
 export default function WhatsAppHub() {
-  const [activeSubTab, setActiveSubTab] = useState<'conversations' | 'campaigns' | 'automations'>('conversations');
+  const [activeSubTab, setActiveSubTab] = useState<'templates' | 'conversations' | 'campaigns' | 'automations'>('templates');
 
   return (
     <div>
@@ -20,6 +21,17 @@ export default function WhatsAppHub() {
             Centre WhatsApp
           </h2>
           <div className="flex gap-2">
+            <button
+              onClick={() => setActiveSubTab('templates')}
+              className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
+                activeSubTab === 'templates'
+                  ? 'bg-green-500 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <FileText className="w-4 h-4" />
+              Templates
+            </button>
             <button
               onClick={() => setActiveSubTab('conversations')}
               className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
@@ -58,6 +70,7 @@ export default function WhatsAppHub() {
       </div>
 
       {/* Contenu des sous-onglets */}
+      {activeSubTab === 'templates' && <WhatsAppTemplateManager />}
       {activeSubTab === 'conversations' && <WhatsAppReal />}
       {activeSubTab === 'campaigns' && <WhatsAppCampaigns />}
       {activeSubTab === 'automations' && <WhatsAppAutomations />}
