@@ -8,19 +8,41 @@ interface ValidationPaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
   onValidate: (data: any) => void;
+  loyaltyProfile?: any;
 }
 
 export default function ValidationPaymentModal({
   reservation,
   isOpen,
   onClose,
-  onValidate
+  onValidate,
+  loyaltyProfile
 }: ValidationPaymentModalProps) {
   const [clientPresent, setClientPresent] = useState<boolean | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<'paid' | 'unpaid' | null>(null);
   const [paymentAmount, setPaymentAmount] = useState(reservation?.totalPrice || 0);
   const [paymentMethod, setPaymentMethod] = useState('CB');
   const [paymentNotes, setPaymentNotes] = useState('');
+  const [applyLoyaltyDiscount, setApplyLoyaltyDiscount] = useState(false);
+  const [applyReferralDiscount, setApplyReferralDiscount] = useState(false);
+  
+  // Calculer les réductions disponibles
+  const nextSessionNumber = (loyaltyProfile?.individualServicesCount || 0) + 1;
+  const isLoyaltyEligible = nextSessionNumber % 6 === 0;
+  const loyaltyDiscount = isLoyaltyEligible ? 30 : 0;
+  const referralDiscount = 20; // Réduction parrainage fixe
+  
+  // Calculer le montant final avec réductions
+  const calculateFinalAmount = () => {
+    let amount = reservation?.totalPrice || 0;
+    if (applyLoyaltyDiscount && isLoyaltyEligible) {
+      amount -= loyaltyDiscount;
+    }
+    if (applyReferralDiscount) {
+      amount -= referralDiscount;
+    }
+    return Math.max(0, amount); // Ne pas aller en négatif
+  };
 
   if (!isOpen) return null;
 
@@ -60,10 +82,27 @@ export default function ValidationPaymentModal({
       data.paymentAmount = paymentAmount;
       data.paymentMethod = paymentMethod;
       data.paymentDate = new Date().toISOString();
-      if (!clientPresent && !paymentNotes) {
-        data.paymentNotes = `Acompte reçu - Client absent`;
-      } else if (paymentNotes) {
-        data.paymentNotes = paymentNotes;
+      
+      // Ajouter les informations sur les réductions appliquées
+      const discounts = [];
+      if (applyLoyaltyDiscount && isLoyaltyEligible) {
+        discounts.push(`Fidélité 6ème séance: -${loyaltyDiscount}€`);
+        data.loyaltyDiscountApplied = true;
+      }
+      if (applyReferralDiscount) {
+        discounts.push(`Parrainage: -${referralDiscount}€`);
+        data.referralDiscountApplied = true;
+      }
+      
+      let notes = paymentNotes;
+      if (discounts.length > 0) {
+        notes = `Réductions appliquées: ${discounts.join(', ')}${notes ? ' | ' + notes : ''}`;
+      }
+      if (!clientPresent && !notes) {
+        notes = `Acompte reçu - Client absent`;
+      }
+      if (notes) {
+        data.paymentNotes = notes;
       }
     } else if (paymentStatus === 'unpaid') {
       // Pas de paiement
@@ -222,18 +261,91 @@ export default function ValidationPaymentModal({
                 {/* Détails du paiement */}
                 {paymentStatus === 'paid' && (
                   <div className="space-y-3 animate-fadeIn">
+                    {/* Section des réductions */}
+                    <div className="bg-gradient-to-r from-[#fdfbf7] to-[#f8f6f0] rounded-lg p-4 border border-[#d4b5a0]/20">
+                      <h4 className="text-sm font-semibold text-[#2c3e50] mb-3">Réductions disponibles</h4>
+                      
+                      {/* Réduction fidélité */}
+                      {isLoyaltyEligible && (
+                        <label className="flex items-center justify-between mb-2 cursor-pointer hover:bg-white/50 p-2 rounded-lg transition-all">
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="checkbox"
+                              checked={applyLoyaltyDiscount}
+                              onChange={(e) => {
+                                setApplyLoyaltyDiscount(e.target.checked);
+                                setPaymentAmount(e.target.checked 
+                                  ? paymentAmount - loyaltyDiscount 
+                                  : paymentAmount + loyaltyDiscount);
+                              }}
+                              className="w-5 h-5 text-[#d4b5a0] border-[#d4b5a0]/30 rounded focus:ring-[#d4b5a0]"
+                            />
+                            <div>
+                              <p className="text-sm font-medium text-[#2c3e50]">
+                                🎁 Fidélité - 6ème séance
+                              </p>
+                              <p className="text-xs text-[#2c3e50]/60">
+                                Séance n°{nextSessionNumber} - Réduction automatique
+                              </p>
+                            </div>
+                          </div>
+                          <span className="text-green-600 font-bold">-{loyaltyDiscount}€</span>
+                        </label>
+                      )}
+                      
+                      {/* Réduction parrainage */}
+                      <label className="flex items-center justify-between cursor-pointer hover:bg-white/50 p-2 rounded-lg transition-all">
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            checked={applyReferralDiscount}
+                            onChange={(e) => {
+                              setApplyReferralDiscount(e.target.checked);
+                              setPaymentAmount(e.target.checked 
+                                ? paymentAmount - referralDiscount 
+                                : paymentAmount + referralDiscount);
+                            }}
+                            className="w-5 h-5 text-[#d4b5a0] border-[#d4b5a0]/30 rounded focus:ring-[#d4b5a0]"
+                          />
+                          <div>
+                            <p className="text-sm font-medium text-[#2c3e50]">
+                              👥 Parrainage
+                            </p>
+                            <p className="text-xs text-[#2c3e50]/60">
+                              Client parrainé ou parrain
+                            </p>
+                          </div>
+                        </div>
+                        <span className="text-green-600 font-bold">-{referralDiscount}€</span>
+                      </label>
+                      
+                      {!isLoyaltyEligible && (
+                        <p className="text-xs text-[#2c3e50]/60 mt-2 pl-2">
+                          💡 Prochaine réduction fidélité dans {6 - (nextSessionNumber % 6)} séance(s)
+                        </p>
+                      )}
+                    </div>
+                    
+                    {/* Montant à payer */}
                     <div>
                       <label className="block text-sm font-medium text-[#2c3e50] mb-1">
-                        Montant payé
+                        Montant à payer
                       </label>
-                      <div className="relative">
-                        <input
-                          type="number"
-                          value={paymentAmount}
-                          onChange={(e) => setPaymentAmount(parseFloat(e.target.value) || 0)}
-                          className="w-full px-3 py-2 pr-8 border border-[#d4b5a0]/30 rounded-lg focus:ring-2 focus:ring-[#d4b5a0] focus:border-transparent"
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">€</span>
+                      <div className="flex items-center gap-3">
+                        <div className="relative flex-1">
+                          <input
+                            type="number"
+                            value={paymentAmount}
+                            onChange={(e) => setPaymentAmount(parseFloat(e.target.value) || 0)}
+                            className="w-full px-3 py-2 pr-8 border border-[#d4b5a0]/30 rounded-lg focus:ring-2 focus:ring-[#d4b5a0] focus:border-transparent"
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">€</span>
+                        </div>
+                        {(applyLoyaltyDiscount || applyReferralDiscount) && (
+                          <div className="text-sm">
+                            <span className="text-gray-400 line-through">{reservation.totalPrice}€</span>
+                          </div>
+                        )}
                       </div>
                     </div>
 

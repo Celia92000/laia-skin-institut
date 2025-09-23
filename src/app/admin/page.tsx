@@ -22,7 +22,7 @@ import WhatsAppHistory from "@/components/WhatsAppHistory";
 import AdminStatsEnhanced from "@/components/AdminStatsEnhanced";
 import AdminReviewsManager from "@/components/AdminReviewsManager";
 import ClientSegmentation from "@/components/ClientSegmentation";
-import EmailDashboard from "@/components/EmailDashboard";
+import EmailingInterface from "@/components/EmailingInterface";
 import SourceStats from "@/components/SourceStats";
 import RevenueAnalytics from "@/components/RevenueAnalytics";
 import ReservationTableAdvanced from "@/components/ReservationTableAdvanced";
@@ -255,85 +255,8 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleValidationPayment = async (data: any) => {
-    if (!reservationToValidate) return;
-    
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/admin/reservations/${reservationToValidate.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
-
-      if (response.ok) {
-        fetchReservations();
-        fetchClients();
-        fetchLoyaltyProfiles();
-        
-        let message = data.status === 'completed' 
-          ? `✅ Soin validé pour ${reservationToValidate.userName}`
-          : `⚠️ ${reservationToValidate.userName} était absent`;
-        
-        if (data.paymentStatus === 'paid') {
-          message += ` - Paiement de ${data.paymentAmount}€ enregistré`;
-        }
-        
-        alert(message);
-        setShowValidationModal(false);
-        setReservationToValidate(null);
-      }
-    } catch (error) {
-      console.error('Erreur lors de la validation:', error);
-      alert('Erreur lors de la validation');
-    }
-  };
-
   const updateReservationStatus = async (reservationId: string, status: string) => {
     try {
-      const reservation = reservations.find(r => r.id === reservationId);
-      
-      // Si on marque comme terminé et que ce n'est pas encore payé
-      if (status === 'completed' && reservation && reservation.paymentStatus !== 'paid') {
-        const shouldMarkAsPaid = confirm('Le client a-t-il payé ?');
-        
-        if (shouldMarkAsPaid) {
-          // Ouvrir le modal de paiement ou demander les infos
-          const amount = prompt('Montant payé (laisser vide pour le montant total) :', reservation.totalPrice.toString());
-          const paymentAmount = amount ? parseFloat(amount) : reservation.totalPrice;
-          
-          const paymentMethod = prompt('Méthode de paiement (CB, Espèces, Virement) :', 'CB');
-          
-          const token = localStorage.getItem('token');
-          const response = await fetch(`/api/admin/reservations/${reservationId}`, {
-            method: 'PATCH',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ 
-              status,
-              paymentStatus: 'paid',
-              paymentAmount,
-              paymentMethod: paymentMethod || 'CB',
-              paymentDate: new Date().toISOString()
-            })
-          });
-
-          if (response.ok) {
-            fetchReservations();
-            fetchClients();
-            fetchLoyaltyProfiles();
-            alert(`✅ Soin validé et paiement de ${paymentAmount}€ enregistré !`);
-          }
-          return;
-        }
-      }
-      
-      // Cas normal ou si pas de paiement
       const token = localStorage.getItem('token');
       const response = await fetch(`/api/admin/reservations/${reservationId}`, {
         method: 'PATCH',
@@ -345,16 +268,22 @@ export default function AdminDashboard() {
       });
 
       if (response.ok) {
+        // Mettre à jour la liste localement
         setReservations(prev => prev.map(r => 
           r.id === reservationId ? { ...r, status } : r
         ));
         
+        // Trouver la réservation pour avoir les infos du client
+        const reservation = reservations.find(r => r.id === reservationId);
+        
+        // Si le soin est validé, les points sont automatiquement ajoutés
         if (status === 'completed') {
-          fetchClients();
-          fetchLoyaltyProfiles();
-          alert(`✅ Soin validé pour ${reservation?.userName || 'le client'} (sans paiement)`);
+          fetchClients(); // Rafraîchir les données clients
+          fetchLoyaltyProfiles(); // Rafraîchir les profils de fidélité
+          alert(`✅ Soin validé pour ${reservation?.userName || 'le client'}`);
         }
         
+        // Si le client était absent, notifier et enregistrer
         if (status === 'no_show' && reservation) {
           // Envoyer une notification WhatsApp au client
           try {
@@ -383,6 +312,45 @@ export default function AdminDashboard() {
       }
     } catch (error) {
       console.error('Erreur lors de la mise à jour:', error);
+    }
+  };
+
+  const handleValidationPayment = async (data: any) => {
+    if (!reservationToValidate) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/admin/reservations/${reservationToValidate.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+
+      if (response.ok) {
+        fetchReservations();
+        fetchClients();
+        fetchLoyaltyProfiles();
+        
+        let message = data.status === 'completed' 
+          ? `✅ Soin validé pour ${reservationToValidate.userName}`
+          : `⚠️ ${reservationToValidate.userName} était absent`;
+        
+        if (data.paymentStatus === 'paid') {
+          message += ` - Paiement de ${data.paymentAmount}€ enregistré`;
+        } else if (data.paymentStatus === 'partial') {
+          message += ` - Acompte de ${data.paymentAmount}€ enregistré`;
+        }
+        
+        alert(message);
+        setShowValidationModal(false);
+        setReservationToValidate(null);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la validation:', error);
+      alert('Erreur lors de la validation');
     }
   };
 
@@ -780,7 +748,6 @@ export default function AdminDashboard() {
       <div className="min-h-screen bg-gradient-to-br from-[#fdfbf7] to-[#f8f6f0] pt-32 pb-20">
         <div className="max-w-7xl mx-auto px-4">
         
-        
         {/* Notification de nouvelles réservations */}
         {showNotification && (
           <div className="mb-6 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl p-4 shadow-xl animate-pulse">
@@ -882,9 +849,9 @@ export default function AdminDashboard() {
             )}
           </button>
           <button
-            onClick={() => setActiveTab("validation-paiements")}
+            onClick={() => setActiveTab("soins-paiements")}
             className={`px-3 sm:px-6 py-2 sm:py-3 rounded-full font-medium transition-all whitespace-nowrap flex-shrink-0 text-sm sm:text-base ${
-              activeTab === "validation-paiements" || activeTab === "validation" || activeTab === "paiements"
+              activeTab === "soins-paiements" || activeTab === "validation" || activeTab === "paiements"
                 ? "bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white shadow-lg"
                 : "bg-white text-[#2c3e50] hover:shadow-md"
             }`}
@@ -1408,15 +1375,15 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {(activeTab === "validation-paiements" || activeTab === "validation" || activeTab === "paiements") && (
+          {(activeTab === "soins-paiements" || activeTab === "validation" || activeTab === "paiements") && (
             <div>
-              <div className="flex justify-between items-start mb-6">
+              <div className="flex justify-between items-center mb-6">
                 <div>
-                  <h2 className="text-2xl font-serif font-bold text-[#2c3e50] mb-2">
+                  <h2 className="text-2xl font-serif font-bold text-[#2c3e50]">
                     Gestion des Soins & Paiements
                   </h2>
-                  <p className="text-[#2c3e50]/70">
-                    Validez les rendez-vous effectués et enregistrez les paiements
+                  <p className="text-[#2c3e50]/70 mt-2">
+                    Validez les rendez-vous effectués et gérez tous les paiements
                   </p>
                 </div>
                 <div className="flex gap-2">
@@ -1443,14 +1410,14 @@ export default function AdminDashboard() {
                 
                 if (validationReservations.length > 0) {
                   return (
-                    <>
+                    <div className="mb-8">
                       <h3 className="text-lg font-semibold text-[#2c3e50] mb-4 flex items-center gap-2">
                         <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm">
                           {validationReservations.length}
                         </span>
                         Soins à valider
                       </h3>
-                      <div className="space-y-4 mb-8">
+                      <div className="space-y-4">
                         {validationReservations.map((reservation) => (
                   <div key={reservation.id} className="border border-[#d4b5a0]/20 rounded-xl p-6">
                     <div className="flex justify-between items-start mb-4">
@@ -1467,56 +1434,37 @@ export default function AdminDashboard() {
                           <span className="text-[#2c3e50] font-medium">{reservation.userName || 'Client'}</span>
                         </div>
                         <div className="flex flex-wrap gap-2">
-                          {reservation.services.map((serviceId: string) => (
-                            <span key={serviceId} className="px-3 py-1 bg-[#d4b5a0]/10 rounded-full text-sm">
-                              {services[serviceId as keyof typeof services]}
-                            </span>
-                          ))}
+                          <span className="text-sm text-[#2c3e50]/70">
+                            Services: {(() => {
+                              try {
+                                // Essayer de parser si c'est du JSON
+                                const servicesList = typeof reservation.services === 'string' 
+                                  ? JSON.parse(reservation.services) 
+                                  : reservation.services;
+                                
+                                if (Array.isArray(servicesList)) {
+                                  return servicesList.map((s: string) => 
+                                    services[s as keyof typeof services] || s
+                                  ).join(', ');
+                                } else {
+                                  return reservation.services || 'Service non spécifié';
+                                }
+                              } catch {
+                                // Si ce n'est pas du JSON, c'est probablement une chaîne simple
+                                if (typeof reservation.services === 'string' && reservation.services in services) {
+                                  return services[reservation.services as keyof typeof services];
+                                }
+                                return reservation.services || 'Service non spécifié';
+                              }
+                            })()}
+                          </span>
                         </div>
                       </div>
                       <div className="text-right">
-                        <span className="text-xl font-bold text-[#d4b5a0] block">{reservation.totalPrice}€</span>
-                        {(() => {
-                          const client = clients.find(c => c.id === reservation.userId);
-                          const loyaltyProfile = loyaltyProfiles.find(p => p.userId === reservation.userId);
-                          
-                          if (loyaltyProfile) {
-                            // Utiliser le compteur officiel de la base de données
-                            const currentCount = loyaltyProfile.individualServicesCount || 0;
-                            const nextCount = currentCount + 1;
-                            const positionInCycle = nextCount % 6;
-                            
-                            if (positionInCycle === 0) {
-                              return (
-                                <div className="text-right">
-                                  <span className="text-sm text-green-600 font-bold animate-pulse">
-                                    🎁 6ème séance !
-                                  </span>
-                                  <br />
-                                  <span className="text-xs text-green-500">
-                                    -30€ de réduction disponible
-                                  </span>
-                                </div>
-                              );
-                            } else {
-                              return (
-                                <div className="text-right">
-                                  <span className="text-sm text-gray-600">
-                                    Séance {positionInCycle}/6
-                                  </span>
-                                  <br />
-                                  <span className="text-xs text-gray-400">
-                                    {6 - positionInCycle} avant réduction
-                                  </span>
-                                </div>
-                              );
-                            }
-                          } else if (client) {
-                            // Fallback si pas de profil de fidélité
-                            return <span className="text-sm text-gray-500">1ère séance</span>;
-                          }
-                          return null;
-                        })()}
+                        <span className="text-xl font-bold text-[#d4b5a0] block mb-2">{reservation.totalPrice}€</span>
+                        <span className="text-sm text-green-600">
+                          +{Math.floor(reservation.totalPrice / 10)} points
+                        </span>
                       </div>
                     </div>
 
@@ -1528,10 +1476,10 @@ export default function AdminDashboard() {
                               setReservationToValidate(reservation);
                               setShowValidationModal(true);
                             }}
-                            className="w-full px-4 py-3 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white font-medium rounded-lg hover:from-[#c9a084] hover:to-[#b89574] transition-all shadow-lg flex items-center justify-center gap-2"
+                            className="flex-1 px-4 py-3 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white font-medium rounded-lg hover:from-[#c9a084] hover:to-[#b89574] transition-all shadow-lg flex items-center justify-center gap-2"
                           >
                             <CheckCircle className="w-5 h-5" />
-                            Valider le rendez-vous & Gérer le paiement
+                            Valider le rendez-vous & Enregistrer le paiement
                           </button>
                         </>
                       )}
@@ -1549,145 +1497,169 @@ export default function AdminDashboard() {
                   </div>
                         ))}
                       </div>
-                    </>
+                    </div>
                   );
                 }
                 return null;
               })()}
 
-              {/* Section des paiements à gérer */}
-              <h3 className="text-lg font-semibold text-[#2c3e50] mb-4 flex items-center gap-2">
-                <Euro className="w-5 h-5 text-[#d4b5a0]" />
-                Historique des soins & paiements
-              </h3>
-              
-              {/* Liste des réservations à facturer/payées */}
-              <div className="space-y-4">
-                {reservations
-                  .filter(r => r.status === 'completed' || r.status === 'no_show')
-                  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                  .slice(0, 20) // Limiter à 20 derniers pour la performance
-                  .map((reservation) => (
-                    <div key={reservation.id} className="border border-[#d4b5a0]/20 rounded-xl p-6">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <div className="flex items-center gap-3 mb-2">
-                          <User className="w-5 h-5 text-[#d4b5a0]" />
-                          <span className="font-semibold text-[#2c3e50]">{reservation.userName}</span>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            reservation.paymentStatus === 'paid' 
-                              ? 'bg-green-100 text-green-600'
-                              : reservation.paymentStatus === 'partial'
-                              ? 'bg-blue-100 text-blue-600'
-                              : reservation.paymentStatus === 'no_show'
-                              ? 'bg-orange-100 text-orange-600'
-                              : 'bg-red-100 text-red-600'
-                          }`}>
-                            {reservation.paymentStatus === 'paid' ? '✓ Payé' : 
-                             reservation.paymentStatus === 'partial' ? '⚠ Acompte' :
-                             reservation.paymentStatus === 'no_show' ? '⚠ Absent' : 
-                             'Non payé'}
-                          </span>
-                        </div>
-                        <p className="text-sm text-[#2c3e50]/60 mb-1">
-                          {new Date(reservation.date).toLocaleDateString('fr-FR')} à {reservation.time}
-                        </p>
-                        <p className="text-sm text-[#2c3e50]/70">
-                          Services: {(() => {
-                            try {
-                              const servicesList = typeof reservation.services === 'string' ? JSON.parse(reservation.services) : reservation.services;
-                              return Array.isArray(servicesList) 
-                                ? servicesList.map((s: string) => services[s as keyof typeof services] || s).join(', ')
-                                : reservation.services;
-                            } catch {
-                              if (typeof reservation.services === 'string' && reservation.services in services) {
-                                return services[reservation.services as keyof typeof services];
-                              }
-                              return reservation.services;
-                            }
-                          })()}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-2xl font-bold text-[#d4b5a0]">{reservation.totalPrice}€</p>
-                        {reservation.paymentAmount && reservation.paymentAmount !== reservation.totalPrice && (
-                          <p className="text-sm text-[#2c3e50]/60">Payé: {reservation.paymentAmount}€</p>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {reservation.paymentStatus !== 'paid' && reservation.paymentStatus !== 'no_show' && reservation.paymentStatus !== 'partial' && (
-                      <PaymentSectionEnhanced
-                        reservation={reservation}
-                        loyaltyProfiles={loyaltyProfiles}
-                        recordPayment={recordPayment}
-                      />
-                    )}
-                    
-                    {(reservation.paymentStatus === 'paid' || reservation.paymentStatus === 'no_show' || reservation.paymentStatus === 'partial') && (
-                      <div className="border-t border-[#d4b5a0]/10 pt-4">
-                        <div className="flex justify-between items-center">
-                          <div className="text-sm text-[#2c3e50]/60">
-                            {reservation.paymentStatus === 'no_show' ? (
-                              <>
-                                <p className="text-orange-600 font-medium">Client absent</p>
-                                <p>Date du rendez-vous: {new Date(reservation.date).toLocaleDateString('fr-FR')}</p>
-                                {reservation.paymentNotes && <p>Notes: {reservation.paymentNotes}</p>}
-                              </>
-                            ) : reservation.paymentStatus === 'partial' ? (
-                              <>
-                                <p className="text-blue-600 font-medium">Acompte reçu ({reservation.paymentAmount}€)</p>
-                                <p>Date: {new Date(reservation.paymentDate || '').toLocaleDateString('fr-FR')}</p>
-                                <p>Méthode: {reservation.paymentMethod === 'cash' ? 'Espèces' : reservation.paymentMethod === 'card' ? 'Carte' : 'Virement'}</p>
-                                {reservation.paymentNotes && <p>Notes: {reservation.paymentNotes}</p>}
-                              </>
-                            ) : (
-                              <>
-                                <p>Payé le: {new Date(reservation.paymentDate || '').toLocaleDateString('fr-FR')}</p>
-                                <p>Méthode: {reservation.paymentMethod === 'cash' ? 'Espèces' : reservation.paymentMethod === 'card' ? 'Carte' : 'Virement'}</p>
-                                {reservation.paymentNotes && <p>Notes: {reservation.paymentNotes}</p>}
-                              </>
+              {/* Section historique des paiements */}
+              <div>
+                <h3 className="text-lg font-semibold text-[#2c3e50] mb-4 flex items-center gap-2">
+                  <Euro className="w-5 h-5 text-[#d4b5a0]" />
+                  Historique des soins & paiements
+                </h3>
+                
+                <div className="space-y-4">
+                  {reservations
+                    .filter(r => r.status === 'completed' || r.status === 'no_show')
+                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                    .slice(0, 20)
+                    .map((reservation) => (
+                      <div key={reservation.id} className="border border-[#d4b5a0]/20 rounded-xl p-6">
+                        <div className="flex justify-between items-start mb-4">
+                          <div>
+                            <div className="flex items-center gap-3 mb-2">
+                              <User className="w-5 h-5 text-[#d4b5a0]" />
+                              <span className="font-semibold text-[#2c3e50]">{reservation.userName}</span>
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                reservation.paymentStatus === 'paid' 
+                                  ? 'bg-green-100 text-green-600'
+                                  : reservation.paymentStatus === 'partial'
+                                  ? 'bg-blue-100 text-blue-600'
+                                  : reservation.paymentStatus === 'no_show'
+                                  ? 'bg-orange-100 text-orange-600'
+                                  : 'bg-red-100 text-red-600'
+                              }`}>
+                                {reservation.paymentStatus === 'paid' ? '✓ Payé' : 
+                                 reservation.paymentStatus === 'partial' ? '⚠ Acompte' :
+                                 reservation.paymentStatus === 'no_show' ? '⚠ Absent' : 
+                                 'Non payé'}
+                              </span>
+                            </div>
+                            <p className="text-sm text-[#2c3e50]/60 mb-1">
+                              {new Date(reservation.date).toLocaleDateString('fr-FR')} à {reservation.time}
+                            </p>
+                            <p className="text-sm text-[#2c3e50]/70">
+                              Services: {(() => {
+                                try {
+                                  const servicesList = typeof reservation.services === 'string' 
+                                    ? JSON.parse(reservation.services) 
+                                    : reservation.services;
+                                  
+                                  if (Array.isArray(servicesList)) {
+                                    return servicesList.map((s: string) => 
+                                      services[s as keyof typeof services] || s
+                                    ).join(', ');
+                                  } else {
+                                    return reservation.services || 'Service non spécifié';
+                                  }
+                                } catch {
+                                  if (typeof reservation.services === 'string' && reservation.services in services) {
+                                    return services[reservation.services as keyof typeof services];
+                                  }
+                                  return reservation.services || 'Service non spécifié';
+                                }
+                              })()}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-2xl font-bold text-[#d4b5a0]">{reservation.totalPrice}€</p>
+                            {reservation.paymentAmount && reservation.paymentAmount !== reservation.totalPrice && (
+                              <p className="text-sm text-[#2c3e50]/60">Payé: {reservation.paymentAmount}€</p>
                             )}
                           </div>
-                          <div className="flex gap-2">
-                            {reservation.paymentStatus !== 'no_show' && (
-                              <>
-                                <button
-                                  onClick={() => openEditModal(reservation)}
-                                  className="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-all text-sm"
-                                >
-                                  <Edit2 className="w-4 h-4 inline mr-1" />
-                                  Modifier
-                                </button>
+                        </div>
+                        
+                        {reservation.paymentStatus !== 'paid' && reservation.paymentStatus !== 'no_show' && reservation.paymentStatus !== 'partial' && (
+                          <PaymentSectionEnhanced
+                            reservation={reservation}
+                            loyaltyProfiles={loyaltyProfiles}
+                            recordPayment={recordPayment}
+                          />
+                        )}
+                        
+                        {/* Section avec les détails de paiement et bouton CRM */}
+                        {(reservation.paymentStatus === 'paid' || reservation.paymentStatus === 'partial' || reservation.paymentStatus === 'no_show') && (
+                          <div className="border-t border-[#d4b5a0]/10 pt-4 mt-4">
+                            <div className="flex justify-between items-center">
+                              <div className="text-sm text-[#2c3e50]/60">
+                                {reservation.paymentStatus === 'no_show' ? (
+                                  <>
+                                    <p className="text-orange-600 font-medium">Client absent</p>
+                                    <p>Date: {new Date(reservation.date).toLocaleDateString('fr-FR')}</p>
+                                  </>
+                                ) : reservation.paymentStatus === 'partial' ? (
+                                  <>
+                                    <p className="text-blue-600 font-medium">Acompte reçu</p>
+                                    <p>Montant: {reservation.paymentAmount}€</p>
+                                    <p>Méthode: {reservation.paymentMethod}</p>
+                                  </>
+                                ) : (
+                                  <>
+                                    <p className="text-green-600 font-medium">Payé</p>
+                                    <p>Date: {reservation.paymentDate ? new Date(reservation.paymentDate).toLocaleDateString('fr-FR') : 'N/A'}</p>
+                                    <p>Méthode: {reservation.paymentMethod || 'N/A'}</p>
+                                  </>
+                                )}
+                                {reservation.paymentNotes && (
+                                  <p className="mt-1 text-xs italic">{reservation.paymentNotes}</p>
+                                )}
+                              </div>
+                              
+                              <div className="flex gap-2">
+                                {/* Bouton pour voir dans le CRM */}
                                 <button
                                   onClick={() => {
-                                    if (confirm('Êtes-vous sûr de vouloir annuler ce paiement ?')) {
-                                      recordPayment(reservation.id, undefined, { reset: true });
-                                    }
+                                    setActiveTab('crm');
+                                    // Optionnel : vous pouvez aussi sélectionner automatiquement le client
+                                    setTimeout(() => {
+                                      const clientElement = document.querySelector(`[data-client-id="${reservation.userId}"]`);
+                                      if (clientElement) {
+                                        clientElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                        // Ajouter un effet visuel temporaire
+                                        clientElement.classList.add('ring-2', 'ring-[#d4b5a0]', 'ring-offset-2');
+                                        setTimeout(() => {
+                                          clientElement.classList.remove('ring-2', 'ring-[#d4b5a0]', 'ring-offset-2');
+                                        }, 3000);
+                                      }
+                                    }, 500);
                                   }}
-                                  className="px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-all text-sm"
+                                  className="px-3 py-2 bg-[#d4b5a0]/10 text-[#d4b5a0] rounded-lg hover:bg-[#d4b5a0]/20 transition-all text-sm flex items-center gap-2"
+                                  title="Voir dans le CRM"
                                 >
-                                  <X className="w-4 h-4 inline mr-1" />
-                                  Annuler
+                                  <User className="w-4 h-4" />
+                                  Profil CRM
                                 </button>
-                                <InvoiceButton reservation={{
-                                  ...reservation,
-                                  client: reservation.userName || 'Client',
-                                  email: reservation.userEmail
-                                }} />
-                              </>
-                            )}
+                                
+                                {reservation.paymentStatus !== 'no_show' && (
+                                  <InvoiceButton reservation={{
+                                    ...reservation,
+                                    client: reservation.userName || 'Client',
+                                    email: reservation.userEmail
+                                  }} />
+                                )}
+                              </div>
+                            </div>
                           </div>
-                        </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                ))}
+                    ))}
+                </div>
               </div>
             </div>
           )}
 
-
+          {false && activeTab === "paiements" && (
+            <div>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-serif font-bold text-[#2c3e50]">
+                  Gestion des Paiements & Livre de Recettes
+                </h2>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => exportPayments('csv')}
+                    className="px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2"
                   >
                     <Download className="w-4 h-4" />
                     Export Simple
@@ -1906,7 +1878,7 @@ export default function AdminDashboard() {
               {/* Liste des réservations à facturer */}
               <div className="space-y-4">
                 {reservations
-                  .filter(r => r.status === 'completed' || r.status === 'no_show')
+                  .filter(r => r.status === 'completed')
                   .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                   .map((reservation) => (
                     <div key={reservation.id} className="border border-[#d4b5a0]/20 rounded-xl p-6">
@@ -1918,16 +1890,9 @@ export default function AdminDashboard() {
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                             reservation.paymentStatus === 'paid' 
                               ? 'bg-green-100 text-green-600'
-                              : reservation.paymentStatus === 'partial'
-                              ? 'bg-blue-100 text-blue-600'
-                              : reservation.paymentStatus === 'no_show'
-                              ? 'bg-orange-100 text-orange-600'
                               : 'bg-red-100 text-red-600'
                           }`}>
-                            {reservation.paymentStatus === 'paid' ? '✓ Payé' : 
-                             reservation.paymentStatus === 'partial' ? '⚠ Acompte' :
-                             reservation.paymentStatus === 'no_show' ? '⚠ Absent' : 
-                             'Non payé'}
+                            {reservation.paymentStatus === 'paid' ? '✓ Payé' : 'Non payé'}
                           </span>
                         </div>
                         <p className="text-sm text-[#2c3e50]/60 mb-1">
@@ -1964,7 +1929,7 @@ export default function AdminDashboard() {
                       </div>
                     </div>
                     
-                    {reservation.paymentStatus !== 'paid' && reservation.paymentStatus !== 'no_show' && reservation.paymentStatus !== 'partial' && (
+                    {reservation.paymentStatus !== 'paid' && (
                       <PaymentSectionEnhanced
                         reservation={reservation}
                         loyaltyProfiles={loyaltyProfiles}
@@ -1972,60 +1937,39 @@ export default function AdminDashboard() {
                       />
                     )}
                     
-                    {(reservation.paymentStatus === 'paid' || reservation.paymentStatus === 'no_show' || reservation.paymentStatus === 'partial') && (
+                    {reservation.paymentStatus === 'paid' && (
                       <div className="border-t border-[#d4b5a0]/10 pt-4">
                         <div className="flex justify-between items-center">
                           <div className="text-sm text-[#2c3e50]/60">
-                            {reservation.paymentStatus === 'no_show' ? (
-                              <>
-                                <p className="text-orange-600 font-medium">Client absent</p>
-                                <p>Date du rendez-vous: {new Date(reservation.date).toLocaleDateString('fr-FR')}</p>
-                                {reservation.paymentNotes && <p>Notes: {reservation.paymentNotes}</p>}
-                              </>
-                            ) : reservation.paymentStatus === 'partial' ? (
-                              <>
-                                <p className="text-blue-600 font-medium">Acompte reçu ({reservation.paymentAmount}€)</p>
-                                <p>Date: {new Date(reservation.paymentDate || '').toLocaleDateString('fr-FR')}</p>
-                                <p>Méthode: {reservation.paymentMethod === 'cash' ? 'Espèces' : reservation.paymentMethod === 'card' ? 'Carte' : 'Virement'}</p>
-                                {reservation.paymentNotes && <p>Notes: {reservation.paymentNotes}</p>}
-                              </>
-                            ) : (
-                              <>
-                                <p>Payé le: {new Date(reservation.paymentDate || '').toLocaleDateString('fr-FR')}</p>
-                                <p>Méthode: {reservation.paymentMethod === 'cash' ? 'Espèces' : reservation.paymentMethod === 'card' ? 'Carte' : 'Virement'}</p>
-                                {reservation.paymentNotes && <p>Notes: {reservation.paymentNotes}</p>}
-                              </>
-                            )}
+                            <p>Payé le: {new Date(reservation.paymentDate || '').toLocaleDateString('fr-FR')}</p>
+                            <p>Méthode: {reservation.paymentMethod === 'cash' ? 'Espèces' : reservation.paymentMethod === 'card' ? 'Carte' : 'Virement'}</p>
+                            {reservation.paymentNotes && <p>Notes: {reservation.paymentNotes}</p>}
                           </div>
                           <div className="flex gap-2">
-                            {reservation.paymentStatus !== 'no_show' && (
-                              <>
-                                <button
-                                  onClick={() => openEditModal(reservation)}
-                                  className="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-all text-sm"
-                                >
-                                  <Edit2 className="w-4 h-4 inline mr-1" />
-                                  Modifier
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    if (confirm('Êtes-vous sûr de vouloir annuler ce paiement ?')) {
-                                      // Réinitialiser le statut de paiement
-                                      recordPayment(reservation.id, undefined, { reset: true });
-                                    }
-                                  }}
-                                  className="px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-all text-sm"
-                                >
-                                  <X className="w-4 h-4 inline mr-1" />
-                                  Annuler paiement
-                                </button>
-                                <InvoiceButton reservation={{
-                                  ...reservation,
-                                  client: reservation.userName || 'Client',
-                                  email: reservation.userEmail
-                                }} />
-                              </>
-                            )}
+                            <button
+                              onClick={() => openEditModal(reservation)}
+                              className="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-all text-sm"
+                            >
+                              <Edit2 className="w-4 h-4 inline mr-1" />
+                              Modifier
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (confirm('Êtes-vous sûr de vouloir annuler ce paiement ?')) {
+                                  // Réinitialiser le statut de paiement
+                                  recordPayment(reservation.id, undefined, { reset: true });
+                                }
+                              }}
+                              className="px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-all text-sm"
+                            >
+                              <X className="w-4 h-4 inline mr-1" />
+                              Annuler paiement
+                            </button>
+                            <InvoiceButton reservation={{
+                              ...reservation,
+                              client: reservation.userName || 'Client',
+                              email: reservation.userEmail
+                            }} />
                           </div>
                         </div>
                       </div>
@@ -2426,7 +2370,7 @@ export default function AdminDashboard() {
           )}
 
           {activeTab === "emailing" && (
-            <EmailDashboard />
+            <EmailingInterface />
           )}
 
           {false && activeTab === "OLD_CLIENTS" && (
@@ -3040,18 +2984,21 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
-      </div>
-      
+
       {/* Modal de validation et paiement */}
-      <ValidationPaymentModal
-        reservation={reservationToValidate}
-        isOpen={showValidationModal}
-        onClose={() => {
-          setShowValidationModal(false);
-          setReservationToValidate(null);
-        }}
-        onValidate={handleValidationPayment}
-      />
+      {showValidationModal && reservationToValidate && (
+        <ValidationPaymentModal
+          reservation={reservationToValidate}
+          isOpen={showValidationModal}
+          onClose={() => {
+            setShowValidationModal(false);
+            setReservationToValidate(null);
+          }}
+          onValidate={handleValidationPayment}
+          loyaltyProfile={loyaltyProfiles.find(p => p.userId === reservationToValidate.userId)}
+        />
+      )}
+      </div>
     </div>
     </AuthGuard>
   );

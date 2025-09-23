@@ -661,7 +661,10 @@ export default function UnifiedCRMTab({
                 
                 return (
                   <React.Fragment key={client.id}>
-                    <tr className="border-b border-gray-100 hover:bg-[#fdfbf7] transition-colors">
+                    <tr 
+                      className="border-b border-gray-100 hover:bg-[#fdfbf7] transition-colors"
+                      data-client-id={client.id}
+                    >
                       <td className="py-4 px-4">
                         <div>
                           <p className="font-medium text-[#2c3e50]">{client.name}</p>
