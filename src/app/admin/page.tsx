@@ -1163,35 +1163,44 @@ export default function AdminDashboard() {
               {/* Afficher le contenu selon le sous-onglet */}
               {planningSubTab === 'calendar' && (
                 <>
-                  <PlanningCalendar 
-                    reservations={reservations
-                      .filter(r => r.status !== 'cancelled')
-                      .map(r => ({
-                        ...r,
-                        date: typeof r.date === 'string' ? r.date : r.date.toISOString(),
-                        userName: r.userName || 'Client',
-                        userEmail: r.userEmail || '',
-                        serviceName: r.serviceName || (r.services && r.services.length > 0 
-                          ? r.services.map((s: string) => {
-                              const serviceName = cleanServices[s as keyof typeof cleanServices];
-                              return typeof serviceName === 'string' ? serviceName : s;
-                            }).join(', ')
-                          : 'Service non défini'),
-                        serviceDuration: r.services && r.services.length > 0
-                          ? r.services.reduce((total: number, serviceSlug: string) => {
-                              const service = dbServices.find(s => s.slug === serviceSlug);
-                              return total + (service?.duration || 60);
-                            }, 0)
-                          : 60
-                      }))}
-                    services={cleanServices}
-                    dbServices={dbServices}
-                    onNewReservation={() => setShowNewReservationModal(true)}
-                    onDateClick={(date) => {
-                      setQuickActionDate(date);
-                      setShowQuickActionModal(true);
-                    }}
-                  />
+                  {(() => {
+                    try {
+                      return (
+                        <PlanningCalendar 
+                          reservations={reservations
+                            .filter(r => r.status !== 'cancelled')
+                            .map(r => ({
+                              ...r,
+                              date: typeof r.date === 'string' ? r.date : r.date.toISOString(),
+                              userName: r.userName || 'Client',
+                              userEmail: r.userEmail || '',
+                              serviceName: r.serviceName || (r.services && r.services.length > 0 
+                                ? r.services.map((s: string) => {
+                                    const serviceName = cleanServices[s as keyof typeof cleanServices];
+                                    return typeof serviceName === 'string' ? serviceName : s;
+                                  }).join(', ')
+                                : 'Service non défini'),
+                              serviceDuration: r.services && r.services.length > 0
+                                ? r.services.reduce((total: number, serviceSlug: string) => {
+                                    const service = dbServices.find(s => s.slug === serviceSlug);
+                                    return total + (service?.duration || 60);
+                                  }, 0)
+                                : 60
+                            }))}
+                          services={cleanServices}
+                          dbServices={dbServices}
+                          onNewReservation={() => setShowNewReservationModal(true)}
+                          onDateClick={(date) => {
+                            setQuickActionDate(date);
+                            setShowQuickActionModal(true);
+                          }}
+                        />
+                      );
+                    } catch (error) {
+                      console.error('Erreur dans PlanningCalendar:', error);
+                      return <div className="p-4 bg-red-50 text-red-600 rounded">Erreur lors du chargement du calendrier. Veuillez rafraîchir la page.</div>;
+                    }
+                  })()}
                   
                   {/* Modal de création rapide */}
                   {showQuickActionModal && quickActionDate && (
