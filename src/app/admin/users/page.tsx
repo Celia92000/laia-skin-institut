@@ -262,8 +262,11 @@ export default function UsersManagement() {
       {/* Stats - Cartes cliquables pour filtrer */}
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         {ROLES.map(role => {
+          // Utiliser allUsers qui contient TOUS les utilisateurs pour le comptage
           const count = role.value === 'CLIENT' 
             ? allUsers.filter(u => u.role === 'CLIENT' || u.role === 'client').length 
+            : role.value === 'INACTIVE'
+            ? allUsers.filter(u => u.role === 'INACTIVE' || u.role === 'inactive').length
             : allUsers.filter(u => u.role === role.value).length;
           const isActive = filterRole === role.value;
           
