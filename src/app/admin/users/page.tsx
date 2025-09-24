@@ -29,7 +29,8 @@ const ROLES = [
 
 export default function UsersManagement() {
   const router = useRouter();
-  const [users, setUsers] = useState<User[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>([]); // Tous les utilisateurs
+  const [users, setUsers] = useState<User[]>([]); // Utilisateurs affichés
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('');
@@ -67,7 +68,9 @@ export default function UsersManagement() {
       });
       if (response.ok) {
         const data = await response.json();
-        // Exclure les clients de la liste
+        setAllUsers(data); // Stocker tous les utilisateurs
+        
+        // Par défaut, exclure les clients de l'affichage
         const nonClientUsers = data.filter((user: User) => 
           user.role !== 'CLIENT' && user.role !== 'client'
         );
@@ -190,10 +193,14 @@ export default function UsersManagement() {
     }
   };
 
-  const filteredUsers = users.filter(user => {
+  // Utiliser allUsers quand un filtre de rôle est actif, sinon users (sans clients par défaut)
+  const baseUsers = filterRole ? allUsers : users;
+  
+  const filteredUsers = baseUsers.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = !filterRole || user.role === filterRole;
+    const matchesRole = !filterRole || user.role === filterRole || 
+                        (filterRole === 'CLIENT' && (user.role === 'CLIENT' || user.role === 'client'));
     return matchesSearch && matchesRole;
   });
 
@@ -252,24 +259,53 @@ export default function UsersManagement() {
         </select>
       </div>
 
-      {/* Stats */}
+      {/* Stats - Cartes cliquables pour filtrer */}
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         {ROLES.map(role => {
-          const count = users.filter(u => u.role === role.value).length;
+          const count = role.value === 'CLIENT' 
+            ? allUsers.filter(u => u.role === 'CLIENT' || u.role === 'client').length 
+            : allUsers.filter(u => u.role === role.value).length;
+          const isActive = filterRole === role.value;
+          
           return (
-            <div key={role.value} className="bg-white rounded-lg p-4 shadow-sm">
+            <button
+              key={role.value}
+              onClick={() => setFilterRole(isActive ? '' : role.value)}
+              className={`bg-white rounded-lg p-4 shadow-sm transition-all hover:shadow-md ${
+                isActive ? 'ring-2 ring-[#d4b5a0] scale-105' : 'hover:scale-102'
+              }`}
+            >
               <div className="flex items-center justify-between mb-2">
-                <Shield className="w-5 h-5 text-gray-400" />
+                <Shield className={`w-5 h-5 ${isActive ? 'text-[#d4b5a0]' : 'text-gray-400'}`} />
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${role.color}`}>
                   {count}
                 </span>
               </div>
-              <p className="text-sm font-medium text-gray-900">{role.label}</p>
-              <p className="text-xs text-gray-500">{role.description}</p>
-            </div>
+              <p className="text-sm font-medium text-gray-900 text-left">{role.label}</p>
+              <p className="text-xs text-gray-500 text-left">{role.description}</p>
+              {isActive && (
+                <p className="text-xs text-[#d4b5a0] mt-2 font-medium">Filtre actif</p>
+              )}
+            </button>
           );
         })}
       </div>
+
+      {/* Message d'information pour les clients */}
+      {filterRole === 'CLIENT' && (
+        <div className="max-w-7xl mx-auto mb-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
+            <Shield className="w-5 h-5 text-blue-600 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-blue-900">Affichage des clients</p>
+              <p className="text-sm text-blue-700">
+                Les clients sont affichés uniquement lorsque le filtre "Client" est actif. 
+                Ils n'apparaissent pas dans la vue par défaut pour une meilleure gestion des employés.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Liste des utilisateurs */}
       <div className="max-w-7xl mx-auto">
