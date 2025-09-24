@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { 
   ArrowLeft, Users, UserPlus, Edit2, Trash2, Shield, 
   Mail, Phone, Calendar, Search, Filter, User, 
-  ChevronDown, Check, X, Save, Eye, EyeOff
+  ChevronDown, Check, X, Save, Eye, EyeOff, Key, Copy
 } from 'lucide-react';
 
 interface User {
@@ -44,6 +44,9 @@ export default function UsersManagement() {
     password: ''
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [resetPasswords, setResetPasswords] = useState<{ [key: string]: string }>({});
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordModalUser, setPasswordModalUser] = useState<User | null>(null);
   
   const [newUser, setNewUser] = useState({
     email: '',
@@ -172,6 +175,49 @@ export default function UsersManagement() {
     }
   };
 
+  const generatePassword = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$!';
+    let password = '';
+    for (let i = 0; i < 12; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return password;
+  };
+
+  const handleResetPassword = async (user: User) => {
+    const newPassword = generatePassword();
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/admin/users', {
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          password: newPassword
+        })
+      });
+
+      if (response.ok) {
+        setResetPasswords({ ...resetPasswords, [user.id]: newPassword });
+        setPasswordModalUser(user);
+        setShowPasswordModal(true);
+      } else {
+        alert('Erreur lors de la réinitialisation du mot de passe');
+      }
+    } catch (error) {
+      alert('Erreur de connexion');
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    alert('Copié dans le presse-papier !');
+  };
+
   const handleDeleteUser = async (userId: string) => {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) return;
     
@@ -192,13 +238,17 @@ export default function UsersManagement() {
     }
   };
 
-  // Ne jamais afficher les clients - ils sont gérés dans le CRM
-  const baseUsers = users; // Toujours utiliser users qui exclut déjà les clients
+  // Utiliser allUsers quand on filtre par CLIENT, sinon users (sans clients par défaut)
+  const baseUsers = filterRole === 'CLIENT' ? allUsers : users;
   
   const filteredUsers = baseUsers.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = !filterRole || user.role === filterRole;
+    const matchesRole = !filterRole || 
+                        user.role === filterRole || 
+                        (filterRole === 'CLIENT' && (user.role === 'CLIENT' || user.role === 'client')) ||
+                        (filterRole === 'ADMIN' && (user.role === 'ADMIN' || user.role === 'admin')) ||
+                        (filterRole === 'INACTIVE' && (user.role === 'INACTIVE' || user.role === 'inactive'));
     return matchesSearch && matchesRole;
   });
 
@@ -258,10 +308,32 @@ export default function UsersManagement() {
       </div>
 
       {/* Stats - Cartes cliquables pour filtrer */}
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        {/* Carte Tous (Admin + Employés) */}
+        <button
+          onClick={() => setFilterRole('')}
+          className={`bg-white rounded-lg p-4 shadow-sm transition-all hover:shadow-md ${
+            filterRole === '' ? 'ring-2 ring-[#d4b5a0] scale-105' : 'hover:scale-102'
+          }`}
+        >
+          <div className="flex items-center justify-between mb-2">
+            <Users className={`w-5 h-5 ${filterRole === '' ? 'text-[#d4b5a0]' : 'text-gray-400'}`} />
+            <span className="px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+              {users.length}
+            </span>
+          </div>
+          <p className="text-sm font-medium text-gray-900 text-left">Tous</p>
+          <p className="text-xs text-gray-500 text-left">Admin & Employés</p>
+          {filterRole === '' && (
+            <p className="text-xs text-[#d4b5a0] mt-2 font-medium">Vue par défaut</p>
+          )}
+        </button>
+        
         {ROLES.map(role => {
-          // Compter uniquement les non-clients
-          const count = role.value === 'INACTIVE'
+          // Utiliser allUsers pour le comptage complet
+          const count = role.value === 'CLIENT'
+            ? allUsers.filter(u => u.role === 'CLIENT' || u.role === 'client').length
+            : role.value === 'INACTIVE'
             ? allUsers.filter(u => u.role === 'INACTIVE' || u.role === 'inactive').length
             : role.value === 'ADMIN'
             ? allUsers.filter(u => u.role === 'ADMIN' || u.role === 'admin').length
@@ -370,8 +442,16 @@ export default function UsersManagement() {
                               <Edit2 className="w-4 h-4" />
                             </button>
                             <button
+                              onClick={() => handleResetPassword(user)}
+                              className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                              title="Réinitialiser le mot de passe"
+                            >
+                              <Key className="w-4 h-4" />
+                            </button>
+                            <button
                               onClick={() => handleDeleteUser(user.id)}
                               className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                              title="Supprimer"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -565,6 +645,98 @@ export default function UsersManagement() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Affichage du nouveau mot de passe */}
+      {showPasswordModal && passwordModalUser && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <Key className="w-6 h-6 text-green-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Mot de passe réinitialisé</h2>
+                <p className="text-sm text-gray-600">{passwordModalUser.name} - {passwordModalUser.email}</p>
+              </div>
+            </div>
+            
+            <div className="bg-gray-50 rounded-lg p-4 mb-4">
+              <p className="text-xs text-gray-600 mb-2">Nouveau mot de passe :</p>
+              <div className="flex items-center gap-2">
+                <code className="flex-1 text-lg font-mono bg-white px-3 py-2 rounded border border-gray-200">
+                  {resetPasswords[passwordModalUser.id]}
+                </code>
+                <button
+                  onClick={() => copyToClipboard(resetPasswords[passwordModalUser.id])}
+                  className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                  title="Copier"
+                >
+                  <Copy className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+              <p className="text-sm text-yellow-800">
+                <strong>Important :</strong> Notez ce mot de passe maintenant. 
+                Il ne sera plus visible après fermeture de cette fenêtre.
+              </p>
+            </div>
+            
+            <div className="text-sm text-gray-600 space-y-1 mb-4">
+              <p>• L'employé peut se connecter avec ce nouveau mot de passe</p>
+              <p>• Il pourra le modifier depuis son espace personnel</p>
+              <p>• Communiquez-lui ce mot de passe de manière sécurisée</p>
+            </div>
+            
+            <div className="flex gap-3">
+              <button
+                onClick={async () => {
+                  // Envoyer le mot de passe par email
+                  try {
+                    const token = localStorage.getItem('token');
+                    const response = await fetch('/api/admin/send-password-email', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                      },
+                      body: JSON.stringify({
+                        email: passwordModalUser.email,
+                        name: passwordModalUser.name,
+                        password: resetPasswords[passwordModalUser.id]
+                      })
+                    });
+                    
+                    if (response.ok) {
+                      alert(`Email envoyé à ${passwordModalUser.email}`);
+                      setShowPasswordModal(false);
+                      setPasswordModalUser(null);
+                    } else {
+                      alert('Erreur lors de l\'envoi de l\'email');
+                    }
+                  } catch (error) {
+                    alert('Erreur de connexion');
+                  }
+                }}
+                className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+              >
+                <Mail className="w-4 h-4" />
+                Envoyer par email
+              </button>
+              <button
+                onClick={() => {
+                  setShowPasswordModal(false);
+                  setPasswordModalUser(null);
+                }}
+                className="flex-1 px-4 py-2 bg-[#d4b5a0] text-white rounded-lg hover:bg-[#c9a084] transition-colors"
+              >
+                J'ai noté le mot de passe
+              </button>
+            </div>
           </div>
         </div>
       )}
