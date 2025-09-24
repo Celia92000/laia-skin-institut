@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
-import { Shield, User, LogOut } from "lucide-react";
+import { Shield, User, LogOut, Calculator } from "lucide-react";
 import { logout } from "@/lib/auth-client";
 
 export default function Header() {
@@ -76,18 +76,36 @@ export default function Header() {
             {/* Boutons spéciaux pour les utilisateurs connectés */}
             {user && (
               <>
-                {(user.role === 'admin' || user.role === 'ADMIN' || user.role === 'EMPLOYEE') && (
+                {(user.role === 'admin' || user.role === 'ADMIN') && (
                   <li>
                     <Link 
                       href="/admin" 
-                      className={`flex items-center gap-2 text-white font-semibold px-5 py-2.5 rounded-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl text-sm ${
-                        user.role === 'EMPLOYEE' 
-                          ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800'
-                          : 'bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 animate-pulse-subtle'
-                      }`}
+                      className="flex items-center gap-2 text-white font-semibold px-5 py-2.5 rounded-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl text-sm bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 animate-pulse-subtle"
                     >
                       <Shield className="w-4 h-4" />
-                      {user.role === 'EMPLOYEE' ? 'Espace Employé' : 'Admin'}
+                      Admin
+                    </Link>
+                  </li>
+                )}
+                {user.role === 'EMPLOYEE' && (
+                  <li>
+                    <Link 
+                      href="/admin" 
+                      className="flex items-center gap-2 text-white font-semibold px-5 py-2.5 rounded-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl text-sm bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+                    >
+                      <Shield className="w-4 h-4" />
+                      Espace Employé
+                    </Link>
+                  </li>
+                )}
+                {user.role === 'COMPTABLE' && (
+                  <li>
+                    <Link 
+                      href="/comptable" 
+                      className="flex items-center gap-2 text-white font-semibold px-5 py-2.5 rounded-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl text-sm bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
+                    >
+                      <Calculator className="w-4 h-4" />
+                      Espace Comptable
                     </Link>
                   </li>
                 )}

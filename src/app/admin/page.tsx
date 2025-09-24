@@ -35,6 +35,8 @@ import QuickActionModal from "@/components/QuickActionModal";
 import { logout } from "@/lib/auth-client";
 import { getCurrentPrice, calculateTotalPrice } from "@/lib/pricing";
 import ValidationPaymentModal from "@/components/ValidationPaymentModal";
+import { generateInvoiceNumber, calculateInvoiceTotals, formatInvoiceHTML, generateCSVExport, downloadFile } from '@/lib/invoice-generator';
+import AdminComptabiliteTab from "@/components/AdminComptabiliteTab";
 
 interface Reservation {
   id: string;
@@ -1030,17 +1032,30 @@ export default function AdminDashboard() {
             </>
           )}
           {(userRole === 'ADMIN' || userRole === 'admin') && (
-            <button
-              onClick={() => setActiveTab("emailing")}
-              className={`px-3 sm:px-6 py-2 sm:py-3 rounded-full font-medium transition-all whitespace-nowrap flex-shrink-0 text-sm sm:text-base ${
-                activeTab === "emailing"
-                  ? "bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white shadow-lg"
-                  : "bg-white text-[#2c3e50] hover:shadow-md"
-              }`}
-            >
-              <Mail className="w-4 h-4 inline mr-2" />
-              Emailing
-            </button>
+            <>
+              <button
+                onClick={() => setActiveTab("comptabilite")}
+                className={`px-3 sm:px-6 py-2 sm:py-3 rounded-full font-medium transition-all whitespace-nowrap flex-shrink-0 text-sm sm:text-base ${
+                  activeTab === "comptabilite"
+                    ? "bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg"
+                    : "bg-white text-[#2c3e50] hover:shadow-md"
+                }`}
+              >
+                <Euro className="w-4 h-4 inline mr-2" />
+                Comptabilité
+              </button>
+              <button
+                onClick={() => setActiveTab("emailing")}
+                className={`px-3 sm:px-6 py-2 sm:py-3 rounded-full font-medium transition-all whitespace-nowrap flex-shrink-0 text-sm sm:text-base ${
+                  activeTab === "emailing"
+                    ? "bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white shadow-lg"
+                    : "bg-white text-[#2c3e50] hover:shadow-md"
+                }`}
+              >
+                <Mail className="w-4 h-4 inline mr-2" />
+                Emailing
+              </button>
+            </>
           )}
           <button
             onClick={() => setActiveTab("whatsapp")}
@@ -2634,6 +2649,13 @@ export default function AdminDashboard() {
               setClients={setClients}
               loyaltyProfiles={loyaltyProfiles}
               reservations={reservations}
+            />
+          )}
+
+          {activeTab === "comptabilite" && (
+            <AdminComptabiliteTab
+              reservations={reservations}
+              fetchReservations={fetchReservations}
             />
           )}
 

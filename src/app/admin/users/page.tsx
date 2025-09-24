@@ -24,13 +24,16 @@ interface User {
 const ROLES = [
   { value: 'ADMIN', label: 'Administrateur', color: 'bg-purple-100 text-purple-800', description: 'Accès complet' },
   { value: 'EMPLOYEE', label: 'Employé', color: 'bg-blue-100 text-blue-800', description: 'Gestion des RDV' },
+  { value: 'COMPTABLE', label: 'Comptable', color: 'bg-green-100 text-green-800', description: 'Accès financier' },
+  { value: 'STAGIAIRE', label: 'Stagiaire', color: 'bg-yellow-100 text-yellow-800', description: 'Accès limité' },
+  { value: 'ALTERNANT', label: 'Alternant', color: 'bg-orange-100 text-orange-800', description: 'Formation pratique' },
   { value: 'INACTIVE', label: 'Inactif', color: 'bg-gray-100 text-gray-800', description: 'Compte désactivé' }
 ];
 
 // Tous les rôles possibles pour le select (inclut CLIENT pour pouvoir réassigner)
 const ALL_ROLES = [
   ...ROLES,
-  { value: 'CLIENT', label: 'Client', color: 'bg-green-100 text-green-800', description: 'Accès client' }
+  { value: 'CLIENT', label: 'Client', color: 'bg-indigo-100 text-indigo-800', description: 'Accès client' }
 ];
 
 export default function UsersManagement() {
@@ -66,6 +69,14 @@ export default function UsersManagement() {
 
   useEffect(() => {
     fetchUsers();
+    
+    // Rafraîchir automatiquement toutes les 5 secondes
+    const interval = setInterval(() => {
+      fetchUsers();
+    }, 5000);
+    
+    // Nettoyer l'intervalle au démontage
+    return () => clearInterval(interval);
   }, []);
 
   const fetchUsers = async () => {
@@ -283,13 +294,19 @@ export default function UsersManagement() {
     }
   };
 
-  // Toujours utiliser users (sans clients) 
+  // Filtrer avec la recherche fonctionnelle
   const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          user.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const searchLower = searchTerm.toLowerCase();
+    const matchesSearch = searchTerm === '' || 
+                          (user.name && user.name.toLowerCase().includes(searchLower)) ||
+                          (user.email && user.email.toLowerCase().includes(searchLower)) ||
+                          (user.phone && user.phone.includes(searchTerm));
     const matchesRole = !filterRole || 
                         user.role === filterRole || 
                         (filterRole === 'ADMIN' && (user.role === 'ADMIN' || user.role === 'admin')) ||
+                        (filterRole === 'COMPTABLE' && user.role === 'COMPTABLE') ||
+                        (filterRole === 'STAGIAIRE' && user.role === 'STAGIAIRE') ||
+                        (filterRole === 'ALTERNANT' && user.role === 'ALTERNANT') ||
                         (filterRole === 'INACTIVE' && (user.role === 'INACTIVE' || user.role === 'inactive'));
     return matchesSearch && matchesRole;
   });
@@ -446,6 +463,12 @@ export default function UsersManagement() {
             ? allUsers.filter(u => u.role === 'INACTIVE' || u.role === 'inactive').length
             : role.value === 'ADMIN'
             ? allUsers.filter(u => u.role === 'ADMIN' || u.role === 'admin').length
+            : role.value === 'COMPTABLE'
+            ? allUsers.filter(u => u.role === 'COMPTABLE').length
+            : role.value === 'STAGIAIRE'
+            ? allUsers.filter(u => u.role === 'STAGIAIRE').length
+            : role.value === 'ALTERNANT'
+            ? allUsers.filter(u => u.role === 'ALTERNANT').length
             : allUsers.filter(u => u.role === role.value).length;
           const isActive = filterRole === role.value;
           
@@ -674,7 +697,7 @@ export default function UsersManagement() {
                   onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4b5a0] focus:border-transparent"
                 >
-                  {ROLES.filter(r => r.value !== 'CLIENT' && r.value !== 'INACTIVE').map(role => (
+                  {ROLES.filter(r => r.value !== 'INACTIVE').map(role => (
                     <option key={role.value} value={role.value}>{role.label}</option>
                   ))}
                 </select>
