@@ -23,7 +23,6 @@ interface User {
 const ROLES = [
   { value: 'ADMIN', label: 'Administrateur', color: 'bg-purple-100 text-purple-800', description: 'Accès complet' },
   { value: 'EMPLOYEE', label: 'Employé', color: 'bg-blue-100 text-blue-800', description: 'Gestion des RDV' },
-  { value: 'CLIENT', label: 'Client', color: 'bg-green-100 text-green-800', description: 'Accès client' },
   { value: 'INACTIVE', label: 'Inactif', color: 'bg-gray-100 text-gray-800', description: 'Compte désactivé' }
 ];
 
@@ -193,14 +192,13 @@ export default function UsersManagement() {
     }
   };
 
-  // Utiliser allUsers quand un filtre de rôle est actif, sinon users (sans clients par défaut)
-  const baseUsers = filterRole ? allUsers : users;
+  // Ne jamais afficher les clients - ils sont gérés dans le CRM
+  const baseUsers = users; // Toujours utiliser users qui exclut déjà les clients
   
   const filteredUsers = baseUsers.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = !filterRole || user.role === filterRole || 
-                        (filterRole === 'CLIENT' && (user.role === 'CLIENT' || user.role === 'client'));
+    const matchesRole = !filterRole || user.role === filterRole;
     return matchesSearch && matchesRole;
   });
 
@@ -260,13 +258,13 @@ export default function UsersManagement() {
       </div>
 
       {/* Stats - Cartes cliquables pour filtrer */}
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         {ROLES.map(role => {
-          // Utiliser allUsers qui contient TOUS les utilisateurs pour le comptage
-          const count = role.value === 'CLIENT' 
-            ? allUsers.filter(u => u.role === 'CLIENT' || u.role === 'client').length 
-            : role.value === 'INACTIVE'
+          // Compter uniquement les non-clients
+          const count = role.value === 'INACTIVE'
             ? allUsers.filter(u => u.role === 'INACTIVE' || u.role === 'inactive').length
+            : role.value === 'ADMIN'
+            ? allUsers.filter(u => u.role === 'ADMIN' || u.role === 'admin').length
             : allUsers.filter(u => u.role === role.value).length;
           const isActive = filterRole === role.value;
           
@@ -294,21 +292,6 @@ export default function UsersManagement() {
         })}
       </div>
 
-      {/* Message d'information pour les clients */}
-      {filterRole === 'CLIENT' && (
-        <div className="max-w-7xl mx-auto mb-4">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
-            <Shield className="w-5 h-5 text-blue-600 mt-0.5" />
-            <div>
-              <p className="text-sm font-medium text-blue-900">Affichage des clients</p>
-              <p className="text-sm text-blue-700">
-                Les clients sont affichés uniquement lorsque le filtre "Client" est actif. 
-                Ils n'apparaissent pas dans la vue par défaut pour une meilleure gestion des employés.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Liste des utilisateurs */}
       <div className="max-w-7xl mx-auto">
