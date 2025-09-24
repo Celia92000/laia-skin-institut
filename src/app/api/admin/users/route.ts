@@ -164,7 +164,7 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
 
-    const { userId, role, name, phone } = await request.json();
+    const { userId, role, name, phone, email, password } = await request.json();
 
     if (!userId) {
       return NextResponse.json(
@@ -174,7 +174,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Empêcher de se modifier soi-même
-    if (userId === decoded.userId && role && role !== 'ADMIN') {
+    if (userId === decoded.userId && role && role !== 'ADMIN' && role !== 'admin') {
       return NextResponse.json(
         { error: 'Vous ne pouvez pas modifier votre propre rôle' },
         { status: 400 }
@@ -185,7 +185,12 @@ export async function PATCH(request: NextRequest) {
     const updateData: any = {};
     if (role) updateData.role = role;
     if (name) updateData.name = name;
-    if (phone) updateData.phone = phone;
+    if (phone !== undefined) updateData.phone = phone;
+    if (email) updateData.email = email;
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      updateData.password = hashedPassword;
+    }
 
     const updatedUser = await prisma.user.update({
       where: { id: userId },
