@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Calendar, Clock, CheckCircle, XCircle, Gift, User, Award, TrendingUp, UserCheck, Settings, Euro, Edit2, Save, FileText, Heart, AlertCircle, CreditCard, Download, Receipt, LogOut, MapPin, Phone, Mail, Instagram, Globe, Grid3x3, List, Cake, CreditCard as CardIcon, Star, MessageCircle, Send, X } from "lucide-react";
+import { Calendar, Clock, CheckCircle, XCircle, Gift, User, Users, Shield, Award, TrendingUp, UserCheck, Settings, Euro, Edit2, Save, FileText, Heart, AlertCircle, CreditCard, Download, Receipt, LogOut, MapPin, Phone, Mail, Instagram, Globe, Grid3x3, List, Cake, CreditCard as CardIcon, Star, MessageCircle, Send, X } from "lucide-react";
 import AuthGuard from "@/components/AuthGuard";
 import AdminCalendarEnhanced from "@/components/AdminCalendarEnhanced";
 import AdminServicesTab from "@/components/AdminServicesTab";
@@ -62,6 +62,7 @@ interface Reservation {
 
 export default function AdminDashboard() {
   const router = useRouter();
+  const [userRole, setUserRole] = useState<string>('');
   const [useOptimizedView, setUseOptimizedView] = useState(false); // Dashboard classique pour l'instant
   const [activeTab, setActiveTab] = useState("stats");
   const [reservations, setReservations] = useState<Reservation[]>([]);
@@ -135,10 +136,14 @@ export default function AdminDashboard() {
       }
 
       const userInfo = JSON.parse(user);
-      if (userInfo.role !== 'admin') {
+      // Autoriser admin ET employés
+      if (userInfo.role !== 'admin' && userInfo.role !== 'ADMIN' && userInfo.role !== 'EMPLOYEE') {
         router.push('/espace-client');
         return;
       }
+      
+      // Stocker le rôle pour contrôler l'affichage
+      setUserRole(userInfo.role);
 
       fetchReservations();
       fetchClients();
@@ -815,13 +820,25 @@ export default function AdminDashboard() {
               <p className="text-[#2c3e50]/70">Gérez vos réservations et vos clients</p>
             </div>
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => router.push('/admin/users')}
-                className="px-4 py-2 text-sm bg-purple-600 text-white hover:bg-purple-700 rounded-lg transition-colors flex items-center gap-2"
-              >
-                <Users className="w-4 h-4" />
-                Utilisateurs
-              </button>
+              {/* Boutons visibles uniquement pour les ADMINS */}
+              {(userRole === 'ADMIN' || userRole === 'admin') && (
+                <>
+                  <button
+                    onClick={() => router.push('/admin/users')}
+                    className="px-4 py-2 text-sm bg-purple-600 text-white hover:bg-purple-700 rounded-lg transition-colors flex items-center gap-2"
+                  >
+                    <Users className="w-4 h-4" />
+                    Utilisateurs
+                  </button>
+                  <button
+                    onClick={() => router.push('/admin/permissions')}
+                    className="px-4 py-2 text-sm bg-orange-600 text-white hover:bg-orange-700 rounded-lg transition-colors flex items-center gap-2"
+                  >
+                    <Shield className="w-4 h-4" />
+                    Permissions
+                  </button>
+                </>
+              )}
               <button
                 onClick={() => router.push('/admin/settings')}
                 className="px-4 py-2 text-sm bg-[#d4b5a0] text-white hover:bg-[#c9a084] rounded-lg transition-colors flex items-center gap-2"
@@ -890,7 +907,7 @@ export default function AdminDashboard() {
                 : "bg-white text-[#2c3e50] hover:shadow-md"
             }`}
           >
-            Statistiques
+            {userRole === 'EMPLOYEE' ? 'Tableau de bord' : 'Statistiques'}
           </button>
           <button
             onClick={() => setActiveTab("planning")}
@@ -982,37 +999,44 @@ export default function AdminDashboard() {
           >
             CRM Clients
           </button>
-          <button
-            onClick={() => setActiveTab("services")}
-            className={`px-3 sm:px-6 py-2 sm:py-3 rounded-full font-medium transition-all whitespace-nowrap flex-shrink-0 text-sm sm:text-base ${
-              activeTab === "services"
-                ? "bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white shadow-lg"
-                : "bg-white text-[#2c3e50] hover:shadow-md"
-            }`}
-          >
-            Gestion Services
-          </button>
-          <button
-            onClick={() => setActiveTab("products")}
-            className={`px-3 sm:px-6 py-2 sm:py-3 rounded-full font-medium transition-all whitespace-nowrap flex-shrink-0 text-sm sm:text-base ${
-              activeTab === "products"
-                ? "bg-gradient-to-r from-purple-500 to-purple-700 text-white shadow-lg"
-                : "bg-white text-[#2c3e50] hover:shadow-md"
-            }`}
-          >
-            Produits
-          </button>
-          <button
-            onClick={() => setActiveTab("emailing")}
-            className={`px-3 sm:px-6 py-2 sm:py-3 rounded-full font-medium transition-all whitespace-nowrap flex-shrink-0 text-sm sm:text-base ${
-              activeTab === "emailing"
-                ? "bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white shadow-lg"
-                : "bg-white text-[#2c3e50] hover:shadow-md"
-            }`}
-          >
-            <Mail className="w-4 h-4 inline mr-2" />
-            Emailing
-          </button>
+          {/* Services et Produits - uniquement pour ADMIN */}
+          {(userRole === 'ADMIN' || userRole === 'admin') && (
+            <>
+              <button
+                onClick={() => setActiveTab("services")}
+                className={`px-3 sm:px-6 py-2 sm:py-3 rounded-full font-medium transition-all whitespace-nowrap flex-shrink-0 text-sm sm:text-base ${
+                  activeTab === "services"
+                    ? "bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white shadow-lg"
+                    : "bg-white text-[#2c3e50] hover:shadow-md"
+                }`}
+              >
+                Gestion Services
+              </button>
+              <button
+                onClick={() => setActiveTab("products")}
+                className={`px-3 sm:px-6 py-2 sm:py-3 rounded-full font-medium transition-all whitespace-nowrap flex-shrink-0 text-sm sm:text-base ${
+                  activeTab === "products"
+                    ? "bg-gradient-to-r from-purple-500 to-purple-700 text-white shadow-lg"
+                    : "bg-white text-[#2c3e50] hover:shadow-md"
+                }`}
+              >
+                Produits
+              </button>
+            </>
+          )}
+          {(userRole === 'ADMIN' || userRole === 'admin') && (
+            <button
+              onClick={() => setActiveTab("emailing")}
+              className={`px-3 sm:px-6 py-2 sm:py-3 rounded-full font-medium transition-all whitespace-nowrap flex-shrink-0 text-sm sm:text-base ${
+                activeTab === "emailing"
+                  ? "bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white shadow-lg"
+                  : "bg-white text-[#2c3e50] hover:shadow-md"
+              }`}
+            >
+              <Mail className="w-4 h-4 inline mr-2" />
+              Emailing
+            </button>
+          )}
           <button
             onClick={() => setActiveTab("whatsapp")}
             className={`px-3 sm:px-6 py-2 sm:py-3 rounded-full font-medium transition-all whitespace-nowrap flex-shrink-0 text-sm sm:text-base ${
@@ -1043,31 +1067,90 @@ export default function AdminDashboard() {
           {activeTab === "stats" && (
             <div className="space-y-8">
               <h2 className="text-2xl font-serif font-bold text-[#2c3e50] mb-6">
-                Tableau de bord et statistiques
+                {userRole === 'EMPLOYEE' ? 'Tableau de bord' : 'Tableau de bord et statistiques'}
               </h2>
               
-              {/* Analyse du chiffre d'affaires en premier */}
-              <RevenueAnalytics 
-                reservations={reservations.map(r => ({
-                  ...r,
-                  totalPrice: r.totalPrice || 0,
-                  paymentStatus: r.paymentStatus || 'pending',
-                  paymentDate: r.paymentDate || null,
-                  services: r.services || []
-                }))} 
-                services={services}
-                onStatClick={(type: string) => {
-                  if (type === 'revenue') setShowDetailsModal('revenue');
-                  if (type === 'services') setActiveTab('services');
-                  if (type === 'average') setShowDetailsModal('revenue');
-                }}
-              />
-              
-              {/* Évolution des revenus et autres statistiques */}
-              <AdminStatsEnhanced />
-              
-              {/* Statistiques des sources */}
-              <SourceStats reservations={reservations} />
+              {userRole === 'EMPLOYEE' ? (
+                // Vue limitée pour les employés
+                <div className="space-y-6">
+                  {/* Stats de base uniquement */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-gradient-to-br from-[#d4b5a0]/10 to-[#c9a084]/10 rounded-xl p-6">
+                      <p className="text-sm text-[#2c3e50]/60 mb-2">Réservations du jour</p>
+                      <p className="text-3xl font-bold text-[#2c3e50]">
+                        {reservations.filter(r => {
+                          const date = typeof r.date === 'string' ? r.date : r.date.toISOString();
+                          return date.split('T')[0] === new Date().toISOString().split('T')[0];
+                        }).length}
+                      </p>
+                    </div>
+                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6">
+                      <p className="text-sm text-[#2c3e50]/60 mb-2">Confirmées</p>
+                      <p className="text-3xl font-bold text-green-600">
+                        {reservations.filter(r => r.status === 'confirmed').length}
+                      </p>
+                    </div>
+                    <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-6">
+                      <p className="text-sm text-[#2c3e50]/60 mb-2">En attente</p>
+                      <p className="text-3xl font-bold text-yellow-600">
+                        {reservations.filter(r => r.status === 'pending').length}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* CA du mois - vue simplifiée */}
+                  <div className="bg-white border border-gray-200 rounded-xl p-6">
+                    <h3 className="text-lg font-semibold mb-4 text-[#2c3e50]">Évolution du CA</h3>
+                    <div className="text-center py-8">
+                      <p className="text-sm text-gray-600 mb-2">CA du mois en cours</p>
+                      <p className="text-4xl font-bold text-[#d4b5a0]">
+                        {reservations
+                          .filter(r => {
+                            const date = new Date(r.date);
+                            const now = new Date();
+                            return date.getMonth() === now.getMonth() && 
+                                   date.getFullYear() === now.getFullYear() &&
+                                   r.status === 'completed';
+                          })
+                          .reduce((sum, r) => sum + (r.totalPrice || 0), 0).toFixed(2)}€
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                    <p className="text-sm text-blue-800">
+                      <strong>Note :</strong> En tant qu'employé, vous avez accès aux statistiques de base.
+                      Pour plus d'informations, contactez votre administrateur.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                // Vue complète pour les admins
+                <>
+                  {/* Analyse du chiffre d'affaires en premier */}
+                  <RevenueAnalytics 
+                    reservations={reservations.map(r => ({
+                      ...r,
+                      totalPrice: r.totalPrice || 0,
+                      paymentStatus: r.paymentStatus || 'pending',
+                      paymentDate: r.paymentDate || null,
+                      services: r.services || []
+                    }))} 
+                    services={services}
+                    onStatClick={(type: string) => {
+                      if (type === 'revenue') setShowDetailsModal('revenue');
+                      if (type === 'services') setActiveTab('services');
+                      if (type === 'average') setShowDetailsModal('revenue');
+                    }}
+                  />
+                  
+                  {/* Évolution des revenus et autres statistiques */}
+                  <AdminStatsEnhanced />
+                  
+                  {/* Statistiques des sources */}
+                  <SourceStats reservations={reservations} />
+                </>
+              )}
             </div>
           )}
           
@@ -1496,22 +1579,25 @@ export default function AdminDashboard() {
                     Validez les rendez-vous effectués et gérez tous les paiements
                   </p>
                 </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => exportPayments('csv')}
-                    className="px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2 text-sm"
-                  >
-                    <Download className="w-4 h-4" />
-                    Export
-                  </button>
-                  <button
-                    onClick={() => exportPayments('detailed')}
-                    className="px-4 py-2 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2 text-sm"
-                  >
-                    <FileText className="w-4 h-4" />
-                    Livre de Recettes
-                  </button>
-                </div>
+                {/* Boutons Export - uniquement pour ADMIN */}
+                {(userRole === 'ADMIN' || userRole === 'admin') && (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => exportPayments('csv')}
+                      className="px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2 text-sm"
+                    >
+                      <Download className="w-4 h-4" />
+                      Export
+                    </button>
+                    <button
+                      onClick={() => exportPayments('detailed')}
+                      className="px-4 py-2 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2 text-sm"
+                    >
+                      <FileText className="w-4 h-4" />
+                      Livre de Recettes
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Section des soins à valider */}
@@ -1766,22 +1852,25 @@ export default function AdminDashboard() {
                 <h2 className="text-2xl font-serif font-bold text-[#2c3e50]">
                   Gestion des Paiements & Livre de Recettes
                 </h2>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => exportPayments('csv')}
-                    className="px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2"
-                  >
-                    <Download className="w-4 h-4" />
-                    Export Simple
-                  </button>
-                  <button
-                    onClick={() => exportPayments('detailed')}
-                    className="px-4 py-2 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2"
-                  >
-                    <FileText className="w-4 h-4" />
-                    Livre de Recettes
-                  </button>
-                </div>
+                {/* Boutons Export - uniquement pour ADMIN */}
+                {(userRole === 'ADMIN' || userRole === 'admin') && (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => exportPayments('csv')}
+                      className="px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2"
+                    >
+                      <Download className="w-4 h-4" />
+                      Export Simple
+                    </button>
+                    <button
+                      onClick={() => exportPayments('detailed')}
+                      className="px-4 py-2 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2"
+                    >
+                      <FileText className="w-4 h-4" />
+                      Livre de Recettes
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Filtres */}
@@ -3454,16 +3543,18 @@ export default function AdminDashboard() {
                     </div>
                   </div>
 
-                  {/* Bouton export */}
-                  <div className="mt-6 flex justify-end">
-                    <button
-                      onClick={() => exportPayments('detailed')}
-                      className="px-4 py-2 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2"
-                    >
-                      <Download className="w-4 h-4" />
-                      Exporter en CSV
-                    </button>
-                  </div>
+                  {/* Bouton export - uniquement pour ADMIN */}
+                  {(userRole === 'ADMIN' || userRole === 'admin') && (
+                    <div className="mt-6 flex justify-end">
+                      <button
+                        onClick={() => exportPayments('detailed')}
+                        className="px-4 py-2 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2"
+                      >
+                        <Download className="w-4 h-4" />
+                        Exporter en CSV
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

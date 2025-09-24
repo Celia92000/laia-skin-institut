@@ -40,7 +40,7 @@ export default function AuthGuard({ children, requireAdmin = false }: AuthGuardP
 
         const data = await response.json();
         
-        if (requireAdmin && data.user.role !== 'admin') {
+        if (requireAdmin && data.user.role !== 'admin' && data.user.role !== 'ADMIN' && data.user.role !== 'EMPLOYEE') {
           router.push('/');
           return;
         }

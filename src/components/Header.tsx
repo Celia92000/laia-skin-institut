@@ -76,14 +76,18 @@ export default function Header() {
             {/* Boutons spéciaux pour les utilisateurs connectés */}
             {user ? (
               <>
-                {user.role === 'admin' && (
+                {(user.role === 'admin' || user.role === 'ADMIN' || user.role === 'EMPLOYEE') && (
                   <li>
                     <Link 
                       href="/admin" 
-                      className="flex items-center gap-2 text-white font-semibold px-5 py-2.5 rounded-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl text-sm animate-pulse-subtle"
+                      className={`flex items-center gap-2 text-white font-semibold px-5 py-2.5 rounded-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl text-sm ${
+                        user.role === 'EMPLOYEE' 
+                          ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800'
+                          : 'bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 animate-pulse-subtle'
+                      }`}
                     >
                       <Shield className="w-4 h-4" />
-                      Admin
+                      {user.role === 'EMPLOYEE' ? 'Espace Employé' : 'Admin'}
                     </Link>
                   </li>
                 )}
@@ -143,6 +147,48 @@ export default function Header() {
                 {item.label}
               </Link>
             ))}
+            
+            {/* Boutons spéciaux dans le menu mobile */}
+            {user ? (
+              <>
+                {(user.role === 'admin' || user.role === 'ADMIN' || user.role === 'EMPLOYEE') && (
+                  <Link 
+                    href="/admin" 
+                    className={`block text-white font-semibold px-6 py-3 rounded-full transition-all duration-300 ${
+                      user.role === 'EMPLOYEE' 
+                        ? 'bg-gradient-to-r from-blue-600 to-blue-700'
+                        : 'bg-gradient-to-r from-purple-600 to-purple-700'
+                    }`}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Shield className="w-4 h-4 inline mr-2" />
+                    {user.role === 'EMPLOYEE' ? 'Espace Employé' : 'Admin'}
+                  </Link>
+                )}
+                <button 
+                  onClick={() => {
+                    logout();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="block w-full text-left text-red-600 font-medium px-6 py-3 rounded-full transition-all duration-300 hover:bg-red-50"
+                >
+                  <LogOut className="w-4 h-4 inline mr-2" />
+                  Déconnexion
+                </button>
+              </>
+            ) : (
+              <Link 
+                href="/login" 
+                className={`block text-[#2c3e50] font-medium px-6 py-3 rounded-full transition-all duration-300 ${
+                  pathname === '/login' 
+                    ? "bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white" 
+                    : "hover:bg-gradient-to-r hover:from-[#d4b5a0]/10 hover:to-[#c9a084]/10"
+                }`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Connexion
+              </Link>
+            )}
           </div>
         )}
       </nav>

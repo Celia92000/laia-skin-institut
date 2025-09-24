@@ -1,7 +1,7 @@
 import { Resend } from 'resend';
 
 // Initialiser Resend avec la clé API
-const resend = new Resend(process.env.RESEND_API_KEY || 'demo_key');
+const resend = new Resend(process.env.RESEND_API_KEY || 're_Mksui53X_CFrkxKtg8YuViZhHmeZNSbmR');
 
 interface SendPasswordResetEmailParams {
   email: string;
@@ -128,7 +128,7 @@ export async function sendPasswordResetEmail({ email, name, resetToken }: SendPa
 
     // Envoyer l'email réel
     const { data, error } = await resend.emails.send({
-      from: 'LAIA SKIN INSTITUT <onboarding@resend.dev>', // Changez avec votre domaine vérifié
+      from: 'LAIA SKIN INSTITUT <onboarding@resend.dev>',
       to: email,
       subject: '🔐 Réinitialisez votre mot de passe - LAIA SKIN INSTITUT',
       html: htmlContent,

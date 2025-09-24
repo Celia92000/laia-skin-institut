@@ -36,10 +36,14 @@ export default function Login() {
           localStorage.setItem('user', JSON.stringify(data.user));
           
           // Redirection basée sur le rôle
-          if (data.user.role === 'admin') {
+          if (data.user.role === 'ADMIN' || data.user.role === 'admin') {
+            // Les admins vont directement au dashboard admin
             window.location.href = '/admin';
+          } else if (data.user.role === 'EMPLOYEE') {
+            // Les employés vont sur le site normal (avec bouton admin dans le header)
+            window.location.href = '/';
           } else {
-            // Rediriger vers la page de réservation
+            // Les clients vont vers la réservation
             window.location.href = '/reservation';
           }
         } else {

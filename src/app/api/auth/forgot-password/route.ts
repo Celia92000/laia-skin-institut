@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import prisma from '@/lib/prisma';
 import crypto from 'crypto';
 import { sendPasswordResetEmail } from '@/lib/email-service';
 
@@ -31,12 +31,15 @@ export async function POST(request: NextRequest) {
     // Générer un token de réinitialisation
     const resetToken = crypto.randomBytes(32).toString('hex');
     const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 heure
+    
+    // Hasher le token pour la sécurité
+    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
 
-    // Sauvegarder le token dans la base de données
+    // Sauvegarder le token hashé dans la base de données
     await prisma.user.update({
       where: { email },
       data: {
-        resetToken,
+        resetToken: hashedToken,
         resetTokenExpiry
       }
     });
