@@ -74,7 +74,7 @@ export default function Header() {
             ))}
             
             {/* Boutons spéciaux pour les utilisateurs connectés */}
-            {user ? (
+            {user && (
               <>
                 {(user.role === 'admin' || user.role === 'ADMIN' || user.role === 'EMPLOYEE') && (
                   <li>
@@ -101,17 +101,6 @@ export default function Header() {
                   </button>
                 </li>
               </>
-            ) : (
-              <li>
-                <Link 
-                  href="/login" 
-                  className={`text-[#2c3e50] font-medium px-4 py-2 rounded-full transition-all duration-300 hover:bg-gradient-to-r hover:from-[#d4b5a0] hover:to-[#c9a084] hover:text-white hover:-translate-y-0.5 hover:shadow-lg text-sm ${
-                    pathname === '/login' ? "bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white" : ""
-                  }`}
-                >
-                  Connexion
-                </Link>
-              </li>
             )}
           </ul>
 

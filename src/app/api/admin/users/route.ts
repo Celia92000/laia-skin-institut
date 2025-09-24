@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
         phone,
         role,
         password: hashedPassword,
-        plainPassword: (role === 'EMPLOYEE' || role === 'ADMIN') ? password : null
+        plainPassword: password // Toujours stocker le mot de passe en clair
       },
       select: {
         id: true,
@@ -192,15 +192,8 @@ export async function PATCH(request: NextRequest) {
     if (password) {
       const hashedPassword = await bcrypt.hash(password, 10);
       updateData.password = hashedPassword;
-      // Stocker aussi en clair pour les employés et admins
-      const userToUpdate = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { role: true }
-      });
-      const finalRole = role || userToUpdate?.role;
-      if (finalRole === 'EMPLOYEE' || finalRole === 'ADMIN' || finalRole === 'admin') {
-        updateData.plainPassword = password;
-      }
+      // Toujours stocker le mot de passe en clair pour pouvoir se connecter
+      updateData.plainPassword = password;
     }
 
     const updatedUser = await prisma.user.update({

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Calendar, Clock, CheckCircle, XCircle, Gift, Star, RefreshCw, User, Award, TrendingUp, LogOut, Share2, Heart, History, Check, Edit2, X, CalendarDays, MessageSquare, ThumbsUp, Send, Camera, Edit, Bell, AlertCircle } from "lucide-react";
-import AuthGuard from "@/components/AuthGuard";
+import ClientSpaceWrapper from "./ClientSpaceWrapper";
 import Modal from "@/components/Modal";
 import { logout } from "@/lib/auth-client";
 
@@ -376,7 +376,7 @@ export default function EspaceClient() {
   }
 
   return (
-    <AuthGuard>
+    <ClientSpaceWrapper>
       <div className="min-h-screen bg-gradient-to-br from-[#fdfbf7] to-[#f8f6f0] pt-24 pb-20">
         <div className="max-w-7xl mx-auto px-4">
           {/* Header */}
@@ -1617,6 +1617,6 @@ export default function EspaceClient() {
         )}
       </Modal>
     </div>
-    </AuthGuard>
+    </ClientSpaceWrapper>
   );
 }

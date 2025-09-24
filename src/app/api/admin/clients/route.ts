@@ -29,7 +29,10 @@ export async function GET(request: NextRequest) {
     // Récupérer tous les clients avec leurs stats
     const clients = await prisma.user.findMany({
       where: {
-        role: 'client'
+        OR: [
+          { role: 'CLIENT' },
+          { role: 'client' }
+        ]
       },
       select: {
         id: true,

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Calendar, Clock, CheckCircle, XCircle, Gift, User, Users, Shield, Award, TrendingUp, UserCheck, Settings, Euro, Edit2, Save, FileText, Heart, AlertCircle, CreditCard, Download, Receipt, LogOut, MapPin, Phone, Mail, Instagram, Globe, Grid3x3, List, Cake, CreditCard as CardIcon, Star, MessageCircle, Send, X } from "lucide-react";
+import { Calendar, Clock, CheckCircle, XCircle, Gift, User, Users, Shield, Award, TrendingUp, UserCheck, Settings, Euro, Edit2, Save, FileText, Heart, AlertCircle, CreditCard, Download, Receipt, LogOut, MapPin, Phone, Mail, Instagram, Globe, Grid3x3, List, Cake, CreditCard as CardIcon, Star, MessageCircle, Send, X, Target, BarChart3 } from "lucide-react";
 import AuthGuard from "@/components/AuthGuard";
 import AdminCalendarEnhanced from "@/components/AdminCalendarEnhanced";
 import AdminServicesTab from "@/components/AdminServicesTab";
@@ -22,11 +22,14 @@ import WhatsAppHub from "@/components/WhatsAppHub";
 import AdminLoyaltyTab from "@/components/AdminLoyaltyTab";
 import WhatsAppHistory from "@/components/WhatsAppHistory";
 import AdminStatsEnhanced from "@/components/AdminStatsEnhanced";
+import EmployeeStatsView from "@/components/EmployeeStatsView";
 import AdminReviewsManager from "@/components/AdminReviewsManager";
 import ClientSegmentation from "@/components/ClientSegmentation";
 import EmailingInterface from "@/components/EmailingInterface";
 import SourceStats from "@/components/SourceStats";
 import RevenueAnalytics from "@/components/RevenueAnalytics";
+import RevenueEstimation from "@/components/RevenueEstimation";
+import ObjectivesSettings from "@/components/ObjectivesSettings";
 import ReservationTableAdvanced from "@/components/ReservationTableAdvanced";
 import QuickActionModal from "@/components/QuickActionModal";
 import { logout } from "@/lib/auth-client";
@@ -88,6 +91,8 @@ export default function AdminDashboard() {
   const [showValidationModal, setShowValidationModal] = useState(false);
   const [reservationToValidate, setReservationToValidate] = useState<Reservation | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState<'total' | 'pending' | 'completed' | 'revenue' | null>(null);
+  const [showObjectivesSettings, setShowObjectivesSettings] = useState(false);
+  const [selectedStatDetail, setSelectedStatDetail] = useState<string | null>(null);
   const [newReservation, setNewReservation] = useState({
     client: '',
     email: '',
@@ -1127,7 +1132,29 @@ export default function AdminDashboard() {
               ) : (
                 // Vue complète pour les admins
                 <>
+                  {/* Vue employé avec statistiques utiles */}
+                  <div className="mb-8">
+                    <h3 className="text-lg font-semibold text-[#2c3e50] mb-4 flex items-center gap-2">
+                      <TrendingUp className="w-5 h-5 text-[#d4b5a0]" />
+                      Vue Performance & Objectifs
+                    </h3>
+                    <EmployeeStatsView 
+                      reservations={reservations}
+                      viewMode="month"
+                      selectedDate={selectedDate}
+                      selectedMonth={`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`}
+                      selectedYear={new Date().getFullYear().toString()}
+                    />
+                  </div>
+
+                  {/* Séparateur visuel */}
+                  <div className="my-8 border-t-2 border-gray-100"></div>
+
                   {/* Analyse du chiffre d'affaires en premier */}
+                  <h3 className="text-lg font-semibold text-[#2c3e50] mb-4 flex items-center gap-2">
+                    <Euro className="w-5 h-5 text-green-600" />
+                    Analyse financière détaillée
+                  </h3>
                   <RevenueAnalytics 
                     reservations={reservations.map(r => ({
                       ...r,
@@ -1142,6 +1169,48 @@ export default function AdminDashboard() {
                       if (type === 'services') setActiveTab('services');
                       if (type === 'average') setShowDetailsModal('revenue');
                     }}
+                  />
+
+                  {/* Objectifs personnalisables */}
+                  <div className="flex items-center justify-between mb-4 mt-8">
+                    <h3 className="text-lg font-semibold text-[#2c3e50] flex items-center gap-2">
+                      <Target className="w-5 h-5 text-purple-600" />
+                      Objectifs et Performance
+                    </h3>
+                    <button
+                      onClick={() => setShowObjectivesSettings(!showObjectivesSettings)}
+                      className="px-3 py-1 text-sm bg-[#d4b5a0] text-white rounded-lg hover:bg-[#c9a084] transition-colors flex items-center gap-2"
+                    >
+                      <Settings className="w-4 h-4" />
+                      Personnaliser les objectifs
+                    </button>
+                  </div>
+                  
+                  {showObjectivesSettings && (
+                    <div className="mb-6">
+                      <ObjectivesSettings 
+                        onClose={() => setShowObjectivesSettings(false)}
+                        onSave={() => {
+                          // Rafraîchir les données si nécessaire
+                          fetchReservations();
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  {/* Estimation du CA */}
+                  <h3 className="text-lg font-semibold text-[#2c3e50] mb-4 flex items-center gap-2 mt-8">
+                    <Target className="w-5 h-5 text-purple-600" />
+                    Prévisions et estimations
+                  </h3>
+                  <RevenueEstimation 
+                    reservations={reservations.map(r => ({
+                      ...r,
+                      totalPrice: r.totalPrice || 0,
+                      paymentStatus: r.paymentStatus || 'pending',
+                      paymentAmount: r.paymentAmount || null,
+                      services: r.services || []
+                    }))}
                   />
                   
                   {/* Évolution des revenus et autres statistiques */}

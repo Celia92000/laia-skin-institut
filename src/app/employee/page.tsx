@@ -6,7 +6,7 @@ import {
   Calendar, Clock, Users, CheckCircle, XCircle, 
   Phone, Mail, User, LogOut, Filter, Search,
   TrendingUp, Award, Euro, CalendarDays, MessageCircle,
-  AlertCircle, ChevronRight, RefreshCw, Check, X
+  AlertCircle, ChevronRight, RefreshCw, Check, X, Settings
 } from 'lucide-react';
 
 interface Reservation {
@@ -132,13 +132,22 @@ export default function EmployeeDashboard() {
                 {currentUser?.name}
               </span>
             </div>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-red-600 transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              Déconnexion
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => router.push('/employee/settings')}
+                className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-[#d4b5a0] transition-colors"
+              >
+                <Settings className="w-4 h-4" />
+                Paramètres
+              </button>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-red-600 transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                Déconnexion
+              </button>
+            </div>
           </div>
         </div>
       </header>

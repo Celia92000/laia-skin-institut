@@ -39,6 +39,9 @@ export default function Login() {
           if (data.user.role === 'ADMIN' || data.user.role === 'admin') {
             // Les admins vont directement au dashboard admin
             window.location.href = '/admin';
+          } else if (data.user.role === 'COMPTABLE') {
+            // Les comptables vont vers leur espace dédié
+            window.location.href = '/comptable';
           } else if (data.user.role === 'EMPLOYEE') {
             // Les employés vont sur le site normal (avec bouton admin dans le header)
             window.location.href = '/';

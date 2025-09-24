@@ -16,11 +16,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
 
-    // Récupérer les paramètres depuis la base de données ou utiliser les valeurs par défaut
-    const settings = await prisma.systemSettings.findFirst({
-      where: { key: 'loyalty_settings' }
-    });
-
+    // Pour l'instant, retourner les paramètres par défaut
+    // TODO: Implémenter la persistance dans la base de données
     const defaultSettings = {
       serviceThreshold: 6,
       serviceDiscount: 20,
@@ -31,9 +28,7 @@ export async function GET(req: NextRequest) {
       reviewBonus: 1
     };
 
-    return NextResponse.json(
-      settings ? JSON.parse(settings.value) : defaultSettings
-    );
+    return NextResponse.json(defaultSettings);
     
   } catch (error) {
     console.error('Erreur récupération paramètres fidélité:', error);

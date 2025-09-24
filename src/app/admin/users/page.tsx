@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { 
   ArrowLeft, Users, UserPlus, Edit2, Trash2, Shield, 
   Mail, Phone, Calendar, Search, Filter, User, 
-  ChevronDown, Check, X, Save, Eye, EyeOff, Key, Copy
+  ChevronDown, Check, X, Save, Eye, EyeOff, Key, Copy, LogIn
 } from 'lucide-react';
 
 interface User {
@@ -248,6 +248,41 @@ export default function UsersManagement() {
     }
   };
 
+  const handleQuickLogin = async (user: User) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/admin/quick-login', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          email: user.email
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Ouvrir dans un nouvel onglet avec les credentials
+        const newWindow = window.open('', '_blank');
+        if (newWindow) {
+          newWindow.localStorage.setItem('token', data.token);
+          newWindow.localStorage.setItem('user', JSON.stringify(data.user));
+          
+          // Toujours rediriger vers la page d'accueil
+          // L'utilisateur verra le bouton "Admin" ou "Espace Employé" dans le header
+          newWindow.location.href = '/';
+        }
+      } else {
+        alert('Erreur de connexion');
+      }
+    } catch (error) {
+      alert('Erreur de connexion');
+    }
+  };
+
   // Toujours utiliser users (sans clients) 
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -287,6 +322,75 @@ export default function UsersManagement() {
             <UserPlus className="w-4 h-4" />
             Ajouter un employé
           </button>
+        </div>
+      </div>
+
+      {/* Section Accès Rapide */}
+      <div className="max-w-7xl mx-auto mb-6">
+        <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-4 border border-green-200">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+            <LogIn className="w-4 h-4" />
+            Accès rapide aux comptes
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {/* Admin */}
+            <button
+              onClick={() => handleQuickLogin({ 
+                id: 'admin', 
+                email: 'admin@laiaskin.com', 
+                name: 'Admin',
+                plainPassword: null,
+                role: 'ADMIN',
+                phone: null,
+                createdAt: '',
+                _count: { reservations: 0 }
+              })}
+              className="px-4 py-2 bg-purple-500 text-white text-sm rounded-lg hover:bg-purple-600 transition-all flex items-center gap-2 shadow-sm hover:shadow-md"
+            >
+              <Shield className="w-4 h-4" />
+              Admin Principal
+              <span className="text-xs opacity-75">(admin@laiaskin.com)</span>
+            </button>
+            
+            {/* Client Marie */}
+            <button
+              onClick={() => handleQuickLogin({ 
+                id: 'client', 
+                email: 'marie.dupont@email.com', 
+                name: 'Marie Dupont',
+                plainPassword: null,
+                role: 'CLIENT',
+                phone: null,
+                createdAt: '',
+                _count: { reservations: 0 }
+              })}
+              className="px-4 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-all flex items-center gap-2 shadow-sm hover:shadow-md"
+            >
+              <User className="w-4 h-4" />
+              Client Test
+              <span className="text-xs opacity-75">(marie.dupont@email.com)</span>
+            </button>
+
+            {/* Afficher les employés */}
+            {users
+              .filter(u => u.role === 'EMPLOYEE')
+              .slice(0, 3)
+              .map(user => (
+                <button
+                  key={user.id}
+                  onClick={() => handleQuickLogin(user)}
+                  className="px-4 py-2 bg-teal-500 text-white text-sm rounded-lg hover:bg-teal-600 transition-all flex items-center gap-2 shadow-sm hover:shadow-md"
+                >
+                  <User className="w-4 h-4" />
+                  {user.name.split(' ')[0]}
+                  <span className="text-xs opacity-75">({user.email.split('@')[0]})</span>
+                </button>
+              ))
+            }
+          </div>
+          <p className="text-xs text-gray-600 mt-2">
+            Cliquez pour ouvrir une session dans un nouvel onglet • Connexion automatique sécurisée
+          </p>
         </div>
       </div>
 
@@ -474,6 +578,14 @@ export default function UsersManagement() {
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleQuickLogin(user)}
+                              className="px-3 py-1 bg-green-500 text-white text-xs rounded-lg hover:bg-green-600 transition-colors flex items-center gap-1"
+                              title="Se connecter en tant que cet utilisateur"
+                            >
+                              <LogIn className="w-3 h-3" />
+                              Connexion
+                            </button>
                             <button
                               onClick={() => handleEditUser(user)}
                               className="p-1 text-gray-400 hover:text-[#d4b5a0] transition-colors"

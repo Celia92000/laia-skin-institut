@@ -50,8 +50,8 @@ export default function NewReservationsPanel({
     })
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-  const displayedReservations = showAll ? newReservations : newReservations.slice(0, 4);
-  const hasMore = newReservations.length > 4;
+  const displayedReservations = showAll ? newReservations : newReservations.slice(0, 10);
+  const hasMore = newReservations.length > 10;
 
   const getServiceNames = (reservation: Reservation) => {
     const serviceNames: string[] = [];

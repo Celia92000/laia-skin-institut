@@ -169,9 +169,9 @@ export default function RevenueAnalytics({ reservations, services = {}, onStatCl
         break;
     }
 
-    // Calculer les totaux
-    const totalRevenue = filteredReservations.reduce((sum, r) => sum + r.totalPrice, 0);
-    const comparisonRevenue = comparisonReservations.reduce((sum, r) => sum + r.totalPrice, 0);
+    // Calculer les totaux (utiliser paymentAmount pour les montants réellement payés)
+    const totalRevenue = filteredReservations.reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice), 0);
+    const comparisonRevenue = comparisonReservations.reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice), 0);
     const averageTicket = filteredReservations.length > 0 ? totalRevenue / filteredReservations.length : 0;
 
     // Calcul de croissance
