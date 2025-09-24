@@ -51,7 +51,12 @@ export default function UsersManagement() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('/api/admin/users');
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/admin/users', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       if (response.ok) {
         const data = await response.json();
         setUsers(data);
@@ -67,9 +72,13 @@ export default function UsersManagement() {
     e.preventDefault();
     
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch('/api/admin/users', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(newUser)
       });
 
@@ -88,9 +97,13 @@ export default function UsersManagement() {
 
   const handleUpdateRole = async (userId: string, newRole: string) => {
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch('/api/admin/users', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ userId, role: newRole })
       });
 

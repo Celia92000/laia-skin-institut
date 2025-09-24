@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
       select: { role: true }
     });
 
-    if (admin?.role !== 'ADMIN') {
+    if (admin?.role !== 'ADMIN' && admin?.role !== 'admin') {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
 
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
       select: { role: true }
     });
 
-    if (admin?.role !== 'ADMIN') {
+    if (admin?.role !== 'ADMIN' && admin?.role !== 'admin') {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
 
@@ -160,7 +160,7 @@ export async function PATCH(request: NextRequest) {
       select: { role: true }
     });
 
-    if (admin?.role !== 'ADMIN') {
+    if (admin?.role !== 'ADMIN' && admin?.role !== 'admin') {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
 
@@ -235,7 +235,7 @@ export async function DELETE(request: NextRequest) {
       select: { role: true }
     });
 
-    if (admin?.role !== 'ADMIN') {
+    if (admin?.role !== 'ADMIN' && admin?.role !== 'admin') {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
 
