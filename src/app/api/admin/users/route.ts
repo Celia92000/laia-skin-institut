@@ -193,14 +193,13 @@ export async function PATCH(request: NextRequest) {
       const hashedPassword = await bcrypt.hash(password, 10);
       updateData.password = hashedPassword;
       // Stocker aussi en clair pour les employés et admins
-      if (role === 'EMPLOYEE' || role === 'ADMIN' || !role) {
-        const userToUpdate = await prisma.user.findUnique({
-          where: { id: userId },
-          select: { role: true }
-        });
-        if (userToUpdate && (userToUpdate.role === 'EMPLOYEE' || userToUpdate.role === 'ADMIN')) {
-          updateData.plainPassword = password;
-        }
+      const userToUpdate = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { role: true }
+      });
+      const finalRole = role || userToUpdate?.role;
+      if (finalRole === 'EMPLOYEE' || finalRole === 'ADMIN' || finalRole === 'admin') {
+        updateData.plainPassword = password;
       }
     }
 

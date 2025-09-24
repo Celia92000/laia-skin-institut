@@ -433,29 +433,34 @@ export default function UsersManagement() {
                           </select>
                         </td>
                         <td className="px-6 py-4">
-                          {(user.role === 'EMPLOYEE' || user.role === 'ADMIN' || user.role === 'admin') && user.plainPassword ? (
-                            <div className="flex items-center gap-2">
+                          {(user.role === 'EMPLOYEE' || user.role === 'ADMIN' || user.role === 'admin') ? (
+                            <div className="flex items-center gap-1">
                               <input
                                 type={showPasswords[user.id] ? 'text' : 'password'}
-                                value={user.plainPassword}
+                                value={user.plainPassword || ''}
                                 readOnly
-                                className="text-sm font-mono bg-gray-50 px-2 py-1 rounded border border-gray-200 w-24"
+                                className="text-xs font-mono bg-gray-50 px-2 py-1 rounded border border-gray-200 w-20"
+                                title={user.plainPassword || 'Pas de mot de passe'}
                               />
                               <button
                                 onClick={() => setShowPasswords({ ...showPasswords, [user.id]: !showPasswords[user.id] })}
                                 className="p-1 text-gray-400 hover:text-gray-600"
+                                title="Afficher/Masquer"
                               >
                                 {showPasswords[user.id] ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
                               </button>
-                              <button
-                                onClick={() => {
-                                  navigator.clipboard.writeText(user.plainPassword!);
-                                  alert('Mot de passe copié !');
-                                }}
-                                className="p-1 text-gray-400 hover:text-blue-600"
-                              >
-                                <Copy className="w-3 h-3" />
-                              </button>
+                              {user.plainPassword && (
+                                <button
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(user.plainPassword!);
+                                    alert('Mot de passe copié !');
+                                  }}
+                                  className="p-1 text-gray-400 hover:text-blue-600"
+                                  title="Copier"
+                                >
+                                  <Copy className="w-3 h-3" />
+                                </button>
+                              )}
                             </div>
                           ) : (
                             <span className="text-xs text-gray-400">-</span>
