@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import prisma from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
 
 // GET - Récupérer les paramètres de fidélité
@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
-    if (decoded.role !== 'admin') {
+    if (decoded.role !== 'admin' && decoded.role !== 'ADMIN' && decoded.role !== 'EMPLOYEE') {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
 
@@ -54,7 +54,7 @@ export async function PUT(req: NextRequest) {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
-    if (decoded.role !== 'admin') {
+    if (decoded.role !== 'admin' && decoded.role !== 'ADMIN' && decoded.role !== 'EMPLOYEE') {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
 

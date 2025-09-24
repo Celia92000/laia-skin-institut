@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import prisma from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
 
 // Fonction pour vérifier l'authentification admin
@@ -17,7 +17,7 @@ async function verifyAdmin(request: NextRequest) {
       where: { id: decoded.userId }
     });
 
-    if (!user || user.role !== 'admin') {
+    if (!user || (user.role !== 'admin' && user.role !== 'ADMIN' && user.role !== 'EMPLOYEE') && user.role !== 'ADMIN' && user.role !== 'EMPLOYEE') {
       return null;
     }
 

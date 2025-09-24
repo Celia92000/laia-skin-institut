@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import prisma from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
 
 export async function POST(
@@ -20,7 +20,7 @@ export async function POST(
       where: { id: decoded.userId }
     });
 
-    if (!user || user.role !== 'admin') {
+    if (!user || (user.role !== 'admin' && user.role !== 'ADMIN' && user.role !== 'EMPLOYEE') && user.role !== 'ADMIN' && user.role !== 'EMPLOYEE') {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
@@ -126,7 +126,7 @@ export async function DELETE(
       where: { id: decoded.userId }
     });
 
-    if (!user || user.role !== 'admin') {
+    if (!user || (user.role !== 'admin' && user.role !== 'ADMIN' && user.role !== 'EMPLOYEE') && user.role !== 'ADMIN' && user.role !== 'EMPLOYEE') {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 

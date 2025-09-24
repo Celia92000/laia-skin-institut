@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
 
     const decoded = verifyToken(token);
     
-    if (!decoded || decoded.role !== 'admin') {
+    if (!decoded || decoded.role !== 'admin' && decoded.role !== 'ADMIN' && decoded.role !== 'EMPLOYEE') {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
 
@@ -92,7 +92,7 @@ export async function DELETE(request: NextRequest) {
 
     const decoded = verifyToken(token);
     
-    if (!decoded || decoded.role !== 'admin') {
+    if (!decoded || decoded.role !== 'admin' && decoded.role !== 'ADMIN' && decoded.role !== 'EMPLOYEE') {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
 
@@ -125,7 +125,7 @@ export async function PUT(request: NextRequest) {
 
     const decoded = verifyToken(token);
     
-    if (!decoded || decoded.role !== 'admin') {
+    if (!decoded || decoded.role !== 'admin' && decoded.role !== 'ADMIN' && decoded.role !== 'EMPLOYEE') {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
 
