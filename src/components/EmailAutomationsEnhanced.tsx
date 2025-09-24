@@ -34,6 +34,7 @@ export default function EmailAutomationsEnhanced() {
   const [selectedClients, setSelectedClients] = useState<string[]>([]);
   const [customMessage, setCustomMessage] = useState('');
   const [sending, setSending] = useState(false);
+  const [notification, setNotification] = useState<{type: 'success' | 'error', message: string} | null>(null);
 
   useEffect(() => {
     fetchAutomations();
@@ -245,16 +246,18 @@ export default function EmailAutomationsEnhanced() {
 
       if (response.ok) {
         const result = await response.json();
-        alert(result.message);
+        // Afficher un message de succès dans l'UI au lieu d'une alerte
+        setNotification({ type: 'success', message: result.message || 'Emails envoyés avec succès' });
         setSendingModal(null);
         setSelectedClients([]);
         setCustomMessage('');
       } else {
-        alert('Erreur lors de l\'envoi');
+        const errorData = await response.json().catch(() => ({}));
+        setNotification({ type: 'error', message: errorData.error || 'Erreur lors de l\'envoi' });
       }
     } catch (error) {
       console.error('Erreur envoi manuel:', error);
-      alert('Erreur lors de l\'envoi');
+      setNotification({ type: 'error', message: 'Erreur de connexion lors de l\'envoi' });
     } finally {
       setSending(false);
     }
@@ -341,8 +344,44 @@ LAIA SKIN Institut`
     );
   }
 
+  // Effacer la notification après 5 secondes
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => setNotification(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
+
   return (
     <div className="space-y-6">
+      {/* Notification */}
+      {notification && (
+        <div className={`rounded-xl p-4 mb-4 transition-all ${
+          notification.type === 'success' 
+            ? 'bg-green-50 border border-green-200' 
+            : 'bg-red-50 border border-red-200'
+        }`}>
+          <div className="flex items-center gap-3">
+            {notification.type === 'success' ? (
+              <CheckCircle className="w-5 h-5 text-green-600" />
+            ) : (
+              <AlertCircle className="w-5 h-5 text-red-600" />
+            )}
+            <p className={`font-medium ${
+              notification.type === 'success' ? 'text-green-800' : 'text-red-800'
+            }`}>
+              {notification.message}
+            </p>
+            <button
+              onClick={() => setNotification(null)}
+              className="ml-auto p-1 hover:bg-white/50 rounded"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+      
       {/* Alerte importante */}
       <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
         <div className="flex items-start gap-3">

@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   CalendarDays, Users, Euro, TrendingUp, Clock, CheckCircle,
   XCircle, AlertCircle, Gift, Heart, Star, Activity,
   MessageSquare, Mail, Phone, Settings, ChevronRight,
   ArrowUpRight, ArrowDownRight, BarChart3, PieChart,
   Sparkles, Bell, Search, Filter, Download, Upload,
-  Shield, Zap, Target, Award, Coffee, Sun, Moon
+  Shield, Zap, Target, Award, Coffee, Sun, Moon, Plus
 } from 'lucide-react';
 
 interface DashboardStats {
@@ -24,6 +25,8 @@ interface DashboardStats {
 }
 
 export default function AdminDashboardModern() {
+  const router = useRouter();
+  const [showExportMenu, setShowExportMenu] = useState(false);
   const [stats, setStats] = useState<DashboardStats>({
     todayReservations: 14,
     pendingReservations: 5,
@@ -49,10 +52,10 @@ export default function AdminDashboardModern() {
   ];
 
   const quickActions = [
-    { label: 'Nouvelle réservation', icon: CalendarDays, color: 'from-blue-500 to-blue-600', action: () => alert('Ouvrir formulaire réservation') },
-    { label: 'Envoyer SMS/WhatsApp', icon: MessageSquare, color: 'from-green-500 to-green-600', action: () => alert('Ouvrir interface messaging') },
-    { label: 'Gérer les paiements', icon: Euro, color: 'from-purple-500 to-purple-600', action: () => alert('Ouvrir gestion paiements') },
-    { label: 'Voir statistiques', icon: BarChart3, color: 'from-pink-500 to-pink-600', action: () => alert('Ouvrir analytics') }
+    { label: 'Nouvelle réservation', icon: CalendarDays, color: 'from-blue-500 to-blue-600', action: () => router.push('/admin/reservations/nouvelle') },
+    { label: 'Envoyer SMS/WhatsApp', icon: MessageSquare, color: 'from-green-500 to-green-600', action: () => router.push('/admin?tab=whatsapp') },
+    { label: 'Gérer les paiements', icon: Euro, color: 'from-purple-500 to-purple-600', action: () => router.push('/admin/paiements') },
+    { label: 'Voir statistiques', icon: BarChart3, color: 'from-pink-500 to-pink-600', action: () => router.push('/admin/analytics') }
   ];
 
   const todaySchedule = [
@@ -136,12 +139,14 @@ export default function AdminDashboardModern() {
 
               {/* Settings */}
               <button
-                onClick={() => alert('Ouvrir les paramètres')}
-                className={`p-2.5 rounded-xl ${
-                  darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'
-                } transition-all`}
+                onClick={() => router.push('/admin/settings')}
+                className="p-2.5 rounded-xl bg-[#d4b5a0]/10 hover:bg-[#d4b5a0]/20 transition-all relative group"
+                title="Paramètres du compte"
               >
-                <Settings className={`w-5 h-5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} />
+                <Settings className="w-5 h-5 text-[#d4b5a0]" />
+                <span className="absolute -bottom-8 right-0 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                  Paramètres
+                </span>
               </button>
             </div>
           </div>
@@ -168,7 +173,14 @@ export default function AdminDashboardModern() {
                   darkMode ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-100 hover:bg-gray-50'
                 } cursor-pointer transition-colors`}
                 onClick={() => {
-                  alert(`Action: ${notif.message}`);
+                  // Action basée sur le type de notification
+                  if (notif.message.includes('réservation')) {
+                    router.push('/admin/reservations');
+                  } else if (notif.message.includes('client')) {
+                    router.push('/admin/clients');
+                  } else {
+                    router.push('/admin');
+                  }
                   setShowNotifications(false);
                 }}
               >
@@ -191,7 +203,7 @@ export default function AdminDashboardModern() {
           <div className={`px-4 py-3 ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
             <button
               onClick={() => {
-                alert('Voir toutes les notifications');
+                router.push('/admin/notifications');
                 setShowNotifications(false);
               }}
               className="text-[#d4b5a0] text-sm font-medium hover:text-[#c9a084]"
@@ -224,9 +236,9 @@ export default function AdminDashboardModern() {
             ))}
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 relative">
             <button
-              onClick={() => alert('Exporter les données')}
+              onClick={() => setShowExportMenu(!showExportMenu)}
               className={`px-4 py-2 rounded-xl flex items-center gap-2 ${
                 darkMode 
                   ? 'bg-gray-800 text-gray-300 hover:bg-gray-700'
@@ -236,6 +248,50 @@ export default function AdminDashboardModern() {
               <Download className="w-4 h-4" />
               Exporter
             </button>
+            
+            {/* Menu déroulant d'export */}
+            {showExportMenu && (
+              <div className={`absolute right-0 top-12 w-48 ${
+                darkMode ? 'bg-gray-800' : 'bg-white'
+              } rounded-xl shadow-2xl border ${
+                darkMode ? 'border-gray-700' : 'border-gray-200'
+              } z-50 overflow-hidden`}>
+                <div className="py-2">
+                  {[
+                    { label: 'Tout exporter', type: 'all', icon: Download },
+                    { label: 'Réservations', type: 'reservations', icon: CalendarDays },
+                    { label: 'Clients', type: 'clients', icon: Users },
+                    { label: 'Services', type: 'services', icon: Sparkles },
+                    { label: 'Finances', type: 'finances', icon: Euro }
+                  ].map((item) => (
+                    <button
+                      key={item.type}
+                      onClick={async () => {
+                        setShowExportMenu(false);
+                        const response = await fetch(`/api/admin/export-data?type=${item.type}`);
+                        if (response.ok) {
+                          const blob = await response.blob();
+                          const url = window.URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = `${item.type}-${new Date().toISOString().split('T')[0]}.csv`;
+                          a.click();
+                          window.URL.revokeObjectURL(url);
+                        }
+                      }}
+                      className={`w-full px-4 py-2 flex items-center gap-3 ${
+                        darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
+                      } transition-colors text-left`}
+                    >
+                      <item.icon className="w-4 h-4 text-[#d4b5a0]" />
+                      <span className={`text-sm ${
+                        darkMode ? 'text-gray-200' : 'text-gray-700'
+                      }`}>{item.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -254,7 +310,7 @@ export default function AdminDashboardModern() {
               <p className="text-3xl font-bold mb-1">{stats.todayRevenue}€</p>
               <p className="text-sm opacity-90">Revenus du jour</p>
               <button
-                onClick={() => alert('Voir détails des revenus')}
+                onClick={() => router.push('/admin/finances')}
                 className="mt-4 text-xs flex items-center gap-1 hover:gap-2 transition-all"
               >
                 Voir détails <ArrowUpRight className="w-3 h-3" />
@@ -275,7 +331,7 @@ export default function AdminDashboardModern() {
               <p className="text-3xl font-bold mb-1">{stats.todayReservations}</p>
               <p className="text-sm opacity-90">Réservations aujourd\'hui</p>
               <button
-                onClick={() => alert('Voir planning complet')}
+                onClick={() => router.push('/admin/planning')}
                 className="mt-4 text-xs flex items-center gap-1 hover:gap-2 transition-all"
               >
                 Voir planning <ArrowUpRight className="w-3 h-3" />
@@ -296,7 +352,7 @@ export default function AdminDashboardModern() {
               <p className="text-3xl font-bold mb-1">{stats.activeClients}</p>
               <p className="text-sm opacity-90">Clients actifs</p>
               <button
-                onClick={() => alert('Voir liste clients')}
+                onClick={() => router.push('/admin/clients')}
                 className="mt-4 text-xs flex items-center gap-1 hover:gap-2 transition-all"
               >
                 Voir clients <ArrowUpRight className="w-3 h-3" />
@@ -317,7 +373,7 @@ export default function AdminDashboardModern() {
               <p className="text-3xl font-bold mb-1">{stats.loyaltyRewards}</p>
               <p className="text-sm opacity-90">Récompenses à donner</p>
               <button
-                onClick={() => alert('Voir programme fidélité')}
+                onClick={() => router.push('/admin/fidelite')}
                 className="mt-4 text-xs flex items-center gap-1 hover:gap-2 transition-all"
               >
                 Gérer fidélité <ArrowUpRight className="w-3 h-3" />
@@ -360,7 +416,7 @@ export default function AdminDashboardModern() {
                 darkMode ? 'text-white' : 'text-gray-900'
               }`}>Planning du jour</h2>
               <button
-                onClick={() => alert('Ajouter une réservation')}
+                onClick={() => router.push('/admin/reservations/nouvelle')}
                 className="text-[#d4b5a0] hover:text-[#c9a084] transition-colors"
               >
                 <Plus className="w-5 h-5" />
@@ -373,7 +429,7 @@ export default function AdminDashboardModern() {
                   className={`p-4 rounded-xl border ${
                     darkMode ? 'border-gray-700' : 'border-gray-200'
                   } hover:shadow-md transition-all cursor-pointer`}
-                  onClick={() => alert(`Détails: ${appointment.client} - ${appointment.service}`)}
+                  onClick={() => router.push(`/admin/reservations/${appointment.client.replace(' ', '-').toLowerCase()}`)}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -415,7 +471,7 @@ export default function AdminDashboardModern() {
                 darkMode ? 'text-white' : 'text-gray-900'
               }`}>Performance</h2>
               <button
-                onClick={() => alert('Voir analytics complets')}
+                onClick={() => router.push('/admin/analytics')}
                 className="text-[#d4b5a0] hover:text-[#c9a084] transition-colors"
               >
                 <BarChart3 className="w-5 h-5" />

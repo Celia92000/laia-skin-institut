@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   User, Calendar, Star, MessageSquare, Clock, Award, 
   Heart, TrendingUp, Gift, Bell, Settings, LogOut,
@@ -50,6 +51,7 @@ interface ClientData {
 }
 
 export default function ClientPortal() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'treatments' | 'reviews' | 'profile' | 'rewards'>('dashboard');
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [selectedTreatment, setSelectedTreatment] = useState<Treatment | null>(null);
@@ -268,19 +270,27 @@ export default function ClientPortal() {
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h3 className="font-semibold text-gray-900 mb-4">Actions rapides</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <button className="flex flex-col items-center gap-2 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                <button 
+                  onClick={() => router.push('/reservation')}
+                  className="flex flex-col items-center gap-2 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                   <Calendar className="w-6 h-6 text-blue-500" />
                   <span className="text-sm">Prendre RDV</span>
                 </button>
-                <button className="flex flex-col items-center gap-2 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                <button 
+                  onClick={() => window.open('https://wa.me/33683717050?text=Bonjour,%20je%20souhaite%20des%20informations', '_blank')}
+                  className="flex flex-col items-center gap-2 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                   <MessageSquare className="w-6 h-6 text-green-500" />
                   <span className="text-sm">Contacter</span>
                 </button>
-                <button className="flex flex-col items-center gap-2 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                <button 
+                  onClick={() => router.push('/espace-client?tab=loyalty')}
+                  className="flex flex-col items-center gap-2 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                   <Gift className="w-6 h-6 text-purple-500" />
                   <span className="text-sm">Mes offres</span>
                 </button>
-                <button className="flex flex-col items-center gap-2 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                <button 
+                  onClick={() => router.push('/avis/nouveau')}
+                  className="flex flex-col items-center gap-2 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                   <Star className="w-6 h-6 text-yellow-500" />
                   <span className="text-sm">Laisser un avis</span>
                 </button>

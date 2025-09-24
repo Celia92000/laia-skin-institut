@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Camera, Star, Download, Trash2, Eye, Check, X, Calendar, User, Heart, MessageCircle, Share2, Instagram, Filter, Search, Image as ImageIcon, Grid, List } from "lucide-react";
+import { Camera, Star, Download, Trash2, Eye, Check, X, Calendar, User, Heart, MessageCircle, Share2, Instagram, Filter, Search, Image as ImageIcon, Grid, List, Upload, Plus } from "lucide-react";
+import PhotoUploadModal from "./PhotoUploadModal";
 
 interface ClientPhoto {
   id: string;
@@ -49,6 +50,7 @@ export default function AdminPhotosReviews() {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [realStats, setRealStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedReviewForUpload, setSelectedReviewForUpload] = useState<Review | null>(null);
 
   // Charger les vraies données
   useEffect(() => {
@@ -183,11 +185,52 @@ export default function AdminPhotosReviews() {
   };
 
   const handleShareToInstagram = (photo: ClientPhoto) => {
-    alert(`Partager sur Instagram:\n\n@${photo.clientName.toLowerCase().replace(' ', '.')} après son soin ${photo.serviceName} ✨\n\n#laiaskin #resultat #${photo.serviceName.toLowerCase().replace(/\s+/g, '')}`);
+    const text = `@${photo.clientName.toLowerCase().replace(' ', '.')} après son soin ${photo.serviceName} ✨\n\n#laiaskin #resultat #${photo.serviceName.toLowerCase().replace(/\s+/g, '')}`;
+    navigator.clipboard.writeText(text);
+    // Afficher une notification au lieu d'une alerte
+  };
+
+  const handlePhotoUpload = async (files: File[]) => {
+    const formData = new FormData();
+    files.forEach(file => formData.append('photos', file));
+    
+    if (selectedReviewForUpload) {
+      formData.append('reviewId', selectedReviewForUpload.id);
+      formData.append('clientId', selectedReviewForUpload.clientId);
+      formData.append('serviceName', selectedReviewForUpload.serviceName);
+    }
+
+    const response = await fetch('/api/reviews/photos', {
+      method: 'POST',
+      body: formData
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      // Actualiser les données
+      fetchRealData();
+      setShowUploadModal(false);
+      setSelectedReviewForUpload(null);
+    } else {
+      throw new Error('Erreur lors de l\'upload');
+    }
   };
 
   return (
     <div className="space-y-6">
+      {/* Modal d'upload de photos */}
+      {showUploadModal && (
+        <PhotoUploadModal
+          isOpen={showUploadModal}
+          onClose={() => {
+            setShowUploadModal(false);
+            setSelectedReviewForUpload(null);
+          }}
+          onUpload={handlePhotoUpload}
+          clientName={selectedReviewForUpload?.clientName}
+          serviceName={selectedReviewForUpload?.serviceName}
+        />
+      )}
       {/* Header */}
       <div className="bg-white rounded-lg shadow-md p-6">
         <div className="flex items-center justify-between mb-4">

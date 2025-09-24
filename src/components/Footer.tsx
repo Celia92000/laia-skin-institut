@@ -179,7 +179,7 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-3">
                 <Mail size={16} className="text-primary flex-shrink-0" />
-                <span className="text-base text-white/95">contact@laia-skin.fr</span>
+                <span className="text-base text-white/95">contact@laiaskininstitut.fr</span>
               </li>
               <li className="flex items-start gap-3">
                 <Clock size={16} className="text-primary mt-0.5 flex-shrink-0" />

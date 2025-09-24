@@ -45,9 +45,12 @@ export default function WhatsAppSetup() {
     });
   };
 
+  const [testError, setTestError] = useState('');
+  
   const testWhatsApp = () => {
     if (!testNumber) {
-      alert('Entrez un numéro pour tester');
+      setTestError('Veuillez entrer un numéro pour tester');
+      setTimeout(() => setTestError(''), 3000);
       return;
     }
     
@@ -55,8 +58,11 @@ export default function WhatsAppSetup() {
     const cleanNumber = testNumber.replace(/\D/g, '');
     const link = `https://wa.me/${cleanNumber}?text=${encodeURIComponent(message)}`;
     window.open(link, '_blank');
+    setTestError('');
   };
 
+  const [codeCopied, setCodeCopied] = useState(false);
+  
   const copyWebsiteCode = () => {
     const code = `<!-- Bouton WhatsApp pour votre site -->
 <a href="https://wa.me/${config.phoneNumber.replace(/\D/g, '')}?text=Bonjour,%20je%20souhaite%20prendre%20rendez-vous" 
@@ -68,8 +74,20 @@ export default function WhatsAppSetup() {
   <span>Contactez-nous</span>
 </a>`;
     
-    navigator.clipboard.writeText(code);
-    alert('Code copié ! Collez-le dans votre site web.');
+    navigator.clipboard.writeText(code).then(() => {
+      setCodeCopied(true);
+      setTimeout(() => setCodeCopied(false), 3000);
+    }).catch(() => {
+      // Fallback si clipboard API échoue
+      const textarea = document.createElement('textarea');
+      textarea.value = code;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      setCodeCopied(true);
+      setTimeout(() => setCodeCopied(false), 3000);
+    });
   };
 
   return (
@@ -235,20 +253,30 @@ export default function WhatsAppSetup() {
             Tester la configuration
           </h3>
           
-          <div className="flex gap-3">
-            <input
-              type="tel"
-              placeholder="Numéro de test (ex: 06 12 34 56 78)"
-              value={testNumber}
-              onChange={(e) => setTestNumber(e.target.value)}
-              className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:border-green-500 focus:outline-none"
-            />
-            <button
-              onClick={testWhatsApp}
-              className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all"
-            >
-              Envoyer un test
-            </button>
+          <div className="space-y-3">
+            <div className="flex gap-3">
+              <input
+                type="tel"
+                placeholder="Numéro de test (ex: 06 12 34 56 78)"
+                value={testNumber}
+                onChange={(e) => {setTestNumber(e.target.value); setTestError('');}}
+                className={`flex-1 px-4 py-2 border rounded-lg focus:outline-none transition-all ${
+                  testError ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-green-500'
+                }`}
+              />
+              <button
+                onClick={testWhatsApp}
+                className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all"
+              >
+                Envoyer un test
+              </button>
+            </div>
+            {testError && (
+              <div className="flex items-center gap-2 text-red-600 text-sm">
+                <AlertCircle className="w-4 h-4" />
+                {testError}
+              </div>
+            )}
           </div>
         </div>
 
@@ -264,10 +292,23 @@ export default function WhatsAppSetup() {
           
           <button
             onClick={copyWebsiteCode}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all flex items-center gap-2"
+            className={`px-4 py-2 rounded-lg transition-all flex items-center gap-2 ${
+              codeCopied 
+                ? 'bg-green-100 text-green-700' 
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
           >
-            <Copy className="w-4 h-4" />
-            Copier le code HTML
+            {codeCopied ? (
+              <>
+                <CheckCircle className="w-4 h-4" />
+                Code copié !
+              </>
+            ) : (
+              <>
+                <Copy className="w-4 h-4" />
+                Copier le code HTML
+              </>
+            )}
           </button>
         </div>
 

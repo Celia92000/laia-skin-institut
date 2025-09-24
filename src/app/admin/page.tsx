@@ -814,15 +814,32 @@ export default function AdminDashboard() {
               </h1>
               <p className="text-[#2c3e50]/70">Gérez vos réservations et vos clients</p>
             </div>
-            <button
-              onClick={() => {
-                localStorage.clear();
-                router.push('/');
-              }}
-              className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-            >
-              Déconnexion
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => router.push('/admin/users')}
+                className="px-4 py-2 text-sm bg-purple-600 text-white hover:bg-purple-700 rounded-lg transition-colors flex items-center gap-2"
+              >
+                <Users className="w-4 h-4" />
+                Utilisateurs
+              </button>
+              <button
+                onClick={() => router.push('/admin/settings')}
+                className="px-4 py-2 text-sm bg-[#d4b5a0] text-white hover:bg-[#c9a084] rounded-lg transition-colors flex items-center gap-2"
+              >
+                <Settings className="w-4 h-4" />
+                Paramètres
+              </button>
+              <button
+                onClick={() => {
+                  localStorage.clear();
+                  router.push('/');
+                }}
+                className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                Déconnexion
+              </button>
+            </div>
           </div>
 
           {/* Stats - Cliquables */}

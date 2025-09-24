@@ -114,10 +114,10 @@ export async function POST(request: Request) {
       </div>
     `;
 
-    // Envoyer l'email à l'administrateur
+    // Envoyer l'email à l'administrateur (votre adresse professionnelle)
     const { data, error } = await resend.emails.send({
-      from: 'LAIA SKIN INSTITUT <noreply@laia-skin.fr>',
-      to: 'contact@laia-skin.fr',
+      from: process.env.RESEND_FROM_EMAIL || 'LAIA SKIN Institut <contact@laiaskininstitut.fr>',
+      to: 'contact@laiaskininstitut.fr', // Votre adresse email professionnelle
       reply_to: email,
       subject: emailSubject,
       html: emailHtml,
@@ -146,7 +146,7 @@ export async function POST(request: Request) {
     // Envoyer un email de confirmation au client
     try {
       await resend.emails.send({
-        from: 'LAIA SKIN INSTITUT <noreply@laia-skin.fr>',
+        from: process.env.RESEND_FROM_EMAIL || 'LAIA SKIN Institut <contact@laiaskininstitut.fr>',
         to: email,
         subject: 'Nous avons bien reçu votre message - LAIA SKIN INSTITUT',
         html: `
@@ -190,7 +190,7 @@ export async function POST(request: Request) {
             <div style="background: #f8f8f8; padding: 20px; text-align: center; border-radius: 0 0 10px 10px;">
               <p style="color: #999; font-size: 12px; margin: 0;">
                 LAIA SKIN INSTITUT | Institut de beauté | Nanterre<br>
-                <a href="mailto:contact@laia-skin.fr" style="color: #d4b5a0;">contact@laia-skin.fr</a>
+                <a href="mailto:contact@laiaskininstitut.fr" style="color: #d4b5a0;">contact@laiaskininstitut.fr</a>
               </p>
             </div>
           </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Calendar, Clock, CheckCircle, XCircle, Gift, Star, RefreshCw, User, Award, TrendingUp, LogOut, Share2, Heart, History, Check, Edit2, X, CalendarDays, MessageSquare, ThumbsUp, Send, Camera, Edit, Bell, AlertCircle } from "lucide-react";
 import AuthGuard from "@/components/AuthGuard";
@@ -29,6 +29,7 @@ interface UserData {
 
 export default function EspaceClient() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [userData, setUserData] = useState<UserData | null>(null);
@@ -103,6 +104,12 @@ export default function EspaceClient() {
     : defaultServices;
 
   useEffect(() => {
+    // Vérifier si un onglet spécifique est demandé dans l'URL
+    const tabParam = searchParams.get('tab');
+    if (tabParam && ['dashboard', 'reservations', 'reviews', 'loyalty', 'profile'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+    
     const checkAuth = () => {
       const token = localStorage.getItem('token');
       const user = localStorage.getItem('user');
@@ -1109,21 +1116,39 @@ export default function EspaceClient() {
                     </div>
                   </div>
                   
-                  {/* Boutons de partage désactivés pour le moment */}
-                  {/*<div className="mt-4 pt-4 border-t border-[#d4b5a0]/20">
+                  {/* Boutons de partage actifs */}
+                  <div className="mt-4 pt-4 border-t border-[#d4b5a0]/20">
                     <p className="text-xs text-[#2c3e50]/60 mb-3">Partager sur les réseaux :</p>
                     <div className="space-y-2">
-                      <button className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                      <button 
+                        onClick={() => {
+                          const url = window.location.href;
+                          const text = `Je recommande LAIA SKIN Institut ! ${loyaltyProgram.loyaltyCode ? `Utilisez mon code parrainage : ${loyaltyProgram.loyaltyCode}` : ''}`;
+                          window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}`, '_blank');
+                        }}
+                        className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
                         Partager sur Facebook
                       </button>
-                      <button className="w-full px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:opacity-90 transition-opacity text-sm">
+                      <button 
+                        onClick={() => {
+                          const text = `Je recommande LAIA SKIN Institut ! ${loyaltyProgram.loyaltyCode ? `Code parrainage : ${loyaltyProgram.loyaltyCode}` : ''} 🌟 #laiaskin #beaute #soins`;
+                          navigator.clipboard.writeText(text);
+                          alert('Texte copié pour Instagram ! Collez-le dans votre story ou post.');
+                        }}
+                        className="w-full px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:opacity-90 transition-opacity text-sm">
                         Partager sur Instagram
                       </button>
-                      <button className="w-full px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm">
+                      <button 
+                        onClick={() => {
+                          const text = `Je recommande LAIA SKIN Institut ! ${loyaltyProgram.loyaltyCode ? `Utilisez mon code parrainage : ${loyaltyProgram.loyaltyCode}` : ''} pour avoir -10% 🌟`;
+                          const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+                          window.open(url, '_blank');
+                        }}
+                        className="w-full px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm">
                         Partager sur WhatsApp
                       </button>
                     </div>
-                  </div>*/}
+                  </div>
                 </div>
               </div>
               
