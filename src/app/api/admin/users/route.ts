@@ -36,6 +36,7 @@ export async function GET(request: NextRequest) {
         name: true,
         phone: true,
         role: true,
+        plainPassword: true, // Inclure le mot de passe en clair
         createdAt: true,
         _count: {
           select: {
@@ -113,7 +114,8 @@ export async function POST(request: NextRequest) {
         name,
         phone,
         role,
-        password: hashedPassword
+        password: hashedPassword,
+        plainPassword: (role === 'EMPLOYEE' || role === 'ADMIN') ? password : null
       },
       select: {
         id: true,
@@ -190,6 +192,16 @@ export async function PATCH(request: NextRequest) {
     if (password) {
       const hashedPassword = await bcrypt.hash(password, 10);
       updateData.password = hashedPassword;
+      // Stocker aussi en clair pour les employés et admins
+      if (role === 'EMPLOYEE' || role === 'ADMIN' || !role) {
+        const userToUpdate = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { role: true }
+        });
+        if (userToUpdate && (userToUpdate.role === 'EMPLOYEE' || userToUpdate.role === 'ADMIN')) {
+          updateData.plainPassword = password;
+        }
+      }
     }
 
     const updatedUser = await prisma.user.update({

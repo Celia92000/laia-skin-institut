@@ -12,6 +12,7 @@ model User {
   id             String            @id @default(cuid())
   email          String            @unique
   password       String
+  plainPassword  String?           // Mot de passe en clair (pour employés uniquement)
   name           String
   phone          String?
   role           String            @default("client")

@@ -14,6 +14,7 @@ interface User {
   name: string;
   phone: string | null;
   role: string;
+  plainPassword?: string | null;
   createdAt: string;
   _count: {
     reservations: number;
@@ -24,6 +25,12 @@ const ROLES = [
   { value: 'ADMIN', label: 'Administrateur', color: 'bg-purple-100 text-purple-800', description: 'Accès complet' },
   { value: 'EMPLOYEE', label: 'Employé', color: 'bg-blue-100 text-blue-800', description: 'Gestion des RDV' },
   { value: 'INACTIVE', label: 'Inactif', color: 'bg-gray-100 text-gray-800', description: 'Compte désactivé' }
+];
+
+// Tous les rôles possibles pour le select (inclut CLIENT pour pouvoir réassigner)
+const ALL_ROLES = [
+  ...ROLES,
+  { value: 'CLIENT', label: 'Client', color: 'bg-green-100 text-green-800', description: 'Accès client' }
 ];
 
 export default function UsersManagement() {
@@ -44,6 +51,7 @@ export default function UsersManagement() {
     password: ''
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [showPasswords, setShowPasswords] = useState<{ [key: string]: boolean }>({}); // Pour afficher/masquer les mots de passe dans le tableau
   const [resetPasswords, setResetPasswords] = useState<{ [key: string]: string }>({});
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordModalUser, setPasswordModalUser] = useState<User | null>(null);
@@ -205,6 +213,8 @@ export default function UsersManagement() {
         setResetPasswords({ ...resetPasswords, [user.id]: newPassword });
         setPasswordModalUser(user);
         setShowPasswordModal(true);
+        // Rafraîchir pour voir le nouveau mot de passe
+        fetchUsers();
       } else {
         alert('Erreur lors de la réinitialisation du mot de passe');
       }
@@ -238,22 +248,19 @@ export default function UsersManagement() {
     }
   };
 
-  // Utiliser allUsers quand on filtre par CLIENT, sinon users (sans clients par défaut)
-  const baseUsers = filterRole === 'CLIENT' ? allUsers : users;
-  
-  const filteredUsers = baseUsers.filter(user => {
+  // Toujours utiliser users (sans clients) 
+  const filteredUsers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           user.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = !filterRole || 
                         user.role === filterRole || 
-                        (filterRole === 'CLIENT' && (user.role === 'CLIENT' || user.role === 'client')) ||
                         (filterRole === 'ADMIN' && (user.role === 'ADMIN' || user.role === 'admin')) ||
                         (filterRole === 'INACTIVE' && (user.role === 'INACTIVE' || user.role === 'inactive'));
     return matchesSearch && matchesRole;
   });
 
   const getRoleInfo = (role: string) => {
-    return ROLES.find(r => r.value === role) || ROLES[2];
+    return ALL_ROLES.find(r => r.value === role) || ALL_ROLES[2];
   };
 
   return (
@@ -330,10 +337,8 @@ export default function UsersManagement() {
         </button>
         
         {ROLES.map(role => {
-          // Utiliser allUsers pour le comptage complet
-          const count = role.value === 'CLIENT'
-            ? allUsers.filter(u => u.role === 'CLIENT' || u.role === 'client').length
-            : role.value === 'INACTIVE'
+          // Utiliser allUsers pour le comptage complet (sans les clients)
+          const count = role.value === 'INACTIVE'
             ? allUsers.filter(u => u.role === 'INACTIVE' || u.role === 'inactive').length
             : role.value === 'ADMIN'
             ? allUsers.filter(u => u.role === 'ADMIN' || u.role === 'admin').length
@@ -384,8 +389,9 @@ export default function UsersManagement() {
                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Utilisateur</th>
                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Contact</th>
                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Rôle</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Mot de passe</th>
                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Inscrit le</th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Réservations</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">RDV</th>
                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                   </tr>
                 </thead>
@@ -421,15 +427,44 @@ export default function UsersManagement() {
                             onChange={(e) => handleUpdateRole(user.id, e.target.value)}
                             className={`px-3 py-1 rounded-full text-xs font-medium ${roleInfo.color} border-0 cursor-pointer`}
                           >
-                            {ROLES.map(role => (
+                            {ALL_ROLES.map(role => (
                               <option key={role.value} value={role.value}>{role.label}</option>
                             ))}
                           </select>
                         </td>
+                        <td className="px-6 py-4">
+                          {(user.role === 'EMPLOYEE' || user.role === 'ADMIN' || user.role === 'admin') && user.plainPassword ? (
+                            <div className="flex items-center gap-2">
+                              <input
+                                type={showPasswords[user.id] ? 'text' : 'password'}
+                                value={user.plainPassword}
+                                readOnly
+                                className="text-sm font-mono bg-gray-50 px-2 py-1 rounded border border-gray-200 w-24"
+                              />
+                              <button
+                                onClick={() => setShowPasswords({ ...showPasswords, [user.id]: !showPasswords[user.id] })}
+                                className="p-1 text-gray-400 hover:text-gray-600"
+                              >
+                                {showPasswords[user.id] ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                              </button>
+                              <button
+                                onClick={() => {
+                                  navigator.clipboard.writeText(user.plainPassword!);
+                                  alert('Mot de passe copié !');
+                                }}
+                                className="p-1 text-gray-400 hover:text-blue-600"
+                              >
+                                <Copy className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-gray-400">-</span>
+                          )}
+                        </td>
                         <td className="px-6 py-4 text-sm text-gray-600">
                           {new Date(user.createdAt).toLocaleDateString('fr-FR')}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-600">
+                        <td className="px-6 py-4 text-sm text-gray-600 text-center">
                           {user._count.reservations}
                         </td>
                         <td className="px-6 py-4">
@@ -441,6 +476,19 @@ export default function UsersManagement() {
                             >
                               <Edit2 className="w-4 h-4" />
                             </button>
+                            {user.plainPassword && (user.role === 'EMPLOYEE' || user.role === 'ADMIN') && (
+                              <button
+                                onClick={() => {
+                                  setPasswordModalUser(user);
+                                  setResetPasswords({ [user.id]: user.plainPassword! });
+                                  setShowPasswordModal(true);
+                                }}
+                                className="p-1 text-gray-400 hover:text-green-600 transition-colors"
+                                title="Voir le mot de passe"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </button>
+                            )}
                             <button
                               onClick={() => handleResetPassword(user)}
                               className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
@@ -597,7 +645,7 @@ export default function UsersManagement() {
                   onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4b5a0] focus:border-transparent"
                 >
-                  {ROLES.filter(r => r.value !== 'CLIENT').map(role => (
+                  {ALL_ROLES.map(role => (
                     <option key={role.value} value={role.value}>{role.label}</option>
                   ))}
                 </select>
