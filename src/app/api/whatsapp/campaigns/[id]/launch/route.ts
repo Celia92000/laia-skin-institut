@@ -41,7 +41,8 @@ export async function POST(
       where: { id: params.id },
       data: {
         status: 'active',
-        sentAt: new Date()
+        startedAt: new Date(),
+        sentCount: campaign.recipientCount || 0
       }
     });
 
