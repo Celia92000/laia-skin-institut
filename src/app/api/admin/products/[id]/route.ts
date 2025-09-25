@@ -1,0 +1,82 @@
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { verifyToken } from '@/lib/auth';
+
+// PUT - Mettre à jour un produit spécifique
+export async function PUT(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const authHeader = request.headers.get('authorization');
+    const token = authHeader?.replace('Bearer ', '');
+    
+    if (!token) {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+    }
+
+    const decoded = verifyToken(token);
+    if (!decoded) {
+      return NextResponse.json({ error: 'Token invalide' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    
+    // Mettre à jour le produit
+    const product = await prisma.product.update({
+      where: { id: params.id },
+      data: {
+        name: body.name,
+        description: body.description,
+        shortDescription: body.shortDescription,
+        price: body.price,
+        salePrice: body.salePrice,
+        cost: body.cost,
+        stock: body.stock,
+        stockAlert: body.stockAlert,
+        category: body.category,
+        brand: body.brand,
+        supplier: body.supplier,
+        mainImage: body.mainImage,
+        gallery: body.gallery ? JSON.stringify(body.gallery) : undefined,
+        active: body.active,
+        featured: body.featured,
+        order: body.order
+      }
+    });
+
+    return NextResponse.json(product);
+  } catch (error) {
+    console.error('Erreur mise à jour produit:', error);
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
+  }
+}
+
+// DELETE - Supprimer un produit spécifique
+export async function DELETE(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const authHeader = request.headers.get('authorization');
+    const token = authHeader?.replace('Bearer ', '');
+    
+    if (!token) {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+    }
+
+    const decoded = verifyToken(token);
+    if (!decoded) {
+      return NextResponse.json({ error: 'Token invalide' }, { status: 401 });
+    }
+
+    await prisma.product.delete({
+      where: { id: params.id }
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Erreur suppression produit:', error);
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
+  }
+}

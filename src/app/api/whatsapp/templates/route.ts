@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { verifyToken } from '@/lib/auth';
 
-// Templates prédéfinis
+// Templates prédéfinis (backup si DB vide)
 const defaultTemplates = [
   {
     id: 'promo_month',
@@ -64,9 +65,25 @@ const defaultTemplates = [
 // GET - Récupérer tous les templates
 export async function GET(request: NextRequest) {
   try {
-    // Pour le moment, on retourne les templates prédéfinis
-    // Plus tard, on pourra les stocker en base de données
-    return NextResponse.json(defaultTemplates);
+    const authHeader = request.headers.get('authorization');
+    const token = authHeader?.replace('Bearer ', '');
+    
+    if (!token || !verifyToken(token)) {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+    }
+
+    // Récupérer les templates de la base de données
+    const templates = await prisma.whatsAppTemplate.findMany({
+      where: { active: true },
+      orderBy: { usage: 'desc' }
+    });
+
+    // Si la DB est vide, retourner les templates par défaut
+    if (templates.length === 0) {
+      return NextResponse.json(defaultTemplates);
+    }
+
+    return NextResponse.json(templates);
   } catch (error) {
     console.error('Erreur lors de la récupération des templates:', error);
     return NextResponse.json(
@@ -79,6 +96,13 @@ export async function GET(request: NextRequest) {
 // POST - Créer un nouveau template
 export async function POST(request: NextRequest) {
   try {
+    const authHeader = request.headers.get('authorization');
+    const token = authHeader?.replace('Bearer ', '');
+    
+    if (!token || !verifyToken(token)) {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { name, category, content, variables } = body;
 
@@ -90,22 +114,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Créer le nouveau template
-    const newTemplate = {
-      id: `custom_${Date.now()}`,
-      name,
-      category,
-      content,
-      variables: variables || [],
-      createdAt: new Date()
-    };
-
-    // Ici, on pourrait sauvegarder en base de données
-    // Pour le moment, on retourne juste le template créé
+    // Créer le nouveau template en DB
+    const template = await prisma.whatsAppTemplate.create({
+      data: {
+        name,
+        category,
+        content,
+        variables: JSON.stringify(variables || [])
+      }
+    });
 
     return NextResponse.json({
       success: true,
-      template: newTemplate
+      template
     });
   } catch (error) {
     console.error('Erreur lors de la création du template:', error);
@@ -119,8 +140,15 @@ export async function POST(request: NextRequest) {
 // PUT - Modifier un template
 export async function PUT(request: NextRequest) {
   try {
+    const authHeader = request.headers.get('authorization');
+    const token = authHeader?.replace('Bearer ', '');
+    
+    if (!token || !verifyToken(token)) {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+    }
+
     const body = await request.json();
-    const { id, name, category, content, variables } = body;
+    const { id, name, category, content, variables, active } = body;
 
     // Validation
     if (!id) {
@@ -130,19 +158,21 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Mettre à jour le template
-    const updatedTemplate = {
-      id,
-      name,
-      category,
-      content,
-      variables,
-      updatedAt: new Date()
-    };
+    // Mettre à jour le template en DB
+    const template = await prisma.whatsAppTemplate.update({
+      where: { id },
+      data: {
+        ...(name && { name }),
+        ...(category && { category }),
+        ...(content && { content }),
+        ...(variables && { variables: JSON.stringify(variables) }),
+        ...(active !== undefined && { active })
+      }
+    });
 
     return NextResponse.json({
       success: true,
-      template: updatedTemplate
+      template
     });
   } catch (error) {
     console.error('Erreur lors de la modification du template:', error);

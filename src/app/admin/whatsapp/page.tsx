@@ -1,36 +1,22 @@
 'use client';
 
 import { useEffect } from 'react';
-import WhatsAppIntuitive from '@/components/WhatsAppIntuitive';
-import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function WhatsAppPage() {
   const router = useRouter();
 
-  // Vérification simple du token uniquement
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-    }
+    // Rediriger vers le tableau de bord admin avec l'onglet WhatsApp sélectionné
+    router.push('/admin?tab=whatsapp');
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Bouton retour */}
-      <div className="bg-white border-b px-4 py-3">
-        <button
-          onClick={() => router.push('/admin')}
-          className="flex items-center gap-2 px-3 py-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Retour au tableau de bord
-        </button>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
+        <p className="text-gray-600">Redirection vers WhatsApp Business...</p>
       </div>
-      
-      {/* Interface WhatsApp moderne */}
-      <WhatsAppIntuitive />
     </div>
   );
 }

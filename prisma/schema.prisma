@@ -395,6 +395,53 @@ model WhatsAppHistory {
   createdAt     DateTime @default(now())
 }
 
+model WhatsAppTemplate {
+  id            String   @id @default(cuid())
+  name          String   @unique
+  category      String   // reminder, promotion, birthday, followup, custom
+  content       String   // Template avec variables {name}, {time}, etc.
+  variables     String   // JSON array des variables utilisées
+  usage         Int      @default(0)
+  successRate   Float    @default(100)
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model WhatsAppAutomation {
+  id            String   @id @default(cuid())
+  name          String
+  trigger       String   // appointment_24h, appointment_48h, birthday, post_service, review_request
+  templateId    String   // Référence au template
+  enabled       Boolean  @default(true)
+  timing        String?  // JSON avec les infos de timing (heures avant/après, heure d'envoi, etc.)
+  conditions    String?  // JSON avec les conditions d'envoi
+  lastRun       DateTime?
+  nextRun       DateTime?
+  messagesSent  Int      @default(0)
+  successCount  Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model WhatsAppCampaign {
+  id             String   @id @default(cuid())
+  name           String
+  templateId     String   // Référence au template
+  recipients     String   // JSON array des numéros ou tags
+  recipientCount Int      @default(0)
+  status         String   @default("draft") // draft, scheduled, active, paused, completed, cancelled
+  scheduledAt    DateTime?
+  startedAt      DateTime?
+  completedAt    DateTime?
+  sentCount      Int      @default(0)
+  deliveredCount Int      @default(0)
+  readCount      Int      @default(0)
+  failedCount    Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
 model CommunicationHistory {
   id           String   @id @default(cuid())
   userId       String   // Client associé
@@ -405,5 +452,34 @@ model CommunicationHistory {
   status       String   @default("sent") // sent, delivered, read, failed
   metadata     String?  // JSON avec métadonnées supplémentaires
   createdAt    DateTime @default(now())
+}
+
+model Product {
+  id               String   @id @default(cuid())
+  name             String
+  description      String
+  shortDescription String?
+  price            Float
+  salePrice        Float?
+  cost             Float?
+  sku              String?  @unique
+  barcode          String?
+  stock            Int      @default(0)
+  stockAlert       Int      @default(5)
+  category         String?
+  brand            String?
+  supplier         String?
+  mainImage        String?
+  gallery          String?  // JSON array d'URLs d'images
+  weight           Float?
+  dimensions       String?
+  ingredients      String?
+  usage            String?
+  benefits         String?
+  active           Boolean  @default(true)
+  featured         Boolean  @default(false)
+  order            Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 
