@@ -175,6 +175,11 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
     if (selectedClient && bonusReason) {
       try {
         const token = localStorage.getItem('token');
+        if (!token) {
+          alert('❌ Session expirée. Veuillez vous reconnecter.');
+          return;
+        }
+
         const response = await fetch(`/api/admin/clients/${selectedClient}/notes`, {
           method: 'POST',
           headers: {
@@ -185,18 +190,34 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
         });
         
         if (response.ok) {
+          const data = await response.json();
+          console.log('Note sauvegardée avec succès:', data);
+          
+          // Mettre à jour localement le profil
+          const profileToUpdate = loyaltyProfiles.find(p => p.userId === selectedClient);
+          if (profileToUpdate) {
+            profileToUpdate.notes = bonusReason;
+            setLoyaltyProfiles([...loyaltyProfiles]);
+          }
+          
+          // Fermer le modal et réinitialiser
           setShowAddPointsModal(false);
           setBonusPoints(0);
           setBonusReason('');
           setSelectedClient(null);
-          // Recharger les profils pour afficher la note mise à jour
-          window.location.reload();
+          
+          // Dispatch event pour rester sur l'onglet fidélité
+          window.dispatchEvent(new CustomEvent('refreshLoyalty'));
+          
+          alert('✅ Note enregistrée avec succès');
         } else {
-          alert('❌ Erreur lors de l\'enregistrement de la note');
+          const errorData = await response.json().catch(() => ({ error: 'Erreur inconnue' }));
+          console.error('Erreur serveur:', response.status, errorData);
+          alert(`❌ Erreur: ${errorData.error || 'Erreur lors de l\'enregistrement'}`);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Erreur sauvegarde note:', error);
-        alert('❌ Erreur lors de l\'enregistrement de la note');
+        alert(`❌ ${error.message || 'Erreur lors de l\'enregistrement de la note'}`);
       }
     }
   };

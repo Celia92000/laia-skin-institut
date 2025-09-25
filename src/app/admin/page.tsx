@@ -170,12 +170,26 @@ export default function AdminDashboard() {
 
     checkAuth();
     
+    // Écouter l'événement pour rafraîchir les profils de fidélité
+    const handleRefreshLoyalty = () => {
+      fetchLoyaltyProfiles();
+      setActiveTab('loyalty'); // Rester sur l'onglet fidélité
+    };
+    window.addEventListener('refreshLoyalty', handleRefreshLoyalty);
+    
+    // Exposer la fonction de mise à jour pour les composants enfants
+    (window as any).updateLoyaltyProfiles = setLoyaltyProfiles;
+    
     // Rafraîchir les réservations toutes les 30 secondes pour vérifier les nouvelles
     const interval = setInterval(() => {
       fetchReservations();
     }, 30000);
     
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('refreshLoyalty', handleRefreshLoyalty);
+      delete (window as any).updateLoyaltyProfiles;
+    };
   }, [router]);
 
   const fetchServices = async () => {

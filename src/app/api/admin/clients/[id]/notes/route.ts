@@ -39,9 +39,18 @@ export async function POST(
 
     // Mettre à jour ou créer le profil de fidélité avec la note
     const loyaltyProfile = await withRetry(() => 
-      prisma.loyaltyProfile.update({
+      prisma.loyaltyProfile.upsert({
         where: { userId },
-        data: { 
+        create: {
+          userId,
+          points: 0,
+          servicesCompleted: 0,
+          status: 'bronze',
+          notes: note,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        update: { 
           notes: note,
           updatedAt: new Date()
         }
