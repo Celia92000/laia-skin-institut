@@ -10,43 +10,22 @@ export default function WhatsAppPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Vérifier l'authentification
-    const checkAuth = async () => {
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
-        router.push('/login');
-        return;
-      }
-
-      try {
-        const response = await fetch('/api/auth/verify', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        if (!response.ok) {
-          router.push('/login');
-          return;
-        }
-
-        const userInfo = await response.json();
-        
-        // Vérifier que c'est un admin ou employé
-        if (userInfo.role !== 'admin' && userInfo.role !== 'ADMIN' && userInfo.role !== 'EMPLOYEE') {
-          router.push('/espace-client');
-          return;
-        }
-        
-        setLoading(false);
-      } catch (error) {
-        console.error('Erreur de vérification:', error);
-        router.push('/login');
-      }
-    };
-
-    checkAuth();
+    // Vérifier l'authentification simple
+    const token = localStorage.getItem('token');
+    const userRole = localStorage.getItem('userRole');
+    
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+    
+    // Vérifier que c'est un admin ou employé
+    if (userRole !== 'admin' && userRole !== 'ADMIN' && userRole !== 'EMPLOYEE') {
+      router.push('/espace-client');
+      return;
+    }
+    
+    setLoading(false);
   }, [router]);
 
   if (loading) {

@@ -106,6 +106,7 @@ export default function SecureLoginPage() {
           // Stocker le token de manière sécurisée
           localStorage.setItem('token', data.token);
           localStorage.setItem('user', JSON.stringify(data.user));
+          localStorage.setItem('userRole', data.user.role);
           
           // Cookie httpOnly serait mieux en production
           const maxAge = rememberMe ? 2592000 : 604800; // 30 jours si "Se souvenir", sinon 7 jours
@@ -166,6 +167,7 @@ export default function SecureLoginPage() {
           const data = await response.json();
           localStorage.setItem('token', data.token);
           localStorage.setItem('user', JSON.stringify(data.user));
+          localStorage.setItem('userRole', data.user.role);
           document.cookie = `token=${data.token}; path=/; max-age=604800; SameSite=Strict`;
           window.location.href = '/espace-client';
         } else {
