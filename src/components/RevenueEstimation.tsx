@@ -85,23 +85,27 @@ export default function RevenueEstimation({ reservations }: RevenueEstimationPro
       .filter(r => r.paymentStatus === 'paid')
       .reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice), 0);
 
-    // CA en attente de paiement (réservations passées non payées)
-    const pendingPayment = pastReservations
+    // CA en attente de paiement (réservations passées non payées + futures confirmées non payées)
+    const pendingPaymentPast = pastReservations
       .filter(r => r.paymentStatus !== 'paid')
       .reduce((sum, r) => sum + r.totalPrice, 0);
-
-    // CA prévisionnel (réservations futures confirmées)
-    const projectedRevenue = futureReservations
-      .filter(r => r.status === 'confirmed')
+    
+    const pendingPaymentFuture = futureReservations
+      .filter(r => r.status === 'confirmed' && r.paymentStatus !== 'paid')
       .reduce((sum, r) => sum + r.totalPrice, 0);
+    
+    const pendingPayment = pendingPaymentPast + pendingPaymentFuture;
+
+    // CA prévisionnel = CA réalisé + CA en attente (passé et futur)
+    const projectedRevenue = realizedRevenue + pendingPayment;
 
     // CA potentiel (réservations futures en attente)
     const potentialRevenue = futureReservations
       .filter(r => r.status === 'pending')
       .reduce((sum, r) => sum + r.totalPrice, 0);
 
-    // CA total estimé
-    const totalEstimated = realizedRevenue + pendingPayment + projectedRevenue;
+    // CA total estimé (incluant le potentiel)
+    const totalEstimated = projectedRevenue + potentialRevenue;
 
     // Calculs de moyenne
     const daysInPeriod = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
@@ -218,21 +222,21 @@ export default function RevenueEstimation({ reservations }: RevenueEstimationPro
             {estimationData.pendingPayment.toFixed(0)}€
           </p>
           <p className="text-xs text-gray-500 mt-2">
-            Prestations non payées
+            RDV effectués et futurs non payés
           </p>
         </div>
 
         {/* CA Prévisionnel */}
         <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-gray-600">CA Prévu</span>
+            <span className="text-sm text-gray-600">CA Prévisionnel</span>
             <TrendingUp className="w-5 h-5 text-blue-600" />
           </div>
           <p className="text-2xl font-bold text-blue-600">
             {estimationData.projectedRevenue.toFixed(0)}€
           </p>
           <p className="text-xs text-gray-500 mt-2">
-            {estimationData.futureCount} RDV confirmés
+            Réalisé + À encaisser
           </p>
         </div>
 
@@ -246,7 +250,7 @@ export default function RevenueEstimation({ reservations }: RevenueEstimationPro
             {estimationData.totalEstimated.toFixed(0)}€
           </p>
           <p className="text-xs text-gray-500 mt-2">
-            Réalisé + Prévu
+            Prévu + Opportunités
           </p>
         </div>
       </div>

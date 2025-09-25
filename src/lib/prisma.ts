@@ -25,8 +25,16 @@ const prisma = globalForPrisma.prisma ?? new PrismaClient({
     db: {
       url: getDatabaseUrl()
     }
-  }
+  },
+  errorFormat: 'minimal'
 })
+
+// Gérer la déconnexion gracieuse
+if (process.env.NODE_ENV === 'production') {
+  process.on('beforeExit', async () => {
+    await prisma.$disconnect();
+  });
+}
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
 

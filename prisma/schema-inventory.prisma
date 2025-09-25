@@ -1,0 +1,117 @@
+// Modèle pour la gestion des stocks
+// À ajouter au schema.prisma principal
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  brand       String?
+  category    String   // "soin", "maquillage", "consommable", etc.
+  reference   String?  @unique
+  description String?
+  
+  // Stock
+  currentStock     Int      @default(0)
+  minStock        Int      @default(5)  // Seuil d'alerte
+  maxStock        Int?     // Stock maximum recommandé
+  unit            String   @default("unité") // "unité", "ml", "g", etc.
+  
+  // Prix
+  purchasePrice   Float?   // Prix d'achat
+  salePrice       Float?   // Prix de vente (si vendu)
+  
+  // Fournisseur
+  supplier        String?
+  supplierRef     String?
+  
+  // Traçabilité
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  lastRestocked   DateTime?
+  
+  // Relations
+  movements       StockMovement[]
+  usageInServices ServiceProduct[]
+  orders          OrderItem[]
+  
+  @@index([category])
+  @@index([currentStock])
+}
+
+model StockMovement {
+  id          String   @id @default(cuid())
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+  
+  type        String   // "in" (entrée), "out" (sortie), "adjustment" (ajustement)
+  quantity    Int      // Positif pour entrée, négatif pour sortie
+  reason      String   // "achat", "utilisation", "perte", "péremption", etc.
+  
+  previousStock Int    // Stock avant le mouvement
+  newStock      Int    // Stock après le mouvement
+  
+  // Référence optionnelle (commande, prestation, etc.)
+  referenceId   String?
+  referenceType String? // "order", "reservation", "manual"
+  
+  notes       String?
+  performedBy String   // ID de l'utilisateur
+  createdAt   DateTime @default(now())
+  
+  @@index([productId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model ServiceProduct {
+  id          String   @id @default(cuid())
+  serviceId   String
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+  
+  quantity    Float    // Quantité utilisée par prestation
+  unit        String   // Unité de mesure
+  
+  @@unique([serviceId, productId])
+  @@index([serviceId])
+  @@index([productId])
+}
+
+model StockOrder {
+  id            String      @id @default(cuid())
+  orderNumber   String      @unique @default(cuid())
+  supplier      String
+  
+  status        String      @default("draft") // "draft", "sent", "partial", "received", "cancelled"
+  
+  orderDate     DateTime    @default(now())
+  expectedDate  DateTime?
+  receivedDate  DateTime?
+  
+  totalAmount   Float?
+  notes         String?
+  
+  items         OrderItem[]
+  createdBy     String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  
+  @@index([status])
+  @@index([orderDate])
+}
+
+model OrderItem {
+  id          String      @id @default(cuid())
+  orderId     String
+  order       StockOrder  @relation(fields: [orderId], references: [id])
+  productId   String
+  product     Product     @relation(fields: [productId], references: [id])
+  
+  quantity    Int
+  unitPrice   Float?
+  totalPrice  Float?
+  
+  received    Int         @default(0) // Quantité reçue
+  
+  @@index([orderId])
+  @@index([productId])
+}

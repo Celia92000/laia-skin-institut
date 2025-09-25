@@ -27,8 +27,10 @@ import AdminReviewsManager from "@/components/AdminReviewsManager";
 import ClientSegmentation from "@/components/ClientSegmentation";
 import EmailingInterface from "@/components/EmailingInterface";
 import SourceStats from "@/components/SourceStats";
-import RevenueAnalytics from "@/components/RevenueAnalytics";
-import RevenueEstimation from "@/components/RevenueEstimation";
+import RevenueManagement from "@/components/RevenueManagement";
+import RealTimeStats from "@/components/admin/RealTimeStats";
+import DynamicCharts from "@/components/admin/DynamicCharts";
+import DataExport from "@/components/admin/DataExport";
 import ObjectivesSettings from "@/components/ObjectivesSettings";
 import ReservationTableAdvanced from "@/components/ReservationTableAdvanced";
 import QuickActionModal from "@/components/QuickActionModal";
@@ -76,6 +78,7 @@ export default function AdminDashboard() {
   const [loyaltyProfiles, setLoyaltyProfiles] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [loading, setLoading] = useState(true);
+  const [reviewStats, setReviewStats] = useState<any>(null);
   const [paymentFilter, setPaymentFilter] = useState("all");
   const [paymentDateFilter, setPaymentDateFilter] = useState("");
   const [paymentDateStart, setPaymentDateStart] = useState("");
@@ -158,6 +161,7 @@ export default function AdminDashboard() {
       fetchClients();
       fetchLoyaltyProfiles();
       fetchServices();
+      fetchReviewStatistics();
     };
 
     checkAuth();
@@ -200,9 +204,15 @@ export default function AdminDashboard() {
   const fetchReservations = async () => {
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('Pas de token d\'authentification');
+        return;
+      }
+      
       const response = await fetch('/api/admin/reservations', {
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
 
@@ -229,9 +239,24 @@ export default function AdminDashboard() {
             // Gérer silencieusement si le son ne peut pas être joué
           });
         }
+      } else {
+        console.error('Erreur HTTP:', response.status, response.statusText);
+        if (response.status === 401) {
+          // Token expiré ou invalide
+          localStorage.removeItem('token');
+          window.location.href = '/login';
+        } else if (response.status === 500) {
+          // Erreur serveur - on continue avec des données vides
+          console.warn('Erreur serveur, utilisation de données vides');
+          setReservations([]);
+        }
       }
     } catch (error) {
       console.error('Erreur lors de la récupération des réservations:', error);
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        console.error('Problème de connexion au serveur. Utilisation de données vides.');
+        setReservations([]);
+      }
     } finally {
       setLoading(false);
     }
@@ -252,6 +277,24 @@ export default function AdminDashboard() {
       }
     } catch (error) {
       console.error('Erreur lors de la récupération des clients:', error);
+    }
+  };
+
+  const fetchReviewStatistics = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/admin/statistics-safe?viewMode=month&selectedMonth=' + new Date().toISOString().slice(0, 7), {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setReviewStats(data);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la récupération des statistiques d\'avis:', error);
     }
   };
 
@@ -760,8 +803,8 @@ export default function AdminDashboard() {
     completedToday: reservations.filter(r => 
       r.status === 'completed' && (typeof r.date === 'string' ? r.date.split('T')[0] : r.date.toISOString().split('T')[0]) === new Date().toISOString().split('T')[0]
     ).length,
-    totalRevenue: reservations.filter(r => r.status === 'completed')
-      .reduce((sum, r) => sum + r.totalPrice, 0)
+    totalRevenue: Math.round(reservations.filter(r => r.status === 'completed')
+      .reduce((sum, r) => sum + r.totalPrice, 0))
   };
 
   if (loading) {
@@ -869,38 +912,53 @@ export default function AdminDashboard() {
           </div>
 
           {/* Stats - Cliquables */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <button
               onClick={() => setShowDetailsModal('total')}
-              className="bg-gradient-to-br from-[#d4b5a0]/10 to-[#c9a084]/10 rounded-xl p-4 hover:shadow-md transition-all text-left group"
+              className="bg-gradient-to-br from-[#f5e6d3]/30 to-[#fdfbf7] rounded-xl p-4 hover:shadow-md transition-all text-left group border border-[#d4a574]/20"
             >
-              <p className="text-sm text-[#2c3e50]/60 mb-1">Réservations totales</p>
-              <p className="text-2xl font-bold text-[#2c3e50]">{stats.totalReservations}</p>
-              <p className="text-xs text-[#2c3e50]/50 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Cliquez pour voir la liste →</p>
+              <p className="text-sm text-[#2c3e50]/60 mb-1">Réservations</p>
+              <p className="text-2xl font-bold text-[#d4a574]">{stats.totalReservations}</p>
+              <p className="text-xs text-[#d4a574]/70 mt-1">Total</p>
             </button>
             <button
               onClick={() => setShowDetailsModal('pending')}
-              className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-4 hover:shadow-md transition-all text-left group"
+              className="bg-gradient-to-br from-[#e8b4b8]/20 to-[#fff9f0] rounded-xl p-4 hover:shadow-md transition-all text-left group border border-[#e8b4b8]/20"
             >
               <p className="text-sm text-[#2c3e50]/60 mb-1">En attente</p>
-              <p className="text-2xl font-bold text-yellow-600">{stats.pendingReservations}</p>
-              <p className="text-xs text-yellow-600/70 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Cliquez pour confirmer →</p>
+              <p className="text-2xl font-bold text-[#e8b4b8]">{stats.pendingReservations}</p>
+              <p className="text-xs text-[#e8b4b8]/70 mt-1">À confirmer</p>
             </button>
             <button
               onClick={() => setShowDetailsModal('completed')}
-              className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 hover:shadow-md transition-all text-left group"
+              className="bg-gradient-to-br from-[#c9a084]/20 to-[#fdfbf7] rounded-xl p-4 hover:shadow-md transition-all text-left group border border-[#c9a084]/20"
             >
-              <p className="text-sm text-[#2c3e50]/60 mb-1">Terminés aujourd'hui</p>
-              <p className="text-2xl font-bold text-green-600">{stats.completedToday}</p>
-              <p className="text-xs text-green-600/70 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Voir détails →</p>
+              <p className="text-sm text-[#2c3e50]/60 mb-1">Aujourd'hui</p>
+              <p className="text-2xl font-bold text-[#c9a084]">{stats.completedToday}</p>
+              <p className="text-xs text-[#c9a084]/70 mt-1">Terminés</p>
             </button>
             <button
               onClick={() => setShowDetailsModal('revenue')}
-              className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 hover:shadow-md transition-all text-left group"
+              className="bg-gradient-to-br from-[#d4a574]/20 to-[#f5e6d3]/20 rounded-xl p-4 hover:shadow-md transition-all text-left group border border-[#d4a574]/20"
             >
-              <p className="text-sm text-[#2c3e50]/60 mb-1">Revenus totaux</p>
-              <p className="text-2xl font-bold text-purple-600">{stats.totalRevenue}€</p>
-              <p className="text-xs text-purple-600/70 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Voir détails →</p>
+              <p className="text-sm text-[#2c3e50]/60 mb-1">Revenus</p>
+              <p className="text-2xl font-bold text-[#d4a574]">{stats.totalRevenue}€</p>
+              <p className="text-xs text-[#d4a574]/70 mt-1">Total</p>
+            </button>
+            <button
+              onClick={() => setActiveTab('reviews')}
+              className="bg-gradient-to-br from-[#fdfbf7] to-[#f5e6d3]/30 rounded-xl p-4 hover:shadow-md transition-all text-left group border border-[#d4a574]/20"
+            >
+              <p className="text-sm text-[#2c3e50]/60 mb-1">Satisfaction</p>
+              <div className="flex items-center gap-1">
+                <p className="text-2xl font-bold text-[#d4a574]">
+                  {reviewStats?.averageRating?.toFixed(1) || '0.0'}
+                </p>
+                <Star className="w-5 h-5 text-[#d4a574] fill-[#d4a574]" />
+              </div>
+              <p className="text-xs text-[#d4a574]/70">
+                {reviewStats?.satisfaction?.total || 0} avis
+              </p>
             </button>
           </div>
         </div>
@@ -1167,27 +1225,6 @@ export default function AdminDashboard() {
                   {/* Séparateur visuel */}
                   <div className="my-8 border-t-2 border-gray-100"></div>
 
-                  {/* Analyse du chiffre d'affaires en premier */}
-                  <h3 className="text-lg font-semibold text-[#2c3e50] mb-4 flex items-center gap-2">
-                    <Euro className="w-5 h-5 text-green-600" />
-                    Analyse financière détaillée
-                  </h3>
-                  <RevenueAnalytics 
-                    reservations={reservations.map(r => ({
-                      ...r,
-                      totalPrice: r.totalPrice || 0,
-                      paymentStatus: r.paymentStatus || 'pending',
-                      paymentDate: r.paymentDate || null,
-                      services: r.services || []
-                    }))} 
-                    services={services}
-                    onStatClick={(type: string) => {
-                      if (type === 'revenue') setShowDetailsModal('revenue');
-                      if (type === 'services') setActiveTab('services');
-                      if (type === 'average') setShowDetailsModal('revenue');
-                    }}
-                  />
-
                   {/* Objectifs personnalisables */}
                   <div className="flex items-center justify-between mb-4 mt-8">
                     <h3 className="text-lg font-semibold text-[#2c3e50] flex items-center gap-2">
@@ -1214,24 +1251,15 @@ export default function AdminDashboard() {
                       />
                     </div>
                   )}
-
-                  {/* Estimation du CA */}
-                  <h3 className="text-lg font-semibold text-[#2c3e50] mb-4 flex items-center gap-2 mt-8">
-                    <Target className="w-5 h-5 text-purple-600" />
-                    Prévisions et estimations
-                  </h3>
-                  <RevenueEstimation 
-                    reservations={reservations.map(r => ({
-                      ...r,
-                      totalPrice: r.totalPrice || 0,
-                      paymentStatus: r.paymentStatus || 'pending',
-                      paymentAmount: r.paymentAmount || null,
-                      services: r.services || []
-                    }))}
-                  />
                   
-                  {/* Évolution des revenus et autres statistiques */}
-                  <AdminStatsEnhanced />
+                  {/* Statistiques réelles depuis la base de données */}
+                  <RealTimeStats />
+                  
+                  {/* Graphiques dynamiques avec période d'analyse */}
+                  <DynamicCharts />
+                  
+                  {/* Export des données */}
+                  <DataExport />
                   
                   {/* Statistiques des sources */}
                   <SourceStats reservations={reservations} />

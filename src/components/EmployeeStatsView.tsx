@@ -352,56 +352,6 @@ export default function EmployeeStatsView({
         </div>
       </div>
 
-      {/* Revenus supplémentaires */}
-      <div className="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-xl p-6 border border-yellow-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <Award className="w-5 h-5 text-yellow-600" />
-          Mes revenus supplémentaires
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <p className="text-sm text-gray-600 mb-1">Pourboires du jour</p>
-            <p className="text-2xl font-bold text-gray-900">{stats.tips.toFixed(2)}€</p>
-            <p className="text-xs text-gray-500 mt-1">Estimation basée sur 5% du CA</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-600 mb-1">Commissions du mois</p>
-            <p className="text-2xl font-bold text-gray-900">{stats.commissionsEarned.toFixed(2)}€</p>
-            <p className="text-xs text-gray-500 mt-1">10% sur vos ventes</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Conseils du jour */}
-      <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl p-6 border border-indigo-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <Zap className="w-5 h-5 text-indigo-600" />
-          Conseils pour augmenter vos ventes
-        </h3>
-        <div className="space-y-3">
-          <div className="flex items-start gap-3">
-            <Coffee className="w-5 h-5 text-indigo-500 mt-0.5" />
-            <div>
-              <p className="text-sm font-medium text-gray-900">Proposez des soins complémentaires</p>
-              <p className="text-xs text-gray-600">Les clients ayant fait un Hydro'Naissance peuvent être intéressés par le BB Glow</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <Activity className="w-5 h-5 text-indigo-500 mt-0.5" />
-            <div>
-              <p className="text-sm font-medium text-gray-900">Fidélisez vos clients</p>
-              <p className="text-xs text-gray-600">Rappelez les avantages du programme de fidélité (10% après 5 visites)</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-indigo-500 mt-0.5" />
-            <div>
-              <p className="text-sm font-medium text-gray-900">Créneaux disponibles</p>
-              <p className="text-xs text-gray-600">Vous avez 3 créneaux libres demain - proposez-les aux clients en liste d'attente</p>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

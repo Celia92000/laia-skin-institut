@@ -196,7 +196,7 @@ export default function SecureLoginPage() {
       <div className="max-w-md mx-auto px-4">
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
           {/* Header avec gradient */}
-          <div className="bg-gradient-to-r from-laia-primary to-laia-rose p-8 text-white text-center">
+          <div className="bg-gradient-to-r from-[#8B7355] to-[#6B5D54] p-8 text-white text-center">
             <Shield className="w-16 h-16 mx-auto mb-4 opacity-90" />
             <h1 className="text-3xl font-serif mb-2">
               {isLogin ? "Connexion Sécurisée" : "Créer un compte"}
@@ -357,7 +357,7 @@ export default function SecureLoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-laia-primary to-laia-rose text-white py-3 rounded-lg font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-gradient-to-r from-[#8B7355] to-[#A0826D] text-white py-3 rounded-lg font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
