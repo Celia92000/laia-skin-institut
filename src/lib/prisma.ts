@@ -29,6 +29,13 @@ const prisma = globalForPrisma.prisma ?? new PrismaClient({
   errorFormat: 'minimal'
 })
 
+// S'assurer que la connexion est établie en développement
+if (process.env.NODE_ENV === 'development' && !globalForPrisma.prisma) {
+  prisma.$connect().catch(e => {
+    console.error('Erreur de connexion Prisma:', e);
+  });
+}
+
 // Gérer la déconnexion gracieuse
 if (process.env.NODE_ENV === 'production') {
   process.on('beforeExit', async () => {

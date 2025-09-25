@@ -9,7 +9,7 @@ import {
   Check, X, ChevronDown, Lock, Unlock, Sparkles,
   UserCheck, ShieldCheck, Crown, Star, Zap, Mail, CheckCircle,
   Image, Bell, Database, CreditCard, BarChart3,
-  Globe, Smartphone, Clock, MapPin, Gift
+  Globe, Smartphone, Clock, MapPin, Gift, UserCog
 } from 'lucide-react';
 
 interface Permission {
@@ -361,7 +361,7 @@ export default function PermissionsManagement() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#fdfbf7] via-white to-[#f8f6f0]">
-      {/* Header élégant */}
+      {/* Header élégant avec navigation */}
       <div className="bg-white/80 backdrop-blur-xl border-b border-[#d4b5a0]/20 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
@@ -416,6 +416,25 @@ export default function PermissionsManagement() {
                 )}
               </button>
             </div>
+          </div>
+        </div>
+        
+        {/* Sous-onglets de navigation */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <div className="flex gap-2 bg-[#d4b5a0]/10 p-1 rounded-lg w-fit">
+            <button
+              onClick={() => router.push('/admin/users')}
+              className="px-4 py-2 text-sm font-medium text-[#2c3e50]/70 hover:text-[#2c3e50] rounded-md transition-all flex items-center gap-2"
+            >
+              <Users className="w-4 h-4" />
+              Utilisateurs
+            </button>
+            <button
+              className="px-4 py-2 text-sm font-medium bg-white text-[#d4b5a0] shadow-sm rounded-md flex items-center gap-2"
+            >
+              <Shield className="w-4 h-4" />
+              Permissions
+            </button>
           </div>
         </div>
       </div>

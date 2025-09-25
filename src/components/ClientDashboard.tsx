@@ -18,7 +18,10 @@ interface ClientDashboardProps {
 }
 
 export default function ClientDashboard({ userData, reservations, stats }: ClientDashboardProps) {
-  const upcomingReservations = reservations.filter(r => r.status === 'confirmed' && new Date(r.date) > new Date());
+  const upcomingReservations = reservations.filter(r => 
+    (r.status === 'confirmed' || r.status === 'pending') && 
+    new Date(r.date) > new Date()
+  );
   const completedReservations = reservations.filter(r => r.status === 'completed');
 
   return (
@@ -121,7 +124,19 @@ export default function ClientDashboard({ userData, reservations, stats }: Clien
                     {index + 1}
                   </div>
                   <div>
-                    <p className="font-medium text-laia-dark">{reservation.services.join(', ')}</p>
+                    <p className="font-medium text-laia-dark">
+                      {reservation.services.join(', ')}
+                      {reservation.status === 'pending' && (
+                        <span className="ml-2 text-xs px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded-full">
+                          En attente
+                        </span>
+                      )}
+                      {reservation.status === 'confirmed' && (
+                        <span className="ml-2 text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
+                          Confirmé
+                        </span>
+                      )}
+                    </p>
                     <p className="text-sm text-laia-gray">
                       {new Date(reservation.date).toLocaleDateString('fr-FR', { 
                         weekday: 'long', 

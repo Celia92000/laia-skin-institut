@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Calendar, Clock, CheckCircle, XCircle, Gift, User, Users, Shield, Award, TrendingUp, UserCheck, Settings, Euro, Edit2, Save, FileText, Heart, AlertCircle, CreditCard, Download, Receipt, LogOut, MapPin, Phone, Mail, Instagram, Globe, Grid3x3, List, Cake, CreditCard as CardIcon, Star, MessageCircle, Send, X, Target, BarChart3, Package } from "lucide-react";
+import { Calendar, Clock, CheckCircle, XCircle, Gift, User, Users, Award, TrendingUp, UserCheck, Settings, Euro, Edit2, Save, FileText, Heart, AlertCircle, CreditCard, Download, Receipt, LogOut, MapPin, Phone, Mail, Instagram, Globe, Grid3x3, List, Cake, CreditCard as CardIcon, Star, MessageCircle, Send, X, Target, BarChart3, Package, Search } from "lucide-react";
 import AuthGuard from "@/components/AuthGuard";
 import AdminCalendarEnhanced from "@/components/AdminCalendarEnhanced";
 import AdminServicesTab from "@/components/AdminServicesTab";
@@ -34,6 +34,7 @@ import { getCurrentPrice, calculateTotalPrice } from "@/lib/pricing";
 import ValidationPaymentModal from "@/components/ValidationPaymentModal";
 import { generateInvoiceNumber, calculateInvoiceTotals, formatInvoiceHTML, generateCSVExport, downloadFile } from '@/lib/invoice-generator';
 import AdminComptabiliteTab from "@/components/AdminComptabiliteTab";
+import AdvancedSearch from "@/components/AdvancedSearch";
 
 interface Reservation {
   id: string;
@@ -94,6 +95,7 @@ export default function AdminDashboard() {
   const [showDetailsModal, setShowDetailsModal] = useState<'total' | 'pending' | 'completed' | 'revenue' | null>(null);
   const [showObjectivesSettings, setShowObjectivesSettings] = useState(false);
   const [selectedStatDetail, setSelectedStatDetail] = useState<string | null>(null);
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
   const [newReservation, setNewReservation] = useState({
     client: '',
     email: '',
@@ -874,24 +876,23 @@ export default function AdminDashboard() {
               <p className="text-[#2c3e50]/70">Gérez vos réservations et vos clients</p>
             </div>
             <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowAdvancedSearch(true)}
+                className="px-4 py-2 text-sm bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white hover:from-[#c9a084] hover:to-[#b89778] rounded-lg transition-all flex items-center gap-2 shadow-lg hover:shadow-xl"
+              >
+                <Search className="w-4 h-4" />
+                Recherche
+              </button>
+              
               {/* Boutons visibles uniquement pour les ADMINS */}
               {(userRole === 'ADMIN' || userRole === 'admin') && (
-                <>
-                  <button
-                    onClick={() => router.push('/admin/users')}
-                    className="px-4 py-2 text-sm bg-purple-600 text-white hover:bg-purple-700 rounded-lg transition-colors flex items-center gap-2"
-                  >
-                    <Users className="w-4 h-4" />
-                    Utilisateurs
-                  </button>
-                  <button
-                    onClick={() => router.push('/admin/permissions')}
-                    className="px-4 py-2 text-sm bg-orange-600 text-white hover:bg-orange-700 rounded-lg transition-colors flex items-center gap-2"
-                  >
-                    <Shield className="w-4 h-4" />
-                    Permissions
-                  </button>
-                </>
+                <button
+                  onClick={() => router.push('/admin/users')}
+                  className="px-4 py-2 text-sm bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white hover:from-[#c9a084] hover:to-[#b89778] rounded-lg transition-all flex items-center gap-2 shadow-lg hover:shadow-xl"
+                >
+                  <Users className="w-4 h-4" />
+                  Utilisateurs & Permissions
+                </button>
               )}
               <button
                 onClick={() => router.push('/admin/settings')}
@@ -3451,7 +3452,7 @@ export default function AdminDashboard() {
                         {reservations
                           .filter(r => r.paymentStatus === 'paid' && 
                             new Date(r.paymentDate || r.date).toDateString() === new Date().toDateString())
-                          .reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice), 0)}€
+                          .reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice), 0).toFixed(2)}€
                       </p>
                       <p className="text-xs text-blue-500 mt-1">
                         {reservations.filter(r => r.paymentStatus === 'paid' && 
@@ -3469,7 +3470,7 @@ export default function AdminDashboard() {
                             weekAgo.setDate(weekAgo.getDate() - 7);
                             return payDate >= weekAgo;
                           })
-                          .reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice), 0)}€
+                          .reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice), 0).toFixed(2)}€
                       </p>
                       <p className="text-xs text-green-500 mt-1">
                         {reservations.filter(r => {
@@ -3491,7 +3492,7 @@ export default function AdminDashboard() {
                             return payDate.getMonth() === new Date().getMonth() && 
                                    payDate.getFullYear() === new Date().getFullYear();
                           })
-                          .reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice), 0)}€
+                          .reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice), 0).toFixed(2)}€
                       </p>
                       <p className="text-xs text-purple-500 mt-1">
                         {reservations.filter(r => {
@@ -3511,7 +3512,7 @@ export default function AdminDashboard() {
                             const payDate = new Date(r.paymentDate || r.date);
                             return payDate.getFullYear() === new Date().getFullYear();
                           })
-                          .reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice), 0)}€
+                          .reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice), 0).toFixed(2)}€
                       </p>
                       <p className="text-xs text-orange-500 mt-1">
                         {reservations.filter(r => {
@@ -3535,7 +3536,7 @@ export default function AdminDashboard() {
                         <p className="text-xl font-bold text-blue-600">
                           {reservations
                             .filter(r => r.paymentStatus === 'paid' && r.paymentMethod === 'card')
-                            .reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice), 0)}€
+                            .reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice), 0).toFixed(2)}€
                         </p>
                       </div>
                       <div className="bg-white rounded-lg p-3">
@@ -3546,7 +3547,7 @@ export default function AdminDashboard() {
                         <p className="text-xl font-bold text-green-600">
                           {reservations
                             .filter(r => r.paymentStatus === 'paid' && r.paymentMethod === 'cash')
-                            .reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice), 0)}€
+                            .reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice), 0).toFixed(2)}€
                         </p>
                       </div>
                       <div className="bg-white rounded-lg p-3">
@@ -3557,7 +3558,7 @@ export default function AdminDashboard() {
                         <p className="text-xl font-bold text-purple-600">
                           {reservations
                             .filter(r => r.paymentStatus === 'paid' && r.paymentMethod === 'transfer')
-                            .reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice), 0)}€
+                            .reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice), 0).toFixed(2)}€
                         </p>
                       </div>
                     </div>
@@ -3697,6 +3698,24 @@ export default function AdminDashboard() {
           }}
           onValidate={handleValidationPayment}
           loyaltyProfile={loyaltyProfiles.find(p => p.userId === reservationToValidate.userId)}
+        />
+      )}
+
+      {/* Modal de recherche avancée */}
+      {showAdvancedSearch && (
+        <AdvancedSearch
+          onResultSelect={(result) => {
+            // Gérer la sélection d'un résultat
+            if (result.type === 'client') {
+              setActiveTab('crm');
+            } else if (result.type === 'reservation') {
+              setActiveTab('planning');
+            } else if (result.type === 'service') {
+              setActiveTab('services');
+            }
+            setShowAdvancedSearch(false);
+          }}
+          onClose={() => setShowAdvancedSearch(false)}
         />
       )}
       </div>

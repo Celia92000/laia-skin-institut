@@ -5,10 +5,22 @@ export async function POST(request: Request) {
   try {
     const { date, time } = await request.json();
     
+    // Normaliser la date pour éviter les problèmes de timezone
+    const checkDate = new Date(date);
+    checkDate.setHours(0, 0, 0, 0);
+    
+    // Créer une plage de dates pour la journée entière
+    const startOfDay = new Date(checkDate);
+    const endOfDay = new Date(checkDate);
+    endOfDay.setHours(23, 59, 59, 999);
+    
     // Vérifier si le créneau est déjà pris
     const existingReservation = await prisma.reservation.findFirst({
       where: {
-        date: new Date(date),
+        date: {
+          gte: startOfDay,
+          lte: endOfDay
+        },
         time: time,
         status: {
           notIn: ['cancelled'] // On ignore les réservations annulées
@@ -17,6 +29,7 @@ export async function POST(request: Request) {
     });
 
     if (existingReservation) {
+      console.log('Créneau déjà réservé:', date, time, 'Réservation:', existingReservation);
       return NextResponse.json({ 
         available: false, 
         message: 'Ce créneau est déjà réservé' 
@@ -73,10 +86,21 @@ export async function GET(request: Request) {
       );
     }
 
+    // Normaliser la date pour éviter les problèmes de timezone
+    const checkDate = new Date(date);
+    checkDate.setHours(0, 0, 0, 0);
+    
+    const startOfDay = new Date(checkDate);
+    const endOfDay = new Date(checkDate);
+    endOfDay.setHours(23, 59, 59, 999);
+    
     // Récupérer toutes les réservations pour cette date
     const reservations = await prisma.reservation.findMany({
       where: {
-        date: new Date(date),
+        date: {
+          gte: startOfDay,
+          lte: endOfDay
+        },
         status: {
           notIn: ['cancelled']
         }

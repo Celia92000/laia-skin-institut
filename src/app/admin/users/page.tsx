@@ -316,37 +316,67 @@ export default function UsersManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white p-6">
-      {/* Header */}
-      <div className="max-w-7xl mx-auto mb-8">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => router.push('/admin')}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5 text-gray-600" />
-            </button>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Gestion des Utilisateurs</h1>
-              <p className="text-sm text-gray-600">Gérez les comptes et les rôles</p>
+    <div className="min-h-screen bg-gradient-to-br from-[#fdfbf7] via-white to-[#f8f6f0]">
+      {/* Header élégant avec navigation */}
+      <div className="bg-white/80 backdrop-blur-xl border-b border-[#d4b5a0]/20 sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-20">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => router.push('/admin')}
+                className="p-3 rounded-full bg-gradient-to-r from-[#d4b5a0]/10 to-[#c9a084]/10 hover:from-[#d4b5a0]/20 hover:to-[#c9a084]/20 transition-all"
+              >
+                <ArrowLeft className="w-5 h-5 text-[#2c3e50]" />
+              </button>
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-gradient-to-br from-[#d4b5a0] to-[#c9a084] rounded-2xl shadow-lg">
+                  <Users className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-[#2c3e50] to-[#d4b5a0] bg-clip-text text-transparent">
+                    Gestion des Utilisateurs
+                  </h1>
+                  <p className="text-sm text-[#2c3e50]/60">Gérez les comptes et les rôles de votre équipe</p>
+                </div>
+              </div>
             </div>
+            
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="px-6 py-3 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white rounded-xl hover:shadow-xl transition-all flex items-center gap-2 font-medium"
+            >
+              <UserPlus className="w-4 h-4" />
+              Nouvel employé
+            </button>
           </div>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="px-4 py-2 bg-[#d4b5a0] text-white rounded-lg hover:bg-[#c9a084] transition-colors flex items-center gap-2"
-          >
-            <UserPlus className="w-4 h-4" />
-            Ajouter un employé
-          </button>
+        </div>
+        
+        {/* Sous-onglets de navigation */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <div className="flex gap-2 bg-[#d4b5a0]/10 p-1 rounded-lg w-fit">
+            <button
+              className="px-4 py-2 text-sm font-medium bg-white text-[#d4b5a0] shadow-sm rounded-md flex items-center gap-2"
+            >
+              <Users className="w-4 h-4" />
+              Utilisateurs
+            </button>
+            <button
+              onClick={() => router.push('/admin/permissions')}
+              className="px-4 py-2 text-sm font-medium text-[#2c3e50]/70 hover:text-[#2c3e50] rounded-md transition-all flex items-center gap-2"
+            >
+              <Shield className="w-4 h-4" />
+              Permissions
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Section Accès Rapide */}
-      <div className="max-w-7xl mx-auto mb-6">
-        <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-4 border border-green-200">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-            <LogIn className="w-4 h-4" />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Section Accès Rapide */}
+        <div className="mb-6">
+          <div className="bg-gradient-to-r from-[#d4b5a0]/5 to-[#c9a084]/5 rounded-2xl p-5 border border-[#d4b5a0]/20 backdrop-blur-sm">
+          <h3 className="text-sm font-semibold text-[#2c3e50] mb-3 flex items-center gap-2">
+            <LogIn className="w-4 h-4 text-[#d4b5a0]" />
             Accès rapide aux comptes
           </h3>
           <div className="flex flex-wrap gap-2">
@@ -361,7 +391,7 @@ export default function UsersManagement() {
                 createdAt: '',
                 _count: { reservations: 0 }
               })}
-              className="px-4 py-2 bg-purple-500 text-white text-sm rounded-lg hover:bg-purple-600 transition-all flex items-center gap-2 shadow-sm hover:shadow-md"
+              className="px-4 py-2 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white text-sm rounded-xl hover:shadow-lg transition-all flex items-center gap-2"
             >
               <Shield className="w-4 h-4" />
               Admin Principal
@@ -379,7 +409,7 @@ export default function UsersManagement() {
                 createdAt: '',
                 _count: { reservations: 0 }
               })}
-              className="px-4 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-all flex items-center gap-2 shadow-sm hover:shadow-md"
+              className="px-4 py-2 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white text-sm rounded-xl hover:shadow-lg transition-all flex items-center gap-2"
             >
               <User className="w-4 h-4" />
               Client Test
@@ -394,7 +424,7 @@ export default function UsersManagement() {
                 <button
                   key={user.id}
                   onClick={() => handleQuickLogin(user)}
-                  className="px-4 py-2 bg-teal-500 text-white text-sm rounded-lg hover:bg-teal-600 transition-all flex items-center gap-2 shadow-sm hover:shadow-md"
+                  className="px-4 py-2 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white text-sm rounded-xl hover:shadow-lg transition-all flex items-center gap-2"
                 >
                   <User className="w-4 h-4" />
                   {user.name.split(' ')[0]}
@@ -403,55 +433,55 @@ export default function UsersManagement() {
               ))
             }
           </div>
-          <p className="text-xs text-gray-600 mt-2">
-            Cliquez pour ouvrir une session dans un nouvel onglet • Connexion automatique sécurisée
+          <p className="text-xs text-[#2c3e50]/60 mt-3 italic">
+            💡 Cliquez pour ouvrir une session dans un nouvel onglet • Connexion automatique sécurisée
           </p>
         </div>
       </div>
 
-      {/* Filtres */}
-      <div className="max-w-7xl mx-auto mb-6 flex gap-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Rechercher par nom ou email..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4b5a0] focus:border-transparent"
-          />
+        {/* Filtres */}
+        <div className="mb-6 flex gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#d4b5a0]" />
+            <input
+              type="text"
+              placeholder="Rechercher par nom ou email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 bg-white border border-[#d4b5a0]/20 rounded-xl focus:ring-2 focus:ring-[#d4b5a0] focus:border-[#d4b5a0] transition-all placeholder-[#2c3e50]/40"
+            />
+          </div>
+          <select
+            value={filterRole}
+            onChange={(e) => setFilterRole(e.target.value)}
+            className="px-4 py-3 bg-white border border-[#d4b5a0]/20 rounded-xl focus:ring-2 focus:ring-[#d4b5a0] focus:border-[#d4b5a0] transition-all text-[#2c3e50]"
+          >
+            <option value="">Tous les rôles</option>
+            {ROLES.map(role => (
+              <option key={role.value} value={role.value}>{role.label}</option>
+            ))}
+          </select>
         </div>
-        <select
-          value={filterRole}
-          onChange={(e) => setFilterRole(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4b5a0] focus:border-transparent"
-        >
-          <option value="">Tous les rôles</option>
-          {ROLES.map(role => (
-            <option key={role.value} value={role.value}>{role.label}</option>
-          ))}
-        </select>
-      </div>
 
-      {/* Stats - Cartes cliquables pour filtrer */}
-      <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        {/* Stats - Cartes cliquables pour filtrer */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         {/* Carte Tous (Admin + Employés) */}
         <button
           onClick={() => setFilterRole('')}
-          className={`bg-white rounded-lg p-4 shadow-sm transition-all hover:shadow-md ${
-            filterRole === '' ? 'ring-2 ring-[#d4b5a0] scale-105' : 'hover:scale-102'
+          className={`bg-white rounded-2xl p-5 shadow-lg transition-all hover:shadow-xl hover:scale-105 border ${
+            filterRole === '' ? 'border-[#d4b5a0] ring-2 ring-[#d4b5a0]/20' : 'border-[#d4b5a0]/10'
           }`}
         >
           <div className="flex items-center justify-between mb-2">
-            <Users className={`w-5 h-5 ${filterRole === '' ? 'text-[#d4b5a0]' : 'text-gray-400'}`} />
-            <span className="px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+            <Users className={`w-5 h-5 ${filterRole === '' ? 'text-[#d4b5a0]' : 'text-[#2c3e50]/50'}`} />
+            <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-[#d4b5a0]/20 to-[#c9a084]/20 text-[#2c3e50]">
               {users.length}
             </span>
           </div>
-          <p className="text-sm font-medium text-gray-900 text-left">Tous</p>
-          <p className="text-xs text-gray-500 text-left">Admin & Employés</p>
+          <p className="text-sm font-semibold text-[#2c3e50] text-left">Tous</p>
+          <p className="text-xs text-[#2c3e50]/60 text-left">Admin & Employés</p>
           {filterRole === '' && (
-            <p className="text-xs text-[#d4b5a0] mt-2 font-medium">Vue par défaut</p>
+            <p className="text-xs text-[#d4b5a0] mt-2 font-semibold">✓ Actif</p>
           )}
         </button>
         
@@ -474,20 +504,20 @@ export default function UsersManagement() {
             <button
               key={role.value}
               onClick={() => setFilterRole(isActive ? '' : role.value)}
-              className={`bg-white rounded-lg p-4 shadow-sm transition-all hover:shadow-md ${
-                isActive ? 'ring-2 ring-[#d4b5a0] scale-105' : 'hover:scale-102'
+              className={`bg-white rounded-2xl p-5 shadow-lg transition-all hover:shadow-xl hover:scale-105 border ${
+                isActive ? 'border-[#d4b5a0] ring-2 ring-[#d4b5a0]/20' : 'border-[#d4b5a0]/10'
               }`}
             >
               <div className="flex items-center justify-between mb-2">
-                <Shield className={`w-5 h-5 ${isActive ? 'text-[#d4b5a0]' : 'text-gray-400'}`} />
+                <Shield className={`w-5 h-5 ${isActive ? 'text-[#d4b5a0]' : 'text-[#2c3e50]/50'}`} />
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${role.color}`}>
                   {count}
                 </span>
               </div>
-              <p className="text-sm font-medium text-gray-900 text-left">{role.label}</p>
-              <p className="text-xs text-gray-500 text-left">{role.description}</p>
+              <p className="text-sm font-semibold text-[#2c3e50] text-left">{role.label}</p>
+              <p className="text-xs text-[#2c3e50]/60 text-left">{role.description}</p>
               {isActive && (
-                <p className="text-xs text-[#d4b5a0] mt-2 font-medium">Filtre actif</p>
+                <p className="text-xs text-[#d4b5a0] mt-2 font-semibold">✓ Actif</p>
               )}
             </button>
           );
@@ -495,9 +525,8 @@ export default function UsersManagement() {
       </div>
 
 
-      {/* Liste des utilisateurs */}
-      <div className="max-w-7xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+        {/* Liste des utilisateurs */}
+        <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-[#d4b5a0]/10">
           {loading ? (
             <div className="p-8 text-center text-gray-500">
               Chargement...
@@ -509,35 +538,35 @@ export default function UsersManagement() {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
+                <thead className="bg-gradient-to-r from-[#d4b5a0]/5 to-[#c9a084]/5 border-b border-[#d4b5a0]/20">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Utilisateur</th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Contact</th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Rôle</th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Mot de passe</th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Inscrit le</th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">RDV</th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-[#2c3e50]/70 uppercase tracking-wider">Utilisateur</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-[#2c3e50]/70 uppercase tracking-wider">Contact</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-[#2c3e50]/70 uppercase tracking-wider">Rôle</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-[#2c3e50]/70 uppercase tracking-wider">Mot de passe</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-[#2c3e50]/70 uppercase tracking-wider">Inscrit le</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-[#2c3e50]/70 uppercase tracking-wider">RDV</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-[#2c3e50]/70 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-[#d4b5a0]/10">
                   {filteredUsers.map((user) => {
                     const roleInfo = getRoleInfo(user.role);
                     return (
-                      <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                      <tr key={user.id} className="hover:bg-[#d4b5a0]/5 transition-all">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-[#d4b5a0]/20 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#d4b5a0]/20 to-[#c9a084]/20 flex items-center justify-center">
                               <User className="w-5 h-5 text-[#d4b5a0]" />
                             </div>
                             <div>
-                              <p className="font-medium text-gray-900">{user.name}</p>
-                              <p className="text-sm text-gray-500">{user.email}</p>
+                              <p className="font-semibold text-[#2c3e50]">{user.name}</p>
+                              <p className="text-sm text-[#2c3e50]/60">{user.email}</p>
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="text-sm text-gray-600">
+                          <div className="text-sm text-[#2c3e50]/70">
                             {user.phone && (
                               <div className="flex items-center gap-1">
                                 <Phone className="w-3 h-3" />
@@ -558,19 +587,19 @@ export default function UsersManagement() {
                           </select>
                         </td>
                         <td className="px-6 py-4">
-                          <span className="text-xs text-gray-400">Sécurisé</span>
+                          <span className="text-xs text-[#2c3e50]/40">🔒 Sécurisé</span>
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-600">
+                        <td className="px-6 py-4 text-sm text-[#2c3e50]/70">
                           {new Date(user.createdAt).toLocaleDateString('fr-FR')}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-600 text-center">
+                        <td className="px-6 py-4 text-sm text-[#2c3e50]/70 text-center">
                           {user._count.reservations}
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => handleQuickLogin(user)}
-                              className="px-3 py-1 bg-green-500 text-white text-xs rounded-lg hover:bg-green-600 transition-colors flex items-center gap-1"
+                              className="px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs rounded-lg hover:shadow-md transition-all flex items-center gap-1"
                               title="Se connecter en tant que cet utilisateur"
                             >
                               <LogIn className="w-3 h-3" />

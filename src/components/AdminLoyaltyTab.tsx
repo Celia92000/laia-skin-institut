@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Gift, Star, Award, TrendingUp, Calendar, User, CheckCircle, Euro, Cake, Heart, Users, AlertCircle, Download, Plus, Edit2, X, Settings, Save } from 'lucide-react';
+import { Gift, Star, Award, TrendingUp, Calendar, User, CheckCircle, Euro, Cake, Heart, Users, AlertCircle, Download, Plus, Edit2, X, Settings, Save, FileText, Search, Filter, ArrowUpDown, Eye } from 'lucide-react';
 
 interface LoyaltyProfile {
   id: string;
@@ -17,6 +17,7 @@ interface LoyaltyProfile {
   packagesCount: number;
   totalSpent: number;
   lastVisit?: Date;
+  notes?: string;
 }
 
 interface AdminLoyaltyTabProps {
@@ -35,6 +36,9 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
   const [bonusReason, setBonusReason] = useState('');
   const [filter, setFilter] = useState<'all' | 'ready' | 'birthday'>('all');
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showReservationsModal, setShowReservationsModal] = useState(false);
+  const [selectedClientReservations, setSelectedClientReservations] = useState<any[]>([]);
+  const [selectedClientName, setSelectedClientName] = useState('');
   const [loyaltySettings, setLoyaltySettings] = useState({
     serviceThreshold: 6,
     serviceDiscount: 20,
@@ -45,6 +49,14 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
     reviewBonus: 1
   });
   const [editingSettings, setEditingSettings] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<{synced: boolean; message?: string} | null>(null);
+  
+  // Nouveaux états pour recherche, filtrage et tri
+  const [searchTerm, setSearchTerm] = useState('');
+  const [levelFilter, setLevelFilter] = useState<'all' | 'new' | 'fidele' | 'premium' | 'vip'>('all');
+  const [sortBy, setSortBy] = useState<'name' | 'services' | 'packages' | 'spent' | 'lastVisit'>('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   // Charger les paramètres de fidélité au montage
   useEffect(() => {
@@ -93,6 +105,62 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
   };
 
   const clientsWithRewards = getClientsWithRewards();
+  
+  // Fonction de filtrage et tri
+  const getFilteredAndSortedProfiles = () => {
+    let filtered = [...loyaltyProfiles];
+    
+    // Recherche par nom ou email
+    if (searchTerm) {
+      filtered = filtered.filter(profile => 
+        profile.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        profile.user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    // Filtre par niveau
+    if (levelFilter !== 'all') {
+      filtered = filtered.filter(profile => {
+        const level = getLoyaltyLevel(profile);
+        switch (levelFilter) {
+          case 'new': return level.level === 'Nouveau';
+          case 'fidele': return level.level === 'Fidèle';
+          case 'premium': return level.level === 'Premium';
+          case 'vip': return level.level === 'VIP';
+          default: return true;
+        }
+      });
+    }
+    
+    // Tri
+    filtered.sort((a, b) => {
+      let comparison = 0;
+      switch (sortBy) {
+        case 'name':
+          comparison = a.user.name.localeCompare(b.user.name);
+          break;
+        case 'services':
+          comparison = a.individualServicesCount - b.individualServicesCount;
+          break;
+        case 'packages':
+          comparison = a.packagesCount - b.packagesCount;
+          break;
+        case 'spent':
+          comparison = a.totalSpent - b.totalSpent;
+          break;
+        case 'lastVisit':
+          const dateA = a.lastVisit ? new Date(a.lastVisit).getTime() : 0;
+          const dateB = b.lastVisit ? new Date(b.lastVisit).getTime() : 0;
+          comparison = dateA - dateB;
+          break;
+      }
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
+    
+    return filtered;
+  };
+  
+  const filteredProfiles = getFilteredAndSortedProfiles();
 
   // Fonction pour obtenir le niveau de fidélité
   const getLoyaltyLevel = (profile: LoyaltyProfile) => {
@@ -103,17 +171,48 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
     return { level: 'Nouveau', color: 'text-gray-600', bgColor: 'bg-gray-100', icon: '👋' };
   };
 
-  const handleAddBonus = () => {
-    if (selectedClient && bonusPoints > 0) {
-      onPointsAdd?.(selectedClient, bonusPoints);
-      setShowAddPointsModal(false);
-      setBonusPoints(0);
-      setBonusReason('');
-      setSelectedClient(null);
+  const handleAddBonus = async () => {
+    if (selectedClient && bonusReason) {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/admin/clients/${selectedClient}/notes`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ note: bonusReason })
+        });
+        
+        if (response.ok) {
+          setShowAddPointsModal(false);
+          setBonusPoints(0);
+          setBonusReason('');
+          setSelectedClient(null);
+          // Recharger les profils pour afficher la note mise à jour
+          window.location.reload();
+        } else {
+          alert('❌ Erreur lors de l\'enregistrement de la note');
+        }
+      } catch (error) {
+        console.error('Erreur sauvegarde note:', error);
+        alert('❌ Erreur lors de l\'enregistrement de la note');
+      }
     }
   };
 
   const handleModifyServices = async (profileId: string, delta: number) => {
+    // Trouver le profil pour afficher le nom du client
+    const profile = loyaltyProfiles.find(p => p.id === profileId);
+    if (!profile) return;
+    
+    const action = delta > 0 ? 'ajouter' : 'retirer';
+    const message = `Voulez-vous ${action} ${Math.abs(delta)} soin individuel pour ${profile.user.name} ?\n\nNombre actuel: ${profile.individualServicesCount} soin(s)\nNombre après modification: ${profile.individualServicesCount + delta} soin(s)`;
+    
+    if (!confirm(message)) {
+      return;
+    }
+    
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(`/api/admin/loyalty/${profileId}/services`, {
@@ -126,15 +225,37 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
       });
       
       if (response.ok) {
-        // Actualiser les données
+        const result = await response.json();
+        // Mettre à jour localement les profils
+        setLoyaltyProfiles(prev => 
+          prev.map(p => p.id === profileId 
+            ? { ...p, individualServicesCount: result.profile.individualServicesCount }
+            : p
+          )
+        );
         onServicesModify?.(profileId, delta);
+      } else {
+        console.error('Erreur:', await response.text());
+        alert('Erreur lors de la modification des soins');
       }
     } catch (error) {
       console.error('Erreur modification soins:', error);
+      alert('Erreur lors de la modification des soins');
     }
   };
 
   const handleModifyPackages = async (profileId: string, delta: number) => {
+    // Trouver le profil pour afficher le nom du client
+    const profile = loyaltyProfiles.find(p => p.id === profileId);
+    if (!profile) return;
+    
+    const action = delta > 0 ? 'ajouter' : 'retirer';
+    const message = `Voulez-vous ${action} ${Math.abs(delta)} forfait pour ${profile.user.name} ?\n\nNombre actuel: ${profile.packagesCount} forfait(s)\nNombre après modification: ${profile.packagesCount + delta} forfait(s)`;
+    
+    if (!confirm(message)) {
+      return;
+    }
+    
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(`/api/admin/loyalty/${profileId}/packages`, {
@@ -147,11 +268,22 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
       });
       
       if (response.ok) {
-        // Actualiser les données
+        const result = await response.json();
+        // Mettre à jour localement les profils
+        setLoyaltyProfiles(prev => 
+          prev.map(p => p.id === profileId 
+            ? { ...p, packagesCount: result.profile.packagesCount }
+            : p
+          )
+        );
         onPackagesModify?.(profileId, delta);
+      } else {
+        console.error('Erreur:', await response.text());
+        alert('Erreur lors de la modification des forfaits');
       }
     } catch (error) {
       console.error('Erreur modification forfaits:', error);
+      alert('Erreur lors de la modification des forfaits');
     }
   };
 
@@ -192,6 +324,33 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
       console.error('Erreur application réduction:', error);
       alert('❌ Erreur lors de l\'application de la réduction');
     }
+  };
+
+  const handleShowReservations = (userId: string, userName: string) => {
+    const clientReservations = reservations.filter(r => r.userId === userId);
+    setSelectedClientReservations(clientReservations);
+    setSelectedClientName(userName);
+    setShowReservationsModal(true);
+  };
+
+  const getStatusBadge = (status: string) => {
+    const badges = {
+      'pending': 'bg-yellow-100 text-yellow-700',
+      'confirmed': 'bg-blue-100 text-blue-700',
+      'completed': 'bg-green-100 text-green-700',
+      'cancelled': 'bg-red-100 text-red-700'
+    };
+    const labels = {
+      'pending': 'En attente',
+      'confirmed': 'Confirmé',
+      'completed': 'Terminé',
+      'cancelled': 'Annulé'
+    };
+    return (
+      <span className={`px-2 py-1 text-xs rounded-full font-medium ${badges[status as keyof typeof badges] || 'bg-gray-100 text-gray-700'}`}>
+        {labels[status as keyof typeof labels] || status}
+      </span>
+    );
   };
 
   return (
@@ -410,6 +569,68 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
         </div>
       </div>
 
+      {/* Barre de recherche et filtres */}
+      <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
+        <div className="flex flex-wrap gap-4 items-center">
+          {/* Recherche */}
+          <div className="relative flex-1 min-w-[250px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Rechercher par nom ou email..."
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#d4b5a0] focus:border-transparent"
+            />
+          </div>
+          
+          {/* Filtre par niveau */}
+          <div className="flex items-center gap-2">
+            <Filter className="w-5 h-5 text-gray-500" />
+            <select
+              value={levelFilter}
+              onChange={(e) => setLevelFilter(e.target.value as any)}
+              className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#d4b5a0] focus:border-transparent"
+            >
+              <option value="all">Tous les niveaux</option>
+              <option value="new">👋 Nouveau</option>
+              <option value="fidele">❤️ Fidèle</option>
+              <option value="premium">💎 Premium</option>
+              <option value="vip">⭐ VIP</option>
+            </select>
+          </div>
+          
+          {/* Tri */}
+          <div className="flex items-center gap-2">
+            <ArrowUpDown className="w-5 h-5 text-gray-500" />
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#d4b5a0] focus:border-transparent"
+            >
+              <option value="name">Trier par nom</option>
+              <option value="services">Trier par soins</option>
+              <option value="packages">Trier par forfaits</option>
+              <option value="spent">Trier par dépenses</option>
+              <option value="lastVisit">Trier par dernière visite</option>
+            </select>
+            
+            <button
+              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+              className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50"
+              title={sortOrder === 'asc' ? 'Tri croissant' : 'Tri décroissant'}
+            >
+              {sortOrder === 'asc' ? '↑' : '↓'}
+            </button>
+          </div>
+          
+          {/* Résultat du filtre */}
+          <div className="text-sm text-gray-600">
+            {filteredProfiles.length} client(s) trouvé(s)
+          </div>
+        </div>
+      </div>
+
       {/* Liste complète des clients */}
       <div className="bg-white rounded-xl shadow-sm">
         <div className="p-6 border-b border-gray-100">
@@ -430,7 +651,7 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {loyaltyProfiles.map(profile => {
+              {filteredProfiles.map(profile => {
                 const level = getLoyaltyLevel(profile);
                 const progress6 = (profile.individualServicesCount % 6) / 6 * 100;
                 const progress4 = (profile.packagesCount % 4) / 4 * 100;
@@ -441,6 +662,9 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
                       <div>
                         <p className="text-sm font-medium text-[#2c3e50]">{profile.user.name}</p>
                         <p className="text-xs text-gray-500">{profile.user.email}</p>
+                        {profile.notes && (
+                          <p className="text-xs text-[#d4b5a0] mt-1 italic">📝 {profile.notes.substring(0, 30)}{profile.notes.length > 30 ? '...' : ''}</p>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -517,15 +741,38 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
                         : 'Jamais'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <button
-                        onClick={() => {
-                          setSelectedClient(profile.userId);
-                          setShowAddPointsModal(true);
-                        }}
-                        className="text-[#d4b5a0] hover:text-[#c9a084]"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleShowReservations(profile.userId, profile.user.name)}
+                          className="text-[#d4b5a0] hover:text-[#c4a590] transition-colors"
+                          title="Voir les réservations"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={async () => {
+                            setSelectedClient(profile.userId);
+                            // Charger la note existante si elle existe
+                            try {
+                              const token = localStorage.getItem('token');
+                              const response = await fetch(`/api/admin/clients/${profile.userId}/notes`, {
+                                headers: { 'Authorization': `Bearer ${token}` }
+                              });
+                              if (response.ok) {
+                                const data = await response.json();
+                                setBonusReason(data.note || '');
+                              }
+                            } catch (error) {
+                              console.error('Erreur chargement note:', error);
+                            }
+                            setShowAddPointsModal(true);
+                          }}
+                          className={`transition-colors ${profile.notes ? 'text-[#d4b5a0] hover:text-[#c4a590]' : 'text-gray-400 hover:text-gray-600'}`}
+                          title={profile.notes ? "Modifier la note" : "Ajouter une note sur ce client"}
+                        >
+                          <FileText className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -537,7 +784,15 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
 
       {/* Modal de configuration des réductions */}
       {showSettingsModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div 
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowSettingsModal(false);
+              setEditingSettings(false);
+            }
+          }}
+        >
           <div className="bg-white rounded-2xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold text-[#2c3e50]">Configuration des Réductions</h3>
@@ -728,12 +983,151 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
         </div>
       )}
 
+      {/* Modal des réservations du client */}
+      {showReservationsModal && (
+        <div 
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowReservationsModal(false);
+              setSelectedClientReservations([]);
+              setSelectedClientName('');
+            }
+          }}
+        >
+          <div className="bg-white rounded-2xl max-w-4xl w-full p-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-[#2c3e50]">
+                Réservations de {selectedClientName}
+              </h3>
+              <button
+                onClick={() => {
+                  setShowReservationsModal(false);
+                  setSelectedClientReservations([]);
+                  setSelectedClientName('');
+                }}
+                className="p-2 hover:bg-gray-100 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {selectedClientReservations.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                Aucune réservation trouvée pour ce client
+              </div>
+            ) : (
+              <div>
+                {/* Statistiques rapides */}
+                <div className="grid grid-cols-4 gap-4 mb-6">
+                  <div className="bg-green-50 rounded-lg p-4">
+                    <p className="text-sm text-green-700 mb-1">Terminées</p>
+                    <p className="text-2xl font-bold text-green-900">
+                      {selectedClientReservations.filter(r => r.status === 'completed').length}
+                    </p>
+                  </div>
+                  <div className="bg-blue-50 rounded-lg p-4">
+                    <p className="text-sm text-blue-700 mb-1">Confirmées</p>
+                    <p className="text-2xl font-bold text-blue-900">
+                      {selectedClientReservations.filter(r => r.status === 'confirmed').length}
+                    </p>
+                  </div>
+                  <div className="bg-yellow-50 rounded-lg p-4">
+                    <p className="text-sm text-yellow-700 mb-1">En attente</p>
+                    <p className="text-2xl font-bold text-yellow-900">
+                      {selectedClientReservations.filter(r => r.status === 'pending').length}
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <p className="text-sm text-gray-700 mb-1">Total</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {selectedClientReservations.length}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Liste des réservations */}
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {selectedClientReservations
+                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                    .map(reservation => (
+                      <div 
+                        key={reservation.id} 
+                        className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <span className="font-semibold text-[#2c3e50]">
+                                {new Date(reservation.date).toLocaleDateString('fr-FR', {
+                                  weekday: 'long',
+                                  day: 'numeric',
+                                  month: 'long',
+                                  year: 'numeric'
+                                })}
+                              </span>
+                              <span className="text-gray-600">à {reservation.time}</span>
+                              {getStatusBadge(reservation.status)}
+                            </div>
+                            
+                            <div className="text-sm text-gray-600 mb-2">
+                              <strong>Services:</strong> {reservation.services?.join(', ') || 'Non spécifiés'}
+                            </div>
+                            
+                            {reservation.professional && (
+                              <div className="text-sm text-gray-600 mb-2">
+                                <strong>Professionnel:</strong> {reservation.professional}
+                              </div>
+                            )}
+                            
+                            <div className="flex items-center gap-4 text-sm">
+                              <span className="text-[#d4b5a0] font-medium">
+                                {reservation.totalAmount ? `${reservation.totalAmount}€` : 'Prix non défini'}
+                              </span>
+                              {reservation.status === 'completed' && (
+                                <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                                  ✓ Compte pour la fidélité
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+
+                {/* Résumé fidélité */}
+                <div className="mt-6 p-4 bg-[#d4b5a0]/10 rounded-lg">
+                  <h4 className="font-semibold text-[#2c3e50] mb-2">Impact sur la fidélité</h4>
+                  <p className="text-sm text-gray-700">
+                    <strong>{selectedClientReservations.filter(r => r.status === 'completed').length}</strong> réservation(s) terminée(s) comptabilisée(s) pour le programme de fidélité
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Seules les réservations avec le statut "Terminé" sont prises en compte pour les réductions
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Modal ajout de points bonus */}
       {showAddPointsModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div 
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowAddPointsModal(false);
+              setBonusPoints(0);
+              setBonusReason('');
+              setSelectedClient(null);
+            }
+          }}
+        >
           <div className="bg-white rounded-2xl max-w-md w-full p-6">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold text-[#2c3e50]">Ajouter un bonus</h3>
+              <h3 className="text-xl font-bold text-[#2c3e50]">Note ou Remarque Client</h3>
               <button
                 onClick={() => {
                   setShowAddPointsModal(false);
@@ -748,29 +1142,21 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
             </div>
 
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-[#2c3e50] mb-2">
-                  Nombre de soins/forfaits
-                </label>
-                <input
-                  type="number"
-                  value={bonusPoints}
-                  onChange={(e) => setBonusPoints(Number(e.target.value))}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4b5a0]"
-                  placeholder="Ex: 1 pour un soin gratuit"
-                />
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <p className="text-sm text-yellow-800">
+                  💡 Pour modifier les compteurs de soins ou forfaits, utilisez les boutons +/- directement dans le tableau.
+                </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-[#2c3e50] mb-2">
-                  Raison
+                  Note sur le client
                 </label>
-                <input
-                  type="text"
+                <textarea
                   value={bonusReason}
                   onChange={(e) => setBonusReason(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4b5a0]"
-                  placeholder="Ex: Parrainage, compensation..."
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4b5a0] h-24"
+                  placeholder="Ex: Client VIP, À surveiller, Préférences particulières..."
                 />
               </div>
 
@@ -788,9 +1174,10 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
                 </button>
                 <button
                   onClick={handleAddBonus}
-                  className="px-4 py-2 bg-[#d4b5a0] text-white rounded-lg hover:bg-[#c4a590]"
+                  disabled={!bonusReason.trim()}
+                  className="px-4 py-2 bg-[#d4b5a0] text-white rounded-lg hover:bg-[#c4a590] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Ajouter
+                  Enregistrer
                 </button>
               </div>
             </div>

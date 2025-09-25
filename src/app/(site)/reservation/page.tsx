@@ -22,6 +22,7 @@ function ReservationContent() {
     password: "",
     confirmPassword: ""
   });
+  const [rememberMe, setRememberMe] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [availableSlots, setAvailableSlots] = useState<{time: string, available: boolean}[]>([]);
   const [hasAccount, setHasAccount] = useState(false);
@@ -29,6 +30,7 @@ function ReservationContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [services, setServices] = useState<any[]>([]);
   const hasChanges = useRef(false);
+  const isSubmittingRef = useRef(false);
 
   // Charger les services depuis la base de données
   useEffect(() => {
@@ -105,7 +107,7 @@ function ReservationContent() {
     }
   }, [searchParams]);
 
-  // Vérifier si l'utilisateur est déjà connecté
+  // Vérifier si l'utilisateur est déjà connecté ou a ses identifiants sauvegardés
   useEffect(() => {
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('user');
@@ -119,6 +121,21 @@ function ReservationContent() {
         email: userInfo.email || '',
         phone: userInfo.phone || ''
       }));
+    } else {
+      // Charger les identifiants sauvegardés si "Se souvenir de moi" était coché
+      const savedEmail = localStorage.getItem('rememberEmail');
+      const savedPassword = localStorage.getItem('rememberPassword');
+      const savedRememberMe = localStorage.getItem('rememberMe') === 'true';
+      
+      if (savedEmail && savedPassword && savedRememberMe) {
+        setFormData(prev => ({
+          ...prev,
+          email: savedEmail,
+          password: atob(savedPassword) // Décodage
+        }));
+        setRememberMe(true);
+        setHasAccount(true); // Basculer automatiquement sur "J'ai déjà un compte"
+      }
     }
   }, []);
 
@@ -142,7 +159,8 @@ function ReservationContent() {
   // Prévenir la fermeture accidentelle de la page
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (hasChanges.current) {
+      // Ne pas afficher le message si on est en train de soumettre le formulaire
+      if (hasChanges.current && !isSubmittingRef.current) {
         e.preventDefault();
         e.returnValue = 'Vous avez des modifications non sauvegardées. Voulez-vous vraiment quitter cette page ?';
       }
@@ -175,6 +193,7 @@ function ReservationContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    isSubmittingRef.current = true; // Marquer qu'on est en train de soumettre
     
     try {
       // Vérifier une dernière fois la disponibilité
@@ -215,6 +234,19 @@ function ReservationContent() {
           if (loginResponse.ok) {
             const loginData = await loginResponse.json();
             console.log('Connexion réussie, token reçu:', loginData.token);
+            
+            // Si "Se souvenir de moi" est coché, stocker les identifiants
+            if (rememberMe) {
+              localStorage.setItem('rememberEmail', formData.email);
+              localStorage.setItem('rememberPassword', btoa(formData.password)); // Encodage basique
+              localStorage.setItem('rememberMe', 'true');
+            } else {
+              // Supprimer les identifiants sauvegardés si pas coché
+              localStorage.removeItem('rememberEmail');
+              localStorage.removeItem('rememberPassword');
+              localStorage.removeItem('rememberMe');
+            }
+            
             localStorage.setItem('token', loginData.token);
             localStorage.setItem('user', JSON.stringify(loginData.user));
             token = loginData.token;
@@ -304,6 +336,8 @@ function ReservationContent() {
       if (response.ok) {
         const responseData = await response.json();
         console.log('Réservation créée avec succès:', responseData);
+        // Réinitialiser le flag de changements avant la redirection
+        hasChanges.current = false;
         // Rediriger vers la page de confirmation
         window.location.href = `/confirmation?id=${responseData.id}`;
       } else if (response.status === 409) {
@@ -320,6 +354,7 @@ function ReservationContent() {
       alert("Erreur de connexion. Veuillez réessayer.");
     } finally {
       setIsSubmitting(false);
+      isSubmittingRef.current = false; // Réinitialiser le flag après la soumission
     }
   };
   
@@ -961,12 +996,23 @@ function ReservationContent() {
                           {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                         </button>
                       </div>
-                      <Link
-                        href="/mot-passe-oublie"
-                        className="text-sm text-[#d4b5a0] hover:underline mt-2 inline-block"
-                      >
-                        Mot de passe oublié ?
-                      </Link>
+                      <div className="flex items-center justify-between mt-3">
+                        <label className="flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={rememberMe}
+                            onChange={(e) => setRememberMe(e.target.checked)}
+                            className="w-4 h-4 text-[#d4b5a0] border-gray-300 rounded focus:ring-[#d4b5a0] focus:ring-offset-0"
+                          />
+                          <span className="ml-2 text-sm text-[#2c3e50]/70">Se souvenir de moi</span>
+                        </label>
+                        <Link
+                          href="/mot-passe-oublie"
+                          className="text-sm text-[#d4b5a0] hover:underline"
+                        >
+                          Mot de passe oublié ?
+                        </Link>
+                      </div>
                     </div>
                   )}
 

@@ -1,14 +1,16 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { 
   User, Phone, Mail, Calendar, Heart, TrendingUp, Award, Edit2, Save, X,
   ChevronDown, ChevronUp, Search, Filter, Download, Plus, Gift, Cake,
   CreditCard, FileText, AlertCircle, Star, Eye, History, UserCheck, Settings,
   Camera, Video, Image, Upload, Trash2, PlayCircle, Send, Paperclip,
-  Target, Users, UserX, ArrowRight, MessageSquare, Clock
+  Target, Users, UserX, ArrowRight, MessageSquare, Clock, FileSpreadsheet
 } from "lucide-react";
 import ClientDetailModal from "@/components/ClientDetailModal";
+import ClientImportExport from "@/components/ClientImportExport";
+import ClientPhotoEvolution from "@/components/ClientPhotoEvolution";
 
 export interface Client {
   id: string;
@@ -32,6 +34,12 @@ export interface Client {
   individualSoins?: number;
   forfaits?: number;
   reservationCount?: number;
+  clientType?: 'client' | 'lead' | 'prospect';
+  leadStatus?: 'new' | 'contacted' | 'qualified' | 'converted' | 'lost';
+  source?: string;
+  leadNotes?: string;
+  conversionDate?: string;
+  createdAt?: string;
 }
 
 interface Lead {
@@ -82,15 +90,21 @@ export default function UnifiedCRMTab({
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterLevel, setFilterLevel] = useState("all");
+  const [clientTypeFilter, setClientTypeFilter] = useState<"all" | "client" | "lead" | "prospect">("all");
   const [expandedClient, setExpandedClient] = useState<string | null>(null);
   const [editingClient, setEditingClient] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<"list" | "detail">("list");
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [showNewClientModal, setShowNewClientModal] = useState(false);
+  const [showImportExportModal, setShowImportExportModal] = useState(false);
+  const [showPhotoEvolutionModal, setShowPhotoEvolutionModal] = useState(false);
+  const [selectedClientForPhotos, setSelectedClientForPhotos] = useState<Client | null>(null);
   const [editedData, setEditedData] = useState<{[key: string]: any}>({});
   const [clientEvolutions, setClientEvolutions] = useState<{[key: string]: any[]}>({});
   const [showEvolutionModal, setShowEvolutionModal] = useState(false);
   const [selectedClientForEvolution, setSelectedClientForEvolution] = useState<string | null>(null);
+  const saveTimeoutRef = useRef<{[key: string]: NodeJS.Timeout}>({});
+  const [savingStatus, setSavingStatus] = useState<{[key: string]: 'saving' | 'saved' | null}>({});
   const [evolutionForm, setEvolutionForm] = useState({
     sessionDate: new Date().toISOString().split('T')[0],
     sessionNumber: '',
@@ -117,6 +131,8 @@ export default function UnifiedCRMTab({
   });
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedClientForDetail, setSelectedClientForDetail] = useState<Client | null>(null);
+  const [newLeadsCount, setNewLeadsCount] = useState(0);
+  const [showLeadNotification, setShowLeadNotification] = useState(false);
 
   // Fonction pour déterminer le niveau de fidélité basé sur le nombre de séances
   const getLoyaltyLevel = (reservations: any[]) => {
@@ -271,24 +287,72 @@ export default function UnifiedCRMTab({
     totalReservations: reservations.filter(r => r.status !== 'cancelled').length
   };
 
-  // Sauvegarder les modifications client
-  const saveClientChanges = async (clientId: string) => {
+  // Sauvegarder les modifications client avec auto-save
+  const saveClientChanges = async (clientId: string, data?: any) => {
     try {
+      setSavingStatus(prev => ({ ...prev, [clientId]: 'saving' }));
+      const token = localStorage.getItem('token');
+      const dataToSave = data || editedData[clientId];
+      
       const response = await fetch('/api/admin/clients', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: clientId, ...editedData[clientId] })
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : ''
+        },
+        body: JSON.stringify({ id: clientId, ...dataToSave })
       });
 
       if (response.ok) {
         const updatedClient = await response.json();
-        setClients(clients.map(c => c.id === clientId ? { ...c, ...editedData[clientId] } : c));
-        setEditingClient(null);
-        setEditedData({});
+        setClients(clients.map(c => c.id === clientId ? { ...c, ...dataToSave } : c));
+        setSavingStatus(prev => ({ ...prev, [clientId]: 'saved' }));
+        
+        // Effacer le statut après 2 secondes
+        setTimeout(() => {
+          setSavingStatus(prev => ({ ...prev, [clientId]: null }));
+        }, 2000);
+        
+        if (!data) {
+          setEditingClient(null);
+          setEditedData({});
+        }
       }
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
+      setSavingStatus(prev => ({ ...prev, [clientId]: null }));
     }
+  };
+
+  // Auto-save avec debounce
+  const handleFieldChange = (clientId: string, field: string, value: string) => {
+    // Mettre à jour l'état local immédiatement
+    setEditedData(prev => {
+      const updatedData = {
+        ...prev[clientId],
+        [field]: value
+      };
+      
+      // Mettre à jour le client dans la liste immédiatement pour un feedback visuel
+      setClients(currentClients => currentClients.map(c => 
+        c.id === clientId ? { ...c, [field]: value } : c
+      ));
+      
+      // Annuler le timeout précédent s'il existe
+      if (saveTimeoutRef.current[clientId]) {
+        clearTimeout(saveTimeoutRef.current[clientId]);
+      }
+      
+      // Créer un nouveau timeout pour sauvegarder après 1 seconde d'inactivité
+      saveTimeoutRef.current[clientId] = setTimeout(() => {
+        saveClientChanges(clientId, updatedData);
+      }, 1000);
+      
+      return {
+        ...prev,
+        [clientId]: updatedData
+      };
+    });
   };
 
   // Exporter les données clients
@@ -312,6 +376,33 @@ export default function UnifiedCRMTab({
     a.href = url;
     a.download = `clients_${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
+  };
+
+  // Fonction pour gérer l'import de clients
+  const handleClientsImport = async (newClients: Client[]) => {
+    try {
+      const response = await fetch('/api/admin/clients/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clients: newClients })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        // Recharger la liste des clients
+        const refreshResponse = await fetch('/api/users');
+        if (refreshResponse.ok) {
+          const updatedClients = await refreshResponse.json();
+          setClients(updatedClients);
+        }
+        return result;
+      } else {
+        throw new Error('Erreur lors de l\'import');
+      }
+    } catch (error) {
+      console.error('Erreur import clients:', error);
+      throw error;
+    }
   };
 
   // Fonction pour charger les évolutions d'un client
@@ -342,6 +433,15 @@ export default function UnifiedCRMTab({
       loadClientEvolutions(expandedClient);
     }
   }, [expandedClient]);
+  
+  // Initialiser editedData pour tous les clients pour permettre l'auto-save
+  useEffect(() => {
+    const initialData: {[key: string]: any} = {};
+    clients.forEach(client => {
+      initialData[client.id] = client;
+    });
+    setEditedData(initialData);
+  }, [clients]);
 
   // Charger les leads
   useEffect(() => {
@@ -537,6 +637,48 @@ export default function UnifiedCRMTab({
               />
             </div>
             
+            {/* Filtre par type (Client/Lead/Prospect) */}
+            <select
+              value={clientTypeFilter}
+              onChange={(e) => {
+                setClientTypeFilter(e.target.value as any);
+                // Si on sélectionne leads, vérifier les nouveaux
+                if (e.target.value === 'lead') {
+                  const newLeads = clients.filter(c => c.clientType === 'lead' && c.leadStatus === 'new');
+                  if (newLeads.length > 0) {
+                    setNewLeadsCount(newLeads.length);
+                    setShowLeadNotification(true);
+                  }
+                }
+              }}
+              className="px-4 py-2 border border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none bg-purple-50"
+            >
+              <option value="all">🌐 Tous</option>
+              <option value="client">👥 Clients ({clients.filter(c => !c.clientType || c.clientType === 'client').length})</option>
+              <option value="lead">
+                🎯 Leads ({clients.filter(c => c.clientType === 'lead').length})
+                {clients.filter(c => c.clientType === 'lead' && c.leadStatus === 'new').length > 0 && 
+                  ` • ${clients.filter(c => c.clientType === 'lead' && c.leadStatus === 'new').length} nouveau(x)`}
+              </option>
+              <option value="prospect">🔍 Prospects ({clients.filter(c => c.clientType === 'prospect').length})</option>
+            </select>
+            
+            {/* Filtre par statut lead */}
+            {clientTypeFilter === 'lead' && (
+              <select
+                value={leadStatusFilter}
+                onChange={(e) => setLeadStatusFilter(e.target.value)}
+                className="px-4 py-2 border border-yellow-300 rounded-lg focus:border-yellow-500 focus:outline-none bg-yellow-50"
+              >
+                <option value="all">Tous statuts</option>
+                <option value="new">🆕 Nouveau</option>
+                <option value="contacted">📞 Contacté</option>
+                <option value="qualified">✅ Qualifié</option>
+                <option value="converted">🎉 Converti</option>
+                <option value="lost">❌ Perdu</option>
+              </select>
+            )}
+            
             {/* Filtre par niveau */}
             <select
               value={filterLevel}
@@ -592,6 +734,39 @@ export default function UnifiedCRMTab({
           </div>
           
           <div className="flex gap-3">
+            {/* Bouton de synchronisation fidélité */}
+            <button
+              onClick={async () => {
+                if (confirm('Synchroniser les profils de fidélité pour tous les clients ?')) {
+                  try {
+                    const token = localStorage.getItem('token');
+                    const response = await fetch('/api/admin/loyalty/sync', {
+                      method: 'POST',
+                      headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                      }
+                    });
+                    
+                    if (response.ok) {
+                      const result = await response.json();
+                      alert(`✅ ${result.message}`);
+                      // Rafraîchir les données clients
+                      fetchClients();
+                    }
+                  } catch (error) {
+                    console.error('Erreur sync:', error);
+                    alert('Erreur lors de la synchronisation');
+                  }
+                }
+              }}
+              className="px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all flex items-center gap-2 shadow-md"
+              title="Synchroniser les profils de fidélité"
+            >
+              <Star className="w-4 h-4" />
+              Sync Fidélité
+            </button>
+            
             {/* Boutons d'action */}
             <button
               onClick={() => setShowNewClientModal(true)}
@@ -602,11 +777,11 @@ export default function UnifiedCRMTab({
             </button>
             
             <button
-              onClick={exportClientsData}
+              onClick={() => setShowImportExportModal(true)}
               className="px-4 py-2 border border-[#d4b5a0]/20 text-[#2c3e50] rounded-lg hover:bg-[#fdfbf7] transition-all flex items-center gap-2"
             >
-              <Download className="w-4 h-4" />
-              Exporter
+              <FileSpreadsheet className="w-4 h-4" />
+              Import/Export
             </button>
           </div>
         </div>
@@ -776,26 +951,31 @@ export default function UnifiedCRMTab({
                             <Eye className="w-4 h-4" />
                           </button>
                           <button
+                            onClick={() => {
+                              setSelectedClientForPhotos(client);
+                              setShowPhotoEvolutionModal(true);
+                            }}
+                            className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                            title="Évolution photos"
+                          >
+                            <Camera className="w-4 h-4" />
+                          </button>
+                          <button
                             onClick={() => setExpandedClient(isExpanded ? null : client.id)}
                             className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors"
                             title="Vue rapide"
                           >
                             {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                           </button>
-                          <button
-                            onClick={() => {
-                              if (isEditing) {
-                                saveClientChanges(client.id);
-                              } else {
-                                setEditingClient(client.id);
-                                setEditedData({ [client.id]: client });
-                              }
-                            }}
-                            className="p-2 text-[#d4b5a0] hover:bg-[#d4b5a0]/10 rounded-lg transition-colors"
-                            title={isEditing ? "Sauvegarder" : "Modifier"}
-                          >
-                            {isEditing ? <Save className="w-4 h-4" /> : <Edit2 className="w-4 h-4" />}
-                          </button>
+                          {savingStatus[client.id] && (
+                            <span className={`text-xs ${
+                              savingStatus[client.id] === 'saving' 
+                                ? 'text-yellow-600' 
+                                : 'text-green-600'
+                            }`}>
+                              {savingStatus[client.id] === 'saving' ? 'Sauvegarde...' : '✓ Sauvegardé'}
+                            </span>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -814,62 +994,141 @@ export default function UnifiedCRMTab({
                               <div className="space-y-3">
                                 <div>
                                   <label className="text-sm text-[#2c3e50]/60">Type de peau</label>
-                                  {isEditing ? (
-                                    <input
-                                      type="text"
-                                      value={editedData[client.id]?.skinType || ''}
-                                      onChange={(e) => setEditedData({
-                                        ...editedData,
-                                        [client.id]: { ...editedData[client.id], skinType: e.target.value }
-                                      })}
-                                      className="w-full mt-1 px-3 py-2 border border-[#d4b5a0]/20 rounded-lg focus:border-[#d4b5a0] focus:outline-none"
-                                    />
-                                  ) : (
-                                    <p className="text-[#2c3e50] mt-1">{client.skinType || 'Non renseigné'}</p>
-                                  )}
+                                  <input
+                                    type="text"
+                                    value={client.skinType || ''}
+                                    onChange={(e) => handleFieldChange(client.id, 'skinType', e.target.value)}
+                                    placeholder="Non renseigné"
+                                    className="w-full mt-1 px-3 py-2 border border-[#d4b5a0]/20 rounded-lg focus:border-[#d4b5a0] focus:outline-none bg-white/50 hover:bg-white transition-colors"
+                                  />
                                 </div>
                                 <div>
                                   <label className="text-sm text-[#2c3e50]/60">Allergies</label>
-                                  {isEditing ? (
-                                    <textarea
-                                      value={editedData[client.id]?.allergies || ''}
-                                      onChange={(e) => setEditedData({
-                                        ...editedData,
-                                        [client.id]: { ...editedData[client.id], allergies: e.target.value }
-                                      })}
-                                      className="w-full mt-1 px-3 py-2 border border-[#d4b5a0]/20 rounded-lg focus:border-[#d4b5a0] focus:outline-none"
-                                      rows={2}
-                                    />
-                                  ) : (
-                                    <p className="text-[#2c3e50] mt-1">{client.allergies || 'Aucune allergie connue'}</p>
-                                  )}
+                                  <textarea
+                                    value={client.allergies || ''}
+                                    onChange={(e) => handleFieldChange(client.id, 'allergies', e.target.value)}
+                                    placeholder="Aucune allergie connue"
+                                    className="w-full mt-1 px-3 py-2 border border-[#d4b5a0]/20 rounded-lg focus:border-[#d4b5a0] focus:outline-none bg-white/50 hover:bg-white transition-colors"
+                                    rows={2}
+                                  />
                                 </div>
                                 <div>
                                   <label className="text-sm text-[#2c3e50]/60">Notes médicales</label>
-                                  {isEditing ? (
-                                    <textarea
-                                      value={editedData[client.id]?.medicalNotes || ''}
-                                      onChange={(e) => setEditedData({
-                                        ...editedData,
-                                        [client.id]: { ...editedData[client.id], medicalNotes: e.target.value }
-                                      })}
-                                      className="w-full mt-1 px-3 py-2 border border-[#d4b5a0]/20 rounded-lg focus:border-[#d4b5a0] focus:outline-none"
-                                      rows={3}
-                                    />
-                                  ) : (
-                                    <p className="text-[#2c3e50] mt-1">{client.medicalNotes || 'Aucune note'}</p>
-                                  )}
+                                  <textarea
+                                    value={client.medicalNotes || ''}
+                                    onChange={(e) => handleFieldChange(client.id, 'medicalNotes', e.target.value)}
+                                    placeholder="Aucune note"
+                                    className="w-full mt-1 px-3 py-2 border border-[#d4b5a0]/20 rounded-lg focus:border-[#d4b5a0] focus:outline-none bg-white/50 hover:bg-white transition-colors"
+                                    rows={3}
+                                  />
                                 </div>
                               </div>
                             </div>
                             
-                            {/* Fidélité & Récompenses */}
+                            {/* Avancée Fidélité */}
                             <div className="space-y-4">
                               <h4 className="font-semibold text-[#2c3e50] flex items-center gap-2">
-                                <Gift className="w-4 h-4 text-purple-400" />
-                                Fidélité & Récompenses
+                                <Star className="w-4 h-4 text-yellow-400" />
+                                Progression Fidélité
                               </h4>
-                              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 space-y-3">
+                              <div className="bg-white rounded-lg p-4 space-y-3">
+                                {/* Soins individuels */}
+                                <div>
+                                  <div className="flex justify-between items-center mb-2">
+                                    <span className="text-sm font-medium text-[#2c3e50]">Soins individuels</span>
+                                    <span className="text-xs text-[#2c3e50]/60">
+                                      {client.loyaltyProfile?.individualServicesCount || 0} / 5
+                                    </span>
+                                  </div>
+                                  <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                    <div 
+                                      className="bg-gradient-to-r from-blue-400 to-blue-600 h-full transition-all duration-500"
+                                      style={{ 
+                                        width: `${Math.min(((client.loyaltyProfile?.individualServicesCount || 0) % 5) * 20, 100)}%` 
+                                      }}
+                                    />
+                                  </div>
+                                  {(client.loyaltyProfile?.individualServicesCount || 0) >= 5 && (
+                                    <p className="text-xs text-green-600 mt-1 font-medium animate-pulse">
+                                      🎉 -20€ sur le prochain soin !
+                                    </p>
+                                  )}
+                                </div>
+                                
+                                {/* Forfaits */}
+                                <div>
+                                  <div className="flex justify-between items-center mb-2">
+                                    <span className="text-sm font-medium text-[#2c3e50]">Forfaits</span>
+                                    <span className="text-xs text-[#2c3e50]/60">
+                                      {client.loyaltyProfile?.packagesCount || 0} / 3
+                                    </span>
+                                  </div>
+                                  <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                    <div 
+                                      className="bg-gradient-to-r from-purple-400 to-purple-600 h-full transition-all duration-500"
+                                      style={{ 
+                                        width: `${Math.min(((client.loyaltyProfile?.packagesCount || 0) % 3) * 33.33, 100)}%` 
+                                      }}
+                                    />
+                                  </div>
+                                  {(client.loyaltyProfile?.packagesCount || 0) >= 3 && (
+                                    <p className="text-xs text-green-600 mt-1 font-medium animate-pulse">
+                                      🎁 -30€ sur le prochain forfait !
+                                    </p>
+                                  )}
+                                </div>
+                                
+                                {/* Total dépensé */}
+                                <div className="pt-2 border-t border-gray-100">
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-sm text-[#2c3e50]/60">Total investi</span>
+                                    <span className="text-lg font-bold text-[#d4b5a0]">
+                                      {(client.loyaltyProfile?.totalSpent || client.totalSpent || 0).toFixed(0)}€
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Préférences et Notes Admin */}
+                            <div className="space-y-4">
+                              <h4 className="font-semibold text-[#2c3e50] flex items-center gap-2">
+                                <Settings className="w-4 h-4 text-blue-400" />
+                                Préférences & Notes
+                              </h4>
+                              <div className="space-y-3">
+                                <div>
+                                  <label className="text-sm text-[#2c3e50]/60">Préférences soins</label>
+                                  <textarea
+                                    value={client.preferences || ''}
+                                    onChange={(e) => handleFieldChange(client.id, 'preferences', e.target.value)}
+                                    placeholder="Ex: Préfère les soins doux, aime les huiles essentielles..."
+                                    className="w-full mt-1 px-3 py-2 border border-[#d4b5a0]/20 rounded-lg focus:border-[#d4b5a0] focus:outline-none bg-white/50 hover:bg-white transition-colors"
+                                    rows={3}
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-sm text-[#2c3e50]/60">Notes privées (admin)</label>
+                                  <textarea
+                                    value={client.adminNotes || ''}
+                                    onChange={(e) => handleFieldChange(client.id, 'adminNotes', e.target.value)}
+                                    placeholder="Notes confidentielles visibles uniquement par l'équipe..."
+                                    className="w-full mt-1 px-3 py-2 border border-red-200 rounded-lg focus:border-red-400 focus:outline-none bg-red-50/50 hover:bg-red-50 transition-colors"
+                                    rows={3}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Fidélité & Récompenses + Notes */}
+                            <div className="grid grid-cols-2 gap-4">
+                              {/* Section Fidélité */}
+                              <div className="space-y-4">
+                                <h4 className="font-semibold text-[#2c3e50] flex items-center gap-2">
+                                  <Gift className="w-4 h-4 text-purple-400" />
+                                  Fidélité & Récompenses
+                                </h4>
+                                <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 space-y-3">
                                 {(() => {
                                   const clientReservations = reservations.filter(r => 
                                     r.userEmail === client.email && r.status !== 'cancelled'
@@ -964,52 +1223,93 @@ export default function UnifiedCRMTab({
                                     </>
                                   );
                                 })()}
-                              </div>
-                            </div>
-                            
-                            {/* Préférences */}
-                            <div className="space-y-4">
-                              <h4 className="font-semibold text-[#2c3e50] flex items-center gap-2">
-                                <Settings className="w-4 h-4 text-blue-400" />
-                                Préférences & Notes
-                              </h4>
-                              <div className="space-y-3">
-                                <div>
-                                  <label className="text-sm text-[#2c3e50]/60">Préférences soins</label>
-                                  {isEditing ? (
-                                    <textarea
-                                      value={editedData[client.id]?.preferences || ''}
-                                      onChange={(e) => setEditedData({
-                                        ...editedData,
-                                        [client.id]: { ...editedData[client.id], preferences: e.target.value }
-                                      })}
-                                      className="w-full mt-1 px-3 py-2 border border-[#d4b5a0]/20 rounded-lg focus:border-[#d4b5a0] focus:outline-none"
-                                      rows={3}
-                                    />
-                                  ) : (
-                                    <p className="text-[#2c3e50] mt-1">{client.preferences || 'Aucune préférence notée'}</p>
-                                  )}
-                                </div>
-                                <div>
-                                  <label className="text-sm text-[#2c3e50]/60">Notes privées admin</label>
-                                  {isEditing ? (
-                                    <textarea
-                                      value={editedData[client.id]?.adminNotes || ''}
-                                      onChange={(e) => setEditedData({
-                                        ...editedData,
-                                        [client.id]: { ...editedData[client.id], adminNotes: e.target.value }
-                                      })}
-                                      className="w-full mt-1 px-3 py-2 border border-[#d4b5a0]/20 rounded-lg focus:border-[#d4b5a0] focus:outline-none"
-                                      rows={3}
-                                    />
-                                  ) : (
-                                    <p className="text-[#2c3e50] mt-1">{client.adminNotes || 'Aucune note'}</p>
-                                  )}
                                 </div>
                               </div>
+                              
+                              {/* Section Notes */}
+                              <div className="space-y-4">
+                                <h4 className="font-semibold text-[#2c3e50] flex items-center gap-2">
+                                  <FileText className="w-4 h-4 text-[#d4b5a0]" />
+                                  Notes administratives
+                                </h4>
+                                <div className="bg-gradient-to-r from-[#fdfbf7] to-[#faf8f5] rounded-lg p-4">
+                                  {(() => {
+                                    const loyaltyProfile = loyaltyProfiles.find(p => p.userId === client.id);
+                                    return (
+                                      <>
+                                        {loyaltyProfile?.notes ? (
+                                          <div className="space-y-2">
+                                            <p className="text-sm text-[#2c3e50]/80 whitespace-pre-wrap">
+                                              {loyaltyProfile.notes}
+                                            </p>
+                                            <button
+                                              onClick={async () => {
+                                                const newNote = prompt('Modifier la note:', loyaltyProfile.notes);
+                                                if (newNote !== null) {
+                                                  try {
+                                                    const token = localStorage.getItem('token');
+                                                    const response = await fetch(`/api/admin/clients/${client.id}/notes`, {
+                                                      method: 'POST',
+                                                      headers: {
+                                                        'Authorization': `Bearer ${token}`,
+                                                        'Content-Type': 'application/json'
+                                                      },
+                                                      body: JSON.stringify({ note: newNote })
+                                                    });
+                                                    if (response.ok) {
+                                                      window.location.reload();
+                                                    }
+                                                  } catch (error) {
+                                                    console.error('Erreur:', error);
+                                                  }
+                                                }
+                                              }}
+                                              className="text-xs text-[#d4b5a0] hover:text-[#c4a590] underline"
+                                            >
+                                              Modifier
+                                            </button>
+                                          </div>
+                                        ) : (
+                                          <div className="text-center py-4">
+                                            <p className="text-sm text-[#2c3e50]/40 mb-2">Aucune note</p>
+                                            <button
+                                              onClick={async () => {
+                                                const note = prompt('Ajouter une note sur ce client:');
+                                                if (note) {
+                                                  try {
+                                                    const token = localStorage.getItem('token');
+                                                    const response = await fetch(`/api/admin/clients/${client.id}/notes`, {
+                                                      method: 'POST',
+                                                      headers: {
+                                                        'Authorization': `Bearer ${token}`,
+                                                        'Content-Type': 'application/json'
+                                                      },
+                                                      body: JSON.stringify({ note })
+                                                    });
+                                                    if (response.ok) {
+                                                      window.location.reload();
+                                                    }
+                                                  } catch (error) {
+                                                    console.error('Erreur:', error);
+                                                  }
+                                                }
+                                              }}
+                                              className="px-3 py-1 text-xs bg-white border border-[#d4b5a0] text-[#d4b5a0] rounded-lg hover:bg-[#d4b5a0] hover:text-white transition-colors"
+                                            >
+                                              Ajouter une note
+                                            </button>
+                                          </div>
+                                        )}
+                                      </>
+                                    );
+                                  })()}
+                                </div>
+                              </div>
                             </div>
-                            
-                            {/* Évolutions & Photos */}
+                          </div>
+                          
+                          {/* Colonne 2 : Évolutions & Photos */}
+                          <div className="space-y-4">
                             <div className="space-y-4">
                               <h4 className="font-semibold text-[#2c3e50] flex items-center gap-2">
                                 <Camera className="w-4 h-4 text-purple-400" />
@@ -1711,6 +2011,27 @@ export default function UnifiedCRMTab({
             setClients(updatedClients);
             // Sauvegarder en base
             saveClientChanges(clientId);
+          }}
+        />
+      )}
+
+      {/* Modal Import/Export */}
+      {showImportExportModal && (
+        <ClientImportExport
+          clients={clients}
+          onImport={handleClientsImport}
+          onClose={() => setShowImportExportModal(false)}
+        />
+      )}
+
+      {/* Modal Évolution Photos */}
+      {showPhotoEvolutionModal && selectedClientForPhotos && (
+        <ClientPhotoEvolution
+          clientId={selectedClientForPhotos.id}
+          clientName={selectedClientForPhotos.name}
+          onClose={() => {
+            setShowPhotoEvolutionModal(false);
+            setSelectedClientForPhotos(null);
           }}
         />
       )}

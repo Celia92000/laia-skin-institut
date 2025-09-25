@@ -46,6 +46,14 @@ export async function GET(request: NextRequest) {
         allergies: true,
         preferences: true,
         medicalNotes: true,
+        loyaltyProfile: {
+          select: {
+            individualServicesCount: true,
+            packagesCount: true,
+            totalSpent: true,
+            lastVisit: true
+          }
+        },
         _count: {
           select: {
             reservations: true
@@ -81,7 +89,13 @@ export async function GET(request: NextRequest) {
       skinType: c.skinType,
       allergies: c.allergies,
       preferences: c.preferences,
-      medicalNotes: c.medicalNotes
+      medicalNotes: c.medicalNotes,
+      loyaltyProfile: c.loyaltyProfile ? {
+        individualServicesCount: c.loyaltyProfile.individualServicesCount,
+        packagesCount: c.loyaltyProfile.packagesCount,
+        totalSpent: c.loyaltyProfile.totalSpent,
+        lastVisit: c.loyaltyProfile.lastVisit
+      } : null
     }));
 
     return NextResponse.json(formattedClients);
@@ -115,17 +129,25 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
 
-    const { clientId, loyaltyPoints, skinType, allergies, preferences, medicalNotes } = await request.json();
+    const { id, clientId, loyaltyPoints, skinType, allergies, preferences, medicalNotes, adminNotes, ...otherData } = await request.json();
+
+    // Utiliser id ou clientId selon ce qui est fourni
+    const idToUse = id || clientId;
+    
+    if (!idToUse) {
+      return NextResponse.json({ error: 'ID du client manquant' }, { status: 400 });
+    }
 
     // Mettre à jour le client
     const updatedClient = await prisma.user.update({
-      where: { id: clientId },
+      where: { id: idToUse },
       data: {
         loyaltyPoints,
         skinType,
         allergies,
         preferences,
-        medicalNotes
+        medicalNotes,
+        adminNotes
       }
     });
 

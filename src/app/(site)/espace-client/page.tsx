@@ -378,7 +378,9 @@ export default function EspaceClient() {
     };
   };
 
-  const loyalty = getLoyaltyLevel(reservations.length);
+  // Ne compter que les réservations terminées pour le statut de fidélité
+  const completedReservationsCount = reservations.filter(r => r.status === 'completed').length;
+  const loyalty = getLoyaltyLevel(completedReservationsCount);
 
   if (loading) {
     return (
@@ -422,13 +424,13 @@ export default function EspaceClient() {
                     </h2>
                   </div>
                   <p className="text-[#2c3e50]/70 mb-1">
-                    {reservations.length} réservations totales
+                    {completedReservationsCount} soins effectués
                   </p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-[#2c3e50]/60 mb-1">Niveau fidélité</p>
                   <p className="text-2xl font-bold text-[#d4b5a0]">
-                    {Math.floor(reservations.length / 5) + 1}
+                    {Math.floor(completedReservationsCount / 5) + 1}
                   </p>
                 </div>
               </div>
@@ -436,20 +438,29 @@ export default function EspaceClient() {
               {/* Barre de progression des soins */}
               <div className="mt-4">
                 <div className="flex justify-between text-xs text-[#2c3e50]/60 mb-1">
-                  <span>{reservations.length} soins total</span>
-                  <span>Prochain palier : {Math.ceil((reservations.length + 1) / 5) * 5} soins</span>
+                  <span>{completedReservationsCount} soins effectués</span>
+                  <span>Prochain palier : {loyalty.nextLevel || '∞'} soins</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div 
                     className="bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] h-2 rounded-full transition-all duration-500"
-                    style={{ width: `${Math.min((reservations.length % 5) * 20 || (reservations.length > 0 && reservations.length % 5 === 0 ? 100 : 0), 100)}%` }}
+                    style={{ 
+                      width: loyalty.nextLevel 
+                        ? `${Math.min(100, (completedReservationsCount / loyalty.nextLevel) * 100)}%` 
+                        : '100%'
+                    }}
                   ></div>
                 </div>
                 <p className="text-xs text-[#2c3e50]/60 mt-2">
-                  {5 - (reservations.length % 5) === 5
-                    ? 'Palier atteint ! Encore 5 soins pour le prochain niveau.'
-                    : `Plus que ${5 - (reservations.length % 5)} soins pour atteindre le prochain niveau !`
-                  }
+                  {loyalty.nextLevel ? (
+                    `Encore ${loyalty.nextLevel - completedReservationsCount} soin${loyalty.nextLevel - completedReservationsCount > 1 ? 's' : ''} pour atteindre le statut ${
+                      loyalty.nextLevel === 5 ? 'Silver 🌟' :
+                      loyalty.nextLevel === 10 ? 'Gold ⭐' :
+                      loyalty.nextLevel === 20 ? 'VIP Diamond 💎' : ''
+                    }`
+                  ) : (
+                    'Niveau maximum atteint ! 🎉'
+                  )}
                 </p>
               </div>
             </div>

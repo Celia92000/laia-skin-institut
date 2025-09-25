@@ -60,68 +60,91 @@ export async function PATCH(
     }
 
     // Si on passe au statut "completed" et que ce n'était pas déjà le cas
+    // On incrémente les compteurs de fidélité car le client a bien reçu le soin
+    // (qu'il ait payé ou non - cas des modèles, proches, etc.)
     if (status === 'completed' && reservation.status !== 'completed') {
-      // Déterminer si c'est un soin individuel ou un forfait
-      const servicesArray = typeof reservation.services === 'string' 
-        ? JSON.parse(reservation.services) 
-        : reservation.services;
-      const isPackage = Array.isArray(servicesArray) 
-        ? servicesArray.some((service: string) => 
-            service.includes('forfait') || service.includes('package')
-          )
-        : false;
-
-      // Récupérer ou créer le profil de fidélité du client
-      let loyaltyProfile = await prisma.loyaltyProfile.findUnique({
-        where: { userId: reservation.userId }
+      // Vérifier qu'on n'a pas déjà compté ce soin
+      const existingHistory = await prisma.loyaltyHistory.findFirst({
+        where: {
+          reservationId: reservationId,
+          action: { in: ['SERVICE_COMPLETED', 'PACKAGE_COMPLETED'] }
+        }
       });
 
-      if (!loyaltyProfile) {
-        loyaltyProfile = await prisma.loyaltyProfile.create({
-          data: {
-            userId: reservation.userId,
-            individualServicesCount: 0,
-            packagesCount: 0,
-            totalSpent: 0
-          }
+      // Si pas déjà compté, on incrémente
+      if (!existingHistory) {
+        // Déterminer si c'est un soin individuel ou un forfait
+        const services = typeof reservation.services === 'string' 
+          ? JSON.parse(reservation.services) 
+          : reservation.services;
+        
+        const packages = typeof reservation.packages === 'string'
+          ? JSON.parse(reservation.packages || '{}')
+          : reservation.packages || {};
+        
+        const isPackage = packages && Object.keys(packages).length > 0;
+
+        // Récupérer ou créer le profil de fidélité
+        let loyaltyProfile = await prisma.loyaltyProfile.findUnique({
+          where: { userId: reservation.userId }
         });
+
+        if (!loyaltyProfile) {
+          loyaltyProfile = await prisma.loyaltyProfile.create({
+            data: {
+              userId: reservation.userId,
+              individualServicesCount: 0,
+              packagesCount: 0,
+              totalSpent: 0,
+              availableDiscounts: '[]',
+              lastVisit: new Date()
+            }
+          });
+        }
+
+        // Incrémenter le compteur approprié
+        if (isPackage) {
+          await prisma.loyaltyProfile.update({
+            where: { userId: reservation.userId },
+            data: {
+              packagesCount: loyaltyProfile.packagesCount + 1,
+              lastVisit: new Date()
+            }
+          });
+
+          await prisma.loyaltyHistory.create({
+            data: {
+              userId: reservation.userId,
+              action: 'PACKAGE_COMPLETED',
+              points: 1,
+              description: `Forfait terminé (${Object.keys(packages).join(', ')})`,
+              reservationId: reservationId
+            }
+          });
+
+          console.log(`🎁 Forfait compté pour fidélité: ${loyaltyProfile.packagesCount + 1}/3`);
+        } else {
+          await prisma.loyaltyProfile.update({
+            where: { userId: reservation.userId },
+            data: {
+              individualServicesCount: loyaltyProfile.individualServicesCount + 1,
+              lastVisit: new Date()
+            }
+          });
+
+          await prisma.loyaltyHistory.create({
+            data: {
+              userId: reservation.userId,
+              action: 'SERVICE_COMPLETED',
+              points: 1,
+              description: `Soin individuel terminé (${services.join(', ')})`,
+              reservationId: reservationId
+            }
+          });
+
+          console.log(`✨ Soin compté pour fidélité: ${loyaltyProfile.individualServicesCount + 1}/5`);
+        }
       }
-
-      // Calculer les nouvelles valeurs
-      const newIndividualCount = isPackage 
-        ? loyaltyProfile.individualServicesCount 
-        : loyaltyProfile.individualServicesCount + 1;
-      
-      const newPackagesCount = isPackage 
-        ? loyaltyProfile.packagesCount + 1 
-        : loyaltyProfile.packagesCount;
-
-      const newTotalSpent = loyaltyProfile.totalSpent + (reservation.totalPrice || 0);
-
-      // Les réductions sont calculées automatiquement lors du paiement
-      // basées sur les compteurs individualServicesCount et packagesCount
-
-      // Mettre à jour le profil de fidélité
-      await prisma.loyaltyProfile.update({
-        where: { userId: reservation.userId },
-        data: {
-          individualServicesCount: newIndividualCount,
-          packagesCount: newPackagesCount,
-          totalSpent: newTotalSpent,
-          lastVisit: new Date()
-        }
-      });
-
-      // Créer une entrée dans l'historique de fidélité
-      await prisma.loyaltyHistory.create({
-        data: {
-          userId: reservation.userId,
-          action: isPackage ? 'PACKAGE_COMPLETED' : 'SERVICE_COMPLETED',
-          points: isPackage ? 1 : 1,
-          description: `${isPackage ? 'Forfait' : 'Soin'} complété: ${Array.isArray(servicesArray) ? servicesArray.join(', ') : reservation.services}`,
-          reservationId: reservationId
-        }
-      });
     }
 
     // Préparer les données de mise à jour

@@ -3,7 +3,8 @@
 import { useState, useMemo } from 'react';
 import { 
   Calendar, Clock, User, Euro, Filter, Download, ChevronUp, ChevronDown,
-  Search, Phone, Instagram, Globe, MessageCircle, Users, MapPin, MoreHorizontal
+  Search, Phone, Instagram, Globe, MessageCircle, Users, MapPin, MoreHorizontal,
+  FileText, Eye
 } from 'lucide-react';
 
 interface Reservation {
@@ -491,16 +492,39 @@ export default function ReservationTableAdvanced({
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          (reservation.paymentStatus || 'pending') === 'paid' 
-                            ? 'bg-green-100 text-green-700' 
-                            : 'bg-red-100 text-red-700'
-                        }`}>
-                          {(reservation.paymentStatus || 'pending') === 'paid' ? 'Payé' : 'Non payé'}
-                        </span>
+                        <div className="space-y-1">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            (reservation.paymentStatus || 'pending') === 'paid' 
+                              ? 'bg-green-100 text-green-700' 
+                              : 'bg-red-100 text-red-700'
+                          }`}>
+                            {(reservation.paymentStatus || 'pending') === 'paid' ? '✓ Payé' : 'Non payé'}
+                          </span>
+                          {reservation.invoiceNumber && (
+                            <div className="text-xs text-gray-600 flex items-center gap-1">
+                              <span className="font-medium">📄</span>
+                              {reservation.invoiceNumber}
+                            </div>
+                          )}
+                        </div>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex gap-2">
+                          {/* Bouton Facture pour les réservations payées */}
+                          {reservation.paymentStatus === 'paid' && reservation.invoiceNumber && (
+                            <button
+                              onClick={() => {
+                                // Ouvrir la facture dans un nouvel onglet
+                                const invoiceUrl = `/api/invoice/${reservation.id}`;
+                                window.open(invoiceUrl, '_blank');
+                              }}
+                              className="px-2 py-1 bg-[#d4b5a0] text-white text-xs rounded hover:bg-[#c9a084] flex items-center gap-1"
+                              title={`Voir facture ${reservation.invoiceNumber}`}
+                            >
+                              <FileText className="w-3 h-3" />
+                              Facture
+                            </button>
+                          )}
                           {reservation.status === 'pending' && (
                             <>
                               <button

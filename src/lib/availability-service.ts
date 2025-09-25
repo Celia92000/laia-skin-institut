@@ -104,13 +104,20 @@ export async function getAvailableSlots(date: Date): Promise<TimeSlot[]> {
     return [];
   }
 
-  // Générer tous les créneaux possibles (toutes les heures)
+  // Générer tous les créneaux possibles (toutes les 30 minutes)
   const slots: TimeSlot[] = [];
-  const [startHour] = workingHours.startTime.split(':').map(Number);
-  const [endHour] = workingHours.endTime.split(':').map(Number);
+  const [startHour, startMin] = workingHours.startTime.split(':').map(Number);
+  const [endHour, endMin] = workingHours.endTime.split(':').map(Number);
 
-  for (let hour = startHour; hour < endHour; hour++) {
-    const timeStr = `${hour.toString().padStart(2, '0')}:00`;
+  // Convertir en minutes pour faciliter l'itération
+  const startMinutes = startHour * 60 + startMin;
+  const endMinutes = endHour * 60 + endMin;
+
+  // Créer un créneau toutes les 30 minutes
+  for (let minutes = startMinutes; minutes < endMinutes; minutes += 30) {
+    const hour = Math.floor(minutes / 60);
+    const minute = minutes % 60;
+    const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
     const available = await isSlotAvailable(normalizedDate, timeStr);
     slots.push({ time: timeStr, available });
   }

@@ -62,7 +62,10 @@ export async function GET(request: NextRequest) {
     // Récupérer aussi les utilisateurs sans profil de fidélité
     const usersWithoutProfile = await prisma.user.findMany({
       where: {
-        role: 'client',
+        OR: [
+          { role: 'client' },
+          { role: 'CLIENT' }
+        ],
         loyaltyProfile: null
       },
       select: {

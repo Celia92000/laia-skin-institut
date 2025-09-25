@@ -537,25 +537,29 @@ N° TVA Intracommunautaire: FR12 345678900`;
       {/* Gestion des Factures */}
       <div>
         <div 
-          className="bg-white rounded-t-xl shadow-sm p-4 cursor-pointer flex items-center justify-between"
-          onClick={() => toggleSection('factures')}
+          className="bg-white rounded-t-xl shadow-sm p-4 flex items-center justify-between"
         >
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <FileText className="w-5 h-5" />
-            Factures et Paiements
-          </h3>
-          {expandedSections.factures ? <ChevronUp /> : <ChevronDown />}
+          <div 
+            className="flex-1 flex items-center justify-between cursor-pointer"
+            onClick={() => toggleSection('factures')}
+          >
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              Factures et Paiements
+            </h3>
+            {expandedSections.factures ? <ChevronUp /> : <ChevronDown />}
+          </div>
         </div>
         
         {expandedSections.factures && (
           <div className="bg-white rounded-b-xl shadow-sm p-6 border-t">
-            {/* Barre de recherche */}
+            {/* Barre de recherche et actions */}
             <div className="flex gap-4 mb-4">
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Rechercher une facture..."
+                  placeholder="Rechercher par n° facture, client, email..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#d4b5a0] focus:border-transparent"
@@ -570,6 +574,54 @@ N° TVA Intracommunautaire: FR12 345678900`;
                 <option value="paid">Payées</option>
                 <option value="pending">En attente</option>
               </select>
+              
+              {/* Boutons d'export */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    // Export PDF de toutes les factures du mois
+                    const paidReservations = filteredReservations.filter(r => r.paymentStatus === 'paid');
+                    if (paidReservations.length === 0) {
+                      alert('Aucune facture à exporter');
+                      return;
+                    }
+                    
+                    // Ouvrir une nouvelle fenêtre avec toutes les factures
+                    const printWindow = window.open('', '_blank');
+                    if (printWindow) {
+                      printWindow.document.write('<html><head><title>Factures du mois</title></head><body>');
+                      printWindow.document.write('<h1>Chargement des factures...</h1>');
+                      
+                      // Charger chaque facture
+                      paidReservations.forEach((reservation, index) => {
+                        if (index > 0) printWindow.document.write('<div style="page-break-after: always;"></div>');
+                        fetch(`/api/invoice/${reservation.id}`)
+                          .then(res => res.text())
+                          .then(html => {
+                            printWindow.document.write(html);
+                            if (index === paidReservations.length - 1) {
+                              printWindow.document.write('</body></html>');
+                              setTimeout(() => printWindow.print(), 1000);
+                            }
+                          });
+                      });
+                    }
+                  }}
+                  className="px-4 py-2 bg-[#d4b5a0] text-white rounded-lg hover:bg-[#c9a084] flex items-center gap-2"
+                  title="Imprimer toutes les factures"
+                >
+                  <FileText className="w-4 h-4" />
+                  Imprimer
+                </button>
+                <button
+                  onClick={exportToExcel}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
+                  title="Exporter en Excel"
+                >
+                  <Download className="w-4 h-4" />
+                  Excel
+                </button>
+              </div>
             </div>
 
             {/* Table simplifiée */}
@@ -577,6 +629,7 @@ N° TVA Intracommunautaire: FR12 345678900`;
               <table className="w-full">
                 <thead className="bg-gray-50 border-y">
                   <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">N° Facture</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Date</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Client</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Services</th>
@@ -588,6 +641,13 @@ N° TVA Intracommunautaire: FR12 345678900`;
                 <tbody className="divide-y">
                   {filteredReservations.slice(0, 10).map(reservation => (
                     <tr key={reservation.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-sm">
+                        <div className="flex items-center gap-1">
+                          <span className="font-mono font-semibold text-[#d4b5a0]">
+                            {reservation.invoiceNumber || (reservation.paymentStatus === 'paid' ? `FAC-${new Date(reservation.date).getFullYear()}${String(new Date(reservation.date).getMonth() + 1).padStart(2, '0')}-AUTO` : '-')}
+                          </span>
+                        </div>
+                      </td>
                       <td className="px-4 py-3 text-sm">
                         {new Date(reservation.date).toLocaleDateString('fr-FR')}
                       </td>
@@ -606,7 +666,7 @@ N° TVA Intracommunautaire: FR12 345678900`;
                       <td className="px-4 py-3">
                         {reservation.paymentStatus === 'paid' ? (
                           <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
-                            Payée
+                            ✓ Payée
                           </span>
                         ) : (
                           <span className="px-2 py-1 text-xs font-medium bg-orange-100 text-orange-800 rounded-full">
