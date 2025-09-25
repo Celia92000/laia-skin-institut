@@ -58,11 +58,12 @@ export async function POST(request: Request) {
       }
     }
     
-    // Envoyer le message
+    // Envoyer le message via Twilio
+    const provider = process.env.WHATSAPP_PROVIDER as 'twilio' | 'meta' | 'direct' || 'twilio';
     const result = await sendWhatsAppMessage({
       to,
       message: finalMessage
-    });
+    }, provider);
     
     if (result) {
       // Enregistrer dans l'historique des communications si clientId est fourni

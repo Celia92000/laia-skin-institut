@@ -977,6 +977,13 @@ export default function AdminDashboard() {
             {userRole === 'EMPLOYEE' ? 'Tableau de bord' : 'Statistiques'}
           </button>
           <button
+            onClick={() => window.location.href = '/admin/whatsapp'}
+            className="px-3 sm:px-6 py-2 sm:py-3 rounded-full font-medium transition-all whitespace-nowrap flex-shrink-0 text-sm sm:text-base bg-green-500 text-white hover:bg-green-600 shadow-lg flex items-center gap-2"
+          >
+            <MessageCircle className="w-4 h-4" />
+            WhatsApp
+          </button>
+          <button
             onClick={() => setActiveTab("planning")}
             className={`px-3 sm:px-6 py-2 sm:py-3 rounded-full font-medium transition-all whitespace-nowrap relative flex-shrink-0 text-sm sm:text-base ${
               activeTab === "planning"
