@@ -7,6 +7,7 @@ interface Review {
   id: string;
   rating: number;
   comment: string;
+  satisfaction?: number;
   clientName?: string;
   clientEmail?: string;
   clientPhone?: string;
@@ -403,6 +404,19 @@ export default function AdminReviewsManager() {
                 <div className="text-[#2c3e50]/90 mb-3">
                   "{review.comment}"
                 </div>
+
+                {/* Niveau de satisfaction */}
+                {review.satisfaction && (
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-sm text-[#2c3e50]/60">Satisfaction :</span>
+                    <span className="text-xl">
+                      {['😞', '😐', '🙂', '😊', '😍'][review.satisfaction - 1] || '😊'}
+                    </span>
+                    <span className="text-sm text-[#2c3e50]/60">
+                      ({review.satisfaction}/5)
+                    </span>
+                  </div>
+                )}
 
                 {/* Photos */}
                 {review.photos && review.photos.length > 0 && (

@@ -159,8 +159,26 @@ export async function GET(request: NextRequest) {
     }
 
     // Récupérer toutes les réservations avec les infos clients et services
+    // Optimisation : limiter à 100 réservations récentes et sélectionner uniquement les champs nécessaires
     const reservations = await prisma.reservation.findMany({
-      include: {
+      take: 100, // Limiter le nombre de résultats
+      select: {
+        id: true,
+        date: true,
+        time: true,
+        totalPrice: true,
+        status: true,
+        source: true,
+        notes: true,
+        services: true,
+        packages: true,
+        isSubscription: true,
+        paymentStatus: true,
+        paymentDate: true,
+        paymentAmount: true,
+        paymentMethod: true,
+        createdAt: true,
+        updatedAt: true,
         user: {
           select: {
             id: true,
@@ -169,7 +187,14 @@ export async function GET(request: NextRequest) {
             phone: true
           }
         },
-        service: true
+        service: {
+          select: {
+            id: true,
+            slug: true,
+            name: true,
+            duration: true
+          }
+        }
       },
       orderBy: {
         date: 'desc'
@@ -193,7 +218,7 @@ export async function GET(request: NextRequest) {
       
       return {
         id: r.id,
-        userId: r.userId,
+        userId: r.user.id,
         userName: r.user.name,
         userEmail: r.user.email,
         phone: r.user.phone,
@@ -210,8 +235,8 @@ export async function GET(request: NextRequest) {
         paymentDate: r.paymentDate?.toISOString(),
         paymentAmount: r.paymentAmount,
         paymentMethod: r.paymentMethod,
-        invoiceNumber: r.invoiceNumber,
-        paymentNotes: r.paymentNotes
+        // invoiceNumber: r.invoiceNumber,
+        // paymentNotes: r.paymentNotes
       };
     });
 

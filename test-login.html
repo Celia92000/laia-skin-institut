@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Login LAIA</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5e6d3; }
+        .container { max-width: 400px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; }
+        button { width: 100%; padding: 12px; background: #d4a574; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #c9a084; }
+        .result { margin-top: 20px; padding: 15px; border-radius: 5px; }
+        .success { background: #d4f5d4; border: 1px solid #4caf50; color: #2e7d32; }
+        .error { background: #ffebee; border: 1px solid #f44336; color: #c62828; }
+        .accounts { background: #fff3e0; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        .account-btn { background: #fff; border: 1px solid #d4a574; color: #d4a574; margin: 5px 0; }
+        .account-btn:hover { background: #f5e6d3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Test Connexion LAIA SKIN</h1>
+        
+        <div class="accounts">
+            <h3>Comptes disponibles :</h3>
+            <button class="account-btn" onclick="fillAccount('admin@laiaskin.com', 'admin123')">
+                👑 Admin (admin123)
+            </button>
+            <button class="account-btn" onclick="fillAccount('marie.dupont@email.com', 'lapV%fT2iI')">
+                👤 Client Marie
+            </button>
+            <button class="account-btn" onclick="fillAccount('comptable@laiaskin.com', '!B7Sao&BV3ejFE')">
+                💰 Comptable
+            </button>
+        </div>
+        
+        <form id="loginForm">
+            <label>Email :</label>
+            <input type="email" id="email" value="admin@laiaskin.com" required>
+            
+            <label>Mot de passe :</label>
+            <input type="password" id="password" value="admin123" required>
+            
+            <button type="submit">Se connecter</button>
+        </form>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function fillAccount(email, password) {
+            document.getElementById('email').value = email;
+            document.getElementById('password').value = password;
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('result');
+            
+            resultDiv.innerHTML = '⏳ Connexion en cours...';
+            resultDiv.className = 'result';
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <strong>✅ Connexion réussie !</strong><br>
+                        👤 ${data.user.name}<br>
+                        📧 ${data.user.email}<br>
+                        🎭 Rôle : ${data.user.role}<br>
+                        🔑 Token : ${data.token.substring(0, 20)}...<br><br>
+                        <strong>Redirection selon le rôle :</strong><br>
+                        ${data.user.role === 'ADMIN' ? '→ <a href="http://localhost:3001/admin">Aller au dashboard admin</a>' : ''}
+                        ${data.user.role === 'CLIENT' ? '→ <a href="http://localhost:3001/espace-client">Aller à l\'espace client</a>' : ''}
+                        ${data.user.role === 'COMPTABLE' ? '→ <a href="http://localhost:3001/admin/finances">Aller aux finances</a>' : ''}
+                    `;
+                    resultDiv.className = 'result success';
+                    
+                    // Sauvegarder le token
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    // Optionnel : redirection automatique après 3 secondes
+                    setTimeout(() => {
+                        if (data.user.role === 'ADMIN' || data.user.role === 'admin') {
+                            window.location.href = 'http://localhost:3001/admin';
+                        } else if (data.user.role === 'CLIENT' || data.user.role === 'client') {
+                            window.location.href = 'http://localhost:3001/espace-client';
+                        }
+                    }, 3000);
+                } else {
+                    resultDiv.innerHTML = `
+                        <strong>❌ Erreur de connexion</strong><br>
+                        ${data.error || 'Email ou mot de passe incorrect'}
+                    `;
+                    resultDiv.className = 'result error';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <strong>❌ Erreur réseau</strong><br>
+                    ${error.message}<br>
+                    Vérifiez que le serveur est lancé sur http://localhost:3001
+                `;
+                resultDiv.className = 'result error';
+            }
+        });
+    </script>
+</body>
+</html>

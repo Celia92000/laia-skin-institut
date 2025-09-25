@@ -496,7 +496,7 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
                 Déroulement du soin
               </h3>
               <div className="space-y-4">
-                {protocolSteps.map((step, index) => (
+                {protocolSteps.map((step: any, index: number) => (
                   <div key={index} className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-all">
                     <div className="flex items-start gap-4">
                       <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-white font-semibold" style={{
@@ -856,7 +856,7 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
           </h2>
 
           <div className="space-y-4">
-            {faqs.map((faq, index) => (
+            {faqs.map((faq: any, index: number) => (
               <div key={index} className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-all">
                 <h3 className="font-semibold text-[#2c3e50] mb-3 flex items-center gap-2">
                   <Sparkles className="w-5 h-5" style={{ color: enrichment.color }} />

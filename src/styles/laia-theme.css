@@ -1,0 +1,203 @@
+/* 
+  ====================================
+  LAIA SKIN INSTITUT - Design System
+  ====================================
+  Palette de couleurs moderne et élégante
+*/
+
+:root {
+  /* Couleurs principales - Rose Gold & Nude */
+  --laia-primary: #d4a574;        /* Or rose - couleur principale */
+  --laia-primary-light: #e8c4a0;  /* Or rose clair */
+  --laia-primary-dark: #b8935f;   /* Or rose foncé */
+  
+  /* Couleurs secondaires - Tons nude/beige */
+  --laia-nude: #f5e6d3;           /* Nude clair - fond */
+  --laia-beige: #e5d4c1;          /* Beige doux */
+  --laia-cream: #faf7f3;          /* Crème - arrière-plans */
+  
+  /* Accent - Rose poudré */
+  --laia-rose: #e8b4b8;           /* Rose poudré */
+  --laia-rose-light: #f5d5d8;     /* Rose très clair */
+  --laia-rose-dark: #d49296;      /* Rose foncé */
+  
+  /* Neutres modernes */
+  --laia-dark: #2c1810;           /* Marron très foncé - textes */
+  --laia-gray-dark: #4a3f36;      /* Gris-brun foncé */
+  --laia-gray: #8b7355;           /* Gris-brun moyen */
+  --laia-gray-light: #c4b5a4;     /* Gris-brun clair */
+  --laia-white: #ffffff;          /* Blanc pur */
+  
+  /* Couleurs fonctionnelles */
+  --laia-success: #95c99e;        /* Vert doux */
+  --laia-warning: #f0c674;        /* Jaune doré */
+  --laia-error: #d4928b;          /* Rouge rosé */
+  --laia-info: #a8c4d4;           /* Bleu poudré */
+  
+  /* Dégradés luxueux */
+  --laia-gradient-primary: linear-gradient(135deg, #d4a574 0%, #e8b4b8 100%);
+  --laia-gradient-soft: linear-gradient(135deg, #faf7f3 0%, #f5e6d3 100%);
+  --laia-gradient-premium: linear-gradient(135deg, #d4a574 0%, #b8935f 50%, #e8b4b8 100%);
+  
+  /* Ombres douces */
+  --laia-shadow-sm: 0 2px 4px rgba(212, 165, 116, 0.1);
+  --laia-shadow-md: 0 4px 12px rgba(212, 165, 116, 0.15);
+  --laia-shadow-lg: 0 8px 24px rgba(212, 165, 116, 0.2);
+  --laia-shadow-xl: 0 12px 48px rgba(212, 165, 116, 0.25);
+  
+  /* Espacements */
+  --laia-spacing-xs: 0.25rem;
+  --laia-spacing-sm: 0.5rem;
+  --laia-spacing-md: 1rem;
+  --laia-spacing-lg: 1.5rem;
+  --laia-spacing-xl: 2rem;
+  --laia-spacing-2xl: 3rem;
+  
+  /* Typographie */
+  --laia-font-primary: 'Playfair Display', serif;
+  --laia-font-secondary: 'Montserrat', sans-serif;
+  --laia-font-size-xs: 0.75rem;
+  --laia-font-size-sm: 0.875rem;
+  --laia-font-size-base: 1rem;
+  --laia-font-size-lg: 1.125rem;
+  --laia-font-size-xl: 1.25rem;
+  --laia-font-size-2xl: 1.5rem;
+  --laia-font-size-3xl: 2rem;
+  --laia-font-size-4xl: 2.5rem;
+  
+  /* Bordures */
+  --laia-border-radius-sm: 0.375rem;
+  --laia-border-radius-md: 0.5rem;
+  --laia-border-radius-lg: 0.75rem;
+  --laia-border-radius-xl: 1rem;
+  --laia-border-radius-full: 9999px;
+  
+  /* Transitions */
+  --laia-transition-fast: 150ms ease-in-out;
+  --laia-transition-base: 250ms ease-in-out;
+  --laia-transition-slow: 350ms ease-in-out;
+}
+
+/* Classes utilitaires LAIA */
+.laia-bg-primary { background-color: var(--laia-primary); }
+.laia-bg-nude { background-color: var(--laia-nude); }
+.laia-bg-cream { background-color: var(--laia-cream); }
+.laia-bg-gradient { background: var(--laia-gradient-primary); }
+.laia-bg-gradient-soft { background: var(--laia-gradient-soft); }
+
+.laia-text-primary { color: var(--laia-primary); }
+.laia-text-dark { color: var(--laia-dark); }
+.laia-text-rose { color: var(--laia-rose); }
+
+/* Boutons LAIA */
+.laia-btn {
+  padding: var(--laia-spacing-sm) var(--laia-spacing-lg);
+  border-radius: var(--laia-border-radius-full);
+  font-family: var(--laia-font-secondary);
+  font-weight: 500;
+  transition: all var(--laia-transition-base);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: var(--laia-font-size-sm);
+  border: none;
+  cursor: pointer;
+}
+
+.laia-btn-primary {
+  background: var(--laia-gradient-primary);
+  color: var(--laia-white);
+  box-shadow: var(--laia-shadow-md);
+}
+
+.laia-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--laia-shadow-lg);
+}
+
+.laia-btn-secondary {
+  background: transparent;
+  color: var(--laia-primary);
+  border: 2px solid var(--laia-primary);
+}
+
+.laia-btn-secondary:hover {
+  background: var(--laia-primary);
+  color: var(--laia-white);
+}
+
+/* Cards LAIA */
+.laia-card {
+  background: var(--laia-white);
+  border-radius: var(--laia-border-radius-xl);
+  padding: var(--laia-spacing-xl);
+  box-shadow: var(--laia-shadow-md);
+  transition: transform var(--laia-transition-base);
+}
+
+.laia-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--laia-shadow-xl);
+}
+
+/* Animations élégantes */
+@keyframes laia-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes laia-shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.laia-animate-fade-in {
+  animation: laia-fade-in 0.6s ease-out;
+}
+
+.laia-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--laia-nude) 25%,
+    var(--laia-primary-light) 50%,
+    var(--laia-nude) 75%
+  );
+  background-size: 200% 100%;
+  animation: laia-shimmer 2s infinite;
+}
+
+/* Effet verre dépoli moderne */
+.laia-glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(212, 165, 116, 0.2);
+}
+
+/* Scrollbar personnalisée */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--laia-cream);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--laia-primary-light);
+  border-radius: var(--laia-border-radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--laia-primary);
+}

@@ -4,7 +4,14 @@ import { useState } from "react";
 import Link from "next/link";
 import { User, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 
+import SecureLoginPage from './SecureLoginPage';
+
 export default function Login() {
+  return <SecureLoginPage />;
+}
+
+// Ancienne version conservée ci-dessous pour référence
+function OldLogin() {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({

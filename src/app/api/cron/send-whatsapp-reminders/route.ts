@@ -46,11 +46,10 @@ export async function GET(request: Request) {
         continue;
       }
 
-      // Vérifier si l'utilisateur accepte les notifications WhatsApp
-      if (reservation.user.whatsappNotifications === false) {
-        console.log(`🔕 ${reservation.user?.name} a désactivé les rappels WhatsApp`);
-        continue;
-      }
+      // Note: Le champ whatsappNotifications n'existe pas dans le modèle User actuel
+      // Pour implémenter cette fonctionnalité, il faudrait ajouter ce champ au schéma Prisma
+      // En attendant, on suppose que tous les utilisateurs acceptent les notifications
+      console.log(`📱 Préparation du rappel WhatsApp pour ${reservation.user?.name}`);
 
       try {
         // Préparer les services

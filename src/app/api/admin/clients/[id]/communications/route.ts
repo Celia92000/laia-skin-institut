@@ -44,10 +44,10 @@ export async function GET(
     try {
       const emailHistory = await prisma.emailHistory?.findMany({
         where: {
-          recipientId: clientId
+          userId: clientId
         },
         orderBy: {
-          sentAt: 'desc'
+          createdAt: 'desc'
         },
         take: 50 // Limiter à 50 derniers
       });
@@ -58,9 +58,9 @@ export async function GET(
             id: `email-${email.id}`,
             type: 'email',
             content: email.content || email.subject || 'Email envoyé',
-            timestamp: email.sentAt,
+            timestamp: email.createdAt,
             status: email.status as 'sent' | 'delivered' | 'read' | 'failed',
-            templateUsed: email.template,
+            templateUsed: email.template || 'Email',
             subject: email.subject
           });
         });
@@ -73,10 +73,10 @@ export async function GET(
     try {
       const whatsappHistory = await prisma.whatsAppHistory?.findMany({
         where: {
-          clientId: clientId
+          userId: clientId
         },
         orderBy: {
-          sentAt: 'desc'
+          createdAt: 'desc'
         },
         take: 50
       });
@@ -86,10 +86,10 @@ export async function GET(
           communications.push({
             id: `whatsapp-${message.id}`,
             type: 'whatsapp',
-            content: message.content,
-            timestamp: message.sentAt,
+            content: message.message,
+            timestamp: message.createdAt,
             status: message.status as 'sent' | 'delivered' | 'read' | 'failed',
-            templateUsed: message.templateUsed
+            templateUsed: 'WhatsApp'
           });
         });
       }
@@ -101,10 +101,10 @@ export async function GET(
     try {
       const reservations = await prisma.reservation.findMany({
         where: {
-          clientId: clientId,
+          userId: clientId,
           OR: [
-            { confirmationEmailSent: true },
-            { reminderEmailSent: true }
+            { reminderSent: true },
+            { reminderSent: true }
           ]
         },
         orderBy: {
@@ -114,22 +114,22 @@ export async function GET(
       });
 
       reservations.forEach(reservation => {
-        if (reservation.confirmationEmailSent) {
+        if (reservation.reminderSent) {
           communications.push({
             id: `reservation-confirmation-${reservation.id}`,
             type: 'email',
-            content: `Email de confirmation de réservation pour ${reservation.service}`,
+            content: `Email de confirmation de réservation pour ${reservation.services}`,
             timestamp: reservation.createdAt,
             status: 'sent',
             templateUsed: 'Confirmation de réservation'
           });
         }
 
-        if (reservation.reminderEmailSent) {
+        if (reservation.reminderSent && false) { // Éviter la duplication
           communications.push({
             id: `reservation-reminder-${reservation.id}`,
             type: 'email',
-            content: `Email de rappel pour votre rendez-vous ${reservation.service}`,
+            content: `Email de rappel pour votre rendez-vous ${reservation.services}`,
             timestamp: new Date(reservation.date.getTime() - 48 * 60 * 60 * 1000), // 48h avant
             status: 'sent',
             templateUsed: 'Rappel de rendez-vous'
@@ -225,11 +225,12 @@ export async function POST(
       try {
         const whatsappRecord = await prisma.whatsAppHistory?.create({
           data: {
-            clientId,
-            content,
-            templateUsed,
+            userId: clientId,
+            from: 'system',
+            to: clientId,
+            message: content,
             status,
-            sentAt: new Date()
+            createdAt: new Date()
           }
         });
         
@@ -250,12 +251,13 @@ export async function POST(
       try {
         const emailRecord = await prisma.emailHistory?.create({
           data: {
-            recipientId: clientId,
+            userId: clientId,
+            to: clientId,
             content,
             subject,
             template: templateUsed,
             status,
-            sentAt: new Date()
+            createdAt: new Date()
           }
         });
         

@@ -118,7 +118,7 @@ export async function POST(request: Request) {
     const { data, error } = await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL || 'LAIA SKIN Institut <contact@laiaskininstitut.fr>',
       to: 'contact@laiaskininstitut.fr', // Votre adresse email professionnelle
-      reply_to: email,
+      replyTo: email,
       subject: emailSubject,
       html: emailHtml,
     });

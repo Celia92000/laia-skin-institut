@@ -1,15 +1,21 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import crypto from 'crypto';
-import { sendPasswordResetEmail } from '@/lib/email-service';
 
-export async function POST(request: NextRequest) {
+// Générer un code de vérification à 6 chiffres
+function generateVerificationCode(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+// Stocker temporairement les codes (en production, utiliser Redis ou la BDD)
+const verificationCodes = new Map<string, { code: string; expiry: Date }>();
+
+export async function POST(request: Request) {
   try {
     const { email } = await request.json();
 
     if (!email) {
       return NextResponse.json(
-        { message: 'Email requis' },
+        { error: 'Email requis' },
         { status: 400 }
       );
     }
@@ -20,52 +26,43 @@ export async function POST(request: NextRequest) {
     });
 
     // Pour des raisons de sécurité, on retourne toujours un succès
-    // même si l'utilisateur n'existe pas
+    // même si l'email n'existe pas (évite l'énumération d'utilisateurs)
     if (!user) {
+      console.log(`Tentative de récupération pour email inexistant: ${email}`);
       return NextResponse.json({
-        success: true,
-        message: 'Si cet email existe, un lien de réinitialisation a été envoyé'
+        message: 'Si cet email existe, un code de vérification a été envoyé'
       });
     }
 
-    // Générer un token de réinitialisation
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 heure
-    
-    // Hasher le token pour la sécurité
-    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+    // Générer un code de vérification
+    const code = generateVerificationCode();
+    const expiry = new Date(Date.now() + 15 * 60 * 1000); // Expire dans 15 minutes
 
-    // Sauvegarder le token hashé dans la base de données
-    await prisma.user.update({
-      where: { email },
-      data: {
-        resetToken: hashedToken,
-        resetTokenExpiry
-      }
-    });
+    // Stocker le code
+    verificationCodes.set(email, { code, expiry });
 
-    // Envoyer l'email avec Resend
-    const emailResult = await sendPasswordResetEmail({
-      email,
-      name: user.name || 'Cliente',
-      resetToken
-    });
+    console.log(`📧 Code de vérification pour ${email}: ${code}`);
 
-    if (!emailResult.success) {
-      console.error('Erreur lors de l\'envoi de l\'email:', emailResult.error);
-      // On continue quand même pour ne pas révéler si l'email existe
+    // En développement, retourner le code pour faciliter les tests
+    if (process.env.NODE_ENV === 'development') {
+      return NextResponse.json({
+        message: 'Code de vérification envoyé',
+        code: code // Uniquement en dev pour les tests
+      });
     }
 
     return NextResponse.json({
-      success: true,
-      message: 'Email de réinitialisation envoyé'
+      message: 'Si cet email existe, un code de vérification a été envoyé'
     });
 
   } catch (error) {
-    console.error('Erreur mot de passe oublié:', error);
+    console.error('Erreur forgot password:', error);
     return NextResponse.json(
-      { message: 'Erreur lors de l\'envoi de l\'email' },
+      { error: 'Erreur serveur' },
       { status: 500 }
     );
   }
 }
+
+// Export pour utilisation dans d'autres routes
+export { verificationCodes };

@@ -71,13 +71,12 @@ export async function POST(request: Request) {
           // Tentative d'enregistrement dans la base de données
           await prisma.whatsAppHistory?.create({
             data: {
-              clientId: clientId,
-              phone: to,
-              content: finalMessage,
-              templateUsed: finalTemplateName || templateId || 'Message personnalisé',
+              userId: clientId,
+              from: 'system',
+              to: clientId,
+              message: finalMessage,
               status: 'sent',
-              sentAt: new Date(),
-              sentBy: decodedToken.userId
+              createdAt: new Date()
             }
           });
           console.log('Message WhatsApp enregistré dans l\'historique');
@@ -88,13 +87,12 @@ export async function POST(request: Request) {
           try {
             await prisma.communicationHistory?.create({
               data: {
-                clientId: clientId,
+                userId: clientId,
                 type: 'whatsapp',
                 content: finalMessage,
-                templateUsed: finalTemplateName || templateId || 'Message personnalisé',
                 status: 'sent',
-                sentAt: new Date(),
-                sentBy: decodedToken.userId,
+                direction: 'outbound',
+                createdAt: new Date(),
                 metadata: JSON.stringify({
                   phone: to,
                   clientName: clientName,

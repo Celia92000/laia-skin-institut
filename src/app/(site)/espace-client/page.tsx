@@ -7,6 +7,7 @@ import { Calendar, Clock, CheckCircle, XCircle, Gift, Star, RefreshCw, User, Awa
 import ClientSpaceWrapper from "./ClientSpaceWrapper";
 import Modal from "@/components/Modal";
 import { logout } from "@/lib/auth-client";
+import ClientDashboard from "@/components/ClientDashboard";
 
 interface Reservation {
   id: string;
@@ -25,6 +26,10 @@ interface UserData {
   email: string;
   loyaltyPoints: number;
   totalSpent: number;
+  loyaltyProfile?: {
+    loyaltyCode?: string;
+    referralCode?: string;
+  };
 }
 
 export default function EspaceClient() {
@@ -45,6 +50,7 @@ export default function EspaceClient() {
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [whatsappNotifications, setWhatsappNotifications] = useState(true);
   const [savingPreferences, setSavingPreferences] = useState(false);
+  const [userReviews, setUserReviews] = useState<any[]>([]);
   
   // Fonction pour vérifier le statut de l'abonnement
   const getSubscriptionStatus = () => {
@@ -120,32 +126,21 @@ export default function EspaceClient() {
       }
 
       const userInfo = JSON.parse(user);
-      // Permettre l'accès à tous les utilisateurs connectés (clients et admins)
-      // Définir le nom en fonction du rôle et de l'email
-      let displayName = 'Cliente';
-      if (userInfo.email === 'admin@laia.skin.com') {
-        displayName = 'Laïa';
-      } else if (userInfo.email === 'marie.dupont@email.com') {
-        displayName = 'Marie';
-      } else if (userInfo.name) {
-        displayName = userInfo.name;
-      } else if (userInfo.email) {
-        displayName = userInfo.email.split('@')[0].split('.').map((n: string) => 
-          n.charAt(0).toUpperCase() + n.slice(1)
-        ).join(' ');
-      }
+      // Utiliser le nom de l'utilisateur tel quel, sans distinction pour l'admin
+      let displayName = userInfo.name || 'Cliente';
       
       setUserData({
         name: displayName,
         email: userInfo.email,
-        loyaltyPoints: userInfo.loyaltyPoints || 350,
-        totalSpent: userInfo.totalSpent || 750
+        loyaltyPoints: userInfo.loyaltyPoints || 0,
+        totalSpent: userInfo.totalSpent || 0
       });
 
       fetchUserData();
       fetchReservations();
       fetchServices();
       fetchPreferences();
+      fetchReviews();
     };
 
     checkAuth();
@@ -178,6 +173,23 @@ export default function EspaceClient() {
       }
     } catch (error) {
       console.error('Erreur lors de la récupération des préférences:', error);
+    }
+  };
+  
+  const fetchReviews = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/reviews?userOnly=true', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setUserReviews(data.reviews || []);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la récupération des avis:', error);
     }
   };
 
@@ -228,10 +240,11 @@ export default function EspaceClient() {
       if (response.ok) {
         const data = await response.json();
         // Ne remplacer que si l'API retourne des données valides
-        if (data && data.name) {
+        if (data) {
           setUserData(prevData => ({
             ...prevData,
-            ...data
+            ...data,
+            name: data.name || prevData?.name || 'Cliente'
           }));
         }
       }
@@ -546,120 +559,22 @@ export default function EspaceClient() {
 
         {/* Content */}
         <div className="bg-white rounded-2xl shadow-lg p-8">
-          {activeTab === "dashboard" && (
-            <div>
-              <h2 className="text-2xl font-serif font-bold text-[#2c3e50] mb-6">
-                Vue d'ensemble
-              </h2>
-              
-              <div className="grid md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-gradient-to-br from-[#fdfbf7] to-white rounded-xl p-6 border border-[#d4b5a0]/20">
-                  <History className="w-8 h-8 text-[#d4b5a0] mb-2" />
-                  <p className="text-3xl font-bold text-[#2c3e50]">
-                    {reservations.filter(r => r.status === 'completed').length}
-                  </p>
-                  <p className="text-[#2c3e50]/60">Soins réalisés</p>
-                </div>
-                
-                <div className="bg-gradient-to-br from-[#fdfbf7] to-white rounded-xl p-6 border border-[#d4b5a0]/20">
-                  <Calendar className="w-8 h-8 text-[#d4b5a0] mb-2" />
-                  <p className="text-3xl font-bold text-[#2c3e50]">
-                    {reservations.filter(r => r.status === 'confirmed' || r.status === 'pending').length}
-                  </p>
-                  <p className="text-[#2c3e50]/60">À venir</p>
-                </div>
-                
-                <div className="bg-gradient-to-br from-[#fdfbf7] to-white rounded-xl p-6 border border-[#d4b5a0]/20">
-                  <Award className="w-8 h-8 text-[#d4b5a0] mb-2" />
-                  <p className="text-3xl font-bold text-[#2c3e50]">
-                    {reservations.length}
-                  </p>
-                  <p className="text-[#2c3e50]/60">Total soins</p>
-                </div>
-              </div>
-              
-              {/* Prochaine réservation avec actions */}
-              {reservations.filter(r => r.status === 'confirmed' || r.status === 'pending').length > 0 && (
-                <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-6 mb-6">
-                  <div className="flex justify-between items-start mb-3">
-                    <h3 className="text-lg font-semibold text-[#2c3e50]">Prochains rendez-vous</h3>
-                    <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium">
-                      {reservations.filter(r => r.status === 'confirmed' || r.status === 'pending').length} À VENIR
-                    </span>
-                  </div>
-                  <div className="space-y-4">
-                    {reservations
-                      .filter(r => r.status === 'confirmed' || r.status === 'pending')
-                      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-                      .slice(0, 2)
-                      .map((reservation, index) => (
-                      <div key={reservation.id} className={index > 0 ? "pt-4 border-t border-green-200" : ""}>
-                        <div className="flex items-center gap-4 mb-3">
-                          <Calendar className="w-5 h-5 text-green-600" />
-                          <span className="font-medium text-[#2c3e50]">
-                            {new Date(reservation.date).toLocaleDateString('fr-FR', {
-                              weekday: 'long',
-                              day: 'numeric',
-                              month: 'long'
-                            })}
-                          </span>
-                          <Clock className="w-5 h-5 text-green-600" />
-                          <span className="font-medium text-[#2c3e50]">{reservation.time}</span>
-                        </div>
-                        <div className="flex flex-wrap gap-2 mb-4">
-                          {reservation.services.map((serviceId: string) => (
-                            <span key={serviceId} className="px-3 py-1 bg-white rounded-full text-sm">
-                              {services[serviceId] || serviceId}
-                            </span>
-                          ))}
-                        </div>
-                        
-                        {/* Actions rapides pour le prochain RDV */}
-                        <div className="flex gap-2 pt-3 border-t border-green-200">
-                          <Link
-                            href={`/espace-client/modifier-reservation/${reservation.id}/choix`}
-                            className="flex items-center gap-1 px-3 py-1.5 bg-white text-green-700 rounded-lg text-sm hover:bg-green-50 transition-all"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                            Modifier
-                          </Link>
-                          <button
-                            onClick={() => {
-                              if (confirm('Voulez-vous vraiment annuler ce rendez-vous ?')) {
-                                alert('Rendez-vous annulé. Vous recevrez un email de confirmation.');
-                                window.location.reload();
-                              }
-                            }}
-                            className="flex items-center gap-1 px-3 py-1.5 bg-white text-red-600 rounded-lg text-sm hover:bg-red-50 transition-all"
-                          >
-                            <X className="w-4 h-4" />
-                            Annuler
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {/* Actions rapides */}
-              <div className="grid md:grid-cols-2 gap-4">
-                <Link
-                  href="/reservation"
-                  className="flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white rounded-xl font-medium hover:shadow-lg transition-all"
-                >
-                  <Calendar className="w-5 h-5" />
-                  Prendre un nouveau rendez-vous
-                </Link>
-                <button
-                  onClick={() => setActiveTab('recommend')}
-                  className="flex items-center justify-center gap-2 px-6 py-4 border-2 border-[#d4b5a0] text-[#d4b5a0] rounded-xl font-medium hover:bg-[#d4b5a0]/10 transition-all"
-                >
-                  <Share2 className="w-5 h-5" />
-                  Recommander LAIA SKIN
-                </button>
-              </div>
-            </div>
+          {activeTab === "dashboard" && userData && (
+            <ClientDashboard 
+              userData={{
+                name: userData.name,
+                loyaltyPoints: userData.loyaltyPoints,
+                totalSpent: userData.totalSpent,
+                nextAppointment: reservations.find(r => r.status === 'confirmed' || r.status === 'pending'),
+                lastVisit: reservations.filter(r => r.status === 'completed').sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]?.date
+              }}
+              reservations={reservations}
+              stats={{
+                totalVisits: reservations.filter(r => r.status === 'completed').length,
+                favoriteService: 'HydraFacial',
+                memberSince: '2023'
+              }}
+            />
           )}
           
           {activeTab === "reservations" && (
@@ -886,7 +801,7 @@ export default function EspaceClient() {
                           const forfaitCount = reservations.filter(r => {
                             if (r.status !== 'completed') return false;
                             try {
-                              const packages = r.packages ? JSON.parse(r.packages) : {};
+                              const packages = r.packages ? JSON.parse(typeof r.packages === 'string' ? r.packages : JSON.stringify(r.packages)) : {};
                               return Object.values(packages).some(p => p === 'forfait');
                             } catch {
                               return false;
@@ -911,7 +826,7 @@ export default function EspaceClient() {
                           const forfaitCount = reservations.filter(r => {
                             if (r.status !== 'completed') return false;
                             try {
-                              const packages = r.packages ? JSON.parse(r.packages) : {};
+                              const packages = r.packages ? JSON.parse(typeof r.packages === 'string' ? r.packages : JSON.stringify(r.packages)) : {};
                               return Object.values(packages).some(p => p === 'forfait');
                             } catch {
                               return false;
@@ -1123,7 +1038,7 @@ export default function EspaceClient() {
                       <button 
                         onClick={() => {
                           const url = window.location.href;
-                          const text = `Je recommande LAIA SKIN Institut ! ${loyaltyProgram.loyaltyCode ? `Utilisez mon code parrainage : ${loyaltyProgram.loyaltyCode}` : ''}`;
+                          const text = `Je recommande LAIA SKIN Institut ! ${userData?.loyaltyProfile?.loyaltyCode ? `Utilisez mon code parrainage : ${userData?.loyaltyProfile?.loyaltyCode}` : ''}`;
                           window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}`, '_blank');
                         }}
                         className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
@@ -1131,7 +1046,7 @@ export default function EspaceClient() {
                       </button>
                       <button 
                         onClick={() => {
-                          const text = `Je recommande LAIA SKIN Institut ! ${loyaltyProgram.loyaltyCode ? `Code parrainage : ${loyaltyProgram.loyaltyCode}` : ''} 🌟 #laiaskin #beaute #soins`;
+                          const text = `Je recommande LAIA SKIN Institut ! ${userData?.loyaltyProfile?.loyaltyCode ? `Code parrainage : ${userData?.loyaltyProfile?.loyaltyCode}` : ''} 🌟 #laiaskin #beaute #soins`;
                           navigator.clipboard.writeText(text);
                           alert('Texte copié pour Instagram ! Collez-le dans votre story ou post.');
                         }}
@@ -1140,7 +1055,7 @@ export default function EspaceClient() {
                       </button>
                       <button 
                         onClick={() => {
-                          const text = `Je recommande LAIA SKIN Institut ! ${loyaltyProgram.loyaltyCode ? `Utilisez mon code parrainage : ${loyaltyProgram.loyaltyCode}` : ''} pour avoir -10% 🌟`;
+                          const text = `Je recommande LAIA SKIN Institut ! ${userData?.loyaltyProfile?.loyaltyCode ? `Utilisez mon code parrainage : ${userData?.loyaltyProfile?.loyaltyCode}` : ''} pour avoir -10% 🌟`;
                           const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
                           window.open(url, '_blank');
                         }}
@@ -1189,10 +1104,20 @@ export default function EspaceClient() {
               {/* Soins à évaluer */}
               <div className="mb-8">
                 <h3 className="text-lg font-semibold text-[#2c3e50] mb-4">Soins en attente d'évaluation</h3>
-                {reservations
-                  .filter(r => r.status === 'completed')
-                  .slice(0, 2)
-                  .map(reservation => (
+                {(() => {
+                  const reviewedReservationIds = userReviews.map(r => r.reservationId);
+                  const unreviewedReservations = reservations
+                    .filter(r => r.status === 'completed' && !reviewedReservationIds.includes(r.id));
+                  
+                  if (unreviewedReservations.length === 0) {
+                    return (
+                      <p className="text-[#2c3e50]/60 text-center py-8 bg-gray-50 rounded-xl">
+                        Tous vos soins ont été évalués. Merci pour vos retours !
+                      </p>
+                    );
+                  }
+                  
+                  return unreviewedReservations.slice(0, 3).map(reservation => (
                     <div key={reservation.id} className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-3">
                       <div className="flex items-center justify-between">
                         <div>
@@ -1215,72 +1140,82 @@ export default function EspaceClient() {
                         </button>
                       </div>
                     </div>
-                  ))}
+                  ));
+                })()}
               </div>
 
               {/* Historique des avis */}
               <div>
                 <h3 className="text-lg font-semibold text-[#2c3e50] mb-4">Mes avis précédents</h3>
                 <div className="space-y-4">
-                  {/* Avis exemple 1 */}
-                  <div className="border border-[#d4b5a0]/20 rounded-xl p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <p className="font-medium text-[#2c3e50]">HydraFacial Premium</p>
-                        <p className="text-sm text-[#2c3e50]/60">Évalué le 15 novembre 2024</p>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        {[1, 2, 3, 4, 5].map(star => (
-                          <Star
-                            key={star}
-                            className={`w-4 h-4 ${
-                              star <= 5 ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                    <p className="text-[#2c3e50]/80 italic">
-                      "Excellent soin ! Ma peau n'a jamais été aussi éclatante. Laïa est très professionnelle et à l'écoute."
+                  {userReviews.length === 0 ? (
+                    <p className="text-[#2c3e50]/60 text-center py-8 bg-gray-50 rounded-xl">
+                      Vous n'avez pas encore laissé d'avis. Partagez votre expérience !
                     </p>
-                    <div className="mt-3 flex items-center gap-4 text-sm text-[#2c3e50]/60">
-                      <span className="flex items-center gap-1">
-                        <ThumbsUp className="w-3 h-3" />
-                        Utile (3)
-                      </span>
-                      <span>Niveau de satisfaction : Très satisfait</span>
-                    </div>
-                  </div>
-
-                  {/* Avis exemple 2 */}
-                  <div className="border border-[#d4b5a0]/20 rounded-xl p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <p className="font-medium text-[#2c3e50]">BB Glow - Forfait 4 séances</p>
-                        <p className="text-sm text-[#2c3e50]/60">Évalué le 2 octobre 2024</p>
+                  ) : (
+                    userReviews.map((review) => (
+                      <div key={review.id} className="border border-[#d4b5a0]/20 rounded-xl p-4">
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            <p className="font-medium text-[#2c3e50]">{review.serviceName}</p>
+                            <p className="text-sm text-[#2c3e50]/60">
+                              Évalué le {new Date(review.createdAt).toLocaleDateString('fr-FR')}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            {[1, 2, 3, 4, 5].map(star => (
+                              <Star
+                                key={star}
+                                className={`w-4 h-4 ${
+                                  star <= review.rating ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'
+                                }`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        {review.comment && (
+                          <p className="text-[#2c3e50]/80 italic mb-3">"{review.comment}"</p>
+                        )}
+                        
+                        {/* Photos de l'avis */}
+                        {review.photos && JSON.parse(review.photos).length > 0 && (
+                          <div className="flex gap-2 mb-3">
+                            {JSON.parse(review.photos).slice(0, 3).map((photo: string, idx: number) => (
+                              <img 
+                                key={idx}
+                                src={photo} 
+                                alt={`Photo ${idx + 1}`}
+                                className="w-20 h-20 object-cover rounded-lg"
+                              />
+                            ))}
+                          </div>
+                        )}
+                        
+                        <div className="mt-3 flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-4 text-[#2c3e50]/60">
+                            <span>
+                              Satisfaction : {['😞', '😐', '🙂', '😊', '😍'][review.satisfaction - 1] || '😊'}
+                            </span>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              review.approved 
+                                ? 'bg-green-100 text-green-600' 
+                                : 'bg-yellow-100 text-yellow-600'
+                            }`}>
+                              {review.approved ? 'Publié' : 'En attente de validation'}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {/* Réponse de l'institut */}
+                        {review.response && (
+                          <div className="mt-3 pt-3 border-t border-gray-100">
+                            <p className="text-sm font-medium text-[#d4b5a0] mb-1">Réponse de l'institut :</p>
+                            <p className="text-sm text-[#2c3e50]/70">{review.response}</p>
+                          </div>
+                        )}
                       </div>
-                      <div className="flex items-center gap-1">
-                        {[1, 2, 3, 4, 5].map(star => (
-                          <Star
-                            key={star}
-                            className={`w-4 h-4 ${
-                              star <= 4 ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                    <p className="text-[#2c3e50]/80 italic">
-                      "Très bon résultat après 3 séances. Le teint est unifié et lumineux. Je recommande !"
-                    </p>
-                    <div className="mt-3 flex items-center gap-4 text-sm text-[#2c3e50]/60">
-                      <span className="flex items-center gap-1">
-                        <ThumbsUp className="w-3 h-3" />
-                        Utile (5)
-                      </span>
-                      <span>Niveau de satisfaction : Satisfait</span>
-                    </div>
-                  </div>
+                    ))
+                  )}
                 </div>
               </div>
 
@@ -1576,36 +1511,55 @@ export default function EspaceClient() {
                 Annuler
               </button>
               <button
-                onClick={() => {
-                  // Préparer les données de l'avis
-                  const reviewData = {
-                    reservationId: selectedReservation?.id,
-                    service: selectedReservation?.services.map(s => services[s as keyof typeof services]).join(', '),
-                    date: selectedReservation?.date,
-                    rating,
-                    satisfaction,
-                    comment: reviewText,
-                    photos: reviewPhotos,
-                    timestamp: new Date().toISOString(),
-                    clientName: userData?.name,
-                    clientEmail: userData?.email
-                  };
-                  
-                  // Sauvegarder localement (simulation)
-                  const existingReviews = JSON.parse(localStorage.getItem('clientReviews') || '[]');
-                  existingReviews.push(reviewData);
-                  localStorage.setItem('clientReviews', JSON.stringify(existingReviews));
-                  
-                  alert(`Merci pour votre avis ! ${reviewPhotos.length > 0 ? `\n${reviewPhotos.length} photo(s) ajoutée(s)` : ''}\nIl sera publié après validation.`);
-                  
-                  // Réinitialiser
-                  setShowReviewModal(false);
-                  setSelectedReservation(null);
-                  setRating(5);
-                  setSatisfaction(5);
-                  setReviewText('');
-                  setReviewPhotos([]);
-                  setUploadedPhotos([]);
+                onClick={async () => {
+                  try {
+                    const token = localStorage.getItem('token');
+                    const response = await fetch('/api/reviews', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                      },
+                      body: JSON.stringify({
+                        reservationId: selectedReservation?.id,
+                        serviceName: selectedReservation?.services.map(s => services[s as keyof typeof services]).join(', '),
+                        rating,
+                        comment: reviewText,
+                        satisfaction,
+                        photos: reviewPhotos
+                      })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                      alert(`Merci pour votre avis ! ${reviewPhotos.length > 0 ? `\n${reviewPhotos.length} photo(s) ajoutée(s)` : ''}\nIl sera publié après validation.`);
+                      
+                      // Si 5 étoiles, proposer de laisser un avis Google
+                      if (rating === 5 && data.googleUrl) {
+                        if (confirm('Votre expérience était excellente ! Souhaitez-vous également partager votre avis sur Google ?')) {
+                          window.open(data.googleUrl, '_blank');
+                        }
+                      }
+                      
+                      // Réinitialiser
+                      setShowReviewModal(false);
+                      setSelectedReservation(null);
+                      setRating(5);
+                      setSatisfaction(5);
+                      setReviewText('');
+                      setReviewPhotos([]);
+                      setUploadedPhotos([]);
+                      
+                      // Recharger les avis
+                      fetchReviews();
+                    } else {
+                      alert(data.error || 'Erreur lors de l\'envoi de l\'avis');
+                    }
+                  } catch (error) {
+                    console.error('Erreur:', error);
+                    alert('Erreur lors de l\'envoi de l\'avis');
+                  }
                 }}
                 className="px-4 py-2 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2"
               >

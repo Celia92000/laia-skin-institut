@@ -47,10 +47,9 @@ export async function PUT(
     await prisma.loyaltyHistory.create({
       data: {
         userId: profile.userId,
-        type: delta > 0 ? 'package_added' : 'package_removed',
+        action: delta > 0 ? 'package_added' : 'package_removed',
         points: 0,
-        description: `${Math.abs(delta)} forfait(s) ${delta > 0 ? 'ajouté(s)' : 'retiré(s)'} manuellement`,
-        createdBy: decoded.id
+        description: `${Math.abs(delta)} forfait(s) ${delta > 0 ? 'ajouté(s)' : 'retiré(s)'} manuellement`
       }
     });
     

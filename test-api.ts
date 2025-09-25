@@ -35,7 +35,7 @@ async function testAPI() {
       return;
     }
     
-    const stats = await statsResponse.json();
+    const stats: any = await statsResponse.json();
     console.log('\n📊 Statistiques reçues de l\'API:');
     console.log('  - Total réservations:', stats.totalReservations);
     console.log('  - Réservations aujourd\'hui:', stats.todayReservations);

@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default async function Contact() {
   // Récupérer les horaires depuis la base de données
-  let workingHours = [];
+  let workingHours: any[] = [];
   try {
     workingHours = await prisma.workingHours.findMany({
       orderBy: { dayOfWeek: 'asc' }

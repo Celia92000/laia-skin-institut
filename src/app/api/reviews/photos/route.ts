@@ -55,16 +55,16 @@ export async function POST(request: NextRequest) {
       });
 
       if (review) {
-        // Ajouter les nouvelles photos aux photos existantes
-        const existingPhotos = (review as any).photos || [];
-        const updatedPhotos = [...existingPhotos, ...uploadedUrls];
-
-        await prisma.review.update({
-          where: { id: reviewId },
-          data: {
-            photos: updatedPhotos as any
-          }
-        });
+        // Note: Le champ photos n'existe pas dans le modèle Review actuel
+        // Pour implémenter cette fonctionnalité, il faudrait ajouter ce champ au schéma Prisma
+        // ou créer une table séparée pour les photos d'avis
+        console.log(`Tentative d'ajout de ${uploadedUrls.length} photo(s) à l'avis ${reviewId}`);
+        // await prisma.review.update({
+        //   where: { id: reviewId },
+        //   data: {
+        //     photos: updatedPhotos as any
+        //   }
+        // });
       }
     }
 
@@ -91,18 +91,22 @@ export async function GET(request: NextRequest) {
     const reviewId = searchParams.get('reviewId');
     const clientId = searchParams.get('clientId');
 
-    let photos = [];
+    let photos: string[] = [];
 
+    // Note: Le champ photos n'existe pas dans le modèle Review actuel
+    // Pour l'instant, on retourne un tableau vide
     if (reviewId) {
-      const review = await prisma.review.findUnique({
-        where: { id: reviewId }
-      });
-      photos = (review as any)?.photos || [];
+      console.log(`Recherche des photos pour l'avis ${reviewId}`);
+      // const review = await prisma.review.findUnique({
+      //   where: { id: reviewId }
+      // });
+      // photos = (review as any)?.photos || [];
     } else if (clientId) {
-      const reviews = await prisma.review.findMany({
-        where: { userId: clientId }
-      });
-      photos = reviews.flatMap((r: any) => r.photos || []);
+      console.log(`Recherche des photos pour le client ${clientId}`);
+      // const reviews = await prisma.review.findMany({
+      //   where: { userId: clientId }
+      // });
+      // photos = reviews.flatMap((r: any) => r.photos || []);
     }
 
     return NextResponse.json({

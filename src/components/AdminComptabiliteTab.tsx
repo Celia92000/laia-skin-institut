@@ -269,7 +269,7 @@ N° TVA Intracommunautaire: FR12 345678900`;
         address: ''
       },
       services: Array.isArray(reservation.services) 
-        ? reservation.services.map(s => ({
+        ? reservation.services.map((s: string) => ({
             name: s,
             quantity: 1,
             unitPrice: reservation.totalPrice / reservation.services.length / 1.20,

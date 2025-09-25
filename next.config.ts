@@ -3,7 +3,29 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   images: {
     unoptimized: false,
-    domains: ['localhost', 'laia-skin-institut.com', 'laia-skin-institut.vercel.app'],
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3001',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'laia-skin-institut.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'laia-skin-institut.vercel.app',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.vercel.app',
+        pathname: '/**',
+      }
+    ],
     formats: ['image/avif', 'image/webp'],
   },
   trailingSlash: true,

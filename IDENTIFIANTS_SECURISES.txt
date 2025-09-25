@@ -1,0 +1,68 @@
+
+================================================================================
+LAIA SKIN INSTITUT - IDENTIFIANTS SÉCURISÉS
+Généré le : 25/09/2025 02:48:59
+================================================================================
+
+⚠️  IMPORTANT : 
+- Ces mots de passe sont générés de manière sécurisée
+- Changez-les lors de la première connexion
+- Ne partagez JAMAIS ces informations par email
+- Conservez ce fichier en lieu sûr puis supprimez-le
+
+================================================================================
+
+
+Administrateur LAIA (ADMIN)
+------------------------
+📧 Email : admin@laiaskin.com
+🔑 Mot de passe : 1srgG7H#SsZ85qew
+
+
+Comptable LAIA (COMPTABLE)
+------------------------
+📧 Email : comptable@laiaskin.com
+🔑 Mot de passe : !B7Sao&BV3ejFE
+
+
+Employé 1 (EMPLOYEE)
+------------------------
+📧 Email : employe1@laiaskin.com
+🔑 Mot de passe : SQDzCG%Aau@3
+
+
+Employé 2 (EMPLOYEE)
+------------------------
+📧 Email : employe2@laiaskin.com
+🔑 Mot de passe : eX*4Z783cbzb
+
+
+Stagiaire (STAGIAIRE)
+------------------------
+📧 Email : stagiaire@laiaskin.com
+🔑 Mot de passe : GrRD$M1QL^
+
+
+Marie Dupont (CLIENT)
+------------------------
+📧 Email : marie.dupont@email.com
+🔑 Mot de passe : lapV%fT2iI
+
+
+Sophie Martin (CLIENT)
+------------------------
+📧 Email : sophie.martin@email.com
+🔑 Mot de passe : MdWcr@ln6w
+
+
+================================================================================
+
+ACCÈS PAR RÔLE :
+---------------
+👑 ADMIN : Accès complet au système
+💰 COMPTABLE : Accès financier et statistiques
+💼 EMPLOYEE : Gestion des rendez-vous et clients
+📚 STAGIAIRE : Accès limité en observation
+👤 CLIENT : Espace personnel et réservations
+
+================================================================================

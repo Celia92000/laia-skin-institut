@@ -92,20 +92,12 @@ export async function GET(request: NextRequest) {
           include: {
             user: {
               select: {
-                firstName: true,
-                lastName: true,
+                name: true,
                 email: true,
                 phone: true
               }
             },
-            service: {
-              select: {
-                name: true,
-                price: true,
-                duration: true,
-                category: true
-              }
-            }
+            service: true
           },
           orderBy: { date: 'desc' }
         });
@@ -130,13 +122,13 @@ export async function GET(request: NextRequest) {
           ID: r.id,
           Date: r.date,
           Heure: r.time,
-          Client: `${r.user.firstName} ${r.user.lastName}`,
+          Client: r.user.name,
           Email: r.user.email,
           Téléphone: r.user.phone || '',
-          Service: r.service.name,
-          Catégorie: r.service.category,
-          Prix: r.service.price,
-          Durée: r.service.duration,
+          Service: r.service?.name || 'N/A',
+          Catégorie: r.service?.category || 'N/A',
+          Prix: r.service?.price || r.totalPrice || 0,
+          Durée: r.service?.duration || 'N/A',
           Statut: r.status,
           Notes: r.notes || '',
           'Créé le': r.createdAt
@@ -153,7 +145,7 @@ export async function GET(request: NextRequest) {
             ...dateFilter
           },
           include: {
-            loyaltyProgram: true,
+            loyaltyProfile: true,
             _count: {
               select: {
                 reservations: true,
@@ -179,12 +171,12 @@ export async function GET(request: NextRequest) {
 
         const clientData = clients.map(c => ({
           ID: c.id,
-          Prénom: c.firstName,
-          Nom: c.lastName,
+          Prénom: c.name.split(' ')[0] || c.name,
+          Nom: c.name.split(' ').slice(1).join(' ') || '',
           Email: c.email,
           Téléphone: c.phone || '',
-          'Points fidélité': c.loyaltyProgram?.points || 0,
-          'Code parrainage': c.loyaltyProgram?.loyaltyCode || '',
+          'Points fidélité': c.loyaltyProfile?.points || 0,
+          'Code parrainage': c.loyaltyProfile?.referralCode || '',
           'Nb réservations': c._count.reservations,
           'Nb avis': c._count.reviews,
           'Inscrit le': c.createdAt
@@ -243,8 +235,7 @@ export async function GET(request: NextRequest) {
             service: true,
             user: {
               select: {
-                firstName: true,
-                lastName: true
+                name: true
               }
             }
           },
@@ -261,9 +252,9 @@ export async function GET(request: NextRequest) {
 
         const financeDataFormatted = financialData.map(f => ({
           Date: f.date,
-          Client: `${f.user.firstName} ${f.user.lastName}`,
-          Service: f.service.name,
-          Montant: f.service.price,
+          Client: f.user.name,
+          Service: f.service?.name || 'N/A',
+          Montant: f.service?.price || f.totalPrice || 0,
           'Statut paiement': 'Payé' // On pourrait ajouter un champ paymentStatus dans le futur
         }));
 
@@ -291,7 +282,7 @@ export async function GET(request: NextRequest) {
           })
         ]);
 
-        const revenue = totalRevenue.reduce((sum, r) => sum + r.service.price, 0);
+        const revenue = totalRevenue.reduce((sum, r) => sum + (r.service?.price || r.totalPrice || 0), 0);
 
         const statsHeaders = [
           'Métrique',

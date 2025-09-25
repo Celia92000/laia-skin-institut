@@ -1,3 +1,10 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Dashboard - LAIA SKIN INSTITUT",
+  description: "Espace administration LAIA SKIN INSTITUT",
+};
+
 export default function AdminLayout({
   children,
 }: {

@@ -1,0 +1,40 @@
+// Modèles additionnels à ajouter au schema.prisma
+
+model WhatsAppHistory {
+  id            String   @id @default(cuid())
+  from          String   // Numéro de téléphone de l'expéditeur
+  to            String   // Numéro de téléphone du destinataire
+  message       String   // Contenu du message
+  status        String   @default("sent") // sent, delivered, read, failed
+  direction     String   @default("outgoing") // outgoing, incoming
+  userId        String?  // Client associé
+  mediaUrl      String?  // URL des médias attachés
+  errorMessage  String?
+  deliveredAt   DateTime?
+  readAt        DateTime?
+  createdAt     DateTime @default(now())
+}
+
+model CommunicationHistory {
+  id           String   @id @default(cuid())
+  userId       String   // Client associé
+  type         String   // email, whatsapp, sms, call
+  direction    String   // incoming, outgoing
+  subject      String?  // Pour les emails
+  content      String   // Contenu du message
+  status       String   @default("sent") // sent, delivered, read, failed
+  metadata     String?  // JSON avec métadonnées supplémentaires
+  createdAt    DateTime @default(now())
+}
+
+model WorkingHours {
+  id         String   @id @default(cuid())
+  dayOfWeek  Int      // 0 = Dimanche, 1 = Lundi, etc.
+  dayName    String   // Nom du jour en français
+  openTime   String?  // Format HH:MM
+  closeTime  String?  // Format HH:MM
+  isClosed   Boolean  @default(false)
+  breaks     String?  // JSON array des pauses [{start: "12:00", end: "14:00"}]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}

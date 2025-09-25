@@ -19,7 +19,7 @@ export interface Client {
   birthdate?: string;
   loyaltyPoints: number;
   totalSpent: number;
-  lastVisit?: string;
+  lastVisit?: string | Date | null;
   skinType?: string;
   allergies?: string;
   medicalNotes?: string;
@@ -209,28 +209,28 @@ export default function UnifiedCRMTab({
         reservationCount: clientReservations.length,
         noShowCount,
         totalSpent: client.totalSpent || 0,
-        lastVisitDate: lastVisit ? new Date(lastVisit.date) : null
+        lastVisit: lastVisit ? lastVisit.date : null
       };
     });
     
     // Appliquer les filtres spéciaux depuis le select
-    const filterValue = document.querySelector('select[onChange*="noshow"]')?.value;
+    const filterValue = (document.querySelector('select[onChange*="noshow"]') as HTMLSelectElement)?.value;
     if (filterValue === 'noshow') {
       filtered = clientsWithData.filter(c => c.noShowCount > 0);
     } else if (filterValue === 'active') {
       const threeMonthsAgo = new Date();
       threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-      filtered = clientsWithData.filter(c => c.lastVisitDate && c.lastVisitDate > threeMonthsAgo);
+      filtered = clientsWithData.filter(c => c.lastVisit && new Date(c.lastVisit) > threeMonthsAgo);
     } else if (filterValue === 'inactive') {
       const threeMonthsAgo = new Date();
       threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-      filtered = clientsWithData.filter(c => !c.lastVisitDate || c.lastVisitDate <= threeMonthsAgo);
+      filtered = clientsWithData.filter(c => !c.lastVisit || new Date(c.lastVisit) <= threeMonthsAgo);
     } else {
       filtered = clientsWithData;
     }
     
     // Appliquer le tri depuis le select de tri
-    const sortValue = document.querySelector('select[onChange*="Tri par"]')?.value;
+    const sortValue = (document.querySelector('select[onChange*="Tri par"]') as HTMLSelectElement)?.value;
     if (sortValue) {
       filtered.sort((a, b) => {
         switch(sortValue) {
@@ -243,13 +243,13 @@ export default function UnifiedCRMTab({
           case 'spent-desc':
             return (b.totalSpent || 0) - (a.totalSpent || 0);
           case 'visits':
-            return a.reservationCount - b.reservationCount;
+            return (a.reservationCount ?? 0) - (b.reservationCount ?? 0);
           case 'visits-desc':
-            return b.reservationCount - a.reservationCount;
+            return (b.reservationCount ?? 0) - (a.reservationCount ?? 0);
           case 'recent':
-            return (b.lastVisitDate?.getTime() || 0) - (a.lastVisitDate?.getTime() || 0);
+            return (b.lastVisit ? new Date(b.lastVisit).getTime() : 0) - (a.lastVisit ? new Date(a.lastVisit).getTime() : 0);
           case 'oldest':
-            return (a.lastVisitDate?.getTime() || 0) - (b.lastVisitDate?.getTime() || 0);
+            return (a.lastVisit ? new Date(a.lastVisit).getTime() : 0) - (b.lastVisit ? new Date(b.lastVisit).getTime() : 0);
           default:
             return 0;
         }
@@ -1093,7 +1093,7 @@ export default function UnifiedCRMTab({
                                   .slice(0, 5)
                                   .map((reservation, idx) => {
                                     // Mapper les IDs de services aux noms
-                                    const serviceNames = reservation.services.map(serviceId => {
+                                    const serviceNames = reservation.services.map((serviceId: string) => {
                                       const serviceMap: any = {
                                         'hydro-naissance': "Hydro'Naissance",
                                         'hydro-cleaning': "Hydro'Cleaning",

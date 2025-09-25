@@ -17,7 +17,7 @@ async function verifyDomain() {
       return;
     }
     
-    if (!domains || domains.length === 0) {
+    if (!domains || !Array.isArray(domains) || domains.length === 0) {
       console.log('⚠️ Aucun domaine trouvé dans votre compte Resend');
       return;
     }

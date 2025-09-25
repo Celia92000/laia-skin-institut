@@ -1,14 +1,36 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import prisma from '@/lib/prisma';
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const approved = searchParams.get('approved');
     const featured = searchParams.get('featured');
+    const userOnly = searchParams.get('userOnly');
+    
+    // Si userOnly, vérifier l'authentification
+    let userId = null;
+    if (userOnly === 'true') {
+      const authHeader = request.headers.get('Authorization');
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.split(' ')[1];
+        try {
+          const decoded = jwt.verify(token, JWT_SECRET) as any;
+          userId = decoded.userId;
+        } catch (e) {
+          return NextResponse.json({ error: 'Token invalide' }, { status: 401 });
+        }
+      } else {
+        return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+      }
+    }
     
     const where: any = {};
-    if (approved !== null) where.approved = approved === 'true';
+    if (userId) where.userId = userId;
+    if (approved !== null && !userId) where.approved = approved === 'true';
     if (featured !== null) where.featured = featured === 'true';
 
     const reviews = await prisma.review.findMany({
@@ -53,38 +75,69 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    // Vérifier l'authentification
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+    }
+
+    const token = authHeader.split(' ')[1];
+    let userId: string;
+    
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as any;
+      userId = decoded.userId;
+    } catch (e) {
+      return NextResponse.json({ error: 'Token invalide' }, { status: 401 });
+    }
+
     const body = await request.json();
-    const { userId, serviceName, rating, comment, reservationId, source } = body;
+    const { serviceName, rating, comment, reservationId, satisfaction, photos } = body;
 
     // Si un reservationId est fourni, vérifier la réservation
     if (reservationId) {
       const reservation = await prisma.reservation.findFirst({
         where: {
           id: reservationId,
-          userId: userId || undefined
+          userId: userId
         }
       });
 
       if (!reservation) {
         return NextResponse.json({ error: 'Réservation non trouvée' }, { status: 400 });
       }
-
-      // Utiliser l'userId de la réservation si pas fourni
-      if (!userId && reservation.userId) {
-        body.userId = reservation.userId;
+      
+      // Vérifier qu'il n'y a pas déjà un avis pour cette réservation
+      const existingReview = await prisma.review.findFirst({
+        where: { reservationId }
+      });
+      
+      if (existingReview) {
+        return NextResponse.json({ error: 'Un avis existe déjà pour cette réservation' }, { status: 400 });
       }
     }
 
     const review = await prisma.review.create({
       data: {
-        userId: body.userId || userId,
+        userId,
         reservationId,
         serviceName: serviceName || 'Service',
         rating,
         comment,
-        source: source || 'site',
+        satisfaction: satisfaction || 5,
+        photos: photos ? JSON.stringify(photos) : '[]',
+        source: 'site',
         approved: false, // Les avis doivent être approuvés manuellement
         googleReview: rating === 5 // Suggérer Google pour 5 étoiles
+      },
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true
+          }
+        },
+        reservation: true
       }
     });
 
@@ -94,6 +147,8 @@ export async function POST(request: Request) {
       : null;
 
     return NextResponse.json({
+      success: true,
+      message: 'Avis enregistré avec succès. Il sera publié après validation.',
       review,
       suggestGoogle: rating === 5,
       googleUrl

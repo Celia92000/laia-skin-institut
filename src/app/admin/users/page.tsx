@@ -14,7 +14,7 @@ interface User {
   name: string;
   phone: string | null;
   role: string;
-  plainPassword?: string | null;
+  // plainPassword removed for security
   createdAt: string;
   _count: {
     reservations: number;
@@ -356,7 +356,6 @@ export default function UsersManagement() {
                 id: 'admin', 
                 email: 'admin@laiaskin.com', 
                 name: 'Admin',
-                plainPassword: null,
                 role: 'ADMIN',
                 phone: null,
                 createdAt: '',
@@ -375,7 +374,6 @@ export default function UsersManagement() {
                 id: 'client', 
                 email: 'marie.dupont@email.com', 
                 name: 'Marie Dupont',
-                plainPassword: null,
                 role: 'CLIENT',
                 phone: null,
                 createdAt: '',
@@ -560,38 +558,7 @@ export default function UsersManagement() {
                           </select>
                         </td>
                         <td className="px-6 py-4">
-                          {(user.role === 'EMPLOYEE' || user.role === 'ADMIN' || user.role === 'admin') ? (
-                            <div className="flex items-center gap-1">
-                              <input
-                                type={showPasswords[user.id] ? 'text' : 'password'}
-                                value={user.plainPassword || ''}
-                                readOnly
-                                className="text-xs font-mono bg-gray-50 px-2 py-1 rounded border border-gray-200 w-20"
-                                title={user.plainPassword || 'Pas de mot de passe'}
-                              />
-                              <button
-                                onClick={() => setShowPasswords({ ...showPasswords, [user.id]: !showPasswords[user.id] })}
-                                className="p-1 text-gray-400 hover:text-gray-600"
-                                title="Afficher/Masquer"
-                              >
-                                {showPasswords[user.id] ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-                              </button>
-                              {user.plainPassword && (
-                                <button
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(user.plainPassword!);
-                                    alert('Mot de passe copié !');
-                                  }}
-                                  className="p-1 text-gray-400 hover:text-blue-600"
-                                  title="Copier"
-                                >
-                                  <Copy className="w-3 h-3" />
-                                </button>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-xs text-gray-400">-</span>
-                          )}
+                          <span className="text-xs text-gray-400">Sécurisé</span>
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-600">
                           {new Date(user.createdAt).toLocaleDateString('fr-FR')}
@@ -616,19 +583,6 @@ export default function UsersManagement() {
                             >
                               <Edit2 className="w-4 h-4" />
                             </button>
-                            {user.plainPassword && (user.role === 'EMPLOYEE' || user.role === 'ADMIN') && (
-                              <button
-                                onClick={() => {
-                                  setPasswordModalUser(user);
-                                  setResetPasswords({ [user.id]: user.plainPassword! });
-                                  setShowPasswordModal(true);
-                                }}
-                                className="p-1 text-gray-400 hover:text-green-600 transition-colors"
-                                title="Voir le mot de passe"
-                              >
-                                <Eye className="w-4 h-4" />
-                              </button>
-                            )}
                             <button
                               onClick={() => handleResetPassword(user)}
                               className="p-1 text-gray-400 hover:text-blue-600 transition-colors"

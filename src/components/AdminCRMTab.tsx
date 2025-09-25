@@ -7,7 +7,7 @@ import {
   MessageSquare, AlertCircle, TrendingUp, Gift, X,
   Clock, Star, Users, Target, UserCheck, UserX,
   ArrowRight, Edit2, Save, User, MapPin, FileText,
-  Heart, Activity, CreditCard
+  Heart, Activity, CreditCard, Sparkles
 } from "lucide-react";
 
 interface User {

@@ -306,38 +306,34 @@ export default function QuickActionModal({
               <div>
                 <label className="block text-sm font-medium text-[#2c3e50] mb-2">Services</label>
                 <div className="space-y-2">
-                  {dbServices && dbServices
-                    .filter(service => service.active)
-                    .map((service) => (
-                      <label key={service.slug} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                  {services && Object.entries(services)
+                    .map(([slug, name]) => (
+                      <label key={slug} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
                         <div className="flex items-center gap-3">
                           <input
                             type="checkbox"
-                            checked={selectedServices.includes(service.slug)}
+                            checked={selectedServices.includes(slug)}
                             onChange={(e) => {
                               if (e.target.checked) {
-                                setSelectedServices([...selectedServices, service.slug]);
+                                setSelectedServices([...selectedServices, slug]);
                               } else {
-                                setSelectedServices(selectedServices.filter(s => s !== service.slug));
+                                setSelectedServices(selectedServices.filter(s => s !== slug));
                               }
                             }}
                             className="w-4 h-4 text-[#d4b5a0] border-gray-300 rounded focus:ring-[#d4b5a0]"
                           />
                           <div>
-                            <span className="text-sm font-medium">{service.name}</span>
-                            <span className="text-xs text-gray-500 ml-2">{service.duration} min</span>
+                            <span className="text-sm font-medium">{name}</span>
+                            <span className="text-xs text-gray-500 ml-2">90 min</span>
                           </div>
                         </div>
                         <span className="text-sm font-medium text-[#d4b5a0]">
-                          {service.promoPrice || service.price}€
-                          {service.promoPrice && (
-                            <span className="text-xs text-gray-500 line-through ml-1">{service.price}€</span>
-                          )}
+                          70€
                         </span>
                       </label>
                     ))
                   }
-                  {(!dbServices || dbServices.length === 0) && (
+                  {(!services || Object.keys(services).length === 0) && (
                     <p className="text-sm text-gray-500">Chargement des services...</p>
                   )}
                 </div>

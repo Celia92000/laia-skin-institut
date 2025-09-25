@@ -32,27 +32,7 @@ export async function POST(request: Request) {
     console.log('Password validation (rounds 10):', isValid10);
     console.log('Password validation (rounds 12):', isValid12);
     
-    // Si le plainPassword correspond, on accepte
-    if (user.plainPassword === password) {
-      console.log('✅ Plain password matches!');
-      
-      const token = jwt.sign(
-        { userId: user.id, role: user.role }, 
-        JWT_SECRET, 
-        { expiresIn: '7d' }
-      );
-
-      return NextResponse.json({
-        token,
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role
-        },
-        debug: 'Login successful via plainPassword'
-      });
-    }
+    // plainPassword removed for security
 
     if (!isValid10 && !isValid12) {
       console.log('❌ Password mismatch');

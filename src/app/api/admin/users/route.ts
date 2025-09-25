@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
         name: true,
         phone: true,
         role: true,
-        plainPassword: true, // Inclure le mot de passe en clair
+        // plainPassword removed for security
         createdAt: true,
         _count: {
           select: {
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
         phone,
         role,
         password: hashedPassword,
-        plainPassword: password // Toujours stocker le mot de passe en clair
+        // plainPassword removed for security
       },
       select: {
         id: true,
@@ -192,8 +192,7 @@ export async function PATCH(request: NextRequest) {
     if (password) {
       const hashedPassword = await bcrypt.hash(password, 10);
       updateData.password = hashedPassword;
-      // Toujours stocker le mot de passe en clair pour pouvoir se connecter
-      updateData.plainPassword = password;
+      // plainPassword removed for security
     }
 
     const updatedUser = await prisma.user.update({

@@ -33,6 +33,7 @@ export async function GET(request: Request) {
         id: r.id,
         rating: r.rating,
         comment: r.comment,
+        satisfaction: r.satisfaction,
         clientName: r.user?.name || 'Client anonyme',
         clientEmail: r.user?.email,
         clientPhone: r.user?.phone,
@@ -41,7 +42,7 @@ export async function GET(request: Request) {
         createdAt: r.createdAt,
         published: r.approved,
         response: r.response,
-        photos: []
+        photos: r.photos ? JSON.parse(r.photos) : []
       })),
       ...googleReviews.map(g => ({
         id: 'google_' + g.id,

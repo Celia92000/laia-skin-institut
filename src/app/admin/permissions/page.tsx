@@ -7,7 +7,7 @@ import {
   Calendar, Users, Euro, MessageCircle, FileText,
   Settings, Package, TrendingUp, Award, Save,
   Check, X, ChevronDown, Lock, Unlock, Sparkles,
-  UserCheck, ShieldCheck, Crown, Star, Zap, Mail,
+  UserCheck, ShieldCheck, Crown, Star, Zap, Mail, CheckCircle,
   Image, Bell, Database, CreditCard, BarChart3,
   Globe, Smartphone, Clock, MapPin, Gift
 } from 'lucide-react';

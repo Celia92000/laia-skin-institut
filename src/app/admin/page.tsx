@@ -68,6 +68,7 @@ interface Reservation {
 export default function AdminDashboard() {
   const router = useRouter();
   const [userRole, setUserRole] = useState<string>('');
+  const [userData, setUserData] = useState<any>(null);
   const [useOptimizedView, setUseOptimizedView] = useState(false); // Dashboard classique pour l'instant
   const [activeTab, setActiveTab] = useState("stats");
   const [reservations, setReservations] = useState<Reservation[]>([]);
@@ -149,8 +150,9 @@ export default function AdminDashboard() {
         return;
       }
       
-      // Stocker le rôle pour contrôler l'affichage
+      // Stocker le rôle et les données utilisateur pour contrôler l'affichage
       setUserRole(userInfo.role);
+      setUserData(userInfo);
 
       fetchReservations();
       fetchClients();

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Camera, Star, Download, Trash2, Eye, Check, X, Calendar, User, Heart, MessageCircle, Share2, Instagram, Filter, Search, Image as ImageIcon, Grid, List, Upload, Plus } from "lucide-react";
+import { Camera, Star, Download, Trash2, Eye, Check, X, Calendar, User, Heart, MessageCircle, Share2, Instagram, Filter, Search, Image as ImageIcon, Grid, List, Upload, Plus, Mail } from "lucide-react";
 import PhotoUploadModal from "./PhotoUploadModal";
 
 interface ClientPhoto {
@@ -152,7 +152,9 @@ export default function AdminPhotosReviews() {
         source: 'google'
       }
     ]);
-  }, []);
+  };  // Fermeture de fetchRealData
+
+  // Ce useEffect appelle fetchRealData
 
   const filteredPhotos = photos.filter(photo => {
     const matchesSearch = photo.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||

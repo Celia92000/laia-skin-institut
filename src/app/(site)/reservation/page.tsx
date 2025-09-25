@@ -1124,63 +1124,6 @@ function ReservationContent() {
           </div>
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="bg-[#2c3e50] text-white py-16 mt-20">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8 mb-12">
-            <div>
-              <h3 className="text-2xl font-serif mb-4">LAIA SKIN</h3>
-              <p className="text-white/70 text-sm">
-                Votre institut de beauté premium où excellence et bien-être se rencontrent pour révéler votre éclat naturel.
-              </p>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-4">Navigation</h4>
-              <ul className="space-y-2 text-sm text-white/70">
-                <li><Link href="/" className="hover:text-white transition-colors">Accueil</Link></li>
-                <li><Link href="/prestations" className="hover:text-white transition-colors">Nos soins</Link></li>
-                <li><Link href="/reservation" className="hover:text-white transition-colors">Réservation</Link></li>
-                <li><Link href="/contact" className="hover:text-white transition-colors">Contact</Link></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-4">Nos Soins</h4>
-              <ul className="space-y-2 text-sm text-white/70">
-                <li>LAIA Hydro'Cleaning</li>
-                <li>LAIA Renaissance</li>
-                <li>BB Glow</li>
-                <li>LED Thérapie</li>
-                <li>Éclat Suprême</li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-4">Contact</h4>
-              <ul className="space-y-2 text-sm text-white/70">
-                <li className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4" />
-                  123 Rue de la Beauté, 75008 Paris
-                </li>
-                <li className="flex items-center gap-2">
-                  <Phone className="w-4 h-4" />
-                  01 42 89 56 78
-                </li>
-                <li className="flex items-center gap-2">
-                  <Mail className="w-4 h-4" />
-                  contact@laia-skin.fr
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t border-white/20 pt-8 text-center text-sm text-white/60">
-            © 2024 LAIA SKIN Institut. Tous droits réservés.
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

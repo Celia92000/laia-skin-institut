@@ -56,7 +56,7 @@ export async function PUT(req: NextRequest) {
     const settings = await req.json();
 
     // Sauvegarder les paramètres dans la base de données
-    await prisma.systemSettings.upsert({
+    await prisma.setting.upsert({
       where: { key: 'loyalty_settings' },
       update: { 
         value: JSON.stringify(settings),
@@ -64,8 +64,7 @@ export async function PUT(req: NextRequest) {
       },
       create: {
         key: 'loyalty_settings',
-        value: JSON.stringify(settings),
-        description: 'Paramètres du programme de fidélité'
+        value: JSON.stringify(settings)
       }
     });
 
@@ -73,10 +72,9 @@ export async function PUT(req: NextRequest) {
     await prisma.loyaltyHistory.create({
       data: {
         userId: decoded.id,
-        type: 'settings_updated',
+        action: 'settings_update',
         points: 0,
-        description: 'Mise à jour des paramètres de fidélité',
-        createdBy: decoded.id
+        description: 'Mise à jour des paramètres de fidélité'
       }
     });
 

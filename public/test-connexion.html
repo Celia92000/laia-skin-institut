@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Connexion LAIA</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5e6d3; }
+        .container { max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; border-radius: 5px; }
+        .success { background: #4caf50; color: white; }
+        .error { background: #f44336; color: white; }
+        .info { background: #2196F3; color: white; }
+        .result { margin-top: 20px; padding: 15px; border-radius: 5px; background: #f0f0f0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Test de Connexion LAIA SKIN</h1>
+        
+        <h3>1. Test de connexion Admin :</h3>
+        <button onclick="testLogin('admin@laiaskin.com', 'admin123')" class="info">
+            Tester admin@laiaskin.com / admin123
+        </button>
+        
+        <h3>2. Test de connexion Client :</h3>
+        <button onclick="testLogin('marie.dupont@email.com', 'client123')" class="info">
+            Tester marie.dupont@email.com / client123
+        </button>
+        
+        <h3>3. Après connexion réussie, accéder à :</h3>
+        <button onclick="window.location.href='/admin'" class="success">
+            Aller à l'Admin
+        </button>
+        <button onclick="window.location.href='/espace-client'" class="success">
+            Aller à l'Espace Client
+        </button>
+        
+        <div id="result" class="result" style="display:none;"></div>
+    </div>
+
+    <script>
+        async function testLogin(email, password) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '⏳ Test en cours...';
+            
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Sauvegarder le token et les infos utilisateur
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    resultDiv.innerHTML = `
+                        <h3>✅ Connexion réussie !</h3>
+                        <p><strong>Utilisateur :</strong> ${data.user.name}</p>
+                        <p><strong>Email :</strong> ${data.user.email}</p>
+                        <p><strong>Rôle :</strong> ${data.user.role}</p>
+                        <p><strong>Token sauvegardé dans localStorage</strong></p>
+                        <hr>
+                        <p>Vous pouvez maintenant accéder à :</p>
+                        <ul>
+                            ${data.user.role === 'ADMIN' || data.user.role === 'admin' ? '<li><a href="/admin">Dashboard Admin</a></li>' : ''}
+                            ${data.user.role === 'CLIENT' || data.user.role === 'client' ? '<li><a href="/espace-client">Espace Client</a></li>' : ''}
+                        </ul>
+                    `;
+                    resultDiv.style.background = '#d4f5d4';
+                } else {
+                    resultDiv.innerHTML = `
+                        <h3>❌ Erreur de connexion</h3>
+                        <p>${data.error || 'Erreur inconnue'}</p>
+                    `;
+                    resultDiv.style.background = '#ffebee';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <h3>❌ Erreur réseau</h3>
+                    <p>${error.message}</p>
+                `;
+                resultDiv.style.background = '#ffebee';
+            }
+        }
+        
+        // Vérifier si on est déjà connecté
+        window.onload = function() {
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            
+            if (token && user) {
+                const userData = JSON.parse(user);
+                const resultDiv = document.getElementById('result');
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = `
+                    <h3>ℹ️ Déjà connecté</h3>
+                    <p><strong>Utilisateur :</strong> ${userData.name}</p>
+                    <p><strong>Rôle :</strong> ${userData.role}</p>
+                    <button onclick="localStorage.clear(); location.reload();" class="error">
+                        Se déconnecter
+                    </button>
+                `;
+                resultDiv.style.background = '#e3f2fd';
+            }
+        }
+    </script>
+</body>
+</html>

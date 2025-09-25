@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       clients = await prisma.user.findMany({
         where: {
           id: { in: clientIds },
-          email: { not: null }
+          email: { not: undefined }
         }
       });
     } else {
