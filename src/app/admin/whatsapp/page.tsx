@@ -1,43 +1,20 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import WhatsAppIntuitive from '@/components/WhatsAppIntuitive';
 import { ArrowLeft } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function WhatsAppPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
 
+  // Vérification simple du token uniquement
   useEffect(() => {
-    // Vérifier l'authentification simple
     const token = localStorage.getItem('token');
-    const userRole = localStorage.getItem('userRole');
-    
     if (!token) {
       router.push('/login');
-      return;
     }
-    
-    // Vérifier que c'est un admin ou employé
-    if (userRole !== 'admin' && userRole !== 'ADMIN' && userRole !== 'EMPLOYEE') {
-      router.push('/espace-client');
-      return;
-    }
-    
-    setLoading(false);
   }, [router]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Chargement...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">

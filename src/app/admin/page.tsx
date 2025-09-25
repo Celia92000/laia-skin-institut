@@ -28,6 +28,7 @@ import ClientSegmentation from "@/components/ClientSegmentation";
 import EmailingInterface from "@/components/EmailingInterface";
 import SourceStats from "@/components/SourceStats";
 import RevenueManagement from "@/components/RevenueManagement";
+import WhatsAppIntuitive from "@/components/WhatsAppIntuitive";
 import RealTimeStats from "@/components/admin/RealTimeStats";
 import DynamicCharts from "@/components/admin/DynamicCharts";
 import DataExport from "@/components/admin/DataExport";
@@ -977,8 +978,12 @@ export default function AdminDashboard() {
             {userRole === 'EMPLOYEE' ? 'Tableau de bord' : 'Statistiques'}
           </button>
           <button
-            onClick={() => router.push('/admin/whatsapp')}
-            className="px-3 sm:px-6 py-2 sm:py-3 rounded-full font-medium transition-all whitespace-nowrap flex-shrink-0 text-sm sm:text-base bg-green-500 text-white hover:bg-green-600 shadow-lg flex items-center gap-2"
+            onClick={() => setActiveTab("whatsapp")}
+            className={`px-3 sm:px-6 py-2 sm:py-3 rounded-full font-medium transition-all whitespace-nowrap flex-shrink-0 text-sm sm:text-base flex items-center gap-2 ${
+              activeTab === "whatsapp"
+                ? "bg-green-500 text-white shadow-lg"
+                : "bg-green-100 text-green-700 hover:bg-green-200"
+            }`}
           >
             <MessageCircle className="w-4 h-4" />
             WhatsApp
@@ -3702,6 +3707,13 @@ export default function AdminDashboard() {
           onValidate={handleValidationPayment}
           loyaltyProfile={loyaltyProfiles.find(p => p.userId === reservationToValidate.userId)}
         />
+      )}
+
+      {/* Interface WhatsApp */}
+      {activeTab === "whatsapp" && (
+        <div className="mt-6">
+          <WhatsAppIntuitive />
+        </div>
       )}
       </div>
     </div>
