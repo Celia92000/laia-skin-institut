@@ -6,6 +6,7 @@ import {
   ChevronRight, Calendar, Star, MessageSquare, Sparkles, Plus,
   Filter, Download, Upload, Eye, Edit, Trash2, Copy, User
 } from 'lucide-react';
+import EmailConversationTab from './EmailConversationTab';
 
 interface EmailTemplate {
   id: string;
@@ -60,7 +61,7 @@ const emailTemplates: EmailTemplate[] = [
 ];
 
 export default function EmailingInterface() {
-  const [activeView, setActiveView] = useState<'quick' | 'campaign' | 'automations' | 'history'>('quick');
+  const [activeView, setActiveView] = useState<'mailbox' | 'campaign' | 'automations' | 'history'>('mailbox');
   const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null);
   const [selectedClients, setSelectedClients] = useState<string[]>([]);
   const [emailContent, setEmailContent] = useState('');
@@ -229,15 +230,15 @@ export default function EmailingInterface() {
           </div>
           <div className="flex gap-2">
             <button
-              onClick={() => setActiveView('quick')}
+              onClick={() => setActiveView('mailbox')}
               className={`px-4 py-2 rounded-xl font-medium transition-all ${
-                activeView === 'quick'
+                activeView === 'mailbox'
                   ? 'bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white shadow-lg'
                   : 'bg-[#fdfbf7] text-[#2c3e50] hover:bg-[#f8f6f0]'
               }`}
             >
-              <Send className="w-4 h-4 inline mr-2" />
-              Envoi Rapide
+              <Mail className="w-4 h-4 inline mr-2" />
+              Boîte Mail
             </button>
             <button
               onClick={() => setActiveView('campaign')}
@@ -312,8 +313,15 @@ export default function EmailingInterface() {
         </div>
       </div>
 
-      {/* Vue Envoi Rapide */}
-      {activeView === 'quick' && (
+      {/* Vue Boîte Mail - Conversations */}
+      {activeView === 'mailbox' && (
+        <div className="bg-white rounded-2xl shadow-sm border border-[#d4b5a0]/20">
+          <EmailConversationTab />
+        </div>
+      )}
+
+      {/* Vue ancienne Envoi Rapide - caché */}
+      {activeView === 'hidden_quick' && (
         <div className="grid grid-cols-12 gap-6">
           {/* Templates */}
           <div className="col-span-5 space-y-4">
