@@ -1,4 +1,4 @@
-import prisma from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 
 export async function getAdminStatistics() {
   try {
@@ -8,6 +8,7 @@ export async function getAdminStatistics() {
     tomorrow.setDate(tomorrow.getDate() + 1);
     
     // Récupérer toutes les réservations
+    const prisma = await getPrismaClient();
     const reservations = await prisma.reservation.findMany({
       include: {
         user: {

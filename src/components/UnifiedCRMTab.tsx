@@ -204,7 +204,11 @@ export default function UnifiedCRMTab({
       
       // Filtre par niveau
       if (filterLevel !== "all") {
-        const clientReservations = reservations.filter(r => r.userEmail === client.email);
+        const clientReservations = reservations.filter(r => {
+          return r.userEmail === client.email || 
+                 r.userId === client.id ||
+                 (r.user && r.user.email === client.email);
+        });
         const level = getLoyaltyLevel(clientReservations);
         if (level.level !== parseInt(filterLevel)) return false;
       }
@@ -214,7 +218,11 @@ export default function UnifiedCRMTab({
     
     // Ajouter des données pour le tri
     const clientsWithData = filtered.map(client => {
-      const clientReservations = reservations.filter(r => r.userEmail === client.email);
+      const clientReservations = reservations.filter(r => {
+        return r.userEmail === client.email || 
+               r.userId === client.id ||
+               (r.user && r.user.email === client.email);
+      });
       const noShowCount = clientReservations.filter(r => r.status === 'no_show').length;
       const lastVisit = clientReservations
         .filter(r => r.status === 'completed')
@@ -327,32 +335,31 @@ export default function UnifiedCRMTab({
   // Auto-save avec debounce
   const handleFieldChange = (clientId: string, field: string, value: string) => {
     // Mettre à jour l'état local immédiatement
-    setEditedData(prev => {
-      const updatedData = {
-        ...prev[clientId],
-        [field]: value
-      };
-      
-      // Mettre à jour le client dans la liste immédiatement pour un feedback visuel
-      setClients(currentClients => currentClients.map(c => 
-        c.id === clientId ? { ...c, [field]: value } : c
-      ));
-      
-      // Annuler le timeout précédent s'il existe
-      if (saveTimeoutRef.current[clientId]) {
-        clearTimeout(saveTimeoutRef.current[clientId]);
-      }
-      
-      // Créer un nouveau timeout pour sauvegarder après 1 seconde d'inactivité
-      saveTimeoutRef.current[clientId] = setTimeout(() => {
-        saveClientChanges(clientId, updatedData);
-      }, 1000);
-      
-      return {
-        ...prev,
-        [clientId]: updatedData
-      };
-    });
+    const updatedData = {
+      ...editedData[clientId],
+      [field]: value
+    };
+    
+    // Mettre à jour les données éditées
+    setEditedData(prev => ({
+      ...prev,
+      [clientId]: updatedData
+    }));
+    
+    // Mettre à jour le client dans la liste immédiatement pour un feedback visuel
+    setClients(currentClients => currentClients.map(c => 
+      c.id === clientId ? { ...c, [field]: value } : c
+    ));
+    
+    // Annuler le timeout précédent s'il existe
+    if (saveTimeoutRef.current[clientId]) {
+      clearTimeout(saveTimeoutRef.current[clientId]);
+    }
+    
+    // Créer un nouveau timeout pour sauvegarder après 1 seconde d'inactivité
+    saveTimeoutRef.current[clientId] = setTimeout(() => {
+      saveClientChanges(clientId, updatedData);
+    }, 1000);
   };
 
   // Exporter les données clients
@@ -829,7 +836,11 @@ export default function UnifiedCRMTab({
             </thead>
             <tbody>
               {filteredClients.map((client) => {
-                const clientReservations = reservations.filter(r => r.userEmail === client.email);
+                const clientReservations = reservations.filter(r => {
+          return r.userEmail === client.email || 
+                 r.userId === client.id ||
+                 (r.user && r.user.email === client.email);
+        });
                 const level = getLoyaltyLevel(clientReservations);
                 const isExpanded = expandedClient === client.id;
                 const isEditing = editingClient === client.id;
@@ -1108,7 +1119,7 @@ export default function UnifiedCRMTab({
                                   />
                                 </div>
                                 <div>
-                                  <label className="text-sm text-[#2c3e50]/60">Notes privées (admin)</label>
+                                  <label className="text-sm text-[#2c3e50]/60">Note privée (admin)</label>
                                   <textarea
                                     value={client.adminNotes || ''}
                                     onChange={(e) => handleFieldChange(client.id, 'adminNotes', e.target.value)}
@@ -1117,122 +1128,11 @@ export default function UnifiedCRMTab({
                                     rows={3}
                                   />
                                 </div>
-                              </div>
-                            </div>
-                            
-                            {/* Fidélité & Récompenses + Notes */}
-                            <div className="grid grid-cols-2 gap-4">
-                              {/* Section Fidélité */}
-                              <div className="space-y-4">
-                                <h4 className="font-semibold text-[#2c3e50] flex items-center gap-2">
-                                  <Gift className="w-4 h-4 text-purple-400" />
-                                  Fidélité & Récompenses
-                                </h4>
-                                <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 space-y-3">
-                                {(() => {
-                                  const clientReservations = reservations.filter(r => 
-                                    r.userEmail === client.email && r.status !== 'cancelled'
-                                  );
-                                  const sessionCount = clientReservations.length;
-                                  const progressTo6 = sessionCount % 6;
-                                  const has6Sessions = sessionCount > 0 && sessionCount % 6 === 0;
-                                  
-                                  // Vérifier anniversaire
-                                  const currentMonth = new Date().getMonth();
-                                  const hasBirthday = client.birthDate && 
-                                    new Date(client.birthDate).getMonth() === currentMonth;
-                                  
-                                  return (
-                                    <>
-                                      {/* Progression carte de fidélité */}
-                                      <div>
-                                        <p className="text-sm font-medium text-[#2c3e50] mb-2">Carte Fidélité Soins</p>
-                                        <div className="flex gap-1 mb-2">
-                                          {[1, 2, 3, 4, 5, 6].map((num) => (
-                                            <div 
-                                              key={num}
-                                              className={`flex-1 h-8 rounded flex items-center justify-center text-xs font-bold ${
-                                                num <= progressTo6 || has6Sessions
-                                                  ? 'bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white' 
-                                                  : 'bg-white border border-[#d4b5a0]/30 text-[#d4b5a0]/50'
-                                              }`}
-                                            >
-                                              {num <= progressTo6 || has6Sessions ? '✓' : num}
-                                            </div>
-                                          ))}
-                                        </div>
-                                        {has6Sessions ? (
-                                          <p className="text-sm font-bold text-green-600">
-                                            ✨ -20€ disponible sur la prochaine séance !
-                                          </p>
-                                        ) : (
-                                          <p className="text-xs text-[#2c3e50]/60">
-                                            {progressTo6}/6 séances ({6 - progressTo6} restantes pour -20€)
-                                          </p>
-                                        )}
-                                      </div>
-                                      
-                                      {/* Anniversaire */}
-                                      {client.birthDate && (
-                                        <div className="pt-3 border-t border-purple-200">
-                                          <p className="text-sm font-medium text-[#2c3e50] mb-1">Anniversaire</p>
-                                          <p className="text-sm text-[#2c3e50]/70">
-                                            🎂 {new Date(client.birthDate).toLocaleDateString('fr-FR', { 
-                                              day: 'numeric', 
-                                              month: 'long' 
-                                            })}
-                                          </p>
-                                          {hasBirthday && (
-                                            <p className="text-sm font-bold text-pink-600 mt-1">
-                                              🎉 -10€ ce mois-ci !
-                                            </p>
-                                          )}
-                                        </div>
-                                      )}
-                                      
-                                      {/* Statistiques */}
-                                      <div className="pt-3 border-t border-purple-200">
-                                        {/* Alerte No-Show si applicable */}
-                                        {(() => {
-                                          const noShows = reservations
-                                            .filter(r => r.userEmail === client.email && r.status === 'no_show')
-                                            .length;
-                                          if (noShows > 0) {
-                                            return (
-                                              <div className="mb-3 p-2 bg-orange-50 border border-orange-200 rounded-lg">
-                                                <p className="text-xs font-semibold text-orange-600">
-                                                  ⚠️ {noShows} absence{noShows > 1 ? 's' : ''} non justifiée{noShows > 1 ? 's' : ''}
-                                                </p>
-                                              </div>
-                                            );
-                                          }
-                                          return null;
-                                        })()}
-                                        
-                                        <div className="grid grid-cols-2 gap-3 text-sm">
-                                          <div>
-                                            <p className="text-[#2c3e50]/60">Total séances</p>
-                                            <p className="font-bold text-[#2c3e50]">{sessionCount}</p>
-                                          </div>
-                                          <div>
-                                            <p className="text-[#2c3e50]/60">Niveau</p>
-                                            <p className="font-bold text-[#2c3e50]">{level.name}</p>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </>
-                                  );
-                                })()}
-                                </div>
-                              </div>
-                              
-                              {/* Section Notes */}
-                              <div className="space-y-4">
-                                <h4 className="font-semibold text-[#2c3e50] flex items-center gap-2">
-                                  <FileText className="w-4 h-4 text-[#d4b5a0]" />
-                                  Notes administratives
-                                </h4>
-                                <div className="bg-gradient-to-r from-[#fdfbf7] to-[#faf8f5] rounded-lg p-4">
+                                
+                                {/* Note fidélité */}
+                                <div>
+                                  <label className="text-sm text-[#2c3e50]/60">Note fidélité</label>
+                                  <div className="mt-1 border border-[#d4b5a0]/20 rounded-lg p-3 bg-gradient-to-r from-[#fdfbf7] to-[#faf8f5]">
                                   {(() => {
                                     const loyaltyProfile = loyaltyProfiles.find(p => p.userId === client.id);
                                     return (
@@ -1244,7 +1144,7 @@ export default function UnifiedCRMTab({
                                             </p>
                                             <button
                                               onClick={async () => {
-                                                const newNote = prompt('Modifier la note:', loyaltyProfile.notes);
+                                                const newNote = prompt('Modifier la note fidélité:', loyaltyProfile.notes);
                                                 if (newNote !== null) {
                                                   try {
                                                     const token = localStorage.getItem('token');
@@ -1271,10 +1171,10 @@ export default function UnifiedCRMTab({
                                           </div>
                                         ) : (
                                           <div className="text-center py-4">
-                                            <p className="text-sm text-[#2c3e50]/40 mb-2">Aucune note</p>
+                                            <p className="text-sm text-[#2c3e50]/40 mb-2">Aucune note fidélité</p>
                                             <button
                                               onClick={async () => {
-                                                const note = prompt('Ajouter une note sur ce client:');
+                                                const note = prompt('Ajouter une note fidélité:');
                                                 if (note) {
                                                   try {
                                                     const token = localStorage.getItem('token');
@@ -1303,6 +1203,7 @@ export default function UnifiedCRMTab({
                                       </>
                                     );
                                   })()}
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -1389,7 +1290,12 @@ export default function UnifiedCRMTab({
                               </h4>
                               <div className="space-y-2">
                                 {reservations
-                                  .filter(r => r.userEmail === client.email)
+                                  .filter(r => {
+                                    // Vérifier plusieurs formats possibles
+                                    return r.userEmail === client.email || 
+                                           r.userId === client.id ||
+                                           (r.user && r.user.email === client.email);
+                                  })
                                   .slice(0, 5)
                                   .map((reservation, idx) => {
                                     // Mapper les IDs de services aux noms
@@ -1448,7 +1354,11 @@ export default function UnifiedCRMTab({
                                       </div>
                                     );
                                   })}
-                                {reservations.filter(r => r.userEmail === client.email).length === 0 && (
+                                {reservations.filter(r => {
+                                  return r.userEmail === client.email || 
+                                         r.userId === client.id ||
+                                         (r.user && r.user.email === client.email);
+                                }).length === 0 && (
                                   <p className="text-sm text-[#2c3e50]/60">Aucune réservation</p>
                                 )}
                               </div>
@@ -1458,15 +1368,76 @@ export default function UnifiedCRMTab({
                           {/* Actions rapides */}
                           <div className="mt-6 pt-6 border-t border-[#d4b5a0]/20">
                             <div className="flex gap-3">
-                              <button className="px-4 py-2 bg-[#d4b5a0]/10 text-[#d4b5a0] rounded-lg hover:bg-[#d4b5a0]/20 transition-colors flex items-center gap-2">
+                              <button 
+                                onClick={() => {
+                                  // Préremplir le formulaire de réservation avec les infos du client
+                                  setSelectedClient(client);
+                                  setShowReservationModal(true);
+                                }}
+                                className="px-4 py-2 bg-[#d4b5a0]/10 text-[#d4b5a0] rounded-lg hover:bg-[#d4b5a0]/20 transition-colors flex items-center gap-2"
+                              >
                                 <Calendar className="w-4 h-4" />
                                 Prendre RDV
                               </button>
-                              <button className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-2">
+                              <button 
+                                onClick={() => {
+                                  // Ouvrir le système d'attribution de récompense
+                                  const loyaltyProfile = loyaltyProfiles.find(p => p.userId === client.id);
+                                  if (loyaltyProfile) {
+                                    const individualCount = loyaltyProfile.individualServicesCount || 0;
+                                    const packageCount = loyaltyProfile.packagesCount || 0;
+                                    
+                                    if (individualCount >= 6) {
+                                      if (confirm(`Attribuer une réduction de 20€ pour ${client.name} (6 soins individuels atteints) ?`)) {
+                                        alert('✅ Réduction de 20€ attribuée ! Elle sera appliquée automatiquement lors de la prochaine réservation.');
+                                        // TODO: Implémenter la logique d'attribution de réduction
+                                      }
+                                    } else if (packageCount >= 4) {
+                                      if (confirm(`Attribuer une réduction de 40€ pour ${client.name} (4 forfaits atteints) ?`)) {
+                                        alert('✅ Réduction de 40€ attribuée ! Elle sera appliquée automatiquement lors de la prochaine réservation.');
+                                        // TODO: Implémenter la logique d'attribution de réduction
+                                      }
+                                    } else {
+                                      alert(`${client.name} n'a pas encore atteint les seuils de récompense.\nSoins: ${individualCount}/6\nForfaits: ${packageCount}/4`);
+                                    }
+                                  } else {
+                                    alert('Profil de fidélité non trouvé pour ce client.');
+                                  }
+                                }}
+                                className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-2"
+                              >
                                 <Gift className="w-4 h-4" />
                                 Attribuer récompense
                               </button>
-                              <button className="px-4 py-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors flex items-center gap-2">
+                              <button 
+                                onClick={() => {
+                                  // Afficher l'historique complet des réservations
+                                  const clientReservations = reservations.filter(r => {
+                                    return r.userEmail === client.email || 
+                                           r.userId === client.id ||
+                                           (r.user && r.user.email === client.email);
+                                  });
+                                  
+                                  if (clientReservations.length > 0) {
+                                    const history = clientReservations
+                                      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                                      .map(r => {
+                                        const date = new Date(r.date).toLocaleDateString('fr-FR');
+                                        const services = r.services.join(', ');
+                                        const status = r.status === 'completed' ? '✓' : 
+                                                       r.status === 'cancelled' ? '✗' : 
+                                                       r.status === 'confirmed' ? '●' : '○';
+                                        return `${status} ${date} - ${services} - ${r.totalPrice}€`;
+                                      })
+                                      .join('\n');
+                                    
+                                    alert(`Historique complet de ${client.name}:\n\n${history}\n\nTotal: ${clientReservations.length} réservation(s)`);
+                                  } else {
+                                    alert(`Aucun historique de réservation pour ${client.name}`);
+                                  }
+                                }}
+                                className="px-4 py-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors flex items-center gap-2"
+                              >
                                 <FileText className="w-4 h-4" />
                                 Historique complet
                               </button>

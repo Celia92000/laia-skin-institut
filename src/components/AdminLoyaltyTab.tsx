@@ -538,7 +538,7 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
 
       {/* Cartes de fidélité visuelles - DÉSACTIVÉES car redondantes */}
       {false && (
-      <div className="grid md:grid-cols-2 gap-6 mb-8">
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
         {/* Carte Soins Individuels */}
         <div className="bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white rounded-2xl p-6 shadow-xl">
           <div className="text-center mb-4">
@@ -665,7 +665,7 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
               <tr className="bg-gray-50 text-left">
                 <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
                 <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Niveau</th>
-                <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Progression Fidélité & Récompenses</th>
+                <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Progression Fidélité</th>
                 <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Total dépensé</th>
                 <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Dernière visite</th>
                 <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -1190,7 +1190,7 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
 
               <div>
                 <label className="block text-sm font-medium text-[#2c3e50] mb-2">
-                  Note sur le client
+                  Note privée (visible uniquement par l'admin)
                 </label>
                 <textarea
                   value={bonusReason}

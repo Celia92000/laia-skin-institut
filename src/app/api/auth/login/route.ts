@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 import { verifyPassword, generateToken } from '@/lib/auth';
 
 export async function POST(request: Request) {
   try {
     const { email, password } = await request.json();
 
+    // Utiliser getPrismaClient pour s'assurer que la connexion est active
+    const prisma = await getPrismaClient();
+    
     const user = await prisma.user.findUnique({
       where: { email }
     });
@@ -22,7 +25,8 @@ export async function POST(request: Request) {
 
     const token = generateToken(user.id, user.role);
 
-    return NextResponse.json({
+    // Créer la réponse
+    const response = NextResponse.json({
       token,
       user: {
         id: user.id,
@@ -31,6 +35,17 @@ export async function POST(request: Request) {
         role: user.role
       }
     });
+
+    // Ajouter le cookie HTTPOnly pour plus de sécurité
+    response.cookies.set('auth-token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 365, // 1 an
+      path: '/'
+    });
+
+    return response;
   } catch (error) {
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }

@@ -24,7 +24,7 @@ export default function AuthGuard({ children, requireAdmin = false }: AuthGuardP
       }
 
       try {
-        // Vérifier le token côté client
+        // Vérifier le token côté serveur
         const response = await fetch('/api/auth/verify', {
           headers: {
             'Authorization': `Bearer ${token}`
