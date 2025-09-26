@@ -182,9 +182,9 @@ export default function ValidationPaymentModal({
               </p>
             </div>
             <p className="text-sm text-green-700 mt-1">
-              {isLoyaltyEligible && `• 5 soins réalisés = -20€`}
+              {isLoyaltyEligible && `• Le client a réalisé ${individualServicesCount} soins individuels → Réduction de 20€ disponible`}
               {isLoyaltyEligible && isPackageEligible && <br />}
-              {isPackageEligible && `• 3 forfaits achetés = -30€`}
+              {isPackageEligible && `• Le client a acheté ${packagesCount} forfaits → Réduction de 30€ disponible`}
             </p>
             <p className="text-xs text-green-600 mt-1 font-medium">
               ✅ Les réductions sont automatiquement appliquées au montant !
@@ -250,6 +250,28 @@ export default function ValidationPaymentModal({
                     ? reservation.services.join(', ')
                     : 'Service non spécifié'}
               </p>
+              {/* Indicateur du type de prestation */}
+              <div className="mt-2 flex flex-col gap-1">
+                {reservation.packages && Object.keys(reservation.packages || {}).length > 0 ? (
+                  <>
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 w-fit">
+                      📦 Forfait - Compteur actuel: {packagesCount}/3
+                    </span>
+                    <span className="text-xs text-purple-600 ml-2">
+                      → Après validation: {packagesCount + 1}/3
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 w-fit">
+                      ✨ Soin individuel - Compteur actuel: {individualServicesCount}/5
+                    </span>
+                    <span className="text-xs text-blue-600 ml-2">
+                      → Après validation: {individualServicesCount + 1}/5
+                    </span>
+                  </>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -341,57 +363,97 @@ export default function ValidationPaymentModal({
                   <div className="space-y-3 animate-fadeIn">
                     {/* Section des réductions */}
                     <div className="bg-gradient-to-r from-[#fdfbf7] to-[#f8f6f0] rounded-lg p-4 border border-[#d4b5a0]/20">
-                      <h4 className="text-sm font-semibold text-[#2c3e50] mb-3">Réductions disponibles</h4>
+                      <h4 className="text-sm font-semibold text-[#2c3e50] mb-3">Réductions de fidélité</h4>
                       
-                      {/* Réduction 6ème soin individuel */}
-                      {isLoyaltyEligible && (
-                        <label className="flex items-center justify-between mb-2 cursor-pointer hover:bg-white/50 p-2 rounded-lg transition-all">
-                          <div className="flex items-center gap-3">
-                            <input
-                              type="checkbox"
-                              checked={applyLoyaltyDiscount}
-                              onChange={(e) => {
+                      {/* Message d'alerte si des réductions sont disponibles */}
+                      {(isLoyaltyEligible || isPackageEligible) && (
+                        <div className="mb-3 p-2 bg-green-100 border border-green-300 rounded-lg animate-pulse">
+                          <p className="text-sm font-medium text-green-800">
+                            ⚠️ ATTENTION : Réduction(s) disponible(s) !
+                          </p>
+                          <p className="text-xs text-green-700 mt-1">
+                            {isLoyaltyEligible && `• Réduction de 20€ pour 5 soins réalisés`}
+                            {isLoyaltyEligible && isPackageEligible && <br />}
+                            {isPackageEligible && `• Réduction de 30€ pour 3 forfaits achetés`}
+                          </p>
+                        </div>
+                      )}
+                      
+                      {/* Réduction soins individuels */}
+                      <label className={`flex items-center justify-between mb-2 p-2 rounded-lg transition-all ${
+                        isLoyaltyEligible 
+                          ? 'cursor-pointer hover:bg-white/50 bg-green-50 border border-green-200' 
+                          : 'cursor-not-allowed opacity-50 bg-gray-50'
+                      }`}>
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            checked={applyLoyaltyDiscount}
+                            onChange={(e) => {
+                              if (isLoyaltyEligible) {
                                 setApplyLoyaltyDiscount(e.target.checked);
-                              }}
-                              className="w-5 h-5 text-[#d4b5a0] border-[#d4b5a0]/30 rounded focus:ring-[#d4b5a0]"
-                            />
-                            <div>
-                              <p className="text-sm font-medium text-[#2c3e50]">
-                                🎁 Fidélité - 5 soins réalisés
-                              </p>
-                              <p className="text-xs text-[#2c3e50]/60">
-                                Le client a réalisé {individualServicesCount} soin(s) individuels
-                              </p>
-                            </div>
+                              }
+                            }}
+                            disabled={!isLoyaltyEligible}
+                            className={`w-5 h-5 rounded ${
+                              isLoyaltyEligible 
+                                ? 'text-[#d4b5a0] border-[#d4b5a0]/30 focus:ring-[#d4b5a0]' 
+                                : 'text-gray-400 border-gray-300'
+                            }`}
+                          />
+                          <div>
+                            <p className={`text-sm font-medium ${isLoyaltyEligible ? 'text-[#2c3e50]' : 'text-gray-500'}`}>
+                              🎁 Réduction 5 soins individuels
+                            </p>
+                            <p className="text-xs text-[#2c3e50]/60">
+                              {isLoyaltyEligible 
+                                ? `✅ Le client a réalisé ${individualServicesCount} soins - Réduction disponible !`
+                                : `⏳ ${individualServicesCount}/5 soins réalisés - Encore ${5 - individualServicesCount} soin(s)`}
+                            </p>
                           </div>
-                          <span className="text-green-600 font-bold">-{loyaltyDiscount}€</span>
-                        </label>
-                      )}
+                        </div>
+                        <span className={`font-bold ${isLoyaltyEligible ? 'text-green-600' : 'text-gray-400'}`}>
+                          {isLoyaltyEligible ? '-20€' : '🔒'}
+                        </span>
+                      </label>
                       
-                      {/* Réduction 4ème forfait */}
-                      {isPackageEligible && (
-                        <label className="flex items-center justify-between mb-2 cursor-pointer hover:bg-white/50 p-2 rounded-lg transition-all">
-                          <div className="flex items-center gap-3">
-                            <input
-                              type="checkbox"
-                              checked={applyPackageDiscount}
-                              onChange={(e) => {
+                      {/* Réduction forfaits */}
+                      <label className={`flex items-center justify-between mb-2 p-2 rounded-lg transition-all ${
+                        isPackageEligible 
+                          ? 'cursor-pointer hover:bg-white/50 bg-green-50 border border-green-200' 
+                          : 'cursor-not-allowed opacity-50 bg-gray-50'
+                      }`}>
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            checked={applyPackageDiscount}
+                            onChange={(e) => {
+                              if (isPackageEligible) {
                                 setApplyPackageDiscount(e.target.checked);
-                              }}
-                              className="w-5 h-5 text-[#d4b5a0] border-[#d4b5a0]/30 rounded focus:ring-[#d4b5a0]"
-                            />
-                            <div>
-                              <p className="text-sm font-medium text-[#2c3e50]">
-                                ✨ Fidélité - 3 forfaits achetés
-                              </p>
-                              <p className="text-xs text-[#2c3e50]/60">
-                                Le client a acheté {packagesCount} forfait(s)
-                              </p>
-                            </div>
+                              }
+                            }}
+                            disabled={!isPackageEligible}
+                            className={`w-5 h-5 rounded ${
+                              isPackageEligible 
+                                ? 'text-[#d4b5a0] border-[#d4b5a0]/30 focus:ring-[#d4b5a0]' 
+                                : 'text-gray-400 border-gray-300'
+                            }`}
+                          />
+                          <div>
+                            <p className={`text-sm font-medium ${isPackageEligible ? 'text-[#2c3e50]' : 'text-gray-500'}`}>
+                              ✨ Réduction 3 forfaits
+                            </p>
+                            <p className="text-xs text-[#2c3e50]/60">
+                              {isPackageEligible 
+                                ? `✅ Le client a acheté ${packagesCount} forfaits - Réduction disponible !`
+                                : `⏳ ${packagesCount}/3 forfaits achetés - Encore ${3 - packagesCount} forfait(s)`}
+                            </p>
                           </div>
-                          <span className="text-green-600 font-bold">-{packageDiscount}€</span>
-                        </label>
-                      )}
+                        </div>
+                        <span className={`font-bold ${isPackageEligible ? 'text-green-600' : 'text-gray-400'}`}>
+                          {isPackageEligible ? '-30€' : '🔒'}
+                        </span>
+                      </label>
                       
                       {/* Réduction parrainage */}
                       <label className="flex items-center justify-between mb-2 cursor-pointer hover:bg-white/50 p-2 rounded-lg transition-all">
