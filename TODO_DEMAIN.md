@@ -30,7 +30,13 @@
 - Ajouter la possibilité d'envoyer des campagnes groupées via WhatsApp
 - Implémenter les templates de messages pour les campagnes
 
-### 4. **Test des campagnes email**
+### 4. **Test des campagnes email - CORRIGER LE BUG**
+- Problème : "envoyer un test n'a pas l'air de marcher"
+- La fonctionnalité existe mais ne fonctionne pas
+- Vérifier le bouton "Envoyer un test" dans EmailCompleteInterface
+- Corriger la fonction sendTestEmail et confirmSendTest
+- Tester avec de vraies adresses email
+- Ajouter des messages d'erreur/succès clairs
 - Finaliser la modal de test pour les campagnes email
 - Permettre d'envoyer un email de test avant l'envoi aux clients
 - Ajouter la prévisualisation du rendu email
