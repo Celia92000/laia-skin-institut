@@ -60,8 +60,10 @@ export async function POST(
         create: {
           userId,
           points: 0,
-          servicesCompleted: 0,
-          status: 'bronze',
+          individualServicesCount: 0,
+          packagesCount: 0,
+          totalSpent: 0,
+          tier: 'bronze',
           notes: note,
           createdAt: new Date(),
           updatedAt: new Date()
