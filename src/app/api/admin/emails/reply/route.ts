@@ -85,12 +85,12 @@ export async function POST(request: NextRequest) {
           to: replyTo,
           from: 'contact@laiaskininstitut.fr',
           subject: replySubject,
-          body: replyContent,
-          type: 'reply',
+          content: replyContent,
+          template: 'reply',
           status: 'failed',
-          error: error.message,
+          errorMessage: error.message,
           userId: originalUserId,
-          metadata: emailId ? { originalEmailId: emailId } : null
+          direction: 'outgoing'
         }
       });
 
@@ -103,12 +103,11 @@ export async function POST(request: NextRequest) {
         to: replyTo,
         from: 'contact@laiaskininstitut.fr',
         subject: replySubject,
-        body: replyContent,
-        type: 'reply',
+        content: replyContent,
+        template: 'reply',
         status: 'sent',
-        resendId: data?.id,
         userId: originalUserId,
-        metadata: emailId ? { originalEmailId: emailId } : null
+        direction: 'outgoing'
       }
     });
 

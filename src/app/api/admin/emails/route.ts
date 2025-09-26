@@ -47,14 +47,15 @@ export async function GET(request: NextRequest) {
         to: true,
         from: true,
         subject: true,
-        body: true,
-        type: true,
+        content: true,
+        template: true,
         status: true,
-        resendId: true,
-        error: true,
+        direction: true,
+        errorMessage: true,
         userId: true,
-        reservationId: true,
-        metadata: true,
+        campaignId: true,
+        openedAt: true,
+        clickedAt: true,
         createdAt: true
       }
     });

@@ -8,14 +8,15 @@ interface Email {
   to: string;
   from: string;
   subject: string;
-  body: string;
-  type: string;
+  content: string;
+  template?: string;
   status: string;
-  resendId?: string;
-  error?: string;
+  direction?: string;
+  errorMessage?: string;
   userId?: string;
-  reservationId?: string;
-  metadata?: any;
+  campaignId?: string;
+  openedAt?: string;
+  clickedAt?: string;
   createdAt: string;
 }
 
@@ -44,9 +45,20 @@ export default function EmailHistoryTab() {
 
       const response = await fetch(`/api/admin/emails?${params.toString()}`);
       const data = await response.json();
-      setEmails(data);
+      
+      // S'assurer que data est un tableau
+      if (Array.isArray(data)) {
+        setEmails(data);
+      } else if (data.error) {
+        console.error('Erreur API:', data.error);
+        setEmails([]);
+      } else {
+        console.error('Format de données inattendu:', data);
+        setEmails([]);
+      }
     } catch (error) {
       console.error('Erreur chargement emails:', error);
+      setEmails([]);
     } finally {
       setLoading(false);
     }
@@ -102,7 +114,8 @@ export default function EmailHistoryTab() {
     }
   };
 
-  const getTypeLabel = (type: string) => {
+  const getTypeLabel = (template?: string) => {
+    if (!template) return 'Email';
     const types: Record<string, string> = {
       confirmation: 'Confirmation',
       reminder: 'Rappel',
@@ -111,14 +124,14 @@ export default function EmailHistoryTab() {
       notification: 'Notification',
       reply: 'Réponse'
     };
-    return types[type] || type;
+    return types[template] || template;
   };
 
   const filteredEmails = emails.filter(email => {
     const matchesSearch = searchTerm === '' || 
       email.to.toLowerCase().includes(searchTerm.toLowerCase()) ||
       email.subject.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = filterType === 'all' || email.type === filterType;
+    const matchesType = filterType === 'all' || email.template === filterType;
     const matchesStatus = filterStatus === 'all' || email.status === filterStatus;
     
     return matchesSearch && matchesType && matchesStatus;
@@ -236,7 +249,7 @@ export default function EmailHistoryTab() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
-                      {getTypeLabel(email.type)}
+                      {getTypeLabel(email.template)}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -301,10 +314,10 @@ export default function EmailHistoryTab() {
                   </p>
                 </div>
                 
-                {selectedEmail.error && (
+                {selectedEmail.errorMessage && (
                   <div className="bg-red-50 p-3 rounded">
                     <label className="text-sm font-medium text-red-700">Erreur:</label>
-                    <p className="mt-1 text-sm text-red-600">{selectedEmail.error}</p>
+                    <p className="mt-1 text-sm text-red-600">{selectedEmail.errorMessage}</p>
                   </div>
                 )}
                 
@@ -312,7 +325,7 @@ export default function EmailHistoryTab() {
                   <label className="text-sm font-medium text-gray-700">Contenu:</label>
                   <div 
                     className="mt-2 p-4 bg-gray-50 rounded-lg text-sm"
-                    dangerouslySetInnerHTML={{ __html: selectedEmail.body }}
+                    dangerouslySetInnerHTML={{ __html: selectedEmail.content }}
                   />
                 </div>
               </div>
