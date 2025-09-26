@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
-import { prisma } from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 
 // Initialiser Resend avec la clé API
 const resend = new Resend(process.env.RESEND_API_KEY || 're_123456789');
 
 export async function POST(request: NextRequest) {
   try {
+    const prisma = await getPrismaClient();
     const { to, subject, message, clientName } = await request.json();
 
     // Template HTML professionnel

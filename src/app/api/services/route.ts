@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
   try {
+    const prisma = await getPrismaClient();
     const searchParams = request.nextUrl.searchParams;
     const exclude = searchParams.get('exclude');
     const limit = searchParams.get('limit');

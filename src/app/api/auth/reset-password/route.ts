@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { verificationCodes } from '../forgot-password/route';
 
 export async function POST(request: Request) {
+  const prisma = await getPrismaClient();
   try {
     const { email, code, newPassword } = await request.json();
 

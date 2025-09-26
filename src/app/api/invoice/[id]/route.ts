@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 
 // Fonction pour obtenir les paramètres de l'entreprise
 async function getCompanySettings() {
@@ -64,6 +64,7 @@ function calculateVAT(amountTTC: number, vatRate: string) {
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
+  const prisma = await getPrismaClient();
 ) {
   try {
     const { id } = await params;

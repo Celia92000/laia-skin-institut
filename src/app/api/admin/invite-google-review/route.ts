@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
-import prisma from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 import nodemailer from 'nodemailer';
 
 // Configuration du transporteur email
@@ -15,6 +15,7 @@ const transporter = nodemailer.createTransport({
 });
 
 export async function POST(request: NextRequest) {
+  const prisma = await getPrismaClient();
   try {
     // Vérifier l'authentification
     const authHeader = request.headers.get('authorization');

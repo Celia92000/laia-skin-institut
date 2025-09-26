@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 
 export async function GET() {
+  const prisma = await getPrismaClient();
   try {
     // Test de connexion simple
     const userCount = await prisma.user.count();

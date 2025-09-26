@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'laia-skin-secret-key-2024';
 
 // GET - Récupérer tous les articles
 export async function GET(request: Request) {
+  const prisma = await getPrismaClient();
   try {
     // Récupération sans authentification pour debug
     const posts = await prisma.blogPost.findMany({
@@ -22,6 +23,7 @@ export async function GET(request: Request) {
 
 // POST - Créer un nouvel article
 export async function POST(request: Request) {
+  const prisma = await getPrismaClient();
   try {
     const authHeader = request.headers.get('authorization');
     if (!authHeader?.startsWith('Bearer ')) {

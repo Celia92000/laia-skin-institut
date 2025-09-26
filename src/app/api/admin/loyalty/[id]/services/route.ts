@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
 
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
+  const prisma = await getPrismaClient();
 ) {
   try {
     const { id } = await params;

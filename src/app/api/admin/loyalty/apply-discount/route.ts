@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
 
 export async function POST(req: NextRequest) {
+  const prisma = await getPrismaClient();
   try {
     const token = req.headers.get('authorization')?.replace('Bearer ', '');
     

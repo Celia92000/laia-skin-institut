@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
 
 interface CommunicationHistory {
@@ -15,6 +15,7 @@ interface CommunicationHistory {
 export async function GET(
   request: NextRequest,
   props: { params: Promise<{ id: string }> }
+  const prisma = await getPrismaClient();
 ) {
   const params = await props.params;
   try {
@@ -197,6 +198,7 @@ export async function GET(
 export async function POST(
   request: NextRequest,
   props: { params: Promise<{ id: string }> }
+  const prisma = await getPrismaClient();
 ) {
   const params = await props.params;
   try {

@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
-import prisma from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 
 // GET - Récupérer tous les utilisateurs
 export async function GET(request: NextRequest) {
+  const prisma = await getPrismaClient();
   try {
     const token = request.cookies.get('token')?.value || 
                  request.headers.get('authorization')?.split(' ')[1];
@@ -59,6 +60,7 @@ export async function GET(request: NextRequest) {
 
 // POST - Créer un nouvel utilisateur (employé)
 export async function POST(request: NextRequest) {
+  const prisma = await getPrismaClient();
   try {
     const token = request.cookies.get('token')?.value || 
                  request.headers.get('authorization')?.split(' ')[1];
@@ -143,6 +145,7 @@ export async function POST(request: NextRequest) {
 
 // PATCH - Modifier le rôle d'un utilisateur
 export async function PATCH(request: NextRequest) {
+  const prisma = await getPrismaClient();
   try {
     const token = request.cookies.get('token')?.value || 
                  request.headers.get('authorization')?.split(' ')[1];
@@ -224,6 +227,7 @@ export async function PATCH(request: NextRequest) {
 
 // DELETE - Supprimer un utilisateur
 export async function DELETE(request: NextRequest) {
+  const prisma = await getPrismaClient();
   try {
     const token = request.cookies.get('token')?.value || 
                  request.headers.get('authorization')?.split(' ')[1];

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
 
 // Fonction pour vérifier l'authentification admin
@@ -13,16 +13,18 @@ async function verifyAdmin(request: NextRequest) {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as any;
     
+    const prisma = await getPrismaClient();
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId }
     });
 
-    if (!user || (user.role !== 'admin' && user.role !== 'ADMIN' && user.role !== 'EMPLOYEE') && user.role !== 'ADMIN' && user.role !== 'EMPLOYEE') {
+    if (!user || (user.role !== 'admin' && user.role !== 'ADMIN' && user.role !== 'EMPLOYEE')) {
       return null;
     }
 
     return user;
   } catch (error) {
+    console.error('Erreur vérification admin:', error);
     return null;
   }
 }
@@ -42,6 +44,7 @@ export async function PATCH(
   }
 
   try {
+    const prisma = await getPrismaClient();
     const body = await request.json();
     const { status, paymentStatus, paymentAmount, paymentMethod, paymentDate, paymentNotes } = body;
     const reservationId = id;
@@ -201,6 +204,7 @@ export async function DELETE(
   }
 
   try {
+    const prisma = await getPrismaClient();
     await prisma.reservation.delete({
       where: { id }
     });

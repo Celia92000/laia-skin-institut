@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
-import prisma from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 
 function convertToCSV(data: any[], headers: string[]): string {
   // Créer l'en-tête CSV
@@ -44,6 +44,7 @@ function convertToCSV(data: any[], headers: string[]): string {
 }
 
 export async function GET(request: NextRequest) {
+  const prisma = await getPrismaClient();
   try {
     // Vérifier l'authentification
     const token = request.cookies.get('token')?.value || 

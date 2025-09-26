@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 
 export interface TimeSlot {
   time: string;
@@ -9,6 +9,7 @@ export interface TimeSlot {
  * Vérifie si un créneau est disponible pour une date donnée
  */
 export async function isSlotAvailable(date: Date, time: string): Promise<boolean> {
+  const prisma = await getPrismaClient();
   // Normaliser la date à minuit
   const normalizedDate = new Date(date);
   normalizedDate.setHours(0, 0, 0, 0);
@@ -79,6 +80,7 @@ export async function isSlotAvailable(date: Date, time: string): Promise<boolean
  * Récupère tous les créneaux disponibles pour une date donnée
  */
 export async function getAvailableSlots(date: Date): Promise<TimeSlot[]> {
+  const prisma = await getPrismaClient();
   const normalizedDate = new Date(date);
   normalizedDate.setHours(0, 0, 0, 0);
 
@@ -129,6 +131,7 @@ export async function getAvailableSlots(date: Date): Promise<TimeSlot[]> {
  * Récupère toutes les dates bloquées pour un mois donné
  */
 export async function getBlockedDatesForMonth(year: number, month: number): Promise<Date[]> {
+  const prisma = await getPrismaClient();
   const startDate = new Date(year, month - 1, 1);
   const endDate = new Date(year, month, 0);
 
@@ -149,6 +152,7 @@ export async function getBlockedDatesForMonth(year: number, month: number): Prom
  * Récupère les horaires de travail
  */
 export async function getWorkingHours() {
+  const prisma = await getPrismaClient();
   return prisma.workingHours.findMany({
     orderBy: { dayOfWeek: 'asc' }
   });

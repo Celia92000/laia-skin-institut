@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getConnectedPrisma } from '@/lib/db';
+import { getPrismaClient } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'laia-skin-secret-key-2024';
@@ -10,7 +10,7 @@ export async function POST(
 ) {
   try {
     // Obtenir une connexion Prisma garantie
-    const prisma = await getConnectedPrisma();
+    const prisma = await getPrismaClient();
     
     const authHeader = request.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -92,7 +92,7 @@ export async function GET(
 ) {
   try {
     // Obtenir une connexion Prisma garantie
-    const prisma = await getConnectedPrisma();
+    const prisma = await getPrismaClient();
     
     const authHeader = request.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {

@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
 
 // GET - Récupérer la configuration des rappels
 export async function GET(request: Request) {
+  const prisma = await getPrismaClient();
   try {
     // Vérifier l'authentification admin
     const authHeader = request.headers.get('authorization');
@@ -46,6 +47,7 @@ export async function GET(request: Request) {
 
 // POST - Sauvegarder la configuration des rappels
 export async function POST(request: Request) {
+  const prisma = await getPrismaClient();
   try {
     // Vérifier l'authentification admin
     const authHeader = request.headers.get('authorization');

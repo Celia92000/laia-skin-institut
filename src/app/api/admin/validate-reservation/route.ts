@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 import { sendWhatsAppMessage, whatsappTemplates } from '@/lib/whatsapp-meta';
 import { sendReservationConfirmationEmail } from '@/lib/resend-email-service';
 
 export async function POST(request: Request) {
+  const prisma = await getPrismaClient();
   try {
     const { reservationId, action } = await request.json();
     

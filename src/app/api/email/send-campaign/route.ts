@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
-import { prisma } from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 
 const resend = new Resend(process.env.RESEND_API_KEY || '');
 
 export async function POST(req: NextRequest) {
   try {
+    const prisma = await getPrismaClient();
     const { 
       recipients, 
       subject, 
@@ -83,6 +84,7 @@ export async function POST(req: NextRequest) {
 }
 
 async function getSegmentUsers(segment: string) {
+  const prisma = await getPrismaClient();
   const today = new Date();
   const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
   const sixtyDaysAgo = new Date(today.getTime() - 60 * 24 * 60 * 60 * 1000);

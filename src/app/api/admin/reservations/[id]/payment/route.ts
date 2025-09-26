@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
 
 // Fonction pour générer un numéro de facture
@@ -11,6 +11,7 @@ async function generateInvoiceNumber(): Promise<string> {
   const startOfMonth = new Date(year, new Date().getMonth(), 1);
   const endOfMonth = new Date(year, new Date().getMonth() + 1, 0, 23, 59, 59);
   
+  const prisma = await getPrismaClient();
   const invoicesThisMonth = await prisma.reservation.count({
     where: {
       paymentDate: {
@@ -41,6 +42,7 @@ export async function POST(
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'laia-skin-secret-key-2024') as any;
     
+    const prisma = await getPrismaClient();
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId }
     });
@@ -195,6 +197,7 @@ export async function DELETE(
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'laia-skin-secret-key-2024') as any;
     
+    const prisma = await getPrismaClient();
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId }
     });

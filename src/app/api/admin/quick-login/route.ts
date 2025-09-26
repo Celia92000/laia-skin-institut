@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 import { generateToken } from '@/lib/auth';
 import { headers } from 'next/headers';
 import jwt from 'jsonwebtoken';
 
 export async function POST(request: Request) {
+  const prisma = await getPrismaClient();
   try {
     // Vérifier que la requête vient d'un admin
     const headersList = await headers();

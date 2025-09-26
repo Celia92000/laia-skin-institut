@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 
 export async function POST(request: Request) {
   try {
+    const prisma = await getPrismaClient();
     const { date, time } = await request.json();
     
     // Normaliser la date pour éviter les problèmes de timezone
@@ -48,6 +49,7 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
+    const prisma = await getPrismaClient();
     const { searchParams } = new URL(request.url);
     const date = searchParams.get('date');
     

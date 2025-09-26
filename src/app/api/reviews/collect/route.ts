@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 
 export async function POST(request: Request) {
   try {
+    const prisma = await getPrismaClient();
     const data = await request.json();
     
     // Valider les données requises
@@ -97,6 +98,7 @@ export async function GET(request: Request) {
   const clientEmail = searchParams.get('email');
   
   try {
+    const prisma = await getPrismaClient();
     // Récupérer les informations de la réservation si disponible
     let reservationInfo = null;
     if (reservationId) {

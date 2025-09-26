@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { verifyToken } from '@/lib/auth';
-import prisma from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 
 export async function POST(request: NextRequest) {
+  const prisma = await getPrismaClient();
   try {
     const { currentPassword, newPassword } = await request.json();
 

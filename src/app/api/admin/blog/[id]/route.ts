@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'laia-skin-secret-key-2024';
@@ -8,6 +8,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'laia-skin-secret-key-2024';
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
+  const prisma = await getPrismaClient();
 ) {
   try {
     const authHeader = request.headers.get('authorization');
@@ -54,6 +55,7 @@ export async function PUT(
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
+  const prisma = await getPrismaClient();
 ) {
   // La suppression est désactivée pour protéger les articles
   return NextResponse.json(

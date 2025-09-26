@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
 import { sendWhatsAppMessage } from '@/lib/whatsapp-meta';
 import { isSlotAvailable } from '@/lib/availability-service';
@@ -7,6 +7,7 @@ import { sendConfirmationEmail } from '@/lib/email-service';
 
 export async function POST(request: Request) {
   try {
+    const prisma = await getPrismaClient();
     const body = await request.json();
     const { services, packages, date, time, notes, totalPrice, clientInfo } = body;
     
@@ -351,6 +352,7 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
+    const prisma = await getPrismaClient();
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
     
     if (!token) {

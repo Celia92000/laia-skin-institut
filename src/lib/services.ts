@@ -1,7 +1,8 @@
-import { prisma } from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 
 export async function getServiceBySlug(slug: string) {
   try {
+    const prisma = await getPrismaClient();
     const service = await prisma.service.findUnique({
       where: { 
         slug,
@@ -17,6 +18,7 @@ export async function getServiceBySlug(slug: string) {
 
 export async function getAllServices() {
   try {
+    const prisma = await getPrismaClient();
     const services = await prisma.service.findMany({
       where: { active: true },
       orderBy: { createdAt: 'asc' }

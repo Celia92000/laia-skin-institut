@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, subMonths, subYears, subDays, differenceInDays } from 'date-fns';
 
 export async function GET(request: Request) {
+  const prisma = await getPrismaClient();
   try {
     const { searchParams } = new URL(request.url);
     const viewMode = searchParams.get('viewMode') || 'month';

@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
 
 export async function GET(request: Request) {
   try {
+    const prisma = await getPrismaClient();
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
     
     if (!token) {
@@ -51,6 +52,7 @@ export async function GET(request: Request) {
 
 export async function PUT(request: Request) {
   try {
+    const prisma = await getPrismaClient();
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
     
     if (!token) {

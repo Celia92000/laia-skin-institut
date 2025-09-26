@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
 
 // Fonction pour vérifier l'authentification admin
@@ -29,6 +29,7 @@ async function verifyAdmin(request: NextRequest) {
 
 // GET - Récupérer tous les profils de fidélité
 export async function GET(request: NextRequest) {
+  const prisma = await getPrismaClient();
   const admin = await verifyAdmin(request);
   if (!admin) {
     return NextResponse.json(
@@ -118,6 +119,7 @@ export async function GET(request: NextRequest) {
 
 // POST - Appliquer une réduction manuelle
 export async function POST(request: NextRequest) {
+  const prisma = await getPrismaClient();
   const admin = await verifyAdmin(request);
   if (!admin) {
     return NextResponse.json(

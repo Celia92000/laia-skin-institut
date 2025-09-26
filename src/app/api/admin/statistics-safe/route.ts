@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
-import prisma from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 import { startOfMonth, endOfMonth, startOfYear, endOfYear, startOfDay, endOfDay, startOfWeek, endOfWeek, subMonths, subYears } from 'date-fns';
 
 export async function GET(request: NextRequest) {
+  const prisma = await getPrismaClient();
   try {
     // Vérifier l'authentification
     const authHeader = request.headers.get('authorization');

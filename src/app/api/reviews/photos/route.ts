@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
-import { prisma } from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 
 export async function POST(request: NextRequest) {
   try {
+    const prisma = await getPrismaClient();
     const formData = await request.formData();
     const files = formData.getAll('photos') as File[];
     const clientId = formData.get('clientId') as string;
@@ -87,6 +88,7 @@ export async function POST(request: NextRequest) {
 // Récupérer les photos d'un avis
 export async function GET(request: NextRequest) {
   try {
+    const prisma = await getPrismaClient();
     const { searchParams } = new URL(request.url);
     const reviewId = searchParams.get('reviewId');
     const clientId = searchParams.get('clientId');
