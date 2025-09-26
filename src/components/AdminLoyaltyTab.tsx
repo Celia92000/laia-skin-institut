@@ -209,8 +209,6 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
           
           // Dispatch event pour rester sur l'onglet fidélité
           window.dispatchEvent(new CustomEvent('refreshLoyalty'));
-          
-          alert('✅ Note enregistrée avec succès');
         } else {
           const errorData = await response.json().catch(() => ({ error: 'Erreur inconnue' }));
           console.error('Erreur serveur:', response.status, errorData);
