@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
-import { withRetry } from '@/lib/prisma-with-retry';
+import { getConnectedPrisma } from '@/lib/db';
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'laia-skin-secret-key-2024';
@@ -10,8 +9,8 @@ export async function POST(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    // S'assurer que Prisma est connecté
-    await prisma.$connect();
+    // Obtenir une connexion Prisma garantie
+    const prisma = await getConnectedPrisma();
     
     const authHeader = request.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -29,11 +28,9 @@ export async function POST(
       }
       
       try {
-        const adminUser = await withRetry(() =>
-          prisma.user.findUnique({
-            where: { id: decoded.userId }
-          })
-        );
+        const adminUser = await prisma.user.findUnique({
+          where: { id: decoded.userId }
+        });
 
         if (!adminUser || adminUser.role !== 'ADMIN') {
           return NextResponse.json({ error: 'Non autorisé - accès admin requis' }, { status: 403 });
@@ -56,9 +53,8 @@ export async function POST(
     const params = await context.params;
     const userId = params.id;
 
-    // Mettre à jour ou créer le profil de fidélité avec la note (avec plus de retries)
-    const loyaltyProfile = await withRetry(() => 
-      prisma.loyaltyProfile.upsert({
+    // Mettre à jour ou créer le profil de fidélité avec la note
+    const loyaltyProfile = await prisma.loyaltyProfile.upsert({
         where: { userId },
         create: {
           userId,
@@ -75,8 +71,7 @@ export async function POST(
           notes: note,
           updatedAt: new Date()
         }
-      }), 5, 1000 // 5 retries avec 1 seconde de délai
-    );
+      });
 
     return NextResponse.json({ 
       success: true,
@@ -96,8 +91,8 @@ export async function GET(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    // S'assurer que Prisma est connecté
-    await prisma.$connect();
+    // Obtenir une connexion Prisma garantie
+    const prisma = await getConnectedPrisma();
     
     const authHeader = request.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -115,11 +110,9 @@ export async function GET(
       }
       
       try {
-        const adminUser = await withRetry(() =>
-          prisma.user.findUnique({
-            where: { id: decoded.userId }
-          })
-        );
+        const adminUser = await prisma.user.findUnique({
+          where: { id: decoded.userId }
+        });
 
         if (!adminUser || adminUser.role !== 'ADMIN') {
           return NextResponse.json({ error: 'Non autorisé - accès admin requis' }, { status: 403 });
@@ -141,12 +134,10 @@ export async function GET(
     const params = await context.params;
     const userId = params.id;
 
-    const loyaltyProfile = await withRetry(() =>
-      prisma.loyaltyProfile.findUnique({
+    const loyaltyProfile = await prisma.loyaltyProfile.findUnique({
         where: { userId },
         select: { notes: true }
-      })
-    );
+      });
 
     return NextResponse.json({ 
       note: loyaltyProfile?.notes || ''
