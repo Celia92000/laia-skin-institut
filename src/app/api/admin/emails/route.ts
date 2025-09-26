@@ -1,14 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/auth-options';
-import { prisma } from '@/lib/prisma';
+import { verifyToken } from '@/lib/auth';
+import { getPrismaClient } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
+  const prisma = await getPrismaClient();
   try {
-    const session = await getServerSession(authOptions);
+    const token = request.cookies.get('token')?.value || 
+                 request.headers.get('authorization')?.split(' ')[1];
     
-    if (!session || session.user?.role !== 'admin') {
+    if (!token) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+    }
+
+    const decoded = await verifyToken(token);
+    if (!decoded) {
+      return NextResponse.json({ error: 'Token invalide' }, { status: 401 });
+    }
+
+    // Vérifier que c'est un admin
+    const admin = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      select: { role: true }
+    });
+
+    if (admin?.role !== 'ADMIN' && admin?.role !== 'admin') {
+      return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
 
     const searchParams = request.nextUrl.searchParams;
