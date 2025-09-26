@@ -75,13 +75,15 @@ interface UnifiedCRMTabProps {
   setClients: (clients: Client[]) => void;
   loyaltyProfiles: any[];
   reservations: any[];
+  onNewReservation?: () => void;
 }
 
 export default function UnifiedCRMTab({ 
   clients, 
   setClients, 
   loyaltyProfiles, 
-  reservations 
+  reservations,
+  onNewReservation 
 }: UnifiedCRMTabProps) {
   const [activeTab, setActiveTab] = useState<'clients' | 'leads'>('clients');
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -1371,8 +1373,17 @@ export default function UnifiedCRMTab({
                               <button 
                                 onClick={() => {
                                   // Préremplir le formulaire de réservation avec les infos du client
-                                  setSelectedClient(client);
-                                  setShowReservationModal(true);
+                                  if (onNewReservation) {
+                                    localStorage.setItem('preselectedClient', JSON.stringify({
+                                      id: client.id,
+                                      name: client.name,
+                                      email: client.email,
+                                      phone: client.phone
+                                    }));
+                                    onNewReservation();
+                                  } else {
+                                    alert('Veuillez sélectionner un client depuis l\'onglet Planning pour prendre un rendez-vous');
+                                  }
                                 }}
                                 className="px-4 py-2 bg-[#d4b5a0]/10 text-[#d4b5a0] rounded-lg hover:bg-[#d4b5a0]/20 transition-colors flex items-center gap-2"
                               >

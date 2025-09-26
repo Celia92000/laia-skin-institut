@@ -192,6 +192,26 @@ export default function AdminDashboard() {
     };
   }, [router]);
 
+  // Effet pour pré-remplir les données du client sélectionné
+  useEffect(() => {
+    if (showNewReservationModal) {
+      const preselectedClientData = localStorage.getItem('preselectedClient');
+      if (preselectedClientData) {
+        try {
+          const client = JSON.parse(preselectedClientData);
+          setNewReservation(prev => ({
+            ...prev,
+            client: client.name || '',
+            email: client.email || '',
+            phone: client.phone || ''
+          }));
+        } catch (error) {
+          console.error('Erreur lors de la récupération du client:', error);
+        }
+      }
+    }
+  }, [showNewReservationModal]);
+
   const fetchServices = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -2698,6 +2718,7 @@ export default function AdminDashboard() {
               setClients={setClients}
               loyaltyProfiles={loyaltyProfiles}
               reservations={reservations}
+              onNewReservation={() => setShowNewReservationModal(true)}
             />
           )}
 
@@ -2943,6 +2964,7 @@ export default function AdminDashboard() {
                 // Demander confirmation avant de fermer
                 if (confirm('Vous avez des données non sauvegardées. Voulez-vous vraiment fermer ?')) {
                   setShowNewReservationModal(false);
+                  localStorage.removeItem('preselectedClient');
                   // Réinitialiser le formulaire
                   setNewReservation({
                     client: '',
@@ -2960,6 +2982,7 @@ export default function AdminDashboard() {
               } else {
                 // Pas de données, on peut fermer directement
                 setShowNewReservationModal(false);
+                localStorage.removeItem('preselectedClient');
               }
             }
           }}
