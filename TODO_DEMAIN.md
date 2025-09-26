@@ -9,18 +9,40 @@
 - Vérifier que les endpoints API fonctionnent correctement
 - Tester avec de vraies données
 
-### 2. **Corriger la renommation des numéros de priorités**
+### 2. **Finaliser l'éditeur de texte riche pour les emails**
+- L'utilisateur veut : "modification de la taille, style d'écriture"
+- L'éditeur existe déjà dans EmailCompleteInterface mais doit être amélioré
+- Ajouter une barre d'outils complète avec :
+  - Tailles de police (petit, normal, grand, très grand)
+  - Styles (gras, italique, souligné, barré)
+  - Couleurs de texte (palette de couleurs)
+  - Couleurs de fond
+  - Alignement (gauche, centre, droite, justifié)
+  - Listes (puces, numérotées)
+  - Liens hypertexte
+  - Insertion d'images
+- Prévisualisation en temps réel
+- Templates d'emails préformatés
+
+### 3. **Finaliser les campagnes WhatsApp**
 - L'utilisateur a mentionné : "il y a déjà un sous onglet campagne dans l'onglet what app"
 - Vérifier et compléter la fonctionnalité existante des campagnes WhatsApp
 - Ajouter la possibilité d'envoyer des campagnes groupées via WhatsApp
 - Implémenter les templates de messages pour les campagnes
 
-### 2. **Test des campagnes email**
+### 4. **Test des campagnes email**
 - Finaliser la modal de test pour les campagnes email
 - Permettre d'envoyer un email de test avant l'envoi aux clients
 - Ajouter la prévisualisation du rendu email
 
-### 3. **Statistiques détaillées des campagnes**
+### 5. **Corriger l'aperçu des campagnes email**
+- Problème : "l'apercu il y a que l'objet dans les campagnes emailing"
+- L'aperçu ne montre actuellement que l'objet de l'email
+- Ajouter le contenu complet de l'email dans l'aperçu
+- Afficher : objet, contenu formaté, pièces jointes
+- Modal d'aperçu avec le rendu final de l'email
+
+### 6. **Statistiques détaillées des campagnes**
 - L'utilisateur veut : "les statistiques de chaque campagne avec le détail"
 - Ajouter un dashboard de statistiques pour chaque campagne
 - Taux d'ouverture, clics, conversions
