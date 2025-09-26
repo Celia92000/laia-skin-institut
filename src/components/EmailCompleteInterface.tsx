@@ -128,6 +128,9 @@ export default function EmailCompleteInterface() {
   const [showPreview, setShowPreview] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showTemplateManager, setShowTemplateManager] = useState(false);
+  const [showTestModal, setShowTestModal] = useState(false);
+  const [testEmail, setTestEmail] = useState('');
+  const [sendingTest, setSendingTest] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<EmailTemplate | null>(null);
   const [campaignHistory, setCampaignHistory] = useState<any[]>([]);
   const [customTemplates, setCustomTemplates] = useState<EmailTemplate[]>([]);
@@ -335,6 +338,47 @@ export default function EmailCompleteInterface() {
 
   const previewEmail = () => {
     setShowPreview(true);
+  };
+
+  const sendTestEmail = () => {
+    setTestEmail(''); // Reset
+    setShowTestModal(true);
+  };
+
+  const confirmSendTest = async () => {
+    if (!testEmail || !emailData.subject || !emailData.content) return;
+    
+    setSendingTest(true);
+    try {
+      // Personnaliser avec des données de test
+      const testContent = emailData.content
+        .replace(/{name}/g, 'Test Client')
+        .replace(/{date}/g, new Date().toLocaleDateString('fr-FR'))
+        .replace(/{points}/g, '100');
+
+      const response = await fetch('/api/admin/campaigns/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject: `[TEST] ${emailData.subject}`,
+          content: testContent,
+          recipients: [{ email: testEmail, name: 'Test' }],
+          template: emailData.template
+        })
+      });
+
+      if (response.ok) {
+        alert(`Email de test envoyé à ${testEmail} !`);
+        setShowTestModal(false);
+      } else {
+        alert('Erreur lors de l\'envoi du test');
+      }
+    } catch (error) {
+      console.error('Erreur:', error);
+      alert('Erreur lors de l\'envoi du test');
+    } finally {
+      setSendingTest(false);
+    }
   };
 
   // Fonctions d'édition de texte
@@ -846,13 +890,23 @@ export default function EmailCompleteInterface() {
               {/* Actions */}
               <div className="p-4 border-t bg-white">
                 <div className="flex justify-between items-center">
-                  <button
-                    onClick={previewEmail}
-                    className="px-4 py-2 border rounded-lg hover:bg-gray-50 flex items-center"
-                  >
-                    <Eye className="h-4 w-4 mr-2" />
-                    Aperçu
-                  </button>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={previewEmail}
+                      className="px-4 py-2 border rounded-lg hover:bg-gray-50 flex items-center"
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      Aperçu
+                    </button>
+                    <button
+                      onClick={sendTestEmail}
+                      disabled={!emailData.subject || !emailData.content}
+                      className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 flex items-center"
+                    >
+                      <Mail className="h-4 w-4 mr-2" />
+                      Envoyer un test
+                    </button>
+                  </div>
                   
                   <button
                     onClick={sendCampaign}

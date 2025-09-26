@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation';
 import { 
   ArrowLeft, Users, UserPlus, Edit2, Trash2, Shield, 
   Mail, Phone, Calendar, Search, Filter, User, 
-  ChevronDown, Check, X, Save, Eye, EyeOff, Key, Copy, LogIn
+  ChevronDown, Check, X, Save, Eye, EyeOff, Key, Copy, LogIn, MessageCircle
 } from 'lucide-react';
+import ClientDetailView from '@/components/ClientDetailView';
 
 interface User {
   id: string;
@@ -58,6 +59,9 @@ export default function UsersManagement() {
   const [resetPasswords, setResetPasswords] = useState<{ [key: string]: string }>({});
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordModalUser, setPasswordModalUser] = useState<User | null>(null);
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+  const [showClientDetail, setShowClientDetail] = useState(false);
+  const [showClients, setShowClients] = useState(false); // Pour afficher/masquer les clients
   
   const [newUser, setNewUser] = useState({
     email: '',
@@ -77,7 +81,7 @@ export default function UsersManagement() {
     
     // Nettoyer l'intervalle au démontage
     return () => clearInterval(interval);
-  }, []);
+  }, [showClients]); // Recharger quand on change l'affichage clients
 
   const fetchUsers = async () => {
     try {
@@ -91,11 +95,15 @@ export default function UsersManagement() {
         const data = await response.json();
         setAllUsers(data); // Stocker tous les utilisateurs
         
-        // Par défaut, exclure les clients de l'affichage
-        const nonClientUsers = data.filter((user: User) => 
-          user.role !== 'CLIENT' && user.role !== 'client'
-        );
-        setUsers(nonClientUsers);
+        // Filtrer selon l'affichage souhaité
+        if (showClients) {
+          setUsers(data); // Afficher tous les utilisateurs y compris les clients
+        } else {
+          const nonClientUsers = data.filter((user: User) => 
+            user.role !== 'CLIENT' && user.role !== 'client'
+          );
+          setUsers(nonClientUsers);
+        }
       }
     } catch (error) {
       console.error('Erreur récupération utilisateurs:', error);
@@ -315,6 +323,19 @@ export default function UsersManagement() {
     return ALL_ROLES.find(r => r.value === role) || ALL_ROLES[2];
   };
 
+  // Afficher la vue détaillée du client si sélectionné
+  if (showClientDetail && selectedClientId) {
+    return (
+      <ClientDetailView 
+        clientId={selectedClientId}
+        onClose={() => {
+          setShowClientDetail(false);
+          setSelectedClientId(null);
+        }}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#fdfbf7] via-white to-[#f8f6f0]">
       {/* Header élégant avec navigation */}
@@ -451,13 +472,24 @@ export default function UsersManagement() {
               className="w-full pl-10 pr-4 py-3 bg-white border border-[#d4b5a0]/20 rounded-xl focus:ring-2 focus:ring-[#d4b5a0] focus:border-[#d4b5a0] transition-all placeholder-[#2c3e50]/40"
             />
           </div>
+          <button
+            onClick={() => setShowClients(!showClients)}
+            className={`px-4 py-3 rounded-xl font-medium transition-all flex items-center gap-2 ${
+              showClients 
+                ? 'bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white'
+                : 'bg-white border border-[#d4b5a0]/20 text-[#2c3e50]'
+            }`}
+          >
+            <Users className="w-4 h-4" />
+            {showClients ? 'Tous les utilisateurs' : 'Équipe seulement'}
+          </button>
           <select
             value={filterRole}
             onChange={(e) => setFilterRole(e.target.value)}
             className="px-4 py-3 bg-white border border-[#d4b5a0]/20 rounded-xl focus:ring-2 focus:ring-[#d4b5a0] focus:border-[#d4b5a0] transition-all text-[#2c3e50]"
           >
             <option value="">Tous les rôles</option>
-            {ROLES.map(role => (
+            {(showClients ? ALL_ROLES : ROLES).map(role => (
               <option key={role.value} value={role.value}>{role.label}</option>
             ))}
           </select>
@@ -597,6 +629,19 @@ export default function UsersManagement() {
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
+                            {(user.role === 'CLIENT' || user.role === 'client') && (
+                              <button
+                                onClick={() => {
+                                  setSelectedClientId(user.id);
+                                  setShowClientDetail(true);
+                                }}
+                                className="px-3 py-1 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white text-xs rounded-lg hover:shadow-md transition-all flex items-center gap-1"
+                                title="Voir les communications"
+                              >
+                                <MessageCircle className="w-3 h-3" />
+                                Communications
+                              </button>
+                            )}
                             <button
                               onClick={() => handleQuickLogin(user)}
                               className="px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs rounded-lg hover:shadow-md transition-all flex items-center gap-1"
