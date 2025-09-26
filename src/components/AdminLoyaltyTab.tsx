@@ -698,7 +698,10 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
                         {/* Soins individuels */}
                         <div className="bg-gradient-to-r from-[#d4b5a0]/10 to-[#c9a084]/10 rounded-lg p-3">
                           <div className="flex justify-between items-center mb-2">
-                            <span className="text-xs font-semibold text-[#2c3e50]">Soins ({profile.individualServicesCount})</span>
+                            <span className="text-sm font-bold text-[#2c3e50]">
+                              Soins: {profile.individualServicesCount % 6}/6
+                              {profile.individualServicesCount > 6 && ` (Total: ${profile.individualServicesCount})`}
+                            </span>
                             <div className="flex items-center gap-1">
                               <button
                                 onClick={() => handleModifyServices(profile.id, -1)}
@@ -722,10 +725,10 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
                               style={{ width: `${progress6}%` }}
                             />
                           </div>
-                          <span className="text-xs">
+                          <span className="text-xs font-semibold">
                             {profile.individualServicesCount % 6 === 0 && profile.individualServicesCount > 0 
-                              ? '🎁 -20€ disponible!' 
-                              : `${6 - (profile.individualServicesCount % 6)} pour -20€`
+                              ? '🎁 Réduction -20€ disponible!' 
+                              : `Encore ${6 - (profile.individualServicesCount % 6)} soin${6 - (profile.individualServicesCount % 6) > 1 ? 's' : ''} pour obtenir -20€`
                             }
                           </span>
                         </div>
@@ -733,7 +736,10 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
                         {/* Forfaits */}
                         <div className="bg-gradient-to-r from-purple-500/10 to-purple-600/10 rounded-lg p-3">
                           <div className="flex justify-between items-center mb-2">
-                            <span className="text-xs font-semibold text-[#2c3e50]">Forfaits ({profile.packagesCount})</span>
+                            <span className="text-sm font-bold text-[#2c3e50]">
+                              Forfaits: {profile.packagesCount % 4}/4
+                              {profile.packagesCount > 4 && ` (Total: ${profile.packagesCount})`}
+                            </span>
                             <div className="flex items-center gap-1">
                               <button
                                 onClick={() => handleModifyPackages(profile.id, -1)}
@@ -757,10 +763,10 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
                               style={{ width: `${progress4}%` }}
                             />
                           </div>
-                          <span className="text-xs">
+                          <span className="text-xs font-semibold">
                             {profile.packagesCount % 4 === 0 && profile.packagesCount > 0 
-                              ? '🎁 -40€ disponible!' 
-                              : `${4 - (profile.packagesCount % 4)} pour -40€`
+                              ? '🎁 Réduction -40€ disponible!' 
+                              : `Encore ${4 - (profile.packagesCount % 4)} forfait${4 - (profile.packagesCount % 4) > 1 ? 's' : ''} pour obtenir -40€`
                             }
                           </span>
                         </div>
