@@ -51,26 +51,32 @@ export default function EmailConversationTab() {
       const convMap = new Map<string, Conversation>();
       
       emails.forEach(email => {
-        // Créer une clé unique basée sur le sujet et les participants
-        const participants = [email.from, email.to].sort();
-        const baseSubject = email.subject.replace(/^(Re:|RE:|Fwd:|FWD:)\s*/gi, '').trim();
-        const key = `${baseSubject}-${participants.join('-')}`;
+        // Normaliser les adresses email pour identifier le client
+        const institutEmails = ['contact@laiaskininstitut.fr', 'contact@laia.skininstitut.fr', 'système@laiaskininstitut.fr'];
+        const clientEmail = institutEmails.includes(email.from.toLowerCase()) ? email.to : email.from;
+        
+        // Créer une clé basée uniquement sur l'email du client
+        const key = clientEmail.toLowerCase();
         
         if (!convMap.has(key)) {
+          // Première conversation avec ce client
           convMap.set(key, {
             id: key,
-            subject: baseSubject,
-            participants: [...new Set(participants)],
+            subject: clientEmail.split('@')[0].replace('.', ' ').replace('_', ' '),
+            participants: [clientEmail],
             lastMessage: email,
             emails: [email],
             unread: false
           });
         } else {
+          // Ajouter à la conversation existante
           const conv = convMap.get(key)!;
           conv.emails.push(email);
           // Garder le message le plus récent
           if (new Date(email.createdAt) > new Date(conv.lastMessage.createdAt)) {
             conv.lastMessage = email;
+            // Mettre à jour le sujet avec le dernier sujet si différent
+            conv.subject = `Conversation avec ${clientEmail}`;
           }
         }
       });
@@ -181,19 +187,13 @@ export default function EmailConversationTab() {
 
   const formatDate = (date: string) => {
     const d = new Date(date);
-    const now = new Date();
-    const diff = now.getTime() - d.getTime();
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    
-    if (days === 0) {
-      return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-    } else if (days === 1) {
-      return 'Hier';
-    } else if (days < 7) {
-      return d.toLocaleDateString('fr-FR', { weekday: 'short' });
-    } else {
-      return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
-    }
+    return d.toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   const filteredConversations = conversations.filter(conv => {
@@ -332,10 +332,16 @@ export default function EmailConversationTab() {
                   <div key={email.id} className={`mb-4 ${isOutgoing ? 'flex justify-end' : ''}`}>
                     <div className={`max-w-2xl ${isOutgoing ? 'bg-purple-600 text-white' : 'bg-white'} rounded-lg p-4 shadow-sm`}>
                       <div className={`flex items-center justify-between mb-2 ${isOutgoing ? 'text-purple-100' : 'text-gray-500'} text-xs`}>
-                        <span>{isOutgoing ? 'Vous' : email.from}</span>
+                        <span className="font-medium">{isOutgoing ? '✉️ LAIA SKIN Institut' : `📧 ${email.from.split('@')[0]}`}</span>
                         <div className="flex items-center space-x-2">
                           {getStatusIcon(email.status)}
-                          <span>{new Date(email.createdAt).toLocaleString('fr-FR')}</span>
+                          <span>{new Date(email.createdAt).toLocaleString('fr-FR', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}</span>
                         </div>
                       </div>
                       <div 

@@ -752,6 +752,49 @@ Laïa`,
                         </span>
                       )}
                     </div>
+                    
+                    {/* Indicateurs de performance */}
+                    <div className="mt-3 grid grid-cols-4 gap-2">
+                      {automation.triggerCount > 0 && (
+                        <>
+                          <div className={`px-2 py-1 rounded text-xs font-medium ${
+                            automation.sentEmails && automation.sentEmails.filter(e => e.opened).length / automation.sentEmails.length > 0.5
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-yellow-100 text-yellow-700'
+                          }`}>
+                            📧 Taux ouverture: {automation.sentEmails ? 
+                              Math.round((automation.sentEmails.filter(e => e.opened).length / automation.sentEmails.length) * 100) : 0}%
+                          </div>
+                          <div className={`px-2 py-1 rounded text-xs font-medium ${
+                            automation.sentEmails && automation.sentEmails.filter(e => e.clicked).length > 0
+                              ? 'bg-blue-100 text-blue-700'
+                              : 'bg-gray-100 text-gray-600'
+                          }`}>
+                            🔗 Clics: {automation.sentEmails ? 
+                              automation.sentEmails.filter(e => e.clicked).length : 0}
+                          </div>
+                          <div className={`px-2 py-1 rounded text-xs font-medium ${
+                            automation.lastTriggered && (Date.now() - new Date(automation.lastTriggered).getTime()) < 7 * 24 * 60 * 60 * 1000
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-orange-100 text-orange-700'
+                          }`}>
+                            {automation.lastTriggered && (Date.now() - new Date(automation.lastTriggered).getTime()) < 7 * 24 * 60 * 60 * 1000
+                              ? '✅ Actif récemment'
+                              : '⚠️ Inactif +7j'}
+                          </div>
+                          <div className={`px-2 py-1 rounded text-xs font-medium ${
+                            automation.enabled ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                          }`}>
+                            {automation.enabled ? '🟢 En marche' : '🔴 Arrêté'}
+                          </div>
+                        </>
+                      )}
+                      {automation.triggerCount === 0 && (
+                        <div className="col-span-4 px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs text-center">
+                          ⏳ Pas encore déclenché - En attente du premier événement
+                        </div>
+                      )}
+                    </div>
                     {automation.sentEmails && automation.sentEmails.length > 0 && (
                       <button
                         onClick={() => {

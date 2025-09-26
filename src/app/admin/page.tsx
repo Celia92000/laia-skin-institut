@@ -20,7 +20,7 @@ import AdminStatsEnhanced from "@/components/AdminStatsEnhanced";
 import EmployeeStatsView from "@/components/EmployeeStatsView";
 import AdminReviewsManager from "@/components/AdminReviewsManager";
 import ClientSegmentation from "@/components/ClientSegmentation";
-import EmailingInterface from "@/components/EmailingInterface";
+import EmailCompleteInterface from "@/components/EmailCompleteInterface";
 import SourceStats from "@/components/SourceStats";
 import RevenueManagement from "@/components/RevenueManagement";
 import RealTimeStats from "@/components/admin/RealTimeStats";
@@ -2710,7 +2710,7 @@ export default function AdminDashboard() {
           )}
 
           {activeTab === "emailing" && (
-            <EmailingInterface />
+            <EmailCompleteInterface />
           )}
 
           {false && activeTab === "OLD_CLIENTS" && (

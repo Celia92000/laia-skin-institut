@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Mail, Send, Search, Inbox, Users, Filter, CheckSquare, Calendar, Euro, Tag, Star, Globe, ChevronRight, Eye, X } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Mail, Send, Search, Inbox, Users, Filter, CheckSquare, Calendar, Euro, Tag, Star, Globe, ChevronRight, Eye, X, Bold, Italic, Underline, List, ListOrdered, Link2, Image, Type, Palette, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
 import EmailConversationTab from './EmailConversationTab';
 
 interface Client {
@@ -12,8 +12,14 @@ interface Client {
   loyaltyPoints?: number;
   totalSpent?: number;
   lastVisit?: string;
+  lastService?: string;
   tags?: string[];
   selected?: boolean;
+  vip?: boolean;
+  status?: string; // actif, inactif, nouveau
+  favoriteServices?: string[];
+  visitCount?: number;
+  tier?: string; // BRONZE, SILVER, GOLD, PLATINUM
 }
 
 interface EmailTemplate {
@@ -23,13 +29,17 @@ interface EmailTemplate {
   content: string;
 }
 
+import EmailSettings from './EmailSettings';
+import EmailAutomations from './EmailAutomations';
+
 export default function EmailCompleteInterface() {
-  const [activeTab, setActiveTab] = useState<'conversations' | 'campaigns'>('conversations');
+  const [activeTab, setActiveTab] = useState<'conversations' | 'campaigns' | 'automations' | 'settings'>('conversations');
   const [clients, setClients] = useState<Client[]>([]);
   const [filteredClients, setFilteredClients] = useState<Client[]>([]);
   const [selectedClients, setSelectedClients] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
+  const editorRef = useRef<HTMLDivElement>(null);
   
   // Filtres
   const [filters, setFilters] = useState({
@@ -39,6 +49,10 @@ export default function EmailCompleteInterface() {
     minSpent: '',
     maxSpent: '',
     lastVisitDays: '',
+    status: '', // actif, inactif, nouveau
+    tier: '', // BRONZE, SILVER, GOLD, PLATINUM
+    lastService: '',
+    minVisits: '',
     tags: [] as string[]
   });
 
@@ -112,6 +126,11 @@ export default function EmailCompleteInterface() {
   ];
 
   const [showPreview, setShowPreview] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [showTemplateManager, setShowTemplateManager] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<EmailTemplate | null>(null);
+  const [campaignHistory, setCampaignHistory] = useState<any[]>([]);
+  const [customTemplates, setCustomTemplates] = useState<EmailTemplate[]>([]);
   const [stats, setStats] = useState({
     totalClients: 0,
     selectedCount: 0,
@@ -145,16 +164,39 @@ export default function EmailCompleteInterface() {
       const response = await fetch('/api/admin/clients');
       const data = await response.json();
       if (Array.isArray(data)) {
-        setClients(data.map((c: any) => ({
-          id: c.id,
-          name: c.name,
-          email: c.email,
-          phone: c.phone,
-          loyaltyPoints: c.loyaltyPoints || 0,
-          totalSpent: c.totalSpent || 0,
-          lastVisit: c.lastVisit,
-          tags: c.tags || []
-        })));
+        const enrichedClients = await Promise.all(data.map(async (c: any) => {
+          // Calculer le statut du client
+          let status = 'nouveau';
+          if (c.reservations && c.reservations.length > 0) {
+            const lastReservation = new Date(c.reservations[0].date);
+            const daysSinceLastVisit = Math.floor((Date.now() - lastReservation.getTime()) / (1000 * 60 * 60 * 24));
+            
+            if (daysSinceLastVisit < 30) {
+              status = 'actif';
+            } else if (daysSinceLastVisit < 90) {
+              status = 'régulier';
+            } else {
+              status = 'inactif';
+            }
+          }
+
+          return {
+            id: c.id,
+            name: c.name,
+            email: c.email,
+            phone: c.phone,
+            loyaltyPoints: c.loyaltyProfile?.points || 0,
+            totalSpent: c.loyaltyProfile?.totalSpent || 0,
+            lastVisit: c.loyaltyProfile?.lastVisit,
+            lastService: c.reservations?.[0]?.service?.name || '',
+            tags: c.tags || [],
+            status,
+            visitCount: c.reservations?.length || 0,
+            tier: c.loyaltyProfile?.tier || 'BRONZE'
+          };
+        }));
+        
+        setClients(enrichedClients);
       }
     } catch (error) {
       console.error('Erreur chargement clients:', error);
@@ -166,13 +208,35 @@ export default function EmailCompleteInterface() {
   const applyFilters = () => {
     let filtered = [...clients];
 
-    // Recherche
+    // Recherche (nom, prénom, email)
     if (filters.search) {
       const search = filters.search.toLowerCase();
       filtered = filtered.filter(c => 
         c.name.toLowerCase().includes(search) || 
         c.email.toLowerCase().includes(search)
       );
+    }
+
+    // Statut client (actif, régulier, inactif, nouveau)
+    if (filters.status) {
+      filtered = filtered.filter(c => c.status === filters.status);
+    }
+
+    // Tier fidélité
+    if (filters.tier) {
+      filtered = filtered.filter(c => c.tier === filters.tier);
+    }
+
+    // Dernier service
+    if (filters.lastService) {
+      filtered = filtered.filter(c => 
+        c.lastService?.toLowerCase().includes(filters.lastService.toLowerCase())
+      );
+    }
+
+    // Nombre minimum de visites
+    if (filters.minVisits) {
+      filtered = filtered.filter(c => (c.visitCount || 0) >= parseInt(filters.minVisits));
     }
 
     // Points de fidélité
@@ -197,7 +261,7 @@ export default function EmailCompleteInterface() {
       const cutoff = new Date();
       cutoff.setDate(cutoff.getDate() - days);
       filtered = filtered.filter(c => {
-        if (!c.lastVisit) return false;
+        if (!c.lastVisit) return days === 999; // 999 = jamais venu
         return new Date(c.lastVisit) >= cutoff;
       });
     }
@@ -273,6 +337,39 @@ export default function EmailCompleteInterface() {
     setShowPreview(true);
   };
 
+  // Fonctions d'édition de texte
+  const formatText = (command: string, value?: string) => {
+    document.execCommand(command, false, value);
+    if (editorRef.current) {
+      const html = editorRef.current.innerHTML;
+      setEmailData({...emailData, content: html});
+    }
+  };
+
+  const insertVariable = (variable: string) => {
+    if (editorRef.current) {
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        const node = document.createTextNode(variable);
+        range.insertNode(node);
+        range.setStartAfter(node);
+        range.setEndAfter(node);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        const html = editorRef.current.innerHTML;
+        setEmailData({...emailData, content: html});
+      }
+    }
+  };
+
+  const handleEditorChange = () => {
+    if (editorRef.current) {
+      const html = editorRef.current.innerHTML;
+      setEmailData({...emailData, content: html});
+    }
+  };
+
   return (
     <div className="h-full flex flex-col">
       {/* Tabs */}
@@ -300,6 +397,28 @@ export default function EmailCompleteInterface() {
             <Users className="h-4 w-4 mr-2" />
             Campagnes
           </button>
+          <button
+            onClick={() => setActiveTab('automations')}
+            className={`flex-1 flex items-center justify-center px-4 py-2 rounded-lg transition-colors ${
+              activeTab === 'automations' 
+                ? 'bg-purple-100 text-purple-700 font-medium' 
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <Calendar className="h-4 w-4 mr-2" />
+            Automatisations
+          </button>
+          <button
+            onClick={() => setActiveTab('settings')}
+            className={`flex items-center justify-center px-4 py-2 rounded-lg transition-colors ${
+              activeTab === 'settings' 
+                ? 'bg-purple-100 text-purple-700 font-medium' 
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <Mail className="h-4 w-4 mr-2" />
+            Synchronisation
+          </button>
         </div>
       </div>
 
@@ -307,6 +426,10 @@ export default function EmailCompleteInterface() {
       <div className="flex-1 overflow-hidden">
         {activeTab === 'conversations' ? (
           <EmailConversationTab />
+        ) : activeTab === 'automations' ? (
+          <EmailAutomations />
+        ) : activeTab === 'settings' ? (
+          <EmailSettings />
         ) : (
           <div className="h-full flex">
             {/* Sidebar - Sélection des clients */}
@@ -319,58 +442,113 @@ export default function EmailCompleteInterface() {
                 </h3>
                 
                 <div className="space-y-3">
+                  {/* Recherche */}
                   <input
                     type="text"
-                    placeholder="Rechercher..."
+                    placeholder="Nom, prénom ou email..."
                     value={filters.search}
                     onChange={(e) => setFilters({...filters, search: e.target.value})}
                     className="w-full px-3 py-2 border rounded-lg text-sm"
                   />
                   
-                  <div className="grid grid-cols-2 gap-2">
-                    <input
-                      type="number"
-                      placeholder="Points min"
-                      value={filters.minPoints}
-                      onChange={(e) => setFilters({...filters, minPoints: e.target.value})}
-                      className="px-2 py-1 border rounded text-sm"
-                    />
-                    <input
-                      type="number"
-                      placeholder="Points max"
-                      value={filters.maxPoints}
-                      onChange={(e) => setFilters({...filters, maxPoints: e.target.value})}
-                      className="px-2 py-1 border rounded text-sm"
-                    />
-                  </div>
+                  {/* Type de client */}
+                  <select
+                    value={filters.status}
+                    onChange={(e) => setFilters({...filters, status: e.target.value})}
+                    className="w-full px-2 py-1 border rounded text-sm"
+                  >
+                    <option value="">Tous les clients</option>
+                    <option value="actif">🟢 Clients actifs (- 30j)</option>
+                    <option value="régulier">🔵 Clients réguliers (30-90j)</option>
+                    <option value="inactif">🔴 Clients inactifs (+ 90j)</option>
+                    <option value="nouveau">🆕 Nouveaux clients</option>
+                  </select>
+
+                  {/* Niveau de fidélité */}
+                  <select
+                    value={filters.tier}
+                    onChange={(e) => setFilters({...filters, tier: e.target.value})}
+                    className="w-full px-2 py-1 border rounded text-sm"
+                  >
+                    <option value="">Tous les niveaux</option>
+                    <option value="BRONZE">🥉 Bronze</option>
+                    <option value="SILVER">🥈 Silver</option>
+                    <option value="GOLD">🥇 Gold</option>
+                    <option value="PLATINUM">💎 Platinum</option>
+                  </select>
+
+                  {/* Dernier soin */}
+                  <input
+                    type="text"
+                    placeholder="Dernier soin effectué..."
+                    value={filters.lastService}
+                    onChange={(e) => setFilters({...filters, lastService: e.target.value})}
+                    className="w-full px-2 py-1 border rounded text-sm"
+                  />
+
+                  {/* Nombre de visites minimum */}
+                  <input
+                    type="number"
+                    placeholder="Nombre minimum de visites"
+                    value={filters.minVisits}
+                    onChange={(e) => setFilters({...filters, minVisits: e.target.value})}
+                    className="w-full px-2 py-1 border rounded text-sm"
+                  />
                   
-                  <div className="grid grid-cols-2 gap-2">
-                    <input
-                      type="number"
-                      placeholder="€ min"
-                      value={filters.minSpent}
-                      onChange={(e) => setFilters({...filters, minSpent: e.target.value})}
-                      className="px-2 py-1 border rounded text-sm"
-                    />
-                    <input
-                      type="number"
-                      placeholder="€ max"
-                      value={filters.maxSpent}
-                      onChange={(e) => setFilters({...filters, maxSpent: e.target.value})}
-                      className="px-2 py-1 border rounded text-sm"
-                    />
-                  </div>
+                  {/* Points et montants */}
+                  <details className="">
+                    <summary className="cursor-pointer text-xs font-medium text-gray-600">Filtres avancés</summary>
+                    <div className="mt-2 space-y-2">
+                      <div className="grid grid-cols-2 gap-2">
+                        <input
+                          type="number"
+                          placeholder="Points min"
+                          value={filters.minPoints}
+                          onChange={(e) => setFilters({...filters, minPoints: e.target.value})}
+                          className="px-2 py-1 border rounded text-xs"
+                        />
+                        <input
+                          type="number"
+                          placeholder="Points max"
+                          value={filters.maxPoints}
+                          onChange={(e) => setFilters({...filters, maxPoints: e.target.value})}
+                          className="px-2 py-1 border rounded text-xs"
+                        />
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2">
+                        <input
+                          type="number"
+                          placeholder="€ dépensé min"
+                          value={filters.minSpent}
+                          onChange={(e) => setFilters({...filters, minSpent: e.target.value})}
+                          className="px-2 py-1 border rounded text-xs"
+                        />
+                        <input
+                          type="number"
+                          placeholder="€ dépensé max"
+                          value={filters.maxSpent}
+                          onChange={(e) => setFilters({...filters, maxSpent: e.target.value})}
+                          className="px-2 py-1 border rounded text-xs"
+                        />
+                      </div>
+                    </div>
+                  </details>
                   
+                  {/* Dernière visite */}
                   <select
                     value={filters.lastVisitDays}
                     onChange={(e) => setFilters({...filters, lastVisitDays: e.target.value})}
                     className="w-full px-2 py-1 border rounded text-sm"
                   >
-                    <option value="">Dernière visite</option>
-                    <option value="7">7 derniers jours</option>
-                    <option value="30">30 derniers jours</option>
-                    <option value="60">60 derniers jours</option>
-                    <option value="90">90 derniers jours</option>
+                    <option value="">Toutes les visites</option>
+                    <option value="7">Venue cette semaine</option>
+                    <option value="30">Venue ce mois-ci</option>
+                    <option value="60">Venue ces 2 derniers mois</option>
+                    <option value="90">Venue ces 3 derniers mois</option>
+                    <option value="180">Venue ces 6 derniers mois</option>
+                    <option value="365">Venue cette année</option>
+                    <option value="999">Jamais venue</option>
                   </select>
                 </div>
                 
@@ -418,20 +596,42 @@ export default function EmailCompleteInterface() {
                         <div className="flex-1">
                           <p className="text-sm font-medium">{client.name}</p>
                           <p className="text-xs text-gray-600">{client.email}</p>
-                          <div className="flex items-center mt-1 text-xs text-gray-500">
-                            {client.loyaltyPoints && client.loyaltyPoints > 0 && (
-                              <span className="mr-3">
-                                <Star className="h-3 w-3 inline mr-1" />
-                                {client.loyaltyPoints} pts
+                          <div className="flex flex-wrap items-center gap-2 mt-1">
+                            {/* Badge statut */}
+                            <span className={`text-xs px-1.5 py-0.5 rounded ${
+                              client.status === 'actif' ? 'bg-green-100 text-green-700' :
+                              client.status === 'régulier' ? 'bg-blue-100 text-blue-700' :
+                              client.status === 'inactif' ? 'bg-red-100 text-red-700' :
+                              'bg-gray-100 text-gray-700'
+                            }`}>
+                              {client.status || 'nouveau'}
+                            </span>
+                            {/* Badge tier */}
+                            {client.tier && (
+                              <span className={`text-xs px-1.5 py-0.5 rounded ${
+                                client.tier === 'PLATINUM' ? 'bg-purple-100 text-purple-700' :
+                                client.tier === 'GOLD' ? 'bg-yellow-100 text-yellow-700' :
+                                client.tier === 'SILVER' ? 'bg-gray-200 text-gray-700' :
+                                'bg-orange-100 text-orange-700'
+                              }`}>
+                                {client.tier === 'PLATINUM' ? '💎' : 
+                                 client.tier === 'GOLD' ? '🥇' : 
+                                 client.tier === 'SILVER' ? '🥈' : '🥉'}
                               </span>
                             )}
-                            {client.totalSpent && client.totalSpent > 0 && (
-                              <span>
-                                <Euro className="h-3 w-3 inline mr-1" />
-                                {client.totalSpent.toFixed(0)}
+                            {/* Nombre de visites */}
+                            {client.visitCount && client.visitCount > 0 && (
+                              <span className="text-xs text-gray-500">
+                                {client.visitCount} visite{client.visitCount > 1 ? 's' : ''}
                               </span>
                             )}
                           </div>
+                          {/* Dernier soin */}
+                          {client.lastService && (
+                            <p className="text-xs text-purple-600 mt-1 truncate">
+                              Dernier: {client.lastService}
+                            </p>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -495,16 +695,150 @@ export default function EmailCompleteInterface() {
                   
                   <div>
                     <label className="block text-sm font-medium mb-1">Message</label>
-                    <textarea
-                      value={emailData.content}
-                      onChange={(e) => setEmailData({...emailData, content: e.target.value})}
-                      rows={15}
-                      placeholder="Contenu de votre message..."
-                      className="w-full px-3 py-2 border rounded-lg font-mono text-sm"
+                    
+                    {/* Barre d'outils de formatage */}
+                    <div className="border border-b-0 rounded-t-lg bg-gray-50 p-2 flex flex-wrap items-center gap-1">
+                      {/* Formatage de base */}
+                      <div className="flex items-center gap-1 pr-2 border-r">
+                        <button
+                          type="button"
+                          onClick={() => formatText('bold')}
+                          className="p-1.5 hover:bg-gray-200 rounded"
+                          title="Gras"
+                        >
+                          <Bold className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => formatText('italic')}
+                          className="p-1.5 hover:bg-gray-200 rounded"
+                          title="Italique"
+                        >
+                          <Italic className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => formatText('underline')}
+                          className="p-1.5 hover:bg-gray-200 rounded"
+                          title="Souligné"
+                        >
+                          <Underline className="h-4 w-4" />
+                        </button>
+                      </div>
+
+                      {/* Taille du texte */}
+                      <div className="flex items-center gap-1 px-2 border-r">
+                        <select
+                          onChange={(e) => formatText('fontSize', e.target.value)}
+                          className="px-2 py-1 text-sm border rounded"
+                          title="Taille du texte"
+                        >
+                          <option value="">Taille</option>
+                          <option value="1">Très petit</option>
+                          <option value="2">Petit</option>
+                          <option value="3">Normal</option>
+                          <option value="4">Moyen</option>
+                          <option value="5">Grand</option>
+                          <option value="6">Très grand</option>
+                          <option value="7">Énorme</option>
+                        </select>
+                      </div>
+
+                      {/* Couleur */}
+                      <div className="flex items-center gap-1 px-2 border-r">
+                        <input
+                          type="color"
+                          onChange={(e) => formatText('foreColor', e.target.value)}
+                          className="w-8 h-8 border rounded cursor-pointer"
+                          title="Couleur du texte"
+                        />
+                        <Palette className="h-4 w-4 text-gray-500" />
+                      </div>
+
+                      {/* Alignement */}
+                      <div className="flex items-center gap-1 px-2 border-r">
+                        <button
+                          type="button"
+                          onClick={() => formatText('justifyLeft')}
+                          className="p-1.5 hover:bg-gray-200 rounded"
+                          title="Aligner à gauche"
+                        >
+                          <AlignLeft className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => formatText('justifyCenter')}
+                          className="p-1.5 hover:bg-gray-200 rounded"
+                          title="Centrer"
+                        >
+                          <AlignCenter className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => formatText('justifyRight')}
+                          className="p-1.5 hover:bg-gray-200 rounded"
+                          title="Aligner à droite"
+                        >
+                          <AlignRight className="h-4 w-4" />
+                        </button>
+                      </div>
+
+                      {/* Listes */}
+                      <div className="flex items-center gap-1 px-2 border-r">
+                        <button
+                          type="button"
+                          onClick={() => formatText('insertUnorderedList')}
+                          className="p-1.5 hover:bg-gray-200 rounded"
+                          title="Liste à puces"
+                        >
+                          <List className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => formatText('insertOrderedList')}
+                          className="p-1.5 hover:bg-gray-200 rounded"
+                          title="Liste numérotée"
+                        >
+                          <ListOrdered className="h-4 w-4" />
+                        </button>
+                      </div>
+
+                      {/* Variables */}
+                      <div className="flex items-center gap-1 px-2">
+                        <span className="text-xs text-gray-600 mr-1">Variables:</span>
+                        <button
+                          type="button"
+                          onClick={() => insertVariable('{name}')}
+                          className="px-2 py-1 text-xs bg-purple-100 hover:bg-purple-200 rounded"
+                        >
+                          {'{name}'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => insertVariable('{date}')}
+                          className="px-2 py-1 text-xs bg-purple-100 hover:bg-purple-200 rounded"
+                        >
+                          {'{date}'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => insertVariable('{points}')}
+                          className="px-2 py-1 text-xs bg-purple-100 hover:bg-purple-200 rounded"
+                        >
+                          {'{points}'}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Éditeur */}
+                    <div
+                      ref={editorRef}
+                      contentEditable
+                      onInput={handleEditorChange}
+                      className="w-full min-h-[400px] max-h-[600px] overflow-y-auto px-4 py-3 border rounded-b-lg bg-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      style={{ lineHeight: '1.6' }}
+                      dangerouslySetInnerHTML={{ __html: emailData.content || '<p>Commencez à écrire votre message ici...</p>' }}
                     />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Variables disponibles : {'{name}'}, {'{date}'}, {'{points}'}
-                    </p>
                   </div>
                 </div>
               </div>
