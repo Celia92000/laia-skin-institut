@@ -61,18 +61,25 @@ export async function POST(request: Request) {
             email: clientInfo.email,
             phone: clientInfo.phone || '',
             password: `temp_${Date.now()}`, // Mot de passe temporaire
-            role: 'client'
+            role: 'CLIENT' // En majuscules pour cohérence avec le CRM
           }
         });
       } else {
-        // Mettre à jour les infos si nécessaire
-        if ((clientInfo.phone && !user.phone) || (clientInfo.name && user.name === 'Client')) {
+        // Mettre à jour les infos et s'assurer que c'est un CLIENT
+        const updateData: any = {
+          ...(clientInfo.phone && !user.phone ? { phone: clientInfo.phone } : {}),
+          ...(clientInfo.name && user.name === 'Client' ? { name: clientInfo.name } : {})
+        };
+        
+        // S'assurer que l'utilisateur est un CLIENT (pas ADMIN ou autre)
+        if (user.role !== 'CLIENT' && user.role !== 'ADMIN') {
+          updateData.role = 'CLIENT';
+        }
+        
+        if (Object.keys(updateData).length > 0) {
           user = await prisma.user.update({
             where: { id: user.id },
-            data: {
-              ...(clientInfo.phone && !user.phone ? { phone: clientInfo.phone } : {}),
-              ...(clientInfo.name && user.name === 'Client' ? { name: clientInfo.name } : {})
-            }
+            data: updateData
           });
         }
       }
@@ -236,6 +243,20 @@ export async function POST(request: Request) {
         totalPrice: finalPrice,
         status: 'pending' // Toujours en attente de validation admin
       }
+    });
+    
+    // Créer ou mettre à jour le profil de fidélité pour ce client
+    await prisma.loyaltyProfile.upsert({
+      where: { userId: userId },
+      create: {
+        userId: userId,
+        points: 0,
+        individualServicesCount: 0,
+        packagesCount: 0,
+        totalSpent: 0,
+        tier: 'bronze'
+      },
+      update: {} // Ne pas modifier si déjà existant
     });
     
     // Envoyer une notification WhatsApp à l'admin
