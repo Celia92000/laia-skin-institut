@@ -475,25 +475,8 @@ export default function AdminDashboard() {
   };
 
   const addBonusPoints = async (clientId: string, points: number) => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/admin/clients/${clientId}/bonus`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ points })
-      });
-
-      if (response.ok) {
-        // Rafraîchir les données
-        fetchClients();
-        alert(`${points} points bonus ajoutés avec succès !`);
-      }
-    } catch (error) {
-      console.error('Erreur lors de l\'ajout des points:', error);
-    }
+    // Fonction désactivée - nous utilisons un système de compteurs de soins/forfaits
+    console.log('Système de points désactivé - Utilisation des compteurs de fidélité');
   };
 
   const openEditModal = (reservation: Reservation) => {
@@ -1809,10 +1792,7 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <span className="text-xl font-bold text-[#d4b5a0] block mb-2">{reservation.totalPrice}€</span>
-                        <span className="text-sm text-green-600">
-                          +{Math.floor(reservation.totalPrice / 10)} points
-                        </span>
+                        <span className="text-xl font-bold text-[#d4b5a0]">{reservation.totalPrice}€</span>
                       </div>
                     </div>
 
@@ -1833,7 +1813,7 @@ export default function AdminDashboard() {
                       )}
                       {reservation.status === 'completed' && (
                         <div className="flex-1 text-center py-2 bg-green-100 text-green-600 rounded-lg font-medium">
-                          ✓ Soin effectué - Points attribués
+                          ✓ Soin effectué
                         </div>
                       )}
                       {reservation.status === 'no_show' && (

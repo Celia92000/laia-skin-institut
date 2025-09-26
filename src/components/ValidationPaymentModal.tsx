@@ -38,9 +38,10 @@ export default function ValidationPaymentModal({
   const isLoyaltyEligible = individualServicesCount >= 5;
   const loyaltyDiscount = isLoyaltyEligible ? 20 : 0;
   
-  // 3 forfaits = -30€ (le client doit avoir 3 forfaits pour avoir la réduction)
-  const isPackageEligible = packagesCount >= 3;
-  const packageDiscount = isPackageEligible ? 30 : 0;
+  // Réduction forfaits : disponible dès qu'on a 2 forfaits complétés (8 séances)
+  // La réduction s'applique à la 9ème séance (début du 3ème forfait)
+  const isPackageEligible = packagesCount >= 2;
+  const packageDiscount = isPackageEligible ? 40 : 0;
   
   const referralDiscount = 20; // Réduction parrainage fixe
   
@@ -182,9 +183,9 @@ export default function ValidationPaymentModal({
               </p>
             </div>
             <p className="text-sm text-green-700 mt-1">
-              {isLoyaltyEligible && `• Le client a réalisé ${individualServicesCount} soins individuels → Réduction de 20€ disponible`}
+              {isLoyaltyEligible && `• ${individualServicesCount} soins individuels réalisés → Réduction de 20€ disponible`}
               {isLoyaltyEligible && isPackageEligible && <br />}
-              {isPackageEligible && `• Le client a acheté ${packagesCount} forfaits → Réduction de 30€ disponible`}
+              {isPackageEligible && `• ${packagesCount} forfaits complétés (${packagesCount * 4} séances) → Réduction de 40€ disponible`}
             </p>
             <p className="text-xs text-green-600 mt-1 font-medium">
               ✅ Les réductions sont automatiquement appliquées au montant !
@@ -252,25 +253,167 @@ export default function ValidationPaymentModal({
               </p>
               {/* Indicateur du type de prestation */}
               <div className="mt-2 flex flex-col gap-1">
-                {reservation.packages && Object.keys(reservation.packages || {}).length > 0 ? (
-                  <>
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 w-fit">
-                      📦 Forfait - Compteur actuel: {packagesCount}/3
-                    </span>
-                    <span className="text-xs text-purple-600 ml-2">
-                      → Après validation: {packagesCount + 1}/3
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 w-fit">
-                      ✨ Soin individuel - Compteur actuel: {individualServicesCount}/5
-                    </span>
-                    <span className="text-xs text-blue-600 ml-2">
-                      → Après validation: {individualServicesCount + 1}/5
-                    </span>
-                  </>
-                )}
+                {(() => {
+                  // Déterminer si c'est un forfait ou un soin individuel
+                  const services = typeof reservation.services === 'string' 
+                    ? [reservation.services] 
+                    : Array.isArray(reservation.services) 
+                      ? reservation.services 
+                      : [];
+                  
+                  // Vérifier si c'est un forfait : soit packages est rempli, soit le nom contient "Forfait"
+                  const hasPackages = reservation.packages && Object.keys(reservation.packages || {}).length > 0;
+                  const hasForfaitInName = services.some((s: string) => 
+                    typeof s === 'string' && s.toLowerCase().includes('forfait')
+                  );
+                  const isPackage = hasPackages || hasForfaitInName;
+                  
+                  if (isPackage) {
+                    // packagesCount = nombre de forfaits COMPLÉTÉS (chaque forfait = 4 séances)
+                    // On incrémente le compteur quand on TERMINE un forfait
+                    // La réduction est disponible quand on COMMENCE le 3ème forfait (après 2 forfaits complets)
+                    
+                    return (
+                      <>
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 w-fit">
+                          📦 Forfait détecté (4 séances par forfait) - Programme fidélité forfaits
+                        </span>
+                        
+                        <div className="ml-2 space-y-1">
+                          <div className="text-xs text-purple-600">
+                            {(() => {
+                              // Calculer la position exacte dans le système de forfaits
+                              const forfaitsCompletes = packagesCount;
+                              const positionDansCycle = forfaitsCompletes % 3;
+                              
+                              // Messages personnalisés selon la situation exacte
+                              if (forfaitsCompletes === 0) {
+                                return (
+                                  <>
+                                    <div className="font-semibold">📍 État actuel: Aucun forfait complété</div>
+                                    <div>→ Cette séance fait partie du 1er forfait (en cours)</div>
+                                    <div className="text-xs text-gray-600">
+                                      Note: Le forfait sera marqué comme complété après 4 séances
+                                    </div>
+                                    <div className="text-orange-600 font-semibold mt-1">
+                                      ⏳ Encore 2 forfaits complets + début du 3ème avant la réduction
+                                    </div>
+                                    <div className="text-xs text-purple-600">
+                                      (Il faut terminer le 1er et le 2ème forfait, puis commencer le 3ème)
+                                    </div>
+                                  </>
+                                );
+                              }
+                              
+                              if (forfaitsCompletes === 1) {
+                                return (
+                                  <>
+                                    <div className="font-semibold">📍 État actuel: 1 forfait complété</div>
+                                    <div>→ Cette séance fait partie du 2ème forfait (en cours)</div>
+                                    <div className="text-xs text-gray-600">
+                                      Note: Le 2ème forfait sera complété après 4 séances
+                                    </div>
+                                    <div className="text-orange-600 font-semibold mt-1">
+                                      ⏳ Après ce 2ème forfait, la prochaine séance donnera -40€
+                                    </div>
+                                    <div className="text-purple-700 text-xs">
+                                      💡 Dès la 1ère séance du 3ème forfait = réduction !
+                                    </div>
+                                  </>
+                                );
+                              }
+                              
+                              if (forfaitsCompletes === 2) {
+                                return (
+                                  <>
+                                    <div className="font-semibold text-green-600">✨ État actuel: 2 forfaits déjà complétés</div>
+                                    <div className="text-green-600 font-bold animate-pulse">
+                                      🎉 Cette séance est la 1ère séance du 3ème forfait !
+                                    </div>
+                                    <div className="bg-green-100 rounded p-1 mt-1">
+                                      <div className="text-green-800 font-bold">
+                                        💰 RÉDUCTION DE 40€ APPLICABLE DÈS MAINTENANT !
+                                      </div>
+                                      <div className="text-xs text-green-700">
+                                        La réduction s'applique au début du 3ème forfait
+                                      </div>
+                                    </div>
+                                    <div className="text-xs text-purple-600 mt-1">
+                                      → Cette séance compte comme la 1ère/4 du 3ème forfait
+                                    </div>
+                                    <div className="text-xs text-gray-600">
+                                      → Le forfait sera complété après 3 séances supplémentaires
+                                    </div>
+                                  </>
+                                );
+                              }
+                              
+                              if (forfaitsCompletes >= 3) {
+                                const nouveauCycle = positionDansCycle;
+                                if (nouveauCycle === 0) {
+                                  return (
+                                    <>
+                                      <div className="font-semibold">📍 Nouveau cycle - Aucun forfait dans ce cycle</div>
+                                      <div>→ Cette validation compte pour le 1er forfait du nouveau cycle</div>
+                                      <div className="text-orange-600 font-semibold mt-1">
+                                        ⏳ Encore 2 forfaits complets avant la prochaine réduction de 40€
+                                      </div>
+                                    </>
+                                  );
+                                } else if (nouveauCycle === 1) {
+                                  return (
+                                    <>
+                                      <div className="font-semibold">📍 Nouveau cycle - 1 forfait complété</div>
+                                      <div>→ Cette validation compte pour le 2ème forfait</div>
+                                      <div className="text-orange-600 font-semibold mt-1">
+                                        ⏳ Encore 1 forfait complet avant la prochaine réduction de 40€
+                                      </div>
+                                    </>
+                                  );
+                                } else {
+                                  return (
+                                    <>
+                                      <div className="font-semibold text-green-600">✨ 2 forfaits dans ce cycle</div>
+                                      <div className="text-green-600 font-bold animate-pulse">
+                                        🎉 Cette séance fait partie du 3ème forfait !
+                                      </div>
+                                      <div className="bg-green-100 rounded p-1 mt-1">
+                                        <div className="text-green-800 font-bold">
+                                          💰 RÉDUCTION DE 40€ APPLICABLE !
+                                        </div>
+                                      </div>
+                                    </>
+                                  );
+                                }
+                              }
+                              
+                              return null;
+                            })()}
+                          </div>
+                        </div>
+                      </>
+                    );
+                  } else {
+                    return (
+                      <>
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 w-fit">
+                          ✨ Soin individuel - Programme fidélité soins
+                        </span>
+                        <span className="text-xs text-blue-600 ml-2">
+                          Compteur actuel: {individualServicesCount}/5 soins
+                        </span>
+                        <span className="text-xs text-blue-600 ml-2">
+                          → Après validation: {individualServicesCount + 1}/5 soins
+                        </span>
+                        {individualServicesCount >= 4 && (
+                          <span className="text-xs font-semibold text-green-600 ml-2 animate-pulse">
+                            🎉 Prochain soin = -20€ de réduction !
+                          </span>
+                        )}
+                      </>
+                    );
+                  }
+                })()}
               </div>
             </div>
           )}
@@ -374,7 +517,7 @@ export default function ValidationPaymentModal({
                           <p className="text-xs text-green-700 mt-1">
                             {isLoyaltyEligible && `• Réduction de 20€ pour 5 soins réalisés`}
                             {isLoyaltyEligible && isPackageEligible && <br />}
-                            {isPackageEligible && `• Réduction de 30€ pour 3 forfaits achetés`}
+                            {isPackageEligible && `• Réduction de 40€ pour 3 forfaits achetés`}
                           </p>
                         </div>
                       )}
@@ -403,12 +546,12 @@ export default function ValidationPaymentModal({
                           />
                           <div>
                             <p className={`text-sm font-medium ${isLoyaltyEligible ? 'text-[#2c3e50]' : 'text-gray-500'}`}>
-                              🎁 Réduction 5 soins individuels
+                              ✨ Programme Fidélité SOINS INDIVIDUELS
                             </p>
                             <p className="text-xs text-[#2c3e50]/60">
                               {isLoyaltyEligible 
-                                ? `✅ Le client a réalisé ${individualServicesCount} soins - Réduction disponible !`
-                                : `⏳ ${individualServicesCount}/5 soins réalisés - Encore ${5 - individualServicesCount} soin(s)`}
+                                ? `✅ ${individualServicesCount}/5 soins réalisés - Réduction disponible ! (Le compteur sera remis à zéro)`
+                                : `⏳ ${individualServicesCount}/5 soins réalisés - Encore ${5 - individualServicesCount} soin(s) avant réduction`}
                             </p>
                           </div>
                         </div>
@@ -441,17 +584,17 @@ export default function ValidationPaymentModal({
                           />
                           <div>
                             <p className={`text-sm font-medium ${isPackageEligible ? 'text-[#2c3e50]' : 'text-gray-500'}`}>
-                              ✨ Réduction 3 forfaits
+                              📦 Programme Fidélité FORFAITS
                             </p>
                             <p className="text-xs text-[#2c3e50]/60">
                               {isPackageEligible 
-                                ? `✅ Le client a acheté ${packagesCount} forfaits - Réduction disponible !`
-                                : `⏳ ${packagesCount}/3 forfaits achetés - Encore ${3 - packagesCount} forfait(s)`}
+                                ? `✅ ${packagesCount} forfaits complétés (${packagesCount * 4} séances) - Réduction de 40€ disponible !`
+                                : `⏳ ${packagesCount} forfait${packagesCount > 1 ? 's' : ''} complété${packagesCount > 1 ? 's' : ''} (${packagesCount * 4}/8 séances) - Encore ${(2 - packagesCount) * 4} séances avant réduction`}
                             </p>
                           </div>
                         </div>
                         <span className={`font-bold ${isPackageEligible ? 'text-green-600' : 'text-gray-400'}`}>
-                          {isPackageEligible ? '-30€' : '🔒'}
+                          {isPackageEligible ? '-40€' : '🔒'}
                         </span>
                       </label>
                       

@@ -49,11 +49,11 @@ export default function PaymentSectionEnhanced({ reservation, loyaltyProfiles, r
     });
   }
   
-  // 3 forfaits = -30€
+  // 3 forfaits = -40€
   if (userProfile && userProfile.packagesCount >= 3) {
     availableDiscounts.push({
       type: 'package',
-      amount: 30,
+      amount: 40,
       description: '3 forfaits achetés',
       icon: Star,
       color: 'bg-purple-500',

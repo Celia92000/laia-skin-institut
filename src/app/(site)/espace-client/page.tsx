@@ -8,6 +8,10 @@ import ClientSpaceWrapper from "./ClientSpaceWrapper";
 import Modal from "@/components/Modal";
 import { logout } from "@/lib/auth-client";
 import ClientDashboard from "@/components/ClientDashboard";
+import { ReferralSystem } from "@/components/ReferralSystem";
+import { DiscountHistory } from "@/components/DiscountHistory";
+import { SocialQRCodes } from "@/components/SocialQRCodes";
+import { CongratulationsAnimation } from "@/components/CongratulationsAnimation";
 
 interface Reservation {
   id: string;
@@ -48,6 +52,9 @@ export default function EspaceClient() {
   const [uploadedPhotos, setUploadedPhotos] = useState<File[]>([]);
   const [dbServices, setDbServices] = useState<any[]>([]);
   const [emailNotifications, setEmailNotifications] = useState(true);
+  const [showReferralModal, setShowReferralModal] = useState(false);
+  const [showDiscountAnimation, setShowDiscountAnimation] = useState(false);
+  const [discountAnimationType, setDiscountAnimationType] = useState<'service_discount' | 'package_discount' | 'birthday' | 'referral'>('service_discount');
   const [whatsappNotifications, setWhatsappNotifications] = useState(true);
   const [savingPreferences, setSavingPreferences] = useState(false);
   const [userReviews, setUserReviews] = useState<any[]>([]);
@@ -972,25 +979,39 @@ export default function EspaceClient() {
                   </p>
                 )}
               </div>
+              
+              {/* Historique des réductions */}
+              <div className="mt-8">
+                {userData && <DiscountHistory userId={userData.email} isAdmin={false} />}
+              </div>
             </div>
           )}
 
           {activeTab === "recommend" && (
-            <div>
+            <div className="space-y-6">
               <h2 className="text-2xl font-serif font-bold text-[#2c3e50] mb-6">
-                Recommander LAIA SKIN
+                Programme de Parrainage & Réseaux Sociaux
               </h2>
               
+              {/* Bouton pour ouvrir le système de parrainage */}
               <div className="bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white rounded-xl p-8 mb-6">
-                <h3 className="text-xl font-semibold mb-4">Partagez votre expérience</h3>
+                <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  <Gift className="w-6 h-6" />
+                  Partagez et Gagnez !
+                </h3>
                 <p className="mb-6">
-                  Recommandez nos soins à vos proches et recevez <strong>10€ de réduction</strong> sur votre prochain soin pour chaque nouveau client parrainé !
+                  Recommandez nos soins à vos proches et recevez <strong>15€ de réduction</strong> pour vous et votre filleul !
                 </p>
-                <div className="bg-white/20 rounded-lg p-4 text-center">
-                  <p className="text-sm mb-2">Votre code de parrainage</p>
-                  <p className="text-3xl font-bold font-mono">LAIA{userData?.name?.substring(0, 4).toUpperCase() || 'CODE'}</p>
-                </div>
+                <button
+                  onClick={() => setShowReferralModal(true)}
+                  className="bg-white text-[#d4b5a0] px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+                >
+                  Accéder au programme de parrainage
+                </button>
               </div>
+
+              {/* QR Codes des réseaux sociaux */}
+              <SocialQRCodes showTitle={true} size="medium" />
               
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="border border-[#d4b5a0]/20 rounded-xl p-6">
@@ -1581,6 +1602,24 @@ export default function EspaceClient() {
           </div>
         )}
       </Modal>
+
+      {/* Modal de parrainage */}
+      {showReferralModal && userData && (
+        <ReferralSystem 
+          clientId={userData.email}
+          clientName={userData.name}
+          onClose={() => setShowReferralModal(false)}
+        />
+      )}
+
+      {/* Animation de félicitations */}
+      {showDiscountAnimation && (
+        <CongratulationsAnimation
+          type={discountAnimationType}
+          amount={discountAnimationType === 'service_discount' ? 20 : 40}
+          onClose={() => setShowDiscountAnimation(false)}
+        />
+      )}
     </div>
     </ClientSpaceWrapper>
   );

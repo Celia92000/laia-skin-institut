@@ -85,7 +85,21 @@ export async function PATCH(
           ? JSON.parse(reservation.packages || '{}')
           : reservation.packages || {};
         
-        const isPackage = packages && Object.keys(packages).length > 0;
+        // Vérifier si c'est un forfait :
+        // 1. Soit le champ packages est rempli
+        // 2. Soit le nom du service contient "Forfait"
+        let isPackage = packages && Object.keys(packages).length > 0;
+        
+        // Si pas de packages mais "Forfait" dans le nom, c'est quand même un forfait
+        if (!isPackage && Array.isArray(services)) {
+          for (const service of services) {
+            if (typeof service === 'string' && service.toLowerCase().includes('forfait')) {
+              isPackage = true;
+              console.log(`📦 Détecté comme forfait par le nom: ${service}`);
+              break;
+            }
+          }
+        }
 
         // Récupérer ou créer le profil de fidélité
         let loyaltyProfile = await prisma.loyaltyProfile.findUnique({

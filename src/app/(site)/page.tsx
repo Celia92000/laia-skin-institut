@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from '@/lib/prisma';
 import { Clock, ArrowRight, Sparkles, Star } from 'lucide-react';
 import { getDisplayPrice, getForfaitDisplayPrice, hasPromotion, getDiscountPercentage } from '@/lib/price-utils';
+import { SocialSection } from '@/components/SocialSection';
 
 // Force dynamic rendering to avoid build-time database queries
 export const dynamic = 'force-dynamic';
@@ -393,6 +394,9 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      {/* Section Réseaux Sociaux */}
+      <SocialSection />
 
       {/* CTA Section */}
       <section className="py-24 bg-gradient-to-br from-[#d4b5a0] to-[#c9a084] text-white">

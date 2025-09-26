@@ -1071,7 +1071,7 @@ export default function UnifiedCRMTab({
                                 {/* Forfaits */}
                                 <div>
                                   <div className="flex justify-between items-center mb-2">
-                                    <span className="text-sm font-medium text-[#2c3e50]">Forfaits</span>
+                                    <span className="text-sm font-medium text-[#2c3e50]">Forfaits (4 séances chacun)</span>
                                     <span className="text-xs text-[#2c3e50]/60">
                                       {client.loyaltyProfile?.packagesCount || 0} / 3
                                     </span>
@@ -1084,11 +1084,76 @@ export default function UnifiedCRMTab({
                                       }}
                                     />
                                   </div>
-                                  {(client.loyaltyProfile?.packagesCount || 0) >= 3 && (
-                                    <p className="text-xs text-green-600 mt-1 font-medium animate-pulse">
-                                      🎁 -30€ sur le prochain forfait !
-                                    </p>
-                                  )}
+                                  
+                                  {/* Détail des forfaits et séances */}
+                                  <div className="mt-2 text-xs space-y-1">
+                                    {(() => {
+                                      const packagesCount = client.loyaltyProfile?.packagesCount || 0;
+                                      const seancesRealisees = packagesCount * 4;
+                                      const positionCycle = packagesCount % 3;
+                                      
+                                      if (packagesCount === 0) {
+                                        return (
+                                          <>
+                                            <div className="text-purple-600">0/8 séances pour la réduction</div>
+                                            <div className="text-orange-600 font-semibold">
+                                              → Encore 9 séances avant -40€
+                                            </div>
+                                          </>
+                                        );
+                                      } else if (packagesCount === 1) {
+                                        return (
+                                          <>
+                                            <div className="text-purple-600">4/8 séances réalisées</div>
+                                            <div className="text-orange-600 font-semibold">
+                                              → Encore 5 séances avant -40€
+                                            </div>
+                                          </>
+                                        );
+                                      } else if (packagesCount === 2) {
+                                        return (
+                                          <>
+                                            <div className="text-green-600 font-bold">8/8 séances réalisées !</div>
+                                            <div className="text-green-600 font-medium animate-pulse">
+                                              🎁 Prochaine séance (9ème) = -40€ !
+                                            </div>
+                                          </>
+                                        );
+                                      } else if (packagesCount >= 3) {
+                                        const forfaitsDansCycle = positionCycle;
+                                        const seancesDansCycle = forfaitsDansCycle * 4;
+                                        
+                                        if (forfaitsDansCycle === 0) {
+                                          return (
+                                            <>
+                                              <div className="text-purple-600">Nouveau cycle: 0/8</div>
+                                              <div className="text-orange-600 font-semibold">
+                                                → Encore 9 séances avant -40€
+                                              </div>
+                                            </>
+                                          );
+                                        } else if (forfaitsDansCycle === 1) {
+                                          return (
+                                            <>
+                                              <div className="text-purple-600">Nouveau cycle: 4/8</div>
+                                              <div className="text-orange-600 font-semibold">
+                                                → Encore 5 séances avant -40€
+                                              </div>
+                                            </>
+                                          );
+                                        } else {
+                                          return (
+                                            <>
+                                              <div className="text-green-600 font-bold">8/8 séances!</div>
+                                              <div className="text-green-600 font-medium animate-pulse">
+                                                🎁 Prochaine séance = -40€ !
+                                              </div>
+                                            </>
+                                          );
+                                        }
+                                      }
+                                    })()}
+                                  </div>
                                 </div>
                                 
                                 {/* Total dépensé */}

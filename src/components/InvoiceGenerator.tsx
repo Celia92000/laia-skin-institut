@@ -20,12 +20,18 @@ interface InvoiceData {
   paymentAmount?: number;
   paymentMethod?: string;
   paymentStatus: string;
+  appliedDiscounts?: Array<{
+    description: string;
+    amount: number;
+  }>;
 }
 
 export function generateInvoiceHTML(data: InvoiceData): string {
   const subtotal = data.services.reduce((sum, service) => sum + (service.price * (service.quantity || 1)), 0);
-  const tva = subtotal * 0.20;
-  const totalTTC = subtotal + tva;
+  const totalDiscounts = data.appliedDiscounts ? data.appliedDiscounts.reduce((sum, d) => sum + d.amount, 0) : 0;
+  const subtotalAfterDiscount = subtotal - totalDiscounts;
+  const tva = subtotalAfterDiscount * 0.20;
+  const totalTTC = subtotalAfterDiscount + tva;
 
   const html = `
     <!DOCTYPE html>
@@ -281,6 +287,18 @@ export function generateInvoiceHTML(data: InvoiceData): string {
             <span>Sous-total HT</span>
             <span>${subtotal.toFixed(2)}€</span>
           </div>
+          ${data.appliedDiscounts && data.appliedDiscounts.length > 0 ? `
+            ${data.appliedDiscounts.map(discount => `
+              <div class="total-row" style="color: #d4b5a0; font-weight: bold;">
+                <span>${discount.description}</span>
+                <span>-${discount.amount.toFixed(2)}€</span>
+              </div>
+            `).join('')}
+            <div class="total-row">
+              <span>Sous-total après réduction</span>
+              <span>${(subtotal - data.appliedDiscounts.reduce((sum, d) => sum + d.amount, 0)).toFixed(2)}€</span>
+            </div>
+          ` : ''}
           <div class="total-row">
             <span>TVA (20%)</span>
             <span>${tva.toFixed(2)}€</span>
@@ -338,7 +356,8 @@ export function InvoiceButton({ reservation }: { reservation: any }) {
       totalPrice: reservation.totalPrice,
       paymentAmount: reservation.paymentAmount,
       paymentMethod: reservation.paymentMethod,
-      paymentStatus: reservation.paymentStatus
+      paymentStatus: reservation.paymentStatus,
+      appliedDiscounts: reservation.appliedDiscounts
     };
 
     const invoiceHTML = generateInvoiceHTML(invoiceData);

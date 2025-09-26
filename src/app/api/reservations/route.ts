@@ -372,7 +372,15 @@ export async function GET(request: Request) {
 
     return NextResponse.json(reservations.map(r => ({
       ...r,
-      services: JSON.parse(r.services),
+      services: (() => {
+        try {
+          // Essayer de parser si c'est du JSON
+          return JSON.parse(r.services);
+        } catch {
+          // Si ce n'est pas du JSON, retourner comme tableau avec la valeur
+          return typeof r.services === 'string' ? [r.services] : r.services;
+        }
+      })(),
     })));
   } catch (error) {
     console.error('Error fetching reservations:', error);

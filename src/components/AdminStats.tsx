@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, Users, Calendar, Euro, Award, Star, Heart, ThumbsUp, MessageCircle, BarChart3, PieChart, Activity } from 'lucide-react';
+import { TrendingUp, TrendingDown, Users, Calendar, Euro, Award, Star, Heart, ThumbsUp, MessageCircle, BarChart3, PieChart, Activity, Gift, UserPlus, Target, Sparkles } from 'lucide-react';
 
 interface Stats {
   reservations: {
@@ -74,6 +74,37 @@ interface Stats {
     whatsappReadRate: number;
     whatsappResponseRate: number;
     campaignConversion: number;
+  };
+  loyalty: {
+    totalActiveMembers: number;
+    newMembersThisMonth: number;
+    totalPointsDistributed: number;
+    totalRewardsRedeemed: number;
+    averagePointsPerClient: number;
+    redemptionRate: number;
+    clientsNearReward: {
+      services: number; // Clients à 4 services (proches des 20€)
+      packages: number; // Clients à 7-8 séances (proches des 40€)
+    };
+    rewardsThisMonth: {
+      services: { count: number; value: number };
+      packages: { count: number; value: number };
+      birthday: { count: number; value: number };
+      referral: { count: number; value: number };
+    };
+    topLoyalClients: Array<{
+      name: string;
+      services: number;
+      packages: number;
+      totalSpent: number;
+      totalSaved: number;
+    }>;
+    referralProgram: {
+      totalReferrals: number;
+      successfulReferrals: number;
+      conversionRate: number;
+      totalRewardsGiven: number;
+    };
   };
 }
 

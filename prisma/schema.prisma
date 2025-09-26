@@ -37,6 +37,7 @@ model User {
   referralsMade  Referral[]        @relation("ReferralReferrer")
   referredBy     Referral?         @relation("ReferralReferred")
   leads          Lead[]
+  discounts      Discount[]
 }
 
 model Reservation {
@@ -324,6 +325,41 @@ model EmailCampaign {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   emails         EmailHistory[]
+}
+
+model Discount {
+  id                String    @id @default(cuid())
+  userId            String
+  type              String    // service_5, package_9, birthday, referral, postponed
+  amount            Float
+  status            String    @default("available") // available, used, expired, postponed
+  originalReason    String    // Raison initiale (ex: "5ème soin", "9ème séance", "Anniversaire")
+  usedAt            DateTime?
+  usedForReservation String?  // ID de la réservation où la réduction a été utilisée
+  expiresAt         DateTime? // Date d'expiration
+  postponedFrom     String?   // ID de la réduction d'origine si reportée
+  postponedTo       DateTime? // Date jusqu'à laquelle c'est reporté
+  postponedReason   String?   // Raison du report
+  notes             String?   // Notes additionnelles
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  user              User      @relation(fields: [userId], references: [id])
+}
+
+model PromoCode {
+  id           String    @id @default(cuid())
+  code         String    @unique
+  discount     Float     // Montant de la réduction
+  type         String    // birthday, referral, special
+  validFrom    DateTime  @default(now())
+  validUntil   DateTime?
+  maxUses      Int?      // Nombre max d'utilisations
+  usedCount    Int       @default(0)
+  userId       String?   // Si le code est spécifique à un utilisateur
+  conditions   String?   // Conditions d'utilisation (JSON)
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 }
 
 model EmailAutomation {

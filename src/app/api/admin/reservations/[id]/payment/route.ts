@@ -92,7 +92,7 @@ export async function POST(
             userId: currentReservation.userId,
             action: 'DISCOUNT_USED',
             points: -3,
-            description: `Réduction fidélité 3 forfaits utilisée (-30€)`,
+            description: `Réduction fidélité 3 forfaits utilisée (-40€)`,
             reservationId: id
           });
         }

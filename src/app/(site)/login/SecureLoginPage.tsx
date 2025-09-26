@@ -16,7 +16,8 @@ export default function SecureLoginPage() {
     password: "",
     name: "",
     phone: "",
-    confirmPassword: ""
+    confirmPassword: "",
+    referralCode: ""
   });
 
   // Charger les identifiants sauvegardés au chargement
@@ -159,7 +160,8 @@ export default function SecureLoginPage() {
             email: formData.email,
             password: formData.password,
             name: formData.name,
-            phone: formData.phone
+            phone: formData.phone,
+            referralCode: formData.referralCode
           })
         });
 
@@ -352,6 +354,24 @@ export default function SecureLoginPage() {
                       className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:border-laia-primary focus:outline-none focus:ring-2 focus:ring-laia-primary/20"
                       placeholder="06 12 34 56 78"
                     />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-laia-dark">
+                      Code de parrainage (optionnel)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={formData.referralCode}
+                        onChange={(e) => setFormData({ ...formData, referralCode: e.target.value.toUpperCase() })}
+                        className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:border-laia-primary focus:outline-none focus:ring-2 focus:ring-laia-primary/20"
+                        placeholder="Ex: LAIAMAR1234"
+                      />
+                      <div className="mt-1 text-xs text-green-600">
+                        💝 15€ de réduction sur votre premier soin avec un code valide
+                      </div>
+                    </div>
                   </div>
                 </>
               )}

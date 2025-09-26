@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password, name, phone } = await request.json();
+    const { email, password, name, phone, referralCode } = await request.json();
 
     // Vérifier si l'utilisateur existe déjà
     const existingUser = await prisma.user.findUnique({
@@ -34,6 +34,82 @@ export async function POST(request: NextRequest) {
         role: 'client',
         loyaltyPoints: 0,
         totalSpent: 0
+      }
+    });
+
+    // Créer le profil de fidélité avec code de parrainage unique
+    const userReferralCode = `LAIA${name.slice(0, 3).toUpperCase()}${user.id.slice(-4).toUpperCase()}`;
+    
+    // Si un code de parrainage a été fourni, le valider
+    let referrerProfile = null;
+    if (referralCode) {
+      referrerProfile = await prisma.loyaltyProfile.findFirst({
+        where: { 
+          referralCode: referralCode,
+          userId: { not: user.id }
+        },
+        include: { user: true }
+      });
+
+      if (referrerProfile) {
+        // Créer la réduction pour le nouveau client
+        await prisma.discount.create({
+          data: {
+            userId: user.id,
+            type: 'referral',
+            amount: 15,
+            status: 'available',
+            originalReason: `Bienvenue ! Code parrainage de ${referrerProfile.user.name}`,
+            expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000) // 90 jours
+          }
+        });
+
+        // Créer une réduction en attente pour le parrain
+        await prisma.discount.create({
+          data: {
+            userId: referrerProfile.userId,
+            type: 'referral',
+            amount: 15,
+            status: 'pending',
+            originalReason: `Parrainage de ${name}`,
+            notes: 'Sera activée après le premier soin du filleul'
+          }
+        });
+
+        // Créer l'entrée de parrainage
+        await prisma.referral.create({
+          data: {
+            referrerUserId: referrerProfile.userId,
+            referralCode: referralCode,
+            referredUserId: user.id,
+            status: 'used',
+            rewardAmount: 15
+          }
+        });
+
+        // Notification au parrain
+        await prisma.notification.create({
+          data: {
+            userId: referrerProfile.userId,
+            type: 'referral',
+            message: `🎉 ${name} vient de s'inscrire avec votre code ! Vous recevrez 15€ après son premier soin.`,
+            read: false
+          }
+        });
+      }
+    }
+
+    // Créer le profil de fidélité
+    await prisma.loyaltyProfile.create({
+      data: {
+        userId: user.id,
+        referralCode: userReferralCode,
+        referredBy: referralCode || null,
+        points: 0,
+        individualServicesCount: 0,
+        packagesCount: 0,
+        totalSpent: 0,
+        totalReferrals: 0
       }
     });
 

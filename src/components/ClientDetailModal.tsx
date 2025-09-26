@@ -333,30 +333,91 @@ export default function ClientDetailModal({
                 {/* Carte forfaits */}
                 <div className="bg-gradient-to-r from-purple-500 to-purple-700 text-white rounded-xl p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <h4 className="font-semibold">Forfaits</h4>
+                    <h4 className="font-semibold">Forfaits (4 séances chacun)</h4>
                     <Star className="w-6 h-6 opacity-80" />
                   </div>
-                  <div className="grid grid-cols-4 gap-2 mb-4">
-                    {[1, 2, 3, 4].map(num => (
+                  <div className="grid grid-cols-3 gap-2 mb-4">
+                    {[1, 2, 3].map(num => (
                       <div
                         key={num}
                         className={`aspect-square rounded-lg flex items-center justify-center text-lg font-bold ${
-                          num <= (loyaltyProfile?.packagesCount % 4 || 0)
+                          num <= (loyaltyProfile?.packagesCount % 3 || 0)
                             ? 'bg-white text-purple-600'
                             : 'bg-white/30 text-white'
                         }`}
                       >
-                        {num <= (loyaltyProfile?.packagesCount % 4 || 0) ? '✓' : num}
+                        {num <= (loyaltyProfile?.packagesCount % 3 || 0) ? '✓' : num}
                       </div>
                     ))}
                   </div>
                   <div className="space-y-1 text-sm">
-                    <p>Total: {loyaltyProfile?.packagesCount || 0} forfaits</p>
-                    <p className="font-bold">
-                      {loyaltyProfile?.packagesCount === 3 
-                        ? '🎉 -40€ sur votre prochain forfait !'
-                        : `${4 - (loyaltyProfile?.packagesCount % 4 || 0)} forfaits avant -40€`}
-                    </p>
+                    <p>Total: {loyaltyProfile?.packagesCount || 0} forfait{(loyaltyProfile?.packagesCount || 0) > 1 ? 's' : ''} complété{(loyaltyProfile?.packagesCount || 0) > 1 ? 's' : ''}</p>
+                    {(() => {
+                      const packagesCount = loyaltyProfile?.packagesCount || 0;
+                      const seancesRealisees = packagesCount * 4;
+                      const positionCycle = packagesCount % 3;
+                      
+                      if (packagesCount === 0) {
+                        return (
+                          <>
+                            <p className="text-white/90">0/8 séances pour la réduction</p>
+                            <p className="font-bold text-yellow-300">
+                              → 9 séances avant -40€
+                            </p>
+                          </>
+                        );
+                      } else if (packagesCount === 1) {
+                        return (
+                          <>
+                            <p className="text-white/90">4/8 séances réalisées</p>
+                            <p className="font-bold text-yellow-300">
+                              → 5 séances avant -40€
+                            </p>
+                          </>
+                        );
+                      } else if (packagesCount === 2) {
+                        return (
+                          <>
+                            <p className="text-white font-bold">✅ 8/8 séances réalisées!</p>
+                            <p className="font-bold text-yellow-300 animate-pulse">
+                              🎉 Prochaine séance (9ème) = -40€ !
+                            </p>
+                          </>
+                        );
+                      } else if (packagesCount >= 3) {
+                        const forfaitsDansCycle = positionCycle;
+                        const seancesDansCycle = forfaitsDansCycle * 4;
+                        
+                        if (forfaitsDansCycle === 0) {
+                          return (
+                            <>
+                              <p className="text-white/90">Nouveau cycle: 0/8</p>
+                              <p className="font-bold text-yellow-300">
+                                → 9 séances avant -40€
+                              </p>
+                            </>
+                          );
+                        } else if (forfaitsDansCycle === 1) {
+                          return (
+                            <>
+                              <p className="text-white/90">Nouveau cycle: 4/8</p>
+                              <p className="font-bold text-yellow-300">
+                                → 5 séances avant -40€
+                              </p>
+                            </>
+                          );
+                        } else {
+                          return (
+                            <>
+                              <p className="text-white font-bold">✅ 8/8 séances!</p>
+                              <p className="font-bold text-yellow-300 animate-pulse">
+                                🎉 Prochaine séance = -40€ !
+                              </p>
+                            </>
+                          );
+                        }
+                      }
+                    })()}
                   </div>
                 </div>
               </div>

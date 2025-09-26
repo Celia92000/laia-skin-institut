@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Gift, Star, Award, TrendingUp, Calendar, User, CheckCircle, Euro, Cake, Heart, Users, AlertCircle, Download, Plus, Edit2, X, Settings, Save, FileText, Search, Filter, ArrowUpDown, Eye } from 'lucide-react';
+import { Gift, Star, Award, TrendingUp, Calendar, User, CheckCircle, Euro, Cake, Heart, Users, AlertCircle, Download, Plus, Edit2, X, Settings, Save, FileText, Search, Filter, ArrowUpDown, Eye, RotateCcw, Check, Percent } from 'lucide-react';
 
 interface LoyaltyProfile {
   id: string;
@@ -41,10 +41,10 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
   const [selectedClientReservations, setSelectedClientReservations] = useState<any[]>([]);
   const [selectedClientName, setSelectedClientName] = useState('');
   const [loyaltySettings, setLoyaltySettings] = useState({
-    serviceThreshold: 5,
+    serviceThreshold: 5,  // Réduction au 5ème soin
     serviceDiscount: 20,
-    packageThreshold: 3, 
-    packageDiscount: 30,
+    packageThreshold: 2,   // Réduction après 2 forfaits complétés (pour la 9ème séance)
+    packageDiscount: 40,
     birthdayDiscount: 10,
     referralBonus: 1,
     reviewBonus: 1
@@ -52,6 +52,8 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
   const [editingSettings, setEditingSettings] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [syncStatus, setSyncStatus] = useState<{synced: boolean; message?: string} | null>(null);
+  const [showCustomDiscountModal, setShowCustomDiscountModal] = useState(false);
+  const [customDiscount, setCustomDiscount] = useState({ profileId: '', amount: 0, reason: '' });
   
   // Nouveaux états pour recherche, filtrage et tri
   const [searchTerm, setSearchTerm] = useState('');
@@ -91,17 +93,17 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
     }).length
   };
 
-  // Clients avec réductions disponibles
+  // Clients avec réductions disponibles (corrigé selon les vrais seuils)
   const getClientsWithRewards = () => {
     return loyaltyProfiles.filter(profile => {
-      const isReady6thService = profile.individualServicesCount === (loyaltySettings.serviceThreshold - 1);
-      const isReady4thPackage = profile.packagesCount === (loyaltySettings.packageThreshold - 1);
+      const isReadyServiceDiscount = profile.individualServicesCount >= loyaltySettings.serviceThreshold;
+      const isReadyPackageDiscount = profile.packagesCount >= loyaltySettings.packageThreshold;
       const hasBirthday = profile.user.birthDate && 
         new Date(profile.user.birthDate).getMonth() === new Date().getMonth();
       
-      if (filter === 'ready') return isReady6thService || isReady4thPackage;
+      if (filter === 'ready') return isReadyServiceDiscount || isReadyPackageDiscount;
       if (filter === 'birthday') return hasBirthday;
-      return isReady6thService || isReady4thPackage || hasBirthday;
+      return isReadyServiceDiscount || isReadyPackageDiscount || hasBirthday;
     });
   };
 
@@ -264,6 +266,20 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
     }
   };
 
+  const handleResetServices = async (profileId: string) => {
+    const profile = loyaltyProfiles.find(p => p.id === profileId);
+    if (!profile) return;
+    
+    const message = `Voulez-vous réinitialiser le compteur de soins de ${profile.user.name} à 0 ?\n\nNombre actuel: ${profile.individualServicesCount} soin(s)`;
+    
+    if (!confirm(message)) {
+      return;
+    }
+    
+    const delta = -profile.individualServicesCount;
+    await handleModifyServices(profileId, delta);
+  };
+
   const handleModifyPackages = async (profileId: string, delta: number) => {
     // Trouver le profil pour afficher le nom du client
     const profile = loyaltyProfiles.find(p => p.id === profileId);
@@ -307,6 +323,65 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
     }
   };
 
+  const handleResetPackages = async (profileId: string) => {
+    const profile = loyaltyProfiles.find(p => p.id === profileId);
+    if (!profile) return;
+    
+    const message = `Voulez-vous réinitialiser le compteur de forfaits de ${profile.user.name} à 0 ?\n\nNombre actuel: ${profile.packagesCount} forfait(s)`;
+    
+    if (!confirm(message)) {
+      return;
+    }
+    
+    const delta = -profile.packagesCount;
+    await handleModifyPackages(profileId, delta);
+  };
+
+  const handleCustomDiscount = async () => {
+    if (!customDiscount.profileId || customDiscount.amount <= 0 || !customDiscount.reason.trim()) {
+      alert('Veuillez remplir tous les champs');
+      return;
+    }
+
+    const profile = loyaltyProfiles.find(p => p.id === customDiscount.profileId);
+    if (!profile) return;
+
+    const confirmed = confirm(
+      `Appliquer une réduction personnalisée de ${customDiscount.amount}€ pour ${profile.user.name} ?\n\nRaison: ${customDiscount.reason}`
+    );
+    
+    if (!confirmed) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch('/api/admin/loyalty/apply-discount', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userId: profile.userId,
+          discountType: 'custom',
+          amount: customDiscount.amount,
+          description: `Réduction personnalisée: ${customDiscount.reason} (-${customDiscount.amount}€)`
+        })
+      });
+
+      if (response.ok) {
+        alert(`✅ Réduction personnalisée de ${customDiscount.amount}€ appliquée pour ${profile.user.name}\n\nLa réduction sera automatiquement déduite lors de la prochaine réservation.`);
+        setShowCustomDiscountModal(false);
+        setCustomDiscount({ profileId: '', amount: 0, reason: '' });
+      } else {
+        alert('❌ Erreur lors de l\'application de la réduction personnalisée');
+      }
+    } catch (error) {
+      console.error('Erreur réduction personnalisée:', error);
+      alert('❌ Erreur lors de l\'application de la réduction personnalisée');
+    }
+  };
+
   const handleApplyDiscount = async (profile: LoyaltyProfile, discountType: 'service' | 'package' | 'birthday', amount: number) => {
     try {
       const token = localStorage.getItem('token');
@@ -322,8 +397,8 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
           userId: profile.userId,
           discountType,
           amount,
-          description: discountType === 'service' ? `Réduction 5 soins: -${amount}€` :
-                       discountType === 'package' ? `Réduction 3 forfaits: -${amount}€` :
+          description: discountType === 'service' ? `Réduction ${loyaltySettings.serviceThreshold} soins: -${amount}€` :
+                       discountType === 'package' ? `Réduction ${loyaltySettings.packageThreshold} forfaits: -${amount}€` :
                        `Réduction anniversaire: -${amount}€`
         })
       });
@@ -331,12 +406,16 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
       if (response.ok) {
         // Réinitialiser le compteur si nécessaire
         if (discountType === 'service') {
-          await handleModifyServices(profile.id, -6); // Reset à 0
+          // Réinitialiser le compteur en retirant le nombre requis pour la réduction
+          const deltaToReset = -loyaltySettings.serviceThreshold;
+          await handleModifyServices(profile.id, deltaToReset);
         } else if (discountType === 'package') {
-          await handleModifyPackages(profile.id, -4); // Reset à 0
+          // Réinitialiser le compteur en retirant le nombre requis pour la réduction
+          const deltaToReset = -loyaltySettings.packageThreshold;
+          await handleModifyPackages(profile.id, deltaToReset);
         }
         
-        alert(`✅ Réduction de ${amount}€ appliquée pour ${profile.user.name}\n\nLa réduction sera automatiquement déduite lors de la prochaine réservation.`);
+        alert(`✅ Réduction de ${amount}€ appliquée pour ${profile.user.name}\n\nLe compteur a été réinitialisé. La réduction sera automatiquement déduite lors de la prochaine réservation.`);
       } else {
         alert('❌ Erreur lors de l\'application de la réduction');
       }
@@ -409,7 +488,7 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
         <div className="bg-gradient-to-br from-[#d4b5a0]/20 to-[#c9a084]/20 rounded-xl p-4 shadow-sm">
           <div className="flex items-center justify-between mb-2">
             <Gift className="w-8 h-8 text-[#d4b5a0]" />
-            <span className="text-2xl font-bold text-[#2c3e50]">{stats.readyFor6thService}</span>
+            <span className="text-2xl font-bold text-[#2c3e50]">{loyaltyProfiles.filter(p => p.individualServicesCount >= loyaltySettings.serviceThreshold).length}</span>
           </div>
           <p className="text-sm text-[#2c3e50]/80">Prêts pour -20€</p>
         </div>
@@ -417,7 +496,7 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
         <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 shadow-sm">
           <div className="flex items-center justify-between mb-2">
             <Star className="w-8 h-8 text-purple-600" />
-            <span className="text-2xl font-bold text-purple-900">{stats.readyFor4thPackage}</span>
+            <span className="text-2xl font-bold text-purple-900">{loyaltyProfiles.filter(p => p.packagesCount >= loyaltySettings.packageThreshold).length}</span>
           </div>
           <p className="text-sm text-purple-700">Prêts pour -40€</p>
         </div>
@@ -674,8 +753,8 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredProfiles.map(profile => {
                 const level = getLoyaltyLevel(profile);
-                const progress6 = (profile.individualServicesCount % 6) / 6 * 100;
-                const progress4 = (profile.packagesCount % 4) / 4 * 100;
+                const progress6 = (profile.individualServicesCount % loyaltySettings.serviceThreshold) / loyaltySettings.serviceThreshold * 100;
+                const progress4 = (profile.packagesCount % loyaltySettings.packageThreshold) / loyaltySettings.packageThreshold * 100;
                 
                 return (
                   <tr key={profile.id} className="hover:bg-gray-50">
@@ -696,79 +775,227 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
                     <td className="px-6 py-4">
                       <div className="space-y-3">
                         {/* Soins individuels */}
-                        <div className="bg-gradient-to-r from-[#d4b5a0]/10 to-[#c9a084]/10 rounded-lg p-3">
+                        <div className={`bg-gradient-to-r rounded-lg p-3 border-2 ${
+                          profile.individualServicesCount >= loyaltySettings.serviceThreshold 
+                            ? 'from-green-50 to-green-100 border-green-300 shadow-green-100' 
+                            : 'from-[#d4b5a0]/10 to-[#c9a084]/10 border-transparent'
+                        }`}>
                           <div className="flex justify-between items-center mb-2">
-                            <span className="text-sm font-bold text-[#2c3e50]">
-                              Soins: {profile.individualServicesCount % 6}/6
-                              {profile.individualServicesCount > 6 && ` (Total: ${profile.individualServicesCount})`}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-bold text-[#2c3e50]">
+                                Soins: {profile.individualServicesCount}/{loyaltySettings.serviceThreshold}
+                                {profile.individualServicesCount > loyaltySettings.serviceThreshold && ` (Total: ${profile.individualServicesCount})`}
+                              </span>
+                              {profile.individualServicesCount >= loyaltySettings.serviceThreshold && (
+                                <span className="text-xs bg-green-500 text-white px-2 py-1 rounded-full font-bold animate-pulse">
+                                  🎁 -20€
+                                </span>
+                              )}
+                            </div>
                             <div className="flex items-center gap-1">
                               <button
                                 onClick={() => handleModifyServices(profile.id, -1)}
-                                className="w-5 h-5 bg-red-100 text-red-600 rounded hover:bg-red-200 flex items-center justify-center"
+                                className="w-6 h-6 bg-red-100 text-red-600 rounded hover:bg-red-200 flex items-center justify-center text-sm font-bold"
                                 title="Retirer un soin"
                               >
                                 -
                               </button>
                               <button
                                 onClick={() => handleModifyServices(profile.id, 1)}
-                                className="w-5 h-5 bg-green-100 text-green-600 rounded hover:bg-green-200 flex items-center justify-center"
+                                className="w-6 h-6 bg-green-100 text-green-600 rounded hover:bg-green-200 flex items-center justify-center text-sm font-bold"
                                 title="Ajouter un soin"
                               >
                                 +
                               </button>
+                              <button
+                                onClick={() => handleResetServices(profile.id)}
+                                className="w-6 h-6 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 flex items-center justify-center"
+                                title="Réinitialiser le compteur"
+                              >
+                                <RotateCcw className="w-3 h-3" />
+                              </button>
                             </div>
                           </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2 mb-1">
+                          <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
                             <div 
-                              className="bg-[#d4b5a0] h-2 rounded-full transition-all"
-                              style={{ width: `${progress6}%` }}
+                              className={`h-3 rounded-full transition-all ${
+                                profile.individualServicesCount >= loyaltySettings.serviceThreshold 
+                                  ? 'bg-green-500' 
+                                  : 'bg-[#d4b5a0]'
+                              }`}
+                              style={{ width: `${Math.min(100, (profile.individualServicesCount / loyaltySettings.serviceThreshold) * 100)}%` }}
                             />
                           </div>
-                          <span className="text-xs font-semibold">
-                            {profile.individualServicesCount % 6 === 0 && profile.individualServicesCount > 0 
-                              ? '🎁 Réduction -20€ disponible!' 
-                              : `Encore ${5 - (profile.individualServicesCount % 5)} soin${5 - (profile.individualServicesCount % 5) > 1 ? 's' : ''} pour obtenir -20€`
-                            }
-                          </span>
+                          <div className="flex justify-between items-center">
+                            <span className={`text-xs font-semibold ${
+                              profile.individualServicesCount >= loyaltySettings.serviceThreshold 
+                                ? 'text-green-700' 
+                                : 'text-gray-600'
+                            }`}>
+                              {profile.individualServicesCount >= loyaltySettings.serviceThreshold 
+                                ? '🎁 Réduction -20€ disponible!' 
+                                : `Encore ${loyaltySettings.serviceThreshold - profile.individualServicesCount} soin${loyaltySettings.serviceThreshold - profile.individualServicesCount > 1 ? 's' : ''} pour -20€`
+                              }
+                            </span>
+                            {profile.individualServicesCount >= loyaltySettings.serviceThreshold && (
+                              <button
+                                onClick={() => {
+                                  const confirmed = confirm(`Appliquer la réduction de 20€ pour ${profile.user.name} et réinitialiser le compteur de soins ?`);
+                                  if (confirmed) {
+                                    handleApplyDiscount(profile, 'service', 20);
+                                  }
+                                }}
+                                className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 flex items-center gap-1"
+                              >
+                                <Check className="w-3 h-3" />
+                                Appliquer -20€
+                              </button>
+                            )}
+                          </div>
                         </div>
                         
                         {/* Forfaits */}
-                        <div className="bg-gradient-to-r from-purple-500/10 to-purple-600/10 rounded-lg p-3">
+                        <div className={`bg-gradient-to-r rounded-lg p-3 border-2 ${
+                          profile.packagesCount >= loyaltySettings.packageThreshold 
+                            ? 'from-purple-50 to-purple-100 border-purple-300 shadow-purple-100' 
+                            : 'from-purple-500/10 to-purple-600/10 border-transparent'
+                        }`}>
                           <div className="flex justify-between items-center mb-2">
-                            <span className="text-sm font-bold text-[#2c3e50]">
-                              Forfaits: {profile.packagesCount % 4}/4
-                              {profile.packagesCount > 4 && ` (Total: ${profile.packagesCount})`}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-bold text-[#2c3e50]">
+                                Forfaits: {profile.packagesCount}/{loyaltySettings.packageThreshold}
+                                {profile.packagesCount > loyaltySettings.packageThreshold && ` (Total: ${profile.packagesCount})`}
+                              </span>
+                              {profile.packagesCount >= loyaltySettings.packageThreshold && (
+                                <span className="text-xs bg-purple-500 text-white px-2 py-1 rounded-full font-bold animate-pulse">
+                                  🎁 -40€
+                                </span>
+                              )}
+                            </div>
                             <div className="flex items-center gap-1">
                               <button
                                 onClick={() => handleModifyPackages(profile.id, -1)}
-                                className="w-5 h-5 bg-red-100 text-red-600 rounded hover:bg-red-200 flex items-center justify-center"
+                                className="w-6 h-6 bg-red-100 text-red-600 rounded hover:bg-red-200 flex items-center justify-center text-sm font-bold"
                                 title="Retirer un forfait"
                               >
                                 -
                               </button>
                               <button
                                 onClick={() => handleModifyPackages(profile.id, 1)}
-                                className="w-5 h-5 bg-green-100 text-green-600 rounded hover:bg-green-200 flex items-center justify-center"
+                                className="w-6 h-6 bg-green-100 text-green-600 rounded hover:bg-green-200 flex items-center justify-center text-sm font-bold"
                                 title="Ajouter un forfait"
                               >
                                 +
                               </button>
+                              <button
+                                onClick={() => handleResetPackages(profile.id)}
+                                className="w-6 h-6 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 flex items-center justify-center"
+                                title="Réinitialiser le compteur"
+                              >
+                                <RotateCcw className="w-3 h-3" />
+                              </button>
                             </div>
                           </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2 mb-1">
+                          
+                          {/* Détail des forfaits de 4 séances */}
+                          <div className="text-xs text-purple-700 mb-1">
+                            {(() => {
+                              const forfaitsComplets = profile.packagesCount;
+                              const seancesRealisees = forfaitsComplets * 4;
+                              const positionCycle = forfaitsComplets % 3;
+                              
+                              // Calculer précisément où on en est
+                              let detailText = "";
+                              let seancesAvantReduction = 0;
+                              
+                              if (forfaitsComplets === 0) {
+                                detailText = `📊 Aucun forfait complété (0/8 séances pour la réduction)`;
+                                seancesAvantReduction = 9; // Il faut atteindre la 9ème séance
+                              } else if (forfaitsComplets === 1) {
+                                detailText = `📊 1 forfait complété = 4 séances réalisées (4/8 pour la réduction)`;
+                                seancesAvantReduction = 5; // Encore 5 séances (4 du 2ème + 1 du 3ème)
+                              } else if (forfaitsComplets === 2) {
+                                detailText = `📊 2 forfaits complétés = 8 séances réalisées`;
+                                seancesAvantReduction = 1; // La prochaine séance (9ème) donne la réduction
+                              } else {
+                                // Cycle suivant
+                                const forfaitsDansCycle = positionCycle;
+                                const seancesDansCycle = forfaitsDansCycle * 4;
+                                if (forfaitsDansCycle === 0) {
+                                  detailText = `📊 Nouveau cycle - 0/8 séances pour la prochaine réduction`;
+                                  seancesAvantReduction = 9;
+                                } else if (forfaitsDansCycle === 1) {
+                                  detailText = `📊 Nouveau cycle - 4/8 séances pour la prochaine réduction`;
+                                  seancesAvantReduction = 5;
+                                } else if (forfaitsDansCycle === 2) {
+                                  detailText = `📊 Nouveau cycle - 8/8 séances réalisées`;
+                                  seancesAvantReduction = 1;
+                                }
+                              }
+                              
+                              return (
+                                <>
+                                  <div>{detailText}</div>
+                                  {forfaitsComplets < 2 && (
+                                    <div className="text-orange-600 font-semibold">
+                                      → Encore {seancesAvantReduction} séance{seancesAvantReduction > 1 ? 's' : ''} avant -40€
+                                    </div>
+                                  )}
+                                  {forfaitsComplets === 2 && (
+                                    <div className="text-green-600 font-bold animate-pulse">
+                                      🎉 8 séances faites - Prochaine séance (9ème) = -40€ !
+                                    </div>
+                                  )}
+                                  {forfaitsComplets >= 3 && positionCycle === 2 && (
+                                    <div className="text-green-600 font-bold animate-pulse">
+                                      🎉 Prochaine séance = -40€ de réduction !
+                                    </div>
+                                  )}
+                                </>
+                              );
+                            })()}
+                          </div>
+                          
+                          <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
                             <div 
-                              className="bg-purple-500 h-2 rounded-full transition-all"
-                              style={{ width: `${progress4}%` }}
+                              className={`h-3 rounded-full transition-all ${
+                                profile.packagesCount >= loyaltySettings.packageThreshold 
+                                  ? 'bg-purple-500' 
+                                  : 'bg-purple-400'
+                              }`}
+                              style={{ width: `${Math.min(100, (profile.packagesCount / loyaltySettings.packageThreshold) * 100)}%` }}
                             />
                           </div>
-                          <span className="text-xs font-semibold">
-                            {profile.packagesCount % 4 === 0 && profile.packagesCount > 0 
-                              ? '🎁 Réduction -40€ disponible!' 
-                              : `Encore ${3 - (profile.packagesCount % 3)} forfait${3 - (profile.packagesCount % 3) > 1 ? 's' : ''} pour obtenir -30€`
-                            }
-                          </span>
+                          <div className="flex justify-between items-center">
+                            <span className={`text-xs font-semibold ${
+                              profile.packagesCount >= loyaltySettings.packageThreshold 
+                                ? 'text-purple-700' 
+                                : 'text-gray-600'
+                            }`}>
+                              {(() => {
+                                if (profile.packagesCount >= loyaltySettings.packageThreshold) {
+                                  return '🎁 Réduction -40€ disponible!';
+                                }
+                                const remaining = loyaltySettings.packageThreshold - profile.packagesCount;
+                                const remainingSeances = remaining * 4;
+                                return `Encore ${remaining} forfait${remaining > 1 ? 's' : ''} (${remainingSeances} séances) pour -40€`;
+                              })()}
+                            </span>
+                            {profile.packagesCount >= loyaltySettings.packageThreshold && (
+                              <button
+                                onClick={() => {
+                                  const confirmed = confirm(`Appliquer la réduction de 40€ pour ${profile.user.name} et réinitialiser le compteur de forfaits ?`);
+                                  if (confirmed) {
+                                    handleApplyDiscount(profile, 'package', 40);
+                                  }
+                                }}
+                                className="px-2 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600 flex items-center gap-1"
+                              >
+                                <Check className="w-3 h-3" />
+                                Appliquer -40€
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </td>
@@ -811,6 +1038,16 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
                           title={profile.notes ? "Modifier la note" : "Ajouter une note sur ce client"}
                         >
                           <FileText className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            setCustomDiscount({ profileId: profile.id, amount: 0, reason: '' });
+                            setShowCustomDiscountModal(true);
+                          }}
+                          className="text-orange-500 hover:text-orange-600 transition-colors"
+                          title="Appliquer une réduction personnalisée"
+                        >
+                          <Percent className="w-4 h-4" />
                         </button>
                       </div>
                     </td>
@@ -1218,6 +1455,96 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
                   className="px-4 py-2 bg-[#d4b5a0] text-white rounded-lg hover:bg-[#c4a590] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Enregistrer
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal réduction personnalisée */}
+      {showCustomDiscountModal && (
+        <div 
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowCustomDiscountModal(false);
+              setCustomDiscount({ profileId: '', amount: 0, reason: '' });
+            }
+          }}
+        >
+          <div className="bg-white rounded-2xl max-w-md w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-[#2c3e50] flex items-center gap-2">
+                <Percent className="w-6 h-6 text-orange-500" />
+                Réduction Personnalisée
+              </h3>
+              <button
+                onClick={() => {
+                  setShowCustomDiscountModal(false);
+                  setCustomDiscount({ profileId: '', amount: 0, reason: '' });
+                }}
+                className="p-2 hover:bg-gray-100 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertCircle className="w-4 h-4 text-orange-600" />
+                  <span className="text-sm font-medium text-orange-800">Client sélectionné</span>
+                </div>
+                <p className="text-sm text-orange-700">
+                  {loyaltyProfiles.find(p => p.id === customDiscount.profileId)?.user.name || 'Aucun client'}
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[#2c3e50] mb-2">
+                  Montant de la réduction (€)
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="200"
+                  value={customDiscount.amount || ''}
+                  onChange={(e) => setCustomDiscount({...customDiscount, amount: parseInt(e.target.value) || 0})}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                  placeholder="Ex: 15"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[#2c3e50] mb-2">
+                  Raison de la réduction
+                </label>
+                <textarea
+                  value={customDiscount.reason}
+                  onChange={(e) => setCustomDiscount({...customDiscount, reason: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 h-20"
+                  placeholder="Ex: Compensation pour un désagrément, geste commercial, etc."
+                />
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setShowCustomDiscountModal(false);
+                    setCustomDiscount({ profileId: '', amount: 0, reason: '' });
+                  }}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={handleCustomDiscount}
+                  disabled={!customDiscount.amount || !customDiscount.reason.trim()}
+                  className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  <Check className="w-4 h-4" />
+                  Appliquer
                 </button>
               </div>
             </div>
