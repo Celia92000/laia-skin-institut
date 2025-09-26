@@ -536,7 +536,8 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
         </div>
       )}
 
-      {/* Cartes de fidélité visuelles */}
+      {/* Cartes de fidélité visuelles - DÉSACTIVÉES car redondantes */}
+      {false && (
       <div className="grid md:grid-cols-2 gap-6 mb-8">
         {/* Carte Soins Individuels */}
         <div className="bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white rounded-2xl p-6 shadow-xl">
@@ -588,6 +589,7 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
           </div>
         </div>
       </div>
+      )}
 
       {/* Barre de recherche et filtres */}
       <div className="bg-white rounded-xl shadow-sm p-4 mb-6">

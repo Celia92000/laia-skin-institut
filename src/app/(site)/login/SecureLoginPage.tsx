@@ -423,11 +423,6 @@ export default function SecureLoginPage() {
                         </div>
                       );
                     })}
-                    <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <p className="text-xs text-yellow-800">
-                        <strong>⚠️ Mode développement :</strong> Les mots de passe sécurisés ont été générés et sauvegardés dans IDENTIFIANTS_SECURISES.txt
-                      </p>
-                    </div>
                   </div>
                 )}
               </div>
