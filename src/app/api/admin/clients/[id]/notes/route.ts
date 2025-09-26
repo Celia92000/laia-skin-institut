@@ -10,6 +10,9 @@ export async function POST(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
+    // S'assurer que Prisma est connecté
+    await prisma.$connect();
+    
     const authHeader = request.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
@@ -53,7 +56,7 @@ export async function POST(
     const params = await context.params;
     const userId = params.id;
 
-    // Mettre à jour ou créer le profil de fidélité avec la note
+    // Mettre à jour ou créer le profil de fidélité avec la note (avec plus de retries)
     const loyaltyProfile = await withRetry(() => 
       prisma.loyaltyProfile.upsert({
         where: { userId },
@@ -72,7 +75,7 @@ export async function POST(
           notes: note,
           updatedAt: new Date()
         }
-      })
+      }), 5, 1000 // 5 retries avec 1 seconde de délai
     );
 
     return NextResponse.json({ 
@@ -93,6 +96,9 @@ export async function GET(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
+    // S'assurer que Prisma est connecté
+    await prisma.$connect();
+    
     const authHeader = request.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });

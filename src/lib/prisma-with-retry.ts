@@ -20,7 +20,12 @@ export async function withRetry<T>(
       if (
         error.message?.includes('Engine is not yet connected') ||
         error.message?.includes('Engine was empty') ||
-        error.code === 'P1017' // Can't reach database server
+        error.message?.includes('Invalid `prisma') ||
+        error.message?.includes('PrismaClientKnownRequestError') ||
+        error.message?.includes('PrismaClientUnknownRequestError') ||
+        error.code === 'P1017' || // Can't reach database server
+        error.code === 'P2024' || // Timed out
+        error.code === 'P2010'    // Raw query failed
       ) {
         console.warn(`Retry ${i + 1}/${maxRetries} après erreur de connexion Prisma`);
         
