@@ -431,8 +431,8 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
         </div>
       </div>
 
-      {/* Alertes pour réductions disponibles */}
-      {clientsWithRewards.length > 0 && (
+      {/* Alertes pour réductions disponibles - DÉSACTIVÉ car redondant avec le tableau principal */}
+      {false && clientsWithRewards.length > 0 && (
         <div className="mb-6 bg-gradient-to-r from-yellow-50 to-amber-50 border-2 border-yellow-300 rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
@@ -663,8 +663,7 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
               <tr className="bg-gray-50 text-left">
                 <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
                 <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Niveau</th>
-                <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Soins</th>
-                <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Forfaits</th>
+                <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Progression Fidélité & Récompenses</th>
                 <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Total dépensé</th>
                 <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Dernière visite</th>
                 <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -692,70 +691,77 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
                         {level.icon} {level.level}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleModifyServices(profile.id, -1)}
-                          className="w-6 h-6 bg-red-100 text-red-600 rounded-full hover:bg-red-200 flex items-center justify-center"
-                          title="Retirer un soin"
-                        >
-                          -
-                        </button>
-                        <span className="text-sm font-medium min-w-[20px] text-center">{profile.individualServicesCount}</span>
-                        <button
-                          onClick={() => handleModifyServices(profile.id, 1)}
-                          className="w-6 h-6 bg-green-100 text-green-600 rounded-full hover:bg-green-200 flex items-center justify-center"
-                          title="Ajouter un soin"
-                        >
-                          +
-                        </button>
-                      </div>
-                      <div className="mt-2">
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-[#d4b5a0] h-2 rounded-full transition-all"
-                            style={{ width: `${progress6}%` }}
-                          />
+                    <td className="px-6 py-4">
+                      <div className="space-y-3">
+                        {/* Soins individuels */}
+                        <div className="bg-gradient-to-r from-[#d4b5a0]/10 to-[#c9a084]/10 rounded-lg p-3">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-xs font-semibold text-[#2c3e50]">Soins ({profile.individualServicesCount})</span>
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={() => handleModifyServices(profile.id, -1)}
+                                className="w-5 h-5 bg-red-100 text-red-600 rounded hover:bg-red-200 flex items-center justify-center"
+                                title="Retirer un soin"
+                              >
+                                -
+                              </button>
+                              <button
+                                onClick={() => handleModifyServices(profile.id, 1)}
+                                className="w-5 h-5 bg-green-100 text-green-600 rounded hover:bg-green-200 flex items-center justify-center"
+                                title="Ajouter un soin"
+                              >
+                                +
+                              </button>
+                            </div>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2 mb-1">
+                            <div 
+                              className="bg-[#d4b5a0] h-2 rounded-full transition-all"
+                              style={{ width: `${progress6}%` }}
+                            />
+                          </div>
+                          <span className="text-xs">
+                            {profile.individualServicesCount % 6 === 0 && profile.individualServicesCount > 0 
+                              ? '🎁 -20€ disponible!' 
+                              : `${6 - (profile.individualServicesCount % 6)} pour -20€`
+                            }
+                          </span>
                         </div>
-                        <span className="text-xs text-gray-500">
-                          {profile.individualServicesCount % 6 === 0 && profile.individualServicesCount > 0 
-                            ? '✨ Réduction -20€ disponible!' 
-                            : `${6 - (profile.individualServicesCount % 6)} restants`
-                          }
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleModifyPackages(profile.id, -1)}
-                          className="w-6 h-6 bg-red-100 text-red-600 rounded-full hover:bg-red-200 flex items-center justify-center"
-                          title="Retirer un forfait"
-                        >
-                          -
-                        </button>
-                        <span className="text-sm font-medium min-w-[20px] text-center">{profile.packagesCount}</span>
-                        <button
-                          onClick={() => handleModifyPackages(profile.id, 1)}
-                          className="w-6 h-6 bg-green-100 text-green-600 rounded-full hover:bg-green-200 flex items-center justify-center"
-                          title="Ajouter un forfait"
-                        >
-                          +
-                        </button>
-                      </div>
-                      <div className="mt-2">
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-purple-500 h-2 rounded-full transition-all"
-                            style={{ width: `${progress4}%` }}
-                          />
+                        
+                        {/* Forfaits */}
+                        <div className="bg-gradient-to-r from-purple-500/10 to-purple-600/10 rounded-lg p-3">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-xs font-semibold text-[#2c3e50]">Forfaits ({profile.packagesCount})</span>
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={() => handleModifyPackages(profile.id, -1)}
+                                className="w-5 h-5 bg-red-100 text-red-600 rounded hover:bg-red-200 flex items-center justify-center"
+                                title="Retirer un forfait"
+                              >
+                                -
+                              </button>
+                              <button
+                                onClick={() => handleModifyPackages(profile.id, 1)}
+                                className="w-5 h-5 bg-green-100 text-green-600 rounded hover:bg-green-200 flex items-center justify-center"
+                                title="Ajouter un forfait"
+                              >
+                                +
+                              </button>
+                            </div>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2 mb-1">
+                            <div 
+                              className="bg-purple-500 h-2 rounded-full transition-all"
+                              style={{ width: `${progress4}%` }}
+                            />
+                          </div>
+                          <span className="text-xs">
+                            {profile.packagesCount % 4 === 0 && profile.packagesCount > 0 
+                              ? '🎁 -40€ disponible!' 
+                              : `${4 - (profile.packagesCount % 4)} pour -40€`
+                            }
+                          </span>
                         </div>
-                        <span className="text-xs text-gray-500">
-                          {profile.packagesCount % 4 === 0 && profile.packagesCount > 0 
-                            ? '✨ Réduction -40€ disponible!' 
-                            : `${4 - (profile.packagesCount % 4)} restants`
-                          }
-                        </span>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
