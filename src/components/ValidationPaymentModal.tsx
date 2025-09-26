@@ -512,12 +512,6 @@ export default function ValidationPaymentModal({
                           </div>
                         )}
                       </div>
-                      
-                      {!isLoyaltyEligible && !isPackageEligible && (
-                        <p className="text-xs text-[#2c3e50]/60 mt-2 pl-2">
-                          💡 Prochaine réduction : {individualServicesCount < 5 ? `${5 - individualServicesCount} soin(s)` : ''} {packagesCount < 3 ? `${3 - packagesCount} forfait(s)` : ''}
-                        </p>
-                      )}
                     </div>
                     
                     {/* Montant à payer */}
