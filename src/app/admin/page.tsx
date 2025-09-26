@@ -2316,6 +2316,7 @@ export default function AdminDashboard() {
               clients={clients}
               reservations={reservations}
               loyaltyProfiles={loyaltyProfiles}
+              setLoyaltyProfiles={setLoyaltyProfiles}
               onPointsAdd={(clientId, points) => {
                 // Ajouter des points bonus
                 // TODO: Implémenter updateLoyaltyProfile

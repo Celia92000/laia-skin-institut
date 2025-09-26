@@ -24,12 +24,13 @@ interface AdminLoyaltyTabProps {
   clients: any[];
   reservations: any[];
   loyaltyProfiles: LoyaltyProfile[];
+  setLoyaltyProfiles: React.Dispatch<React.SetStateAction<any[]>>;
   onPointsAdd?: (clientId: string, points: number) => void;
   onServicesModify?: (profileId: string, delta: number) => void;
   onPackagesModify?: (profileId: string, delta: number) => void;
 }
 
-export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles, onPointsAdd, onServicesModify, onPackagesModify }: AdminLoyaltyTabProps) {
+export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles, setLoyaltyProfiles, onPointsAdd, onServicesModify, onPackagesModify }: AdminLoyaltyTabProps) {
   const [selectedClient, setSelectedClient] = useState<string | null>(null);
   const [showAddPointsModal, setShowAddPointsModal] = useState(false);
   const [bonusPoints, setBonusPoints] = useState(0);
