@@ -718,7 +718,10 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
                           />
                         </div>
                         <span className="text-xs text-gray-500">
-                          {6 - (profile.individualServicesCount % 6)} restants
+                          {profile.individualServicesCount % 6 === 0 && profile.individualServicesCount > 0 
+                            ? '✨ Réduction -20€ disponible!' 
+                            : `${6 - (profile.individualServicesCount % 6)} restants`
+                          }
                         </span>
                       </div>
                     </td>
@@ -748,7 +751,10 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
                           />
                         </div>
                         <span className="text-xs text-gray-500">
-                          {4 - (profile.packagesCount % 4)} restants
+                          {profile.packagesCount % 4 === 0 && profile.packagesCount > 0 
+                            ? '✨ Réduction -40€ disponible!' 
+                            : `${4 - (profile.packagesCount % 4)} restants`
+                          }
                         </span>
                       </div>
                     </td>
@@ -1147,7 +1153,7 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
         >
           <div className="bg-white rounded-2xl max-w-md w-full p-6">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold text-[#2c3e50]">Note ou Remarque Client</h3>
+              <h3 className="text-xl font-bold text-[#2c3e50]">Note Fidélité</h3>
               <button
                 onClick={() => {
                   setShowAddPointsModal(false);
