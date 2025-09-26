@@ -1392,36 +1392,6 @@ export default function UnifiedCRMTab({
                               </button>
                               <button 
                                 onClick={() => {
-                                  // Ouvrir le système d'attribution de récompense
-                                  const loyaltyProfile = loyaltyProfiles.find(p => p.userId === client.id);
-                                  if (loyaltyProfile) {
-                                    const individualCount = loyaltyProfile.individualServicesCount || 0;
-                                    const packageCount = loyaltyProfile.packagesCount || 0;
-                                    
-                                    if (individualCount >= 6) {
-                                      if (confirm(`Attribuer une réduction de 20€ pour ${client.name} (6 soins individuels atteints) ?`)) {
-                                        alert('✅ Réduction de 20€ attribuée ! Elle sera appliquée automatiquement lors de la prochaine réservation.');
-                                        // TODO: Implémenter la logique d'attribution de réduction
-                                      }
-                                    } else if (packageCount >= 4) {
-                                      if (confirm(`Attribuer une réduction de 40€ pour ${client.name} (4 forfaits atteints) ?`)) {
-                                        alert('✅ Réduction de 40€ attribuée ! Elle sera appliquée automatiquement lors de la prochaine réservation.');
-                                        // TODO: Implémenter la logique d'attribution de réduction
-                                      }
-                                    } else {
-                                      alert(`${client.name} n'a pas encore atteint les seuils de récompense.\nSoins: ${individualCount}/6\nForfaits: ${packageCount}/4`);
-                                    }
-                                  } else {
-                                    alert('Profil de fidélité non trouvé pour ce client.');
-                                  }
-                                }}
-                                className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-2"
-                              >
-                                <Gift className="w-4 h-4" />
-                                Attribuer récompense
-                              </button>
-                              <button 
-                                onClick={() => {
                                   // Afficher l'historique complet des réservations
                                   const clientReservations = reservations.filter(r => {
                                     return r.userEmail === client.email || 

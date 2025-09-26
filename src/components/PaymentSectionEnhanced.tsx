@@ -37,24 +37,24 @@ export default function PaymentSectionEnhanced({ reservation, loyaltyProfiles, r
   // Calculer les réductions disponibles
   const availableDiscounts: AvailableDiscount[] = [];
   
-  // 6ème soin individuel = -20€
-  if (userProfile && userProfile.individualServicesCount === 5) {
+  // 5 soins individuels = -20€
+  if (userProfile && userProfile.individualServicesCount >= 5) {
     availableDiscounts.push({
       type: 'individual',
       amount: 20,
-      description: '6ème soin individuel',
+      description: '5 soins réalisés',
       icon: Gift,
       color: 'bg-[#d4b5a0]',
       automatic: true
     });
   }
   
-  // 4ème forfait = -40€
-  if (userProfile && userProfile.packagesCount === 3) {
+  // 3 forfaits = -30€
+  if (userProfile && userProfile.packagesCount >= 3) {
     availableDiscounts.push({
       type: 'package',
-      amount: 40,
-      description: '4ème forfait',
+      amount: 30,
+      description: '3 forfaits achetés',
       icon: Star,
       color: 'bg-purple-500',
       automatic: true

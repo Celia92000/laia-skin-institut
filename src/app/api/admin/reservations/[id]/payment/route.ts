@@ -50,7 +50,7 @@ export async function POST(
     }
 
     const data = await request.json();
-    const { amount, method, invoiceNumber, notes, appliedDiscount } = data;
+    const { amount, method, invoiceNumber, notes, appliedDiscount, resetIndividualServicesCount, resetPackagesCount } = data;
 
     // Récupérer la réservation actuelle pour obtenir le prix total
     const currentReservation = await prisma.reservation.findUnique({
@@ -61,51 +61,51 @@ export async function POST(
       return NextResponse.json({ error: 'Réservation non trouvée' }, { status: 404 });
     }
 
-    // Si une réduction de fidélité a été appliquée, décrémenter les compteurs
-    if (appliedDiscount) {
+    // Si une réduction de fidélité a été appliquée, réinitialiser les compteurs
+    if (resetIndividualServicesCount || resetPackagesCount) {
       const loyaltyProfile = await prisma.loyaltyProfile.findUnique({
         where: { userId: currentReservation.userId }
       });
 
       if (loyaltyProfile) {
-        if (appliedDiscount.type === 'individual' && loyaltyProfile.individualServicesCount >= 5) {
-          // Réduction pour 5 soins individuels
+        const updateData: any = {};
+        const historyEntries = [];
+        
+        // Réinitialiser le compteur de soins individuels si la réduction 6ème soin a été utilisée
+        if (resetIndividualServicesCount) {
+          updateData.individualServicesCount = 0;
+          historyEntries.push({
+            userId: currentReservation.userId,
+            action: 'DISCOUNT_USED',
+            points: -5,
+            description: `Réduction fidélité 5 soins utilisée (-20€)`,
+            reservationId: id
+          });
+        }
+        
+        // Réinitialiser le compteur de forfaits si la réduction 4ème forfait a été utilisée
+        if (resetPackagesCount) {
+          updateData.packagesCount = 0;
+          historyEntries.push({
+            userId: currentReservation.userId,
+            action: 'DISCOUNT_USED',
+            points: -3,
+            description: `Réduction fidélité 3 forfaits utilisée (-30€)`,
+            reservationId: id
+          });
+        }
+        
+        // Mettre à jour le profil de fidélité
+        if (Object.keys(updateData).length > 0) {
           await prisma.loyaltyProfile.update({
             where: { userId: currentReservation.userId },
-            data: {
-              individualServicesCount: loyaltyProfile.individualServicesCount - 5
-            }
+            data: updateData
           });
-
+          
           // Enregistrer dans l'historique
-          await prisma.loyaltyHistory.create({
-            data: {
-              userId: currentReservation.userId,
-              action: 'DISCOUNT_USED',
-              points: -5,
-              description: `Réduction de ${appliedDiscount.amount}€ utilisée (5 soins individuels)`,
-              reservationId: id
-            }
-          });
-        } else if (appliedDiscount.type === 'package' && loyaltyProfile.packagesCount >= 3) {
-          // Réduction pour 3 forfaits
-          await prisma.loyaltyProfile.update({
-            where: { userId: currentReservation.userId },
-            data: {
-              packagesCount: loyaltyProfile.packagesCount - 3
-            }
-          });
-
-          // Enregistrer dans l'historique
-          await prisma.loyaltyHistory.create({
-            data: {
-              userId: currentReservation.userId,
-              action: 'DISCOUNT_USED',
-              points: -3,
-              description: `Réduction de ${appliedDiscount.amount}€ utilisée (3 forfaits)`,
-              reservationId: id
-            }
-          });
+          for (const entry of historyEntries) {
+            await prisma.loyaltyHistory.create({ data: entry });
+          }
         }
       }
     }

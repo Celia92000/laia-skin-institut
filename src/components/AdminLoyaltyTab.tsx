@@ -41,10 +41,10 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
   const [selectedClientReservations, setSelectedClientReservations] = useState<any[]>([]);
   const [selectedClientName, setSelectedClientName] = useState('');
   const [loyaltySettings, setLoyaltySettings] = useState({
-    serviceThreshold: 6,
+    serviceThreshold: 5,
     serviceDiscount: 20,
-    packageThreshold: 4, 
-    packageDiscount: 40,
+    packageThreshold: 3, 
+    packageDiscount: 30,
     birthdayDiscount: 10,
     referralBonus: 1,
     reviewBonus: 1
@@ -322,8 +322,8 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
           userId: profile.userId,
           discountType,
           amount,
-          description: discountType === 'service' ? `Réduction 6ème soin: -${amount}€` :
-                       discountType === 'package' ? `Réduction 4ème forfait: -${amount}€` :
+          description: discountType === 'service' ? `Réduction 5 soins: -${amount}€` :
+                       discountType === 'package' ? `Réduction 3 forfaits: -${amount}€` :
                        `Réduction anniversaire: -${amount}€`
         })
       });
@@ -544,7 +544,7 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
           <div className="text-center mb-4">
             <Gift className="w-12 h-12 mx-auto mb-2 text-white/80" />
             <h3 className="text-xl font-bold">Carte Soins Individuels</h3>
-            <p className="text-lg">6ème soin = -20€</p>
+            <p className="text-lg">5 soins = -20€</p>
           </div>
           
           <div className="bg-white/20 rounded-xl p-4">
@@ -569,7 +569,7 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
           <div className="text-center mb-4">
             <Star className="w-12 h-12 mx-auto mb-2 text-white/80" />
             <h3 className="text-xl font-bold">Carte Forfaits Premium</h3>
-            <p className="text-lg">4ème forfait = -40€</p>
+            <p className="text-lg">3 forfaits = -30€</p>
           </div>
           
           <div className="bg-white/20 rounded-xl p-4">
@@ -728,7 +728,7 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
                           <span className="text-xs font-semibold">
                             {profile.individualServicesCount % 6 === 0 && profile.individualServicesCount > 0 
                               ? '🎁 Réduction -20€ disponible!' 
-                              : `Encore ${6 - (profile.individualServicesCount % 6)} soin${6 - (profile.individualServicesCount % 6) > 1 ? 's' : ''} pour obtenir -20€`
+                              : `Encore ${5 - (profile.individualServicesCount % 5)} soin${5 - (profile.individualServicesCount % 5) > 1 ? 's' : ''} pour obtenir -20€`
                             }
                           </span>
                         </div>
@@ -766,7 +766,7 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
                           <span className="text-xs font-semibold">
                             {profile.packagesCount % 4 === 0 && profile.packagesCount > 0 
                               ? '🎁 Réduction -40€ disponible!' 
-                              : `Encore ${4 - (profile.packagesCount % 4)} forfait${4 - (profile.packagesCount % 4) > 1 ? 's' : ''} pour obtenir -40€`
+                              : `Encore ${3 - (profile.packagesCount % 3)} forfait${3 - (profile.packagesCount % 3) > 1 ? 's' : ''} pour obtenir -30€`
                             }
                           </span>
                         </div>
@@ -881,7 +881,7 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
                   </div>
                 </div>
                 <p className="text-sm text-[#2c3e50]/60 mt-2">
-                  Actuellement : {loyaltySettings.serviceThreshold}ème soin = -{loyaltySettings.serviceDiscount}€
+                  Actuellement : {loyaltySettings.serviceThreshold} soins = -{loyaltySettings.serviceDiscount}€
                 </p>
               </div>
 
@@ -918,7 +918,7 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
                   </div>
                 </div>
                 <p className="text-sm text-[#2c3e50]/60 mt-2">
-                  Actuellement : {loyaltySettings.packageThreshold}ème forfait = -{loyaltySettings.packageDiscount}€
+                  Actuellement : {loyaltySettings.packageThreshold} forfaits = -{loyaltySettings.packageDiscount}€
                 </p>
               </div>
 

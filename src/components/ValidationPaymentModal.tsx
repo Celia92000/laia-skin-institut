@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, CheckCircle, XCircle, CreditCard, Euro, Calendar } from "lucide-react";
 
 interface ValidationPaymentModalProps {
@@ -24,13 +24,29 @@ export default function ValidationPaymentModal({
   const [paymentMethod, setPaymentMethod] = useState('CB');
   const [paymentNotes, setPaymentNotes] = useState('');
   const [applyLoyaltyDiscount, setApplyLoyaltyDiscount] = useState(false);
+  const [applyPackageDiscount, setApplyPackageDiscount] = useState(false);
   const [applyReferralDiscount, setApplyReferralDiscount] = useState(false);
+  const [manualDiscount, setManualDiscount] = useState(0);
+  const [showManualDiscountInput, setShowManualDiscountInput] = useState(false);
   
   // Calculer les réductions disponibles
-  const nextSessionNumber = (loyaltyProfile?.individualServicesCount || 0) + 1;
-  const isLoyaltyEligible = nextSessionNumber % 6 === 0;
-  const loyaltyDiscount = isLoyaltyEligible ? 30 : 0;
+  const individualServicesCount = loyaltyProfile?.individualServicesCount || 0;
+  const packagesCount = loyaltyProfile?.packagesCount || 0;
+  
+  // 5 soins = -20€ (le client doit avoir 5 soins pour avoir la réduction)
+  const isLoyaltyEligible = individualServicesCount >= 5;
+  const loyaltyDiscount = isLoyaltyEligible ? 20 : 0;
+  
+  // 3 forfaits = -30€ (le client doit avoir 3 forfaits pour avoir la réduction)
+  const isPackageEligible = packagesCount >= 3;
+  const packageDiscount = isPackageEligible ? 30 : 0;
+  
   const referralDiscount = 20; // Réduction parrainage fixe
+  
+  // Recalculer le montant à payer quand les réductions changent
+  useEffect(() => {
+    setPaymentAmount(calculateFinalAmount());
+  }, [applyLoyaltyDiscount, applyPackageDiscount, applyReferralDiscount, manualDiscount]);
   
   // Calculer le montant final avec réductions
   const calculateFinalAmount = () => {
@@ -38,9 +54,13 @@ export default function ValidationPaymentModal({
     if (applyLoyaltyDiscount && isLoyaltyEligible) {
       amount -= loyaltyDiscount;
     }
+    if (applyPackageDiscount && isPackageEligible) {
+      amount -= packageDiscount;
+    }
     if (applyReferralDiscount) {
       amount -= referralDiscount;
     }
+    amount -= manualDiscount;
     return Math.max(0, amount); // Ne pas aller en négatif
   };
 
@@ -86,12 +106,22 @@ export default function ValidationPaymentModal({
       // Ajouter les informations sur les réductions appliquées
       const discounts = [];
       if (applyLoyaltyDiscount && isLoyaltyEligible) {
-        discounts.push(`Fidélité 6ème séance: -${loyaltyDiscount}€`);
+        discounts.push(`Fidélité 5 soins: -${loyaltyDiscount}€`);
         data.loyaltyDiscountApplied = true;
+        data.resetIndividualServicesCount = true; // Signaler qu'il faut réinitialiser le compteur
+      }
+      if (applyPackageDiscount && isPackageEligible) {
+        discounts.push(`Fidélité 3 forfaits: -${packageDiscount}€`);
+        data.packageDiscountApplied = true;
+        data.resetPackagesCount = true; // Signaler qu'il faut réinitialiser le compteur
       }
       if (applyReferralDiscount) {
         discounts.push(`Parrainage: -${referralDiscount}€`);
         data.referralDiscountApplied = true;
+      }
+      if (manualDiscount > 0) {
+        discounts.push(`Réduction manuelle: -${manualDiscount}€`);
+        data.manualDiscount = manualDiscount;
       }
       
       let notes = paymentNotes;
@@ -265,7 +295,7 @@ export default function ValidationPaymentModal({
                     <div className="bg-gradient-to-r from-[#fdfbf7] to-[#f8f6f0] rounded-lg p-4 border border-[#d4b5a0]/20">
                       <h4 className="text-sm font-semibold text-[#2c3e50] mb-3">Réductions disponibles</h4>
                       
-                      {/* Réduction fidélité */}
+                      {/* Réduction 6ème soin individuel */}
                       {isLoyaltyEligible && (
                         <label className="flex items-center justify-between mb-2 cursor-pointer hover:bg-white/50 p-2 rounded-lg transition-all">
                           <div className="flex items-center gap-3">
@@ -274,18 +304,15 @@ export default function ValidationPaymentModal({
                               checked={applyLoyaltyDiscount}
                               onChange={(e) => {
                                 setApplyLoyaltyDiscount(e.target.checked);
-                                setPaymentAmount(e.target.checked 
-                                  ? paymentAmount - loyaltyDiscount 
-                                  : paymentAmount + loyaltyDiscount);
                               }}
                               className="w-5 h-5 text-[#d4b5a0] border-[#d4b5a0]/30 rounded focus:ring-[#d4b5a0]"
                             />
                             <div>
                               <p className="text-sm font-medium text-[#2c3e50]">
-                                🎁 Fidélité - 6ème séance
+                                🎁 Fidélité - 5 soins réalisés
                               </p>
                               <p className="text-xs text-[#2c3e50]/60">
-                                Séance n°{nextSessionNumber} - Réduction automatique
+                                Le client a réalisé {individualServicesCount} soin(s) individuels
                               </p>
                             </div>
                           </div>
@@ -293,17 +320,39 @@ export default function ValidationPaymentModal({
                         </label>
                       )}
                       
+                      {/* Réduction 4ème forfait */}
+                      {isPackageEligible && (
+                        <label className="flex items-center justify-between mb-2 cursor-pointer hover:bg-white/50 p-2 rounded-lg transition-all">
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="checkbox"
+                              checked={applyPackageDiscount}
+                              onChange={(e) => {
+                                setApplyPackageDiscount(e.target.checked);
+                              }}
+                              className="w-5 h-5 text-[#d4b5a0] border-[#d4b5a0]/30 rounded focus:ring-[#d4b5a0]"
+                            />
+                            <div>
+                              <p className="text-sm font-medium text-[#2c3e50]">
+                                ✨ Fidélité - 3 forfaits achetés
+                              </p>
+                              <p className="text-xs text-[#2c3e50]/60">
+                                Le client a acheté {packagesCount} forfait(s)
+                              </p>
+                            </div>
+                          </div>
+                          <span className="text-green-600 font-bold">-{packageDiscount}€</span>
+                        </label>
+                      )}
+                      
                       {/* Réduction parrainage */}
-                      <label className="flex items-center justify-between cursor-pointer hover:bg-white/50 p-2 rounded-lg transition-all">
+                      <label className="flex items-center justify-between mb-2 cursor-pointer hover:bg-white/50 p-2 rounded-lg transition-all">
                         <div className="flex items-center gap-3">
                           <input
                             type="checkbox"
                             checked={applyReferralDiscount}
                             onChange={(e) => {
                               setApplyReferralDiscount(e.target.checked);
-                              setPaymentAmount(e.target.checked 
-                                ? paymentAmount - referralDiscount 
-                                : paymentAmount + referralDiscount);
                             }}
                             className="w-5 h-5 text-[#d4b5a0] border-[#d4b5a0]/30 rounded focus:ring-[#d4b5a0]"
                           />
@@ -319,9 +368,45 @@ export default function ValidationPaymentModal({
                         <span className="text-green-600 font-bold">-{referralDiscount}€</span>
                       </label>
                       
-                      {!isLoyaltyEligible && (
+                      {/* Réduction manuelle */}
+                      <div className="border-t border-[#d4b5a0]/20 pt-2 mt-2">
+                        {!showManualDiscountInput ? (
+                          <button
+                            onClick={() => setShowManualDiscountInput(true)}
+                            className="text-sm text-[#d4b5a0] hover:text-[#b89574] transition-colors"
+                          >
+                            + Ajouter une réduction manuelle
+                          </button>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="number"
+                              value={manualDiscount}
+                              onChange={(e) => {
+                                const value = parseFloat(e.target.value) || 0;
+                                setManualDiscount(value);
+                              }}
+                              placeholder="Montant en €"
+                              className="flex-1 px-3 py-1 text-sm border border-[#d4b5a0]/30 rounded-lg focus:ring-2 focus:ring-[#d4b5a0] focus:border-transparent"
+                            />
+                            <span className="text-sm text-[#2c3e50]€</span>
+                            <button
+                              onClick={() => {
+                                setManualDiscount(0);
+                                setShowManualDiscountInput(false);
+                                setPaymentAmount(calculateFinalAmount());
+                              }}
+                              className="text-red-500 hover:text-red-600"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {!isLoyaltyEligible && !isPackageEligible && (
                         <p className="text-xs text-[#2c3e50]/60 mt-2 pl-2">
-                          💡 Prochaine réduction fidélité dans {6 - (nextSessionNumber % 6)} séance(s)
+                          💡 Prochaine réduction : {individualServicesCount < 5 ? `${5 - individualServicesCount} soin(s)` : ''} {packagesCount < 3 ? `${3 - packagesCount} forfait(s)` : ''}
                         </p>
                       )}
                     </div>
