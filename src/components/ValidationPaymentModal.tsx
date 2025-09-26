@@ -389,12 +389,11 @@ export default function ValidationPaymentModal({
                               placeholder="Montant en €"
                               className="flex-1 px-3 py-1 text-sm border border-[#d4b5a0]/30 rounded-lg focus:ring-2 focus:ring-[#d4b5a0] focus:border-transparent"
                             />
-                            <span className="text-sm text-[#2c3e50]€</span>
+                            <span className="text-sm text-[#2c3e50]">€</span>
                             <button
                               onClick={() => {
                                 setManualDiscount(0);
                                 setShowManualDiscountInput(false);
-                                setPaymentAmount(calculateFinalAmount());
                               }}
                               className="text-red-500 hover:text-red-600"
                             >
