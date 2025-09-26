@@ -2,7 +2,14 @@
 
 ## 🔴 Priorité haute
 
-### 1. **Finaliser les campagnes WhatsApp**
+### 1. **URGENT - Corriger l'affichage des conversations dans les fiches clients**
+- Problème : "je ne vois pas les conversations email et what app via le crm dans les fiches clients"
+- Le bouton "Communications" n'apparaît que pour les rôles CLIENT
+- Ajouter l'accès aux communications pour TOUS les clients depuis leur fiche
+- Vérifier que les endpoints API fonctionnent correctement
+- Tester avec de vraies données
+
+### 2. **Corriger la renommation des numéros de priorités**
 - L'utilisateur a mentionné : "il y a déjà un sous onglet campagne dans l'onglet what app"
 - Vérifier et compléter la fonctionnalité existante des campagnes WhatsApp
 - Ajouter la possibilité d'envoyer des campagnes groupées via WhatsApp
