@@ -3,7 +3,7 @@ import prisma from '@/lib/prisma';
 import { withRetry } from '@/lib/prisma-with-retry';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET || 'laia-skin-secret-key-2024';
 
 export async function POST(
   request: Request,
@@ -19,18 +19,34 @@ export async function POST(
     
     try {
       const decoded = jwt.verify(token, JWT_SECRET) as any;
-      const adminUser = await withRetry(() =>
-        prisma.user.findUnique({
-          where: { id: decoded.userId }
-        })
-      );
-
-      if (!adminUser || adminUser.role !== 'ADMIN') {
-        return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
+      
+      // Vérifier que le token contient un userId
+      if (!decoded.userId) {
+        return NextResponse.json({ error: 'Token invalide - userId manquant' }, { status: 401 });
       }
-    } catch (e) {
-      console.error('Erreur vérification admin:', e);
-      return NextResponse.json({ error: 'Token invalide' }, { status: 401 });
+      
+      try {
+        const adminUser = await withRetry(() =>
+          prisma.user.findUnique({
+            where: { id: decoded.userId }
+          })
+        );
+
+        if (!adminUser || adminUser.role !== 'ADMIN') {
+          return NextResponse.json({ error: 'Non autorisé - accès admin requis' }, { status: 403 });
+        }
+      } catch (dbError) {
+        console.error('Erreur connexion DB:', dbError);
+        return NextResponse.json({ error: 'Erreur de connexion à la base de données' }, { status: 503 });
+      }
+    } catch (tokenError: any) {
+      console.error('Erreur décodage token:', tokenError);
+      if (tokenError.name === 'JsonWebTokenError') {
+        return NextResponse.json({ error: 'Token invalide' }, { status: 401 });
+      } else if (tokenError.name === 'TokenExpiredError') {
+        return NextResponse.json({ error: 'Token expiré' }, { status: 401 });
+      }
+      return NextResponse.json({ error: 'Erreur d\'authentification' }, { status: 401 });
     }
 
     const { note } = await request.json();
@@ -84,18 +100,34 @@ export async function GET(
     
     try {
       const decoded = jwt.verify(token, JWT_SECRET) as any;
-      const adminUser = await withRetry(() =>
-        prisma.user.findUnique({
-          where: { id: decoded.userId }
-        })
-      );
-
-      if (!adminUser || adminUser.role !== 'ADMIN') {
-        return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
+      
+      // Vérifier que le token contient un userId
+      if (!decoded.userId) {
+        return NextResponse.json({ error: 'Token invalide - userId manquant' }, { status: 401 });
       }
-    } catch (e) {
-      console.error('Erreur vérification admin:', e);
-      return NextResponse.json({ error: 'Token invalide' }, { status: 401 });
+      
+      try {
+        const adminUser = await withRetry(() =>
+          prisma.user.findUnique({
+            where: { id: decoded.userId }
+          })
+        );
+
+        if (!adminUser || adminUser.role !== 'ADMIN') {
+          return NextResponse.json({ error: 'Non autorisé - accès admin requis' }, { status: 403 });
+        }
+      } catch (dbError) {
+        console.error('Erreur connexion DB:', dbError);
+        return NextResponse.json({ error: 'Erreur de connexion à la base de données' }, { status: 503 });
+      }
+    } catch (tokenError: any) {
+      console.error('Erreur décodage token:', tokenError);
+      if (tokenError.name === 'JsonWebTokenError') {
+        return NextResponse.json({ error: 'Token invalide' }, { status: 401 });
+      } else if (tokenError.name === 'TokenExpiredError') {
+        return NextResponse.json({ error: 'Token expiré' }, { status: 401 });
+      }
+      return NextResponse.json({ error: 'Erreur d\'authentification' }, { status: 401 });
     }
 
     const params = await context.params;

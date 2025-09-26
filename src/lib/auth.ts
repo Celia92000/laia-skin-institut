@@ -12,7 +12,7 @@ export async function verifyPassword(password: string, hashedPassword: string): 
 }
 
 export function generateToken(userId: string, role: string): string {
-  return jwt.sign({ userId, role }, JWT_SECRET, { expiresIn: '7d' });
+  return jwt.sign({ userId, role }, JWT_SECRET, { expiresIn: '365d' }); // Token valide pour 1 an
 }
 
 export function verifyToken(token: string): any {
