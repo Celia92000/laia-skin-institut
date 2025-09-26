@@ -46,6 +46,8 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
     packageThreshold: 2,   // Réduction après 2 forfaits complétés (pour la 9ème séance)
     packageDiscount: 40,
     birthdayDiscount: 10,
+    referralSponsorDiscount: 15,  // Réduction pour le parrain
+    referralReferredDiscount: 10, // Réduction pour le filleul
     referralBonus: 1,
     reviewBonus: 1
   });

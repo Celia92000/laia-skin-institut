@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrismaClient } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
+import { sendWhatsApp, sendEmail } from '@/lib/notifications';
 
 // Fonction pour générer un numéro de facture
 async function generateInvoiceNumber(): Promise<string> {
@@ -52,7 +53,7 @@ export async function POST(
     }
 
     const data = await request.json();
-    const { amount, method, invoiceNumber, notes, appliedDiscount, resetIndividualServicesCount, resetPackagesCount } = data;
+    const { amount, method, invoiceNumber, notes, appliedDiscount, resetIndividualServicesCount, resetPackagesCount, birthdayDiscountApplied } = data;
 
     // Récupérer la réservation actuelle pour obtenir le prix total
     const currentReservation = await prisma.reservation.findUnique({
@@ -61,6 +62,49 @@ export async function POST(
 
     if (!currentReservation) {
       return NextResponse.json({ error: 'Réservation non trouvée' }, { status: 404 });
+    }
+
+    // Si une réduction anniversaire a été appliquée, créer la réduction dans la base
+    if (birthdayDiscountApplied && currentReservation.userId) {
+      // Vérifier qu'une réduction anniversaire n'existe pas déjà cette année
+      const currentYear = new Date().getFullYear();
+      const existingBirthdayDiscount = await prisma.discount.findFirst({
+        where: {
+          userId: currentReservation.userId,
+          type: 'birthday',
+          createdAt: {
+            gte: new Date(currentYear, 0, 1),
+            lt: new Date(currentYear + 1, 0, 1)
+          }
+        }
+      });
+
+      if (!existingBirthdayDiscount) {
+        // Créer la réduction anniversaire et la marquer comme utilisée
+        await prisma.discount.create({
+          data: {
+            userId: currentReservation.userId,
+            type: 'birthday',
+            amount: 10,
+            status: 'used',
+            originalReason: 'Réduction anniversaire offerte',
+            notes: `Utilisée sur la réservation ${id}`,
+            usedAt: new Date()
+          }
+        });
+
+        // Créer une notification
+        await prisma.notification.create({
+          data: {
+            userId: currentReservation.userId,
+            type: 'discount',
+            message: '🎂 Votre réduction anniversaire de 10€ a été appliquée !',
+            read: false
+          }
+        });
+
+        console.log(`🎂 Réduction anniversaire appliquée pour l'utilisateur ${currentReservation.userId}`);
+      }
     }
 
     // Si une réduction de fidélité a été appliquée, réinitialiser les compteurs
@@ -170,6 +214,91 @@ export async function POST(
         });
 
         console.log(`💰 Paiement enregistré pour ${reservation.user.name}: ${amount}€`);
+
+        // Vérifier si c'est le premier paiement d'un client parrainé
+        if (loyaltyProfile.referredBy && amount > 0) {
+          // Vérifier si c'est le premier paiement
+          const previousPayments = await prisma.reservation.count({
+            where: {
+              userId: reservation.user.id,
+              paymentStatus: 'paid',
+              id: { not: id }
+            }
+          });
+
+          if (previousPayments === 0) {
+            // C'est le premier paiement ! 
+            // Trouver le parrain
+            const sponsorProfile = await prisma.loyaltyProfile.findFirst({
+              where: { referralCode: loyaltyProfile.referredBy },
+              include: { user: true }
+            });
+
+            if (sponsorProfile) {
+              // Activer la réduction du parrain (passer de pending à available)
+              const pendingDiscount = await prisma.discount.findFirst({
+                where: {
+                  userId: sponsorProfile.userId,
+                  type: 'referral_sponsor',
+                  status: 'pending',
+                  originalReason: { contains: reservation.user.name }
+                }
+              });
+
+              if (pendingDiscount) {
+                await prisma.discount.update({
+                  where: { id: pendingDiscount.id },
+                  data: { 
+                    status: 'available',
+                    notes: `Activée suite au premier soin de ${reservation.user.name}`
+                  }
+                });
+
+                // Créer une notification dans la base de données
+                await prisma.notification.create({
+                  data: {
+                    userId: sponsorProfile.userId,
+                    type: 'referral',
+                    message: `🎉 Félicitations ! ${reservation.user.name} vient de faire son premier soin. Vous avez gagné 15€ de réduction sur votre prochain soin !`,
+                    read: false
+                  }
+                });
+
+                // Envoyer notification WhatsApp au parrain
+                if (sponsorProfile.user.phone) {
+                  const message = `🎉 Félicitations ${sponsorProfile.user.name} ! 
+
+${reservation.user.name} vient de faire son premier soin chez LAIA SKIN Institut.
+
+✨ Vous avez gagné 15€ de réduction sur votre prochain soin !
+
+Cette réduction est maintenant disponible dans votre espace client et sera automatiquement appliquée lors de votre prochaine réservation.
+
+Merci pour votre confiance et votre fidélité ! 💝
+
+L'équipe LAIA SKIN Institut`;
+
+                  try {
+                    await sendWhatsApp(sponsorProfile.user.phone, message);
+                    console.log(`📱 WhatsApp envoyé au parrain ${sponsorProfile.user.name}`);
+                  } catch (error) {
+                    console.error('Erreur envoi WhatsApp au parrain:', error);
+                    // Envoyer par email en cas d'échec WhatsApp
+                    if (sponsorProfile.user.email) {
+                      await sendEmail(
+                        sponsorProfile.user.email,
+                        'Félicitations pour votre parrainage ! 🎉',
+                        message
+                      );
+                    }
+                  }
+                }
+
+                console.log(`🎁 Réduction parrain activée pour ${sponsorProfile.user.name}`);
+              }
+            }
+          }
+        }
       }
     }
 

@@ -369,7 +369,7 @@ export default function SecureLoginPage() {
                         placeholder="Ex: LAIAMAR1234"
                       />
                       <div className="mt-1 text-xs text-green-600">
-                        💝 15€ de réduction sur votre premier soin avec un code valide
+                        💝 10€ de réduction sur votre premier soin avec un code valide
                       </div>
                     </div>
                   </div>

@@ -52,23 +52,23 @@ export async function POST(request: NextRequest) {
       });
 
       if (referrerProfile) {
-        // Créer la réduction pour le nouveau client
+        // Créer la réduction pour le nouveau client (filleul) - 10€
         await prisma.discount.create({
           data: {
             userId: user.id,
-            type: 'referral',
-            amount: 15,
+            type: 'referral_referred',
+            amount: 10,
             status: 'available',
             originalReason: `Bienvenue ! Code parrainage de ${referrerProfile.user.name}`,
             expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000) // 90 jours
           }
         });
 
-        // Créer une réduction en attente pour le parrain
+        // Créer une réduction en attente pour le parrain - 15€
         await prisma.discount.create({
           data: {
             userId: referrerProfile.userId,
-            type: 'referral',
+            type: 'referral_sponsor',
             amount: 15,
             status: 'pending',
             originalReason: `Parrainage de ${name}`,

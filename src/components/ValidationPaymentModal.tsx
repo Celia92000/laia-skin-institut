@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, CheckCircle, XCircle, CreditCard, Euro, Calendar } from "lucide-react";
+import { X, CheckCircle, XCircle, CreditCard, Euro, Calendar, Gift } from "lucide-react";
 
 interface ValidationPaymentModalProps {
   reservation: any;
@@ -26,9 +26,20 @@ export default function ValidationPaymentModal({
   // Pré-cocher automatiquement les réductions de fidélité disponibles
   const [applyLoyaltyDiscount, setApplyLoyaltyDiscount] = useState(false);
   const [applyPackageDiscount, setApplyPackageDiscount] = useState(false);
-  const [applyReferralDiscount, setApplyReferralDiscount] = useState(false);
+  const [applyReferralSponsorDiscount, setApplyReferralSponsorDiscount] = useState(false); // Parrain
+  const [applyReferralReferredDiscount, setApplyReferralReferredDiscount] = useState(false); // Filleul
+  const [applyBirthdayDiscount, setApplyBirthdayDiscount] = useState(false); // Anniversaire
   const [manualDiscount, setManualDiscount] = useState(0);
   const [showManualDiscountInput, setShowManualDiscountInput] = useState(false);
+  const [isBirthdayMonth, setIsBirthdayMonth] = useState(false);
+  const [referralStatus, setReferralStatus] = useState<{
+    isReferred: boolean;
+    isSponsor: boolean;
+    referredBy?: string;
+    hasUsedReferralDiscount?: boolean;
+    pendingReferrals?: number;
+  }>({ isReferred: false, isSponsor: false });
+  const [referralAlertShown, setReferralAlertShown] = useState(false);
   
   // Calculer les réductions disponibles
   const individualServicesCount = loyaltyProfile?.individualServicesCount || 0;
@@ -43,7 +54,9 @@ export default function ValidationPaymentModal({
   const isPackageEligible = packagesCount >= 2;
   const packageDiscount = isPackageEligible ? 40 : 0;
   
-  const referralDiscount = 20; // Réduction parrainage fixe
+  const referralSponsorDiscount = 15; // Réduction pour le parrain
+  const referralReferredDiscount = 10; // Réduction pour le filleul
+  const birthdayDiscount = 10; // Réduction anniversaire
   
   // Pré-cocher automatiquement les réductions de fidélité disponibles au montage
   useEffect(() => {
@@ -55,13 +68,97 @@ export default function ValidationPaymentModal({
       if (isPackageEligible && !applyPackageDiscount) {
         setApplyPackageDiscount(true);
       }
+      
+      // Vérifier le statut de parrainage du client
+      checkReferralStatus();
+      
+      // Vérifier si c'est le mois d'anniversaire du client
+      checkBirthdayStatus();
     }
   }, [isOpen, isLoyaltyEligible, isPackageEligible]);
+
+  // Fonction pour vérifier le statut de parrainage
+  const checkReferralStatus = async () => {
+    if (!reservation?.userId) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/admin/client-referral-status?userId=${reservation.userId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setReferralStatus(data);
+        
+        // Si le client a un statut de parrainage, pré-cocher automatiquement
+        if (data.isReferred && !data.hasUsedReferralDiscount) {
+          setApplyReferralReferredDiscount(true);
+          if (!referralAlertShown) {
+            setReferralAlertShown(true);
+          }
+        }
+        if (data.isSponsor && data.pendingReferrals > 0) {
+          setApplyReferralSponsorDiscount(true);
+          if (!referralAlertShown) {
+            setReferralAlertShown(true);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Erreur vérification statut parrainage:', error);
+    }
+  };
+  
+  // Fonction pour vérifier si c'est le mois d'anniversaire
+  const checkBirthdayStatus = async () => {
+    if (!reservation?.userId) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/users/${reservation.userId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (response.ok) {
+        const userData = await response.json();
+        if (userData.birthday) {
+          const birthday = new Date(userData.birthday);
+          const today = new Date();
+          
+          // Vérifier si on est dans le mois d'anniversaire
+          if (birthday.getMonth() === today.getMonth()) {
+            setIsBirthdayMonth(true);
+            
+            // Vérifier si une réduction anniversaire existe déjà
+            const discountResponse = await fetch(`/api/admin/discounts?userId=${reservation.userId}`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (discountResponse.ok) {
+              const discounts = await discountResponse.json();
+              const hasBirthdayDiscount = discounts.some((d: any) => 
+                d.type === 'birthday' && 
+                d.status === 'available' &&
+                new Date(d.createdAt).getFullYear() === today.getFullYear()
+              );
+              
+              if (hasBirthdayDiscount) {
+                setApplyBirthdayDiscount(true);
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Erreur vérification anniversaire:', error);
+    }
+  };
   
   // Recalculer le montant à payer quand les réductions changent
   useEffect(() => {
     setPaymentAmount(calculateFinalAmount());
-  }, [applyLoyaltyDiscount, applyPackageDiscount, applyReferralDiscount, manualDiscount]);
+  }, [applyLoyaltyDiscount, applyPackageDiscount, applyReferralSponsorDiscount, applyReferralReferredDiscount, applyBirthdayDiscount, manualDiscount]);
   
   // Calculer le montant final avec réductions
   const calculateFinalAmount = () => {
@@ -72,8 +169,14 @@ export default function ValidationPaymentModal({
     if (applyPackageDiscount && isPackageEligible) {
       amount -= packageDiscount;
     }
-    if (applyReferralDiscount) {
-      amount -= referralDiscount;
+    if (applyReferralSponsorDiscount) {
+      amount -= referralSponsorDiscount;
+    }
+    if (applyReferralReferredDiscount) {
+      amount -= referralReferredDiscount;
+    }
+    if (applyBirthdayDiscount) {
+      amount -= birthdayDiscount;
     }
     amount -= manualDiscount;
     return Math.max(0, amount); // Ne pas aller en négatif
@@ -130,9 +233,18 @@ export default function ValidationPaymentModal({
         data.packageDiscountApplied = true;
         data.resetPackagesCount = true; // Signaler qu'il faut réinitialiser le compteur
       }
-      if (applyReferralDiscount) {
-        discounts.push(`Parrainage: -${referralDiscount}€`);
-        data.referralDiscountApplied = true;
+      if (applyReferralSponsorDiscount) {
+        discounts.push(`Parrainage Parrain: -${referralSponsorDiscount}€`);
+        data.referralSponsorDiscountApplied = true;
+      }
+      if (applyReferralReferredDiscount) {
+        discounts.push(`Parrainage Filleul: -${referralReferredDiscount}€`);
+        data.referralReferredDiscountApplied = true;
+      }
+      if (applyBirthdayDiscount) {
+        discounts.push(`Anniversaire: -${birthdayDiscount}€`);
+        data.birthdayDiscountApplied = true;
+        // La création de la réduction anniversaire sera gérée côté serveur
       }
       if (manualDiscount > 0) {
         discounts.push(`Réduction manuelle: -${manualDiscount}€`);
@@ -190,6 +302,74 @@ export default function ValidationPaymentModal({
             <p className="text-xs text-green-600 mt-1 font-medium">
               ✅ Les réductions sont automatiquement appliquées au montant !
             </p>
+          </div>
+        )}
+        
+        {/* Alerte de parrainage si détecté */}
+        {(referralStatus.isReferred || referralStatus.isSponsor) && (
+          <div className="m-4 mb-0 mt-2 p-3 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg">
+            <div className="flex items-center gap-2">
+              <Gift className="w-5 h-5 text-purple-600" />
+              <p className="font-semibold text-purple-800">
+                👥 Parrainage détecté !
+              </p>
+            </div>
+            <div className="text-sm text-purple-700 mt-1">
+              {referralStatus.isReferred && !referralStatus.hasUsedReferralDiscount && (
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">🎁</span>
+                  <span>
+                    <strong>Client parrainé</strong> par {referralStatus.referredBy || 'un parrain'}
+                    <br />
+                    <span className="text-purple-600 font-bold">→ Réduction de 10€ disponible (premier soin)</span>
+                  </span>
+                </div>
+              )}
+              {referralStatus.isSponsor && referralStatus.pendingReferrals && referralStatus.pendingReferrals > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">🏆</span>
+                  <span>
+                    <strong>Client parrain</strong> - {referralStatus.pendingReferrals} filleul(s) actif(s)
+                    <br />
+                    <span className="text-purple-600 font-bold">→ Réduction de 15€ disponible</span>
+                  </span>
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-purple-600 mt-2 font-medium bg-purple-100 rounded px-2 py-1">
+              ⚠️ Vérifiez ci-dessous que la bonne réduction parrainage est cochée
+            </p>
+          </div>
+        )}
+        
+        {/* Alerte anniversaire si c'est le mois */}
+        {isBirthdayMonth && (
+          <div className="m-4 mb-0 mt-2 p-3 bg-gradient-to-r from-pink-50 to-rose-50 border border-pink-200 rounded-lg">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-pink-600" />
+              <p className="font-semibold text-pink-800">
+                🎂 C'est le mois d'anniversaire du client !
+              </p>
+            </div>
+            <div className="text-sm text-pink-700 mt-1">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🎉</span>
+                <span>
+                  <strong>Réduction anniversaire</strong> - Offerte par LAIA SKIN
+                  <br />
+                  <span className="text-pink-600 font-bold">→ 10€ de réduction sur ce soin</span>
+                </span>
+              </div>
+            </div>
+            {applyBirthdayDiscount ? (
+              <p className="text-xs text-green-600 mt-2 font-medium bg-green-100 rounded px-2 py-1">
+                ✅ Réduction anniversaire déjà créée et appliquée automatiquement
+              </p>
+            ) : (
+              <p className="text-xs text-pink-600 mt-2 font-medium bg-pink-100 rounded px-2 py-1">
+                💡 Cochez "Anniversaire" ci-dessous pour créer et appliquer la réduction
+              </p>
+            )}
           </div>
         )}
         
@@ -598,28 +778,82 @@ export default function ValidationPaymentModal({
                         </span>
                       </label>
                       
-                      {/* Réduction parrainage */}
+                      {/* Réduction parrainage - Parrain */}
                       <label className="flex items-center justify-between mb-2 cursor-pointer hover:bg-white/50 p-2 rounded-lg transition-all">
                         <div className="flex items-center gap-3">
                           <input
                             type="checkbox"
-                            checked={applyReferralDiscount}
+                            checked={applyReferralSponsorDiscount}
                             onChange={(e) => {
-                              setApplyReferralDiscount(e.target.checked);
+                              setApplyReferralSponsorDiscount(e.target.checked);
+                              // Désactiver l'autre option parrainage si celle-ci est cochée
+                              if (e.target.checked) {
+                                setApplyReferralReferredDiscount(false);
+                              }
                             }}
                             className="w-5 h-5 text-[#d4b5a0] border-[#d4b5a0]/30 rounded focus:ring-[#d4b5a0]"
                           />
                           <div>
                             <p className="text-sm font-medium text-[#2c3e50]">
-                              👥 Parrainage
+                              👥 Parrainage - Parrain
                             </p>
                             <p className="text-xs text-[#2c3e50]/60">
-                              Client parrainé ou parrain
+                              Ce client a parrainé quelqu'un
                             </p>
                           </div>
                         </div>
-                        <span className="text-green-600 font-bold">-{referralDiscount}€</span>
+                        <span className="text-green-600 font-bold">-{referralSponsorDiscount}€</span>
                       </label>
+                      
+                      {/* Réduction parrainage - Filleul */}
+                      <label className="flex items-center justify-between mb-2 cursor-pointer hover:bg-white/50 p-2 rounded-lg transition-all">
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            checked={applyReferralReferredDiscount}
+                            onChange={(e) => {
+                              setApplyReferralReferredDiscount(e.target.checked);
+                              // Désactiver l'autre option parrainage si celle-ci est cochée
+                              if (e.target.checked) {
+                                setApplyReferralSponsorDiscount(false);
+                              }
+                            }}
+                            className="w-5 h-5 text-[#d4b5a0] border-[#d4b5a0]/30 rounded focus:ring-[#d4b5a0]"
+                          />
+                          <div>
+                            <p className="text-sm font-medium text-[#2c3e50]">
+                              👥 Parrainage - Filleul
+                            </p>
+                            <p className="text-xs text-[#2c3e50]/60">
+                              Ce client a été parrainé
+                            </p>
+                          </div>
+                        </div>
+                        <span className="text-green-600 font-bold">-{referralReferredDiscount}€</span>
+                      </label>
+                      
+                      {/* Anniversaire - Case à cocher */}
+                      {isBirthdayMonth && (
+                        <label className="flex justify-between items-center p-3 rounded-lg bg-pink-50 border border-pink-200 hover:bg-pink-100 transition-colors cursor-pointer">
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="checkbox"
+                              checked={applyBirthdayDiscount}
+                              onChange={(e) => setApplyBirthdayDiscount(e.target.checked)}
+                              className="w-5 h-5 text-pink-500 border-pink-300 rounded focus:ring-pink-500"
+                            />
+                            <div>
+                              <p className="text-sm font-medium text-[#2c3e50]">
+                                🎂 Anniversaire
+                              </p>
+                              <p className="text-xs text-[#2c3e50]/60">
+                                Réduction offerte pour l'anniversaire
+                              </p>
+                            </div>
+                          </div>
+                          <span className="text-green-600 font-bold">-{birthdayDiscount}€</span>
+                        </label>
+                      )}
                       
                       {/* Réduction manuelle */}
                       <div className="border-t border-[#d4b5a0]/20 pt-2 mt-2">
@@ -672,7 +906,7 @@ export default function ValidationPaymentModal({
                           />
                           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">€</span>
                         </div>
-                        {(applyLoyaltyDiscount || applyReferralDiscount) && (
+                        {(applyLoyaltyDiscount || applyPackageDiscount || applyReferralSponsorDiscount || applyReferralReferredDiscount) && (
                           <div className="text-sm">
                             <span className="text-gray-400 line-through">{reservation.totalPrice}€</span>
                           </div>

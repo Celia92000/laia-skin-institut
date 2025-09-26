@@ -76,23 +76,23 @@ export async function POST(request: NextRequest) {
     });
 
     // Créer les réductions pour les deux parties
-    // Réduction pour le nouveau client (utilisable immédiatement)
+    // Réduction pour le nouveau client/filleul (utilisable immédiatement) - 10€
     await prisma.discount.create({
       data: {
         userId: clientId,
-        type: 'referral',
-        amount: 15,
+        type: 'referral_referred',
+        amount: 10,
         status: 'available',
         originalReason: `Parrainage - Nouveau client (parrain: ${referrer.user.name})`,
         expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000) // 90 jours
       }
     });
 
-    // Réduction pour le parrain (disponible après le premier soin du filleul)
+    // Réduction pour le parrain (disponible après le premier soin du filleul) - 15€
     await prisma.discount.create({
       data: {
         userId: referrer.userId,
-        type: 'referral',
+        type: 'referral_sponsor',
         amount: 15,
         status: 'pending',
         originalReason: `Parrainage - Récompense (filleul: ${client.name})`,
@@ -121,7 +121,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Code de parrainage validé avec succès !',
-      discount: 15,
+      discount: 10, // Montant pour le filleul
+      referrerDiscount: 15, // Montant pour le parrain
       referrerName: referrer.user.name
     });
 
