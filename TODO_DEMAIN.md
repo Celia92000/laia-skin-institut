@@ -1,157 +1,75 @@
-# 📋 TODO LIST - TÂCHES RESTANTES POUR DEMAIN
+# 📋 TODO - À faire demain
 
-## 🎯 Fonctionnalités à implémenter
+## 🔴 Priorité haute
 
-### 1. Import/Export des données clients
-- [ ] Créer une interface d'import CSV/Excel pour les clients
-- [ ] Fonction d'export en Excel/PDF de la liste des clients
-- [ ] Validation des données importées
-- [ ] Gestion des doublons lors de l'import
+### 1. **Finaliser les campagnes WhatsApp**
+- L'utilisateur a mentionné : "il y a déjà un sous onglet campagne dans l'onglet what app"
+- Vérifier et compléter la fonctionnalité existante des campagnes WhatsApp
+- Ajouter la possibilité d'envoyer des campagnes groupées via WhatsApp
+- Implémenter les templates de messages pour les campagnes
 
-### 2. Recherche avancée avec filtres multiples
-- [ ] Créer une barre de recherche globale dans l'admin
-- [ ] Filtres combinables (date, montant, service, etc.)
-- [ ] Sauvegarde des recherches fréquentes
-- [ ] Résultats en temps réel
+### 2. **Test des campagnes email**
+- Finaliser la modal de test pour les campagnes email
+- Permettre d'envoyer un email de test avant l'envoi aux clients
+- Ajouter la prévisualisation du rendu email
 
-### 3. Système de sauvegarde automatique
-- [ ] Backup automatique quotidien de la base de données
-- [ ] Interface de restauration des sauvegardes
-- [ ] Notification en cas d'échec de sauvegarde
-- [ ] Export des sauvegardes vers cloud storage
+### 3. **Statistiques détaillées des campagnes**
+- L'utilisateur veut : "les statistiques de chaque campagne avec le détail"
+- Ajouter un dashboard de statistiques pour chaque campagne
+- Taux d'ouverture, clics, conversions
+- Graphiques de performance
 
-### 4. Historique complet des actions (Audit Log)
-- [ ] Enregistrer toutes les actions utilisateur
-- [ ] Interface de consultation de l'historique
-- [ ] Filtres par utilisateur, date, type d'action
-- [ ] Export de l'historique en PDF
+## 🟡 Priorité moyenne
 
-### 5. Optimisation des performances
-- [ ] Lazy loading des composants lourds
-- [ ] Mise en cache des données fréquemment utilisées
-- [ ] Pagination côté serveur pour les grandes listes
-- [ ] Compression des images et assets
+### 4. **Configuration WhatsApp**
+- Ajouter une interface de configuration pour les identifiants Twilio
+- Permettre de configurer le numéro WhatsApp Business
+- Tester la connexion et afficher le statut
 
-## 🐛 Bugs à corriger
+### 5. **Améliorer les automatisations**
+- Ajouter plus de types d'automatisations
+- Permettre de créer des workflows complexes
+- Ajouter des conditions et des délais
 
-### Email
-- [ ] Vérifier l'envoi réel des emails via Resend
-- [ ] Tester les templates avec de vraies données clients
-- [ ] Corriger les caractères spéciaux dans les templates
+### 6. **Optimisations CRM**
+- Ajouter la possibilité de taguer les clients
+- Segmentation avancée pour les campagnes
+- Export des données clients
 
-### WhatsApp
-- [ ] Finaliser l'intégration Twilio pour l'envoi réel
-- [ ] Tester l'envoi de messages groupés
-- [ ] Vérifier la synchronisation des statuts de campagne
+## 🟢 Améliorations futures
 
-### Interface
-- [ ] Responsive design sur mobile pour l'admin
-- [ ] Dark mode pour l'interface admin
-- [ ] Améliorer les animations de transition
+### 7. **Notifications et alertes**
+- Notifications en temps réel pour les nouveaux messages
+- Alertes pour les automatisations déclenchées
+- Rappels pour les suivis clients
 
-## 💡 Améliorations suggérées
+### 8. **Rapports et analytics**
+- Tableau de bord général avec KPIs
+- Rapports périodiques automatiques
+- Export PDF des statistiques
 
-### Dashboard
-- [ ] Widget météo pour adapter les promotions
-- [ ] Prévisions de revenus basées sur l'historique
-- [ ] Alertes automatiques pour stocks bas
-- [ ] Tableau de bord personnalisable par utilisateur
+### 9. **Intégrations tierces**
+- Google Calendar pour les RDV
+- Stripe pour les paiements
+- Instagram DM (si possible)
 
-### Client
-- [ ] Application mobile pour les clients
-- [ ] Système de chat en direct
-- [ ] Programme de fidélité gamifié
-- [ ] Notifications push pour les rappels
+## 📝 Notes de l'utilisateur
 
-### Marketing
-- [ ] Intégration Google Analytics
-- [ ] Intégration réseaux sociaux (Instagram, Facebook)
-- [ ] Système d'avis clients intégré
-- [ ] Campagnes SMS automatisées
+- **Email de test** : "j'aimerais aussi qu'on créer un test pour la campagne avant d'envoyer au client pour que je puisse tester mon message"
+- **WhatsApp existant** : "il y a déjà un sous onglet campagne dans l'onglet what app"
+- **Statistiques** : "et les statistiques de chaque campagne avec le détail"
+- **CRM connecté** : "j'aimerais aussi que le crm soit relié au mail et what app pour avoir les derniere discussions" ✅ FAIT
 
-## 📊 Statistiques à ajouter
+## 🔧 Corrections techniques
 
-- [ ] Taux de conversion des campagnes email
-- [ ] ROI par canal marketing
-- [ ] Analyse du parcours client
-- [ ] Heatmap des réservations
-- [ ] Prédictions basées sur l'IA
+- Vérifier que le modèle MessageHistory est bien dans le schema.prisma
+- Tester la synchronisation email avec de vrais comptes Gandi
+- Optimiser les performances de chargement des conversations
+- Ajouter la pagination pour les longues listes de messages
 
-## 🔐 Sécurité
+## 💡 Idées d'amélioration
 
-- [ ] Authentification à deux facteurs (2FA)
-- [ ] Logs de sécurité détaillés
-- [ ] Chiffrement des données sensibles
-- [ ] Tests de pénétration automatisés
-- [ ] Conformité RGPD complète
-
-## 📱 Intégrations tierces
-
-- [ ] Google Calendar pour sync des RDV
-- [ ] Stripe pour paiements en ligne
-- [ ] Mailchimp pour newsletters avancées
-- [ ] Zapier pour automatisations
-- [ ] Slack pour notifications équipe
-
-## 🎨 Améliorations UX/UI
-
-- [ ] Mode sombre complet
-- [ ] Thèmes personnalisables
-- [ ] Raccourcis clavier
-- [ ] Tutoriels interactifs
-- [ ] Aide contextuelle
-
-## 📝 Documentation
-
-- [ ] Guide utilisateur complet
-- [ ] Documentation API
-- [ ] Vidéos tutorielles
-- [ ] FAQ interactive
-- [ ] Base de connaissances
-
-## 🚀 Priorités pour demain matin
-
-1. **Import/Export clients** - Très demandé
-2. **Audit Log** - Important pour la traçabilité
-3. **Optimisation performances** - Le site devient lent
-4. **Sauvegarde automatique** - Sécurité des données
-5. **Recherche avancée** - Améliore l'efficacité
-
----
-
-## 💬 Notes importantes
-
-- Vérifier que Resend et Twilio sont bien configurés avec les bonnes clés API
-- Tester en production sur Vercel après chaque déploiement
-- Garder une copie de sauvegarde avant chaque modification majeure
-- Documenter chaque nouvelle fonctionnalité ajoutée
-
-## 🔧 Commandes utiles
-
-```bash
-# Démarrer le projet
-cd /home/celia/laia-github-temp/laia-skin-nextjs && npm run dev
-
-# Base de données
-DATABASE_URL="postgresql://postgres.zsxweurvtsrdgehtadwa:#SBxrx8kVc857Ed@aws-1-eu-west-3.pooler.supabase.com:5432/postgres"
-
-# Vérifier le statut
-npx prisma studio
-
-# Build production
-npm run build
-
-# Deploy sur Vercel
-vercel --prod
-```
-
-## 📞 Contacts utiles
-
-- Site en production : https://laia-skin-institut.vercel.app
-- GitHub : https://github.com/Celia92000/laia-skin-institut
-- Admin : admin@laiaskin.com / admin123
-
----
-
-*Dernière mise à jour : 25/09/2025*
-*Créé par Claude Code* 🤖
+- Mode sombre pour l'interface admin
+- Application mobile pour gérer les RDV
+- Chatbot automatique pour les questions fréquentes
+- Système de loyalty cards digitales
