@@ -23,6 +23,7 @@ export default function ValidationPaymentModal({
   const [paymentAmount, setPaymentAmount] = useState(reservation?.totalPrice || 0);
   const [paymentMethod, setPaymentMethod] = useState('CB');
   const [paymentNotes, setPaymentNotes] = useState('');
+  // Pré-cocher automatiquement les réductions de fidélité disponibles
   const [applyLoyaltyDiscount, setApplyLoyaltyDiscount] = useState(false);
   const [applyPackageDiscount, setApplyPackageDiscount] = useState(false);
   const [applyReferralDiscount, setApplyReferralDiscount] = useState(false);
@@ -42,6 +43,19 @@ export default function ValidationPaymentModal({
   const packageDiscount = isPackageEligible ? 30 : 0;
   
   const referralDiscount = 20; // Réduction parrainage fixe
+  
+  // Pré-cocher automatiquement les réductions de fidélité disponibles au montage
+  useEffect(() => {
+    if (isOpen) {
+      // Appliquer automatiquement les réductions de fidélité disponibles
+      if (isLoyaltyEligible && !applyLoyaltyDiscount) {
+        setApplyLoyaltyDiscount(true);
+      }
+      if (isPackageEligible && !applyPackageDiscount) {
+        setApplyPackageDiscount(true);
+      }
+    }
+  }, [isOpen, isLoyaltyEligible, isPackageEligible]);
   
   // Recalculer le montant à payer quand les réductions changent
   useEffect(() => {
@@ -158,6 +172,26 @@ export default function ValidationPaymentModal({
       onClick={handleBackdropClick}
     >
       <div className="bg-white rounded-xl max-w-md w-full mx-4 max-h-[90vh] flex flex-col">
+        {/* Alerte si des réductions sont disponibles */}
+        {(isLoyaltyEligible || isPackageEligible) && (
+          <div className="m-4 mb-0 p-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg animate-pulse">
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-5 h-5 text-green-600" />
+              <p className="font-semibold text-green-800">
+                🎉 Réduction de fidélité disponible !
+              </p>
+            </div>
+            <p className="text-sm text-green-700 mt-1">
+              {isLoyaltyEligible && `• 5 soins réalisés = -20€`}
+              {isLoyaltyEligible && isPackageEligible && <br />}
+              {isPackageEligible && `• 3 forfaits achetés = -30€`}
+            </p>
+            <p className="text-xs text-green-600 mt-1 font-medium">
+              ✅ Les réductions sont automatiquement appliquées au montant !
+            </p>
+          </div>
+        )}
+        
         {/* Header fixe */}
         <div className="p-6 pb-0">
         <div className="flex justify-between items-start mb-4">
@@ -184,7 +218,21 @@ export default function ValidationPaymentModal({
         <div className="bg-gradient-to-br from-[#fdfbf7] to-[#f8f6f0] rounded-lg p-4 mb-6 border border-[#d4b5a0]/20">
           <div className="flex items-center justify-between mb-2">
             <span className="font-medium text-[#2c3e50]">{reservation.userName}</span>
-            <span className="text-[#d4b5a0] font-bold">{reservation.totalPrice}€</span>
+            <div className="flex items-center gap-2">
+              {(isLoyaltyEligible || isPackageEligible) && (
+                <span className="text-gray-400 line-through text-sm">{reservation.totalPrice}€</span>
+              )}
+              <span className="text-[#d4b5a0] font-bold">
+                {(isLoyaltyEligible || isPackageEligible) 
+                  ? `${calculateFinalAmount()}€` 
+                  : `${reservation.totalPrice}€`}
+              </span>
+              {(isLoyaltyEligible || isPackageEligible) && (
+                <span className="text-xs text-green-600 font-medium">
+                  (-{(applyLoyaltyDiscount ? loyaltyDiscount : 0) + (applyPackageDiscount ? packageDiscount : 0)}€)
+                </span>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-4 text-sm text-[#2c3e50]/70">
             <span className="flex items-center gap-1">
