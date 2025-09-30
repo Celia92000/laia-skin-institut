@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Calendar, Clock, CheckCircle, XCircle, Gift, User, Users, Award, TrendingUp, UserCheck, Settings, Euro, Edit2, Save, FileText, Heart, AlertCircle, CreditCard, Download, Receipt, LogOut, MapPin, Phone, Mail, Instagram, Globe, Grid3x3, List, Cake, CreditCard as CardIcon, Star, MessageCircle, Send, X, Target, BarChart3, Package, Search } from "lucide-react";
+import { Calendar, Clock, CheckCircle, XCircle, Gift, User, Users, Award, TrendingUp, UserCheck, Settings, Euro, Edit2, Save, FileText, Heart, AlertCircle, CreditCard, Download, Receipt, LogOut, MapPin, Phone, Mail, Instagram, Globe, Grid3x3, List, Cake, CreditCard as CardIcon, Star, MessageCircle, Send, X, Target, BarChart3, Package, Search, Ban } from "lucide-react";
 import AuthGuard from "@/components/AuthGuard";
 import AdminCalendarEnhanced from "@/components/AdminCalendarEnhanced";
 import AdminServicesTab from "@/components/AdminServicesTab";
@@ -28,6 +28,7 @@ import DynamicCharts from "@/components/admin/DynamicCharts";
 import DataExport from "@/components/admin/DataExport";
 import ObjectivesSettings from "@/components/ObjectivesSettings";
 import ReservationTableAdvanced from "@/components/ReservationTableAdvanced";
+import QuickBlockManagerEnhanced from "@/components/QuickBlockManagerEnhanced";
 import QuickActionModal from "@/components/QuickActionModal";
 import { logout } from "@/lib/auth-client";
 import { getCurrentPrice, calculateTotalPrice } from "@/lib/pricing";
@@ -1478,6 +1479,9 @@ export default function AdminDashboard() {
               
               {planningSubTab === 'availability' && (
                 <div className="space-y-6">
+                  {/* Nouveau gestionnaire de blocage avec sélection par glissement */}
+                  <QuickBlockManagerEnhanced />
+                  
                   {/* Gestionnaire complet des disponibilités */}
                   <AdminDisponibilitesTabSync />
                   
@@ -1700,6 +1704,7 @@ export default function AdminDashboard() {
               </div>
                 </div>
               )}
+              
             </div>
           )}
 

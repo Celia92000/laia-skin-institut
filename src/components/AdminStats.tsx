@@ -178,92 +178,48 @@ export default function AdminStats() {
             })) || [],
             dailyStats: [],
             recurringClients: data.clients?.returning || 0,
-            marketingPerformance: {
+            marketingPerformance: data.marketingPerformance || {
               emailOpenRate: 0,
               emailClickRate: 0,
               whatsappReadRate: 0,
               whatsappResponseRate: 0,
               campaignConversion: 0
+            },
+            loyalty: data.loyalty || {
+              totalActiveMembers: 0,
+              newMembersThisMonth: 0,
+              totalPointsDistributed: 0,
+              totalRewardsRedeemed: 0,
+              averagePointsPerClient: 0,
+              redemptionRate: 0,
+              clientsNearReward: {
+                services: 0,
+                packages: 0
+              },
+              rewardsThisMonth: {
+                services: { count: 0, value: 0 },
+                packages: { count: 0, value: 0 },
+                birthday: { count: 0, value: 0 },
+                referral: { count: 0, value: 0 }
+              },
+              topLoyalClients: [],
+              referralProgram: {
+                totalReferrals: 0,
+                successfulReferrals: 0,
+                conversionRate: 0,
+                totalRewardsGiven: 0
+              }
             }
           };
           setStats(formattedStats);
         } else {
-          // Si erreur API, afficher des valeurs à zéro pour une entreprise qui démarre
-          const initialStats: Stats = {
-            reservations: {
-              total: 0,
-              today: 0,
-              thisWeek: 0,
-              thisMonth: 0,
-              pending: 0,
-              confirmed: 0,
-              cancelled: 0,
-              conversionRate: 0
-            },
-            revenue: {
-              total: 0,
-              thisMonth: 0,
-              lastMonth: 0,
-              thisYear: 0,
-              lastYear: 0,
-              today: 0,
-              yesterday: 0,
-              thisWeek: 0,
-              lastWeek: 0,
-              averagePerClient: 0,
-              averagePerService: 0,
-              byMonth: [
-                { month: 'Jan', revenue: 0, year: 2025 },
-                { month: 'Fév', revenue: 0, year: 2025 },
-                { month: 'Mar', revenue: 0, year: 2025 },
-                { month: 'Avr', revenue: 0, year: 2025 },
-                { month: 'Mai', revenue: 0, year: 2025 },
-                { month: 'Jun', revenue: 0, year: 2025 },
-                { month: 'Jul', revenue: 0, year: 2025 },
-                { month: 'Aoû', revenue: 0, year: 2025 },
-                { month: 'Sep', revenue: 0, year: 2025 },
-                { month: 'Oct', revenue: 0, year: 2025 },
-                { month: 'Nov', revenue: 0, year: 2025 },
-                { month: 'Déc', revenue: 0, year: 2025 }
-              ],
-              byDay: [],
-              byService: []
-            },
-            satisfaction: {
-              average: 0,
-              total: 0,
-              distribution: {
-                '5': 0,
-                '4': 0,
-                '3': 0,
-                '2': 0,
-                '1': 0
-              },
-              recentFeedback: []
-            },
-            clients: {
-              total: 0,
-              new: 0,
-              returning: 0,
-              vip: 0,
-              inactive: 0,
-              satisfactionRate: 0
-            },
-            topServices: [],
-            dailyStats: [],
-            recurringClients: 0,
-            marketingPerformance: {
-              emailOpenRate: 0,
-              emailClickRate: 0,
-              whatsappReadRate: 0,
-              whatsappResponseRate: 0,
-              campaignConversion: 0
-            }
-          };
-          setStats(initialStats);
+          console.error('Erreur API: ', response.status, response.statusText);
+          // En cas d'erreur API, ne pas afficher de données fictives
+          setStats(null);
         }
     } catch (error) {
       console.error('Erreur lors de la récupération des statistiques:', error);
+      setStats(null);
     } finally {
       setLoading(false);
     }
@@ -284,7 +240,27 @@ export default function AdminStats() {
     );
   }
 
-  if (!stats) return null;
+  if (!stats) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+              <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-yellow-800">Statistiques temporairement indisponibles</h3>
+              <p className="text-yellow-700">
+                Impossible de charger les statistiques. Vérifiez votre connexion à la base de données.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const monthGrowth = stats.revenue.lastMonth > 0
     ? ((stats.revenue.thisMonth - stats.revenue.lastMonth) / stats.revenue.lastMonth * 100).toFixed(1)

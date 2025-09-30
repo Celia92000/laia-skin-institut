@@ -25,6 +25,7 @@ function ReservationContent() {
   const [rememberMe, setRememberMe] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [availableSlots, setAvailableSlots] = useState<{time: string, available: boolean}[]>([]);
+  const [blockedDates, setBlockedDates] = useState<string[]>([]);
   const [hasAccount, setHasAccount] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -74,6 +75,33 @@ function ReservationContent() {
         // Fallback aux données par défaut en cas d'erreur
         setServices([]);
       });
+  }, []);
+
+  // Charger les dates bloquées
+  useEffect(() => {
+    const fetchBlockedDates = async () => {
+      try {
+        const currentDate = new Date();
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth() + 1;
+        
+        // Récupérer les dates bloquées pour le mois courant et le suivant
+        const currentMonth = await fetch(`/api/public/availability?action=blocked&year=${year}&month=${month}`);
+        const nextMonth = await fetch(`/api/public/availability?action=blocked&year=${year}&month=${month + 1}`);
+        
+        const [currentData, nextData] = await Promise.all([
+          currentMonth.json(),
+          nextMonth.json()
+        ]);
+        
+        const allBlockedDates = [...(currentData.blockedDates || []), ...(nextData.blockedDates || [])];
+        setBlockedDates(allBlockedDates);
+      } catch (error) {
+        console.error('Erreur lors du chargement des dates bloquées:', error);
+      }
+    };
+    
+    fetchBlockedDates();
   }, []);
 
   const timeSlots = [
@@ -190,12 +218,42 @@ function ReservationContent() {
     return slot ? slot.available : true; // Par défaut disponible si pas encore chargé
   };
 
+  const isDateBlocked = (dateString: string) => {
+    return blockedDates.includes(dateString);
+  };
+
+  const updateBlockedDatesForMonth = async (year: number, month: number) => {
+    try {
+      // Récupérer les dates bloquées pour le mois demandé et les mois adjacents
+      const responses = await Promise.all([
+        fetch(`/api/public/availability?action=blocked&year=${year}&month=${month - 1}`),
+        fetch(`/api/public/availability?action=blocked&year=${year}&month=${month}`),
+        fetch(`/api/public/availability?action=blocked&year=${year}&month=${month + 1}`)
+      ]);
+      
+      const data = await Promise.all(responses.map(r => r.json()));
+      const allBlockedDates = data.flatMap(d => d.blockedDates || []);
+      
+      setBlockedDates(allBlockedDates);
+    } catch (error) {
+      console.error('Erreur lors du chargement des dates bloquées:', error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     isSubmittingRef.current = true; // Marquer qu'on est en train de soumettre
     
     try {
+      // Vérifier que la date n'est pas bloquée
+      if (isDateBlocked(selectedDate)) {
+        alert("Cette date n'est plus disponible. Veuillez en choisir une autre.");
+        setIsSubmitting(false);
+        setStep(2); // Retour à la sélection de la date
+        return;
+      }
+      
       // Vérifier une dernière fois la disponibilité
       const checkResponse = await fetch('/api/availability', {
         method: 'POST',
@@ -761,10 +819,24 @@ function ReservationContent() {
                   <input
                     type="date"
                     value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
+                    onChange={(e) => {
+                      const newDate = e.target.value;
+                      if (!isDateBlocked(newDate)) {
+                        setSelectedDate(newDate);
+                        setSelectedTime(""); // Réinitialiser l'heure sélectionnée
+                      } else {
+                        alert("Cette date n'est pas disponible. Veuillez choisir une autre date.");
+                      }
+                    }}
                     min={new Date().toISOString().split('T')[0]}
                     className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-[#d4b5a0] focus:outline-none transition-colors text-lg"
                   />
+                  {blockedDates.length > 0 && (
+                    <p className="text-sm text-[#2c3e50]/60 mt-2">
+                      <AlertCircle className="w-4 h-4 inline mr-1" />
+                      Certaines dates peuvent être indisponibles. Si vous ne pouvez pas sélectionner une date, c'est qu'elle est bloquée.
+                    </p>
+                  )}
                 </div>
 
                 {selectedDate && (

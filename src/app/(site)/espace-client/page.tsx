@@ -12,6 +12,7 @@ import { ReferralSystem } from "@/components/ReferralSystem";
 import { DiscountHistory } from "@/components/DiscountHistory";
 import { SocialQRCodes } from "@/components/SocialQRCodes";
 import { CongratulationsAnimation } from "@/components/CongratulationsAnimation";
+import { getReservationWithServiceNames, getServiceIcon } from '@/lib/service-utils';
 
 interface Reservation {
   id: string;
@@ -102,19 +103,8 @@ export default function EspaceClient() {
     };
   };
 
-  // Services par défaut (au cas où la BDD est vide)
-  const defaultServices = {
-    "hydro-naissance": "Hydro'Naissance",
-    "hydro-cleaning": "Hydro'Cleaning",
-    "renaissance": "Renaissance",
-    "bb-glow": "BB Glow",
-    "led-therapie": "LED Thérapie"
-  };
-  
-  // Utiliser les services de la BDD ou les services par défaut
-  const services = dbServices.length > 0 
-    ? Object.fromEntries(dbServices.map(s => [s.slug, s.name]))
-    : defaultServices;
+  // Créer un map des services de la BDD
+  const services = Object.fromEntries(dbServices.map(s => [s.slug, s.name]));
 
   useEffect(() => {
     // Vérifier si un onglet spécifique est demandé dans l'URL
@@ -272,10 +262,16 @@ export default function EspaceClient() {
 
       if (response.ok) {
         const data = await response.json();
-        setReservations(data);
+        // Enrichir chaque réservation avec les noms des services
+        const enrichedReservations = await Promise.all(
+          data.map(async (reservation: any) => {
+            return await getReservationWithServiceNames(reservation);
+          })
+        );
+        setReservations(enrichedReservations);
       } else {
         // Données de démonstration si l'API n'est pas disponible
-        setReservations([
+        const demoReservations = [
           {
             id: '1',
             services: ['hydro-naissance'],
@@ -288,7 +284,7 @@ export default function EspaceClient() {
           },
           {
             id: '2',
-            services: ['hydro'],
+            services: ['hydro-cleaning'],
             packages: {},
             date: '2025-01-20',
             time: '14:30',
@@ -306,12 +302,20 @@ export default function EspaceClient() {
             status: 'completed',
             createdAt: '2024-11-20'
           }
-        ]);
+        ];
+        
+        // Enrichir les données de démo aussi
+        const enrichedDemo = await Promise.all(
+          demoReservations.map(async (reservation: any) => {
+            return await getReservationWithServiceNames(reservation);
+          })
+        );
+        setReservations(enrichedDemo);
       }
     } catch (error) {
       console.error('Erreur lors de la récupération des réservations:', error);
       // Données de démonstration en cas d'erreur
-      setReservations([
+      const fallbackReservations = [
         {
           id: '1',
           services: ['hydro-naissance'],
@@ -324,7 +328,7 @@ export default function EspaceClient() {
         },
         {
           id: '2',
-          services: ['hydro'],
+          services: ['hydro-cleaning'],
           packages: {},
           date: '2025-01-20',
           time: '14:30',
@@ -332,7 +336,15 @@ export default function EspaceClient() {
           status: 'completed',
           createdAt: '2024-12-15'
         }
-      ]);
+      ];
+      
+      // Enrichir les données de fallback aussi
+      const enrichedFallback = await Promise.all(
+        fallbackReservations.map(async (reservation: any) => {
+          return await getReservationWithServiceNames(reservation);
+        })
+      );
+      setReservations(enrichedFallback);
     } finally {
       setLoading(false);
     }
@@ -662,12 +674,16 @@ export default function EspaceClient() {
                       <div className="mb-4">
                         <h4 className="font-medium text-[#2c3e50] mb-2">Soins réservés :</h4>
                         <div className="flex flex-wrap gap-2">
-                          {reservation.services.map((serviceId: string) => (
-                            <span key={serviceId} className="px-3 py-1 bg-[#d4b5a0]/10 rounded-full text-sm">
-                              {services[serviceId] || serviceId}
-                              {reservation.packages && reservation.packages[serviceId] === 'forfait' && ' (Forfait 4 séances)'}
-                            </span>
-                          ))}
+                          {reservation.services?.map((serviceId: string, index: number) => {
+                            const serviceName = reservation.serviceNames?.[index] || serviceId;
+                            const packageType = reservation.packages?.[serviceId];
+                            return (
+                              <span key={serviceId} className="px-3 py-1 bg-[#d4b5a0]/10 rounded-full text-sm">
+                                {serviceName}
+                                {packageType === 'forfait' && ' (Forfait 4 séances)'}
+                              </span>
+                            );
+                          })}
                         </div>
                       </div>
 
@@ -959,7 +975,7 @@ export default function EspaceClient() {
                     <div key={reservation.id} className="flex justify-between items-center py-3 border-b border-gray-100">
                       <div>
                         <p className="font-medium text-[#2c3e50]">
-                          {reservation.services.map(s => services[s as keyof typeof services]).join(', ')}
+                          {reservation.formattedServices?.join(', ') || reservation.services?.join(', ') || 'Service inconnu'}
                         </p>
                         <p className="text-sm text-[#2c3e50]/60">
                           {new Date(reservation.date).toLocaleDateString('fr-FR')}
@@ -1154,7 +1170,7 @@ export default function EspaceClient() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-medium text-[#2c3e50]">
-                            {reservation.services.map(s => services[s as keyof typeof services]).join(', ')}
+                            {reservation.formattedServices?.join(', ') || reservation.services?.join(', ') || 'Service inconnu'}
                           </p>
                           <p className="text-sm text-[#2c3e50]/60">
                             Effectué le {new Date(reservation.date).toLocaleDateString('fr-FR')}
@@ -1366,7 +1382,7 @@ export default function EspaceClient() {
           <div className="p-6">
             <div className="mb-4">
               <p className="font-medium text-[#2c3e50]">
-                {selectedReservation.services.map(s => services[s as keyof typeof services]).join(', ')}
+                {selectedReservation.formattedServices?.join(', ') || selectedReservation.services?.join(', ') || 'Service inconnu'}
               </p>
               <p className="text-sm text-[#2c3e50]/60">
                 Effectué le {new Date(selectedReservation.date).toLocaleDateString('fr-FR')}
@@ -1554,7 +1570,7 @@ export default function EspaceClient() {
                       },
                       body: JSON.stringify({
                         reservationId: selectedReservation?.id,
-                        serviceName: selectedReservation?.services.map(s => services[s as keyof typeof services]).join(', '),
+                        serviceName: selectedReservation?.formattedServices?.join(', ') || selectedReservation?.services?.join(', ') || 'Service inconnu',
                         rating,
                         comment: reviewText,
                         satisfaction,

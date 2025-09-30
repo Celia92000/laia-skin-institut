@@ -63,7 +63,7 @@ async function sendTestEmail() {
         </body>
         </html>
       `,
-      text: \`
+      text: `
 Domaine Vérifié avec Succès!
 
 Votre domaine laiaskininstitut.fr est maintenant vérifié!
@@ -71,14 +71,14 @@ Votre domaine laiaskininstitut.fr est maintenant vérifié!
 Détails:
 - De: contact@laiaskininstitut.fr  
 - À: celia.ivorra95@hotmail.fr
-- Date: \${new Date().toLocaleString('fr-FR')}
+- Date: ${new Date().toLocaleString('fr-FR')}
 
 Si vous ne recevez pas cet email:
 1. Vérifiez votre dossier SPAM
 2. Vérifiez l'onglet "Promotions" (Gmail)
 3. Attendez quelques minutes
 4. Ajoutez contact@laiaskininstitut.fr à vos contacts
-      \`
+      `
     });
 
     if (error) {

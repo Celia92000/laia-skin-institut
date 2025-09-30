@@ -7,8 +7,8 @@ const JWT_SECRET = process.env.JWT_SECRET || 'laia-skin-secret-key-2024';
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
-  const prisma = await getPrismaClient();
 ) {
+  const prisma = await getPrismaClient();
   try {
     const authHeader = request.headers.get('authorization');
     if (!authHeader?.startsWith('Bearer ')) {
@@ -61,8 +61,8 @@ export async function PUT(
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
-  const prisma = await getPrismaClient();
 ) {
+  const prisma = await getPrismaClient();
   try {
     const authHeader = request.headers.get('authorization');
     if (!authHeader?.startsWith('Bearer ')) {

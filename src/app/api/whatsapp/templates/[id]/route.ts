@@ -4,8 +4,9 @@ import { verifyToken } from '@/lib/auth';
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const authHeader = request.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -22,7 +23,7 @@ export async function PUT(
     const { name, category, content, variables, active } = body;
 
     const updatedTemplate = await prisma.whatsAppTemplate.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         name,
         category,
@@ -44,8 +45,9 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const authHeader = request.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -61,7 +63,7 @@ export async function DELETE(
     // Vérifier si le template est utilisé dans des campagnes actives
     const campaigns = await prisma.whatsAppCampaign.findMany({
       where: {
-        templateId: params.id,
+        templateId: id,
         status: {
           in: ['active', 'scheduled']
         }
@@ -76,7 +78,7 @@ export async function DELETE(
 
     // Supprimer le template
     await prisma.whatsAppTemplate.delete({
-      where: { id: params.id }
+      where: { id }
     });
 
     return NextResponse.json({ success: true, message: 'Modèle supprimé avec succès' });

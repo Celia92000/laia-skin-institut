@@ -45,7 +45,12 @@ export default function AdminDisponibilitesTab() {
 
   const fetchBlockedDates = async () => {
     try {
-      const response = await fetch('/api/admin/blocked-slots');
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/admin/blocked-slots', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       if (response.ok) {
         const data = await response.json();
         // Transformer les données de l'API au format attendu et supprimer les doublons

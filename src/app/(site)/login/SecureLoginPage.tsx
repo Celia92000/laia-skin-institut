@@ -20,24 +20,21 @@ export default function SecureLoginPage() {
     referralCode: ""
   });
 
-  // Charger les identifiants sauvegardés au chargement
+  // Charger seulement l'email sauvegardé au chargement (jamais le mot de passe)
   useState(() => {
     if (typeof window !== 'undefined') {
       const savedEmail = localStorage.getItem('rememberedEmail');
-      const savedPassword = localStorage.getItem('rememberedPassword');
       if (savedEmail) {
         setFormData(prev => ({ ...prev, email: savedEmail }));
         setRememberMe(true);
       }
-      // En production, ne jamais stocker le mot de passe
-      if (savedPassword && process.env.NODE_ENV === 'development') {
-        setFormData(prev => ({ ...prev, password: atob(savedPassword) }));
-      }
+      // Supprimer tout mot de passe potentiellement stocké
+      localStorage.removeItem('rememberedPassword');
     }
   });
 
-  // Comptes de démonstration (UNIQUEMENT pour le développement)
-  const demoAccounts = process.env.NODE_ENV === 'development' ? [
+  // Comptes de démonstration désactivés pour la sécurité
+  const demoAccounts = false ? [
     {
       role: "Admin",
       icon: Shield,
@@ -92,17 +89,14 @@ export default function SecureLoginPage() {
         if (response.ok) {
           const data = await response.json();
           
-          // Gérer "Se souvenir de moi"
+          // Gérer "Se souvenir de moi" - sauvegarder uniquement l'email
           if (rememberMe) {
             localStorage.setItem('rememberedEmail', formData.email);
-            // En développement uniquement, sauvegarder le mot de passe encodé
-            if (process.env.NODE_ENV === 'development') {
-              localStorage.setItem('rememberedPassword', btoa(formData.password));
-            }
           } else {
             localStorage.removeItem('rememberedEmail');
-            localStorage.removeItem('rememberedPassword');
           }
+          // Ne jamais sauvegarder le mot de passe
+          localStorage.removeItem('rememberedPassword');
           
           // Stocker le token de manière sécurisée
           localStorage.setItem('token', data.token);

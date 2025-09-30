@@ -4,8 +4,9 @@ import { getPrismaClient } from '@/lib/prisma';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const prisma = await getPrismaClient();
   
   try {
@@ -24,7 +25,7 @@ export async function GET(
 
     // Récupérer les détails du client
     const client = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         reservations: {
           include: {
@@ -83,8 +84,9 @@ export async function GET(
 // Mise à jour des informations client
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const prisma = await getPrismaClient();
   
   try {
@@ -116,7 +118,7 @@ export async function PATCH(
 
     // Mettre à jour le client
     const updatedClient = await prisma.user.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...updateData,
         notes,

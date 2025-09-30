@@ -4,14 +4,15 @@ import { prisma } from '@/lib/prisma';
 // Version debug qui fonctionne sans authentification stricte
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
-    console.log(`🚀 Lancement campagne (mode debug): ${params.id}`);
+    console.log(`🚀 Lancement campagne (mode debug): ${id}`);
 
     // Récupérer la campagne
     const campaign = await prisma.whatsAppCampaign.findUnique({
-      where: { id: params.id }
+      where: { id }
     });
 
     if (!campaign) {
@@ -31,7 +32,7 @@ export async function POST(
 
     // Mettre à jour le statut de la campagne
     const updatedCampaign = await prisma.whatsAppCampaign.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         status: 'active',
         startedAt: new Date(),
@@ -75,7 +76,7 @@ export async function POST(
     setTimeout(async () => {
       try {
         await prisma.whatsAppCampaign.update({
-          where: { id: params.id },
+          where: { id },
           data: { status: 'sent' }
         });
         console.log(`✅ Campagne "${campaign.name}" marquée comme envoyée`);

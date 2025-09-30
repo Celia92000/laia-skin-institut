@@ -4,8 +4,9 @@ import { verifyToken } from '@/lib/auth';
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const authHeader = request.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -13,7 +14,7 @@ export async function GET(
     }
 
     const campaign = await prisma.whatsAppCampaign.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         template: true
       }
@@ -35,8 +36,9 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const authHeader = request.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -64,7 +66,7 @@ export async function PUT(
 
     // Vérifier que la campagne existe
     const existingCampaign = await prisma.whatsAppCampaign.findUnique({
-      where: { id: params.id }
+      where: { id }
     });
 
     if (!existingCampaign) {
@@ -80,7 +82,7 @@ export async function PUT(
 
     // Mettre à jour la campagne
     const updatedCampaign = await prisma.whatsAppCampaign.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         name: name || existingCampaign.name,
         templateId: templateId || existingCampaign.templateId,
@@ -112,8 +114,9 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const authHeader = request.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -138,7 +141,7 @@ export async function DELETE(
 
     // Vérifier que la campagne existe
     const existingCampaign = await prisma.whatsAppCampaign.findUnique({
-      where: { id: params.id }
+      where: { id }
     });
 
     if (!existingCampaign) {
@@ -154,7 +157,7 @@ export async function DELETE(
 
     // Supprimer la campagne
     await prisma.whatsAppCampaign.delete({
-      where: { id: params.id }
+      where: { id }
     });
 
     console.log(`🗑️ Campagne ${existingCampaign.name} supprimée`);

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrismaClient } from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
+import { getReservationWithServiceNamesFromDB } from '@/lib/service-utils-server';
 
 export async function POST(request: NextRequest) {
   try {
@@ -220,44 +221,36 @@ export async function GET(request: NextRequest) {
       return NextResponse.json([]);
     }
 
-    // Formater les données
-    const formattedReservations = reservations.map(r => {
-      // Si la réservation a un service lié, utiliser son slug
-      let services = [];
-      if (r.service) {
-        services = [r.service.slug || r.service.name.toLowerCase().replace(/['\s]/g, '-')];
-      } else if (r.services) {
-        // Sinon, utiliser le champ JSON services s'il existe
-        try {
-          services = JSON.parse(r.services);
-        } catch {
-          services = [];
-        }
-      }
-      
-      return {
-        id: r.id,
-        userId: r.user.id,
-        userName: r.user.name,
-        userEmail: r.user.email,
-        phone: r.user.phone,
-        services: services,
-        serviceName: r.service?.name, // Ajouter le nom du service pour l'affichage
-        date: r.date.toISOString(),
-        time: r.time,
-        totalPrice: r.totalPrice,
-        status: r.status,
-        notes: r.notes,
-        source: r.source || 'site',
-        createdAt: r.createdAt.toISOString(),
-        paymentStatus: r.paymentStatus,
-        paymentDate: r.paymentDate?.toISOString(),
-        paymentAmount: r.paymentAmount,
-        paymentMethod: r.paymentMethod,
-        // invoiceNumber: r.invoiceNumber,
-        // paymentNotes: r.paymentNotes
-      };
-    });
+    // Formater les données avec enrichissement des noms de services
+    const formattedReservations = await Promise.all(
+      reservations.map(async (r) => {
+        // Enrichir avec les noms de services
+        const enriched = await getReservationWithServiceNamesFromDB(r);
+        
+        return {
+          id: r.id,
+          userId: r.user.id,
+          userName: r.user.name,
+          userEmail: r.user.email,
+          phone: r.user.phone,
+          services: enriched.services,
+          packages: enriched.packages,
+          serviceName: enriched.formattedServices?.join(', ') || r.service?.name || 'Service inconnu',
+          date: r.date.toISOString(),
+          time: r.time,
+          totalPrice: r.totalPrice,
+          status: r.status,
+          notes: r.notes,
+          source: r.source || 'site',
+          createdAt: r.createdAt.toISOString(),
+          paymentStatus: r.paymentStatus,
+          paymentDate: r.paymentDate?.toISOString(),
+          paymentAmount: r.paymentAmount,
+          paymentMethod: r.paymentMethod,
+          formattedServices: enriched.formattedServices
+        };
+      })
+    );
 
     return NextResponse.json(formattedReservations);
   } catch (error) {

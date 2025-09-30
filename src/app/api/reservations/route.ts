@@ -280,18 +280,10 @@ export async function POST(request: Request) {
 
     // Envoyer l'email de confirmation au client
     if (user?.email) {
-      const serviceNames = services.map((s: string) => {
-        const serviceMap: any = {
-          'hydronaissance': "Hydro'Naissance",
-          'hydro-naissance': "Hydro'Naissance",
-          'hydrocleaning': "Hydro'Cleaning",
-          'hydro-cleaning': "Hydro'Cleaning", 
-          'renaissance': 'Renaissance',
-          'bb-glow': 'BB Glow',
-          'led-therapie': 'LED Thérapie',
-          'ledtherapy': 'LED Thérapie'
-        };
-        return serviceMap[s] || s;
+      // Récupérer les noms des services depuis la base de données
+      const serviceNames = services.map((serviceSlug: string) => {
+        const service = dbServices.find(s => s.slug === serviceSlug);
+        return service?.name || serviceSlug;
       });
 
       try {

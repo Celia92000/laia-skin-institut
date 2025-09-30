@@ -15,8 +15,8 @@ interface CommunicationHistory {
 export async function GET(
   request: NextRequest,
   props: { params: Promise<{ id: string }> }
-  const prisma = await getPrismaClient();
 ) {
+  const prisma = await getPrismaClient();
   const params = await props.params;
   try {
     // Vérifier l'authentification
@@ -198,8 +198,8 @@ export async function GET(
 export async function POST(
   request: NextRequest,
   props: { params: Promise<{ id: string }> }
-  const prisma = await getPrismaClient();
 ) {
+  const prisma = await getPrismaClient();
   const params = await props.params;
   try {
     // Vérifier l'authentification

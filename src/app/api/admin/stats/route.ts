@@ -54,19 +54,21 @@ export async function GET(request: NextRequest) {
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
 
-    // Revenus
+    // Revenus (basés sur les réservations confirmées ET terminées)
     const confirmedReservationsList = await prisma.reservation.findMany({
-      where: { status: 'confirmed' }
+      where: { 
+        status: { in: ['confirmed', 'completed'] }
+      }
     });
 
     const totalRevenue = confirmedReservationsList.reduce((sum, res) => sum + res.totalPrice, 0);
     
     const thisMonthRevenue = confirmedReservationsList
-      .filter(res => res.createdAt >= thisMonth)
+      .filter(res => res.date >= thisMonth) // Utiliser la date de la réservation, pas la création
       .reduce((sum, res) => sum + res.totalPrice, 0);
     
     const lastMonthRevenue = confirmedReservationsList
-      .filter(res => res.createdAt >= lastMonth && res.createdAt < thisMonth)
+      .filter(res => res.date >= lastMonth && res.date < thisMonth)
       .reduce((sum, res) => sum + res.totalPrice, 0);
 
     // Statistiques par jour (derniers 7 jours)
@@ -76,12 +78,12 @@ export async function GET(request: NextRequest) {
     });
 
     const dailyStatsMap = recentReservations.reduce((acc, res) => {
-      const date = res.createdAt.toISOString().split('T')[0];
+      const date = res.date.toISOString().split('T')[0]; // Utiliser la date de réservation
       if (!acc[date]) {
         acc[date] = { count: 0, revenue: 0 };
       }
       acc[date].count++;
-      if (res.status === 'confirmed') {
+      if (res.status === 'confirmed' || res.status === 'completed') {
         acc[date].revenue += res.totalPrice;
       }
       return acc;

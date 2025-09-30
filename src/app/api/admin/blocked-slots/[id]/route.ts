@@ -5,8 +5,8 @@ import { verifyToken } from '@/lib/auth';
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-  const prisma = await getPrismaClient();
 ) {
+  const prisma = await getPrismaClient();
   try {
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
     

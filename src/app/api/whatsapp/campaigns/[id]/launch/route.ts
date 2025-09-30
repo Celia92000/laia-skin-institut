@@ -4,8 +4,9 @@ import { verifyToken } from '@/lib/auth';
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const authHeader = request.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -20,7 +21,7 @@ export async function POST(
 
     // Récupérer la campagne
     const campaign = await prisma.whatsAppCampaign.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         template: true
       }
@@ -38,7 +39,7 @@ export async function POST(
 
     // Mettre à jour le statut de la campagne
     const updatedCampaign = await prisma.whatsAppCampaign.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         status: 'active',
         startedAt: new Date(),
@@ -81,7 +82,7 @@ export async function POST(
     // Après un délai, marquer comme envoyée
     setTimeout(async () => {
       await prisma.whatsAppCampaign.update({
-        where: { id: params.id },
+        where: { id },
         data: { status: 'sent' }
       });
     }, 5000);

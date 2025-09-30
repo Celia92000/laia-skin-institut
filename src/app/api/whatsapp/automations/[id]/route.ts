@@ -4,8 +4,9 @@ import { verifyToken } from '@/lib/auth';
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const authHeader = request.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -23,7 +24,7 @@ export async function PATCH(
 
     // Mettre à jour l'automatisation
     const updatedAutomation = await prisma.whatsAppAutomation.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         enabled: enabled
       }
@@ -48,8 +49,9 @@ export async function PATCH(
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const authHeader = request.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -57,7 +59,7 @@ export async function GET(
     }
 
     const automation = await prisma.whatsAppAutomation.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         template: true
       }
@@ -79,8 +81,9 @@ export async function GET(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const authHeader = request.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -94,7 +97,7 @@ export async function DELETE(
     }
 
     await prisma.whatsAppAutomation.delete({
-      where: { id: params.id }
+      where: { id }
     });
 
     return NextResponse.json({ 

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { 
   Calendar, Clock, Ban, Plus, Trash2, X, 
-  CalendarX, AlertCircle, Check
+  CalendarX, AlertCircle, Check, ChevronLeft, ChevronRight
 } from "lucide-react";
 
 interface BlockedSlot {
@@ -14,65 +14,194 @@ interface BlockedSlot {
   reason?: string;
 }
 
-// Composant pour la sélection des créneaux avec glissement
-function TimeSlotSelector({ 
+// Composant pour la sélection de dates avec glissement
+function DateRangeSelector({ 
+  selectedDate,
+  selectedEndDate,
+  onDateChange,
+  onEndDateChange,
+  mode
+}: {
+  selectedDate: string;
+  selectedEndDate: string;
+  onDateChange: (date: string) => void;
+  onEndDateChange: (date: string) => void;
+  mode: 'single' | 'range';
+}) {
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [isSelecting, setIsSelecting] = useState(false);
+  const [selectionStart, setSelectionStart] = useState<Date | null>(null);
+  
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const days = [];
+    
+    // Ajouter des jours vides pour aligner le calendrier
+    const startDayOfWeek = firstDay.getDay() || 7; // Lundi = 1, Dimanche = 7
+    for (let i = 1; i < startDayOfWeek; i++) {
+      days.push(null);
+    }
+    
+    // Ajouter tous les jours du mois
+    for (let d = 1; d <= lastDay.getDate(); d++) {
+      days.push(new Date(year, month, d));
+    }
+    
+    return days;
+  };
+  
+  const formatDate = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+  
+  const isDateInRange = (date: Date) => {
+    if (!selectedDate || !selectedEndDate) return false;
+    const dateStr = formatDate(date);
+    return dateStr >= selectedDate && dateStr <= selectedEndDate;
+  };
+  
+  const handleMouseDown = (date: Date) => {
+    if (mode === 'single') {
+      onDateChange(formatDate(date));
+    } else {
+      setIsSelecting(true);
+      setSelectionStart(date);
+      const dateStr = formatDate(date);
+      onDateChange(dateStr);
+      onEndDateChange(dateStr);
+    }
+  };
+  
+  const handleMouseEnter = (date: Date) => {
+    if (isSelecting && selectionStart && mode === 'range') {
+      const startStr = formatDate(selectionStart);
+      const dateStr = formatDate(date);
+      
+      if (startStr <= dateStr) {
+        onDateChange(startStr);
+        onEndDateChange(dateStr);
+      } else {
+        onDateChange(dateStr);
+        onEndDateChange(startStr);
+      }
+    }
+  };
+  
+  const handleMouseUp = () => {
+    setIsSelecting(false);
+  };
+  
+  useEffect(() => {
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => window.removeEventListener('mouseup', handleMouseUp);
+  }, []);
+  
+  const days = getDaysInMonth(currentMonth);
+  const weekDays = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+  
+  return (
+    <div className="bg-white rounded-lg p-4 border border-[#d4b5a0]/20">
+      {/* Navigation du mois */}
+      <div className="flex justify-between items-center mb-4">
+        <button
+          type="button"
+          onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
+          className="p-1 hover:bg-gray-100 rounded"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+        <h3 className="text-lg font-semibold text-[#2c3e50]">
+          {currentMonth.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
+        </h3>
+        <button
+          type="button"
+          onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
+          className="p-1 hover:bg-gray-100 rounded"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
+      </div>
+      
+      {/* Jours de la semaine */}
+      <div className="grid grid-cols-7 gap-1 mb-2">
+        {weekDays.map(day => (
+          <div key={day} className="text-center text-xs font-medium text-gray-500 py-1">
+            {day}
+          </div>
+        ))}
+      </div>
+      
+      {/* Calendrier */}
+      <div className="grid grid-cols-7 gap-1" style={{ userSelect: 'none' }}>
+        {days.map((date, index) => {
+          if (!date) {
+            return <div key={`empty-${index}`} className="h-8" />;
+          }
+          
+          const dateStr = formatDate(date);
+          const isSelected = dateStr === selectedDate;
+          const isEnd = dateStr === selectedEndDate;
+          const isInRange = mode === 'range' && isDateInRange(date);
+          const isToday = formatDate(new Date()) === dateStr;
+          const isPast = date < new Date(new Date().setHours(0, 0, 0, 0));
+          
+          return (
+            <div
+              key={dateStr}
+              className={`
+                h-8 flex items-center justify-center text-sm rounded cursor-pointer
+                ${isPast ? 'text-gray-300 cursor-not-allowed' : ''}
+                ${isSelected || isEnd ? 'bg-[#d4b5a0] text-white font-semibold' : ''}
+                ${isInRange && !isSelected && !isEnd ? 'bg-[#d4b5a0]/30' : ''}
+                ${!isSelected && !isEnd && !isInRange && !isPast ? 'hover:bg-gray-100' : ''}
+                ${isToday ? 'ring-2 ring-blue-400' : ''}
+              `}
+              onMouseDown={() => !isPast && handleMouseDown(date)}
+              onMouseEnter={() => !isPast && handleMouseEnter(date)}
+            >
+              {date.getDate()}
+            </div>
+          );
+        })}
+      </div>
+      
+      {mode === 'range' && selectedDate && selectedEndDate && (
+        <div className="mt-3 text-sm text-center text-[#2c3e50]/70">
+          Du {new Date(selectedDate).toLocaleDateString('fr-FR')} au {new Date(selectedEndDate).toLocaleDateString('fr-FR')}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Composant pour la sélection d'heures avec glissement
+function TimeSlotSelectorEnhanced({ 
   timeSlots, 
   selectedTimeSlots, 
-  onSelectionChange 
+  onSelectionChange,
+  mode = 'multiple'
 }: {
   timeSlots: string[];
   selectedTimeSlots: string[];
   onSelectionChange: (slots: string[]) => void;
+  mode?: 'single' | 'multiple' | 'range';
 }) {
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectionStart, setSelectionStart] = useState<number | null>(null);
-  const [currentSelection, setCurrentSelection] = useState<Set<string>>(new Set());
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleMouseUp = () => {
-      if (isSelecting) {
-        setIsSelecting(false);
-        onSelectionChange(Array.from(currentSelection));
-        setSelectionStart(null);
-      }
-    };
-
-    window.addEventListener('mouseup', handleMouseUp);
-    return () => window.removeEventListener('mouseup', handleMouseUp);
-  }, [isSelecting, currentSelection, onSelectionChange]);
-
+  
   const handleMouseDown = (index: number, time: string) => {
-    setIsSelecting(true);
-    setSelectionStart(index);
-    
-    // Si le créneau est déjà sélectionné, on le désélectionne
-    if (selectedTimeSlots.includes(time)) {
-      const newSelection = selectedTimeSlots.filter(t => t !== time);
-      setCurrentSelection(new Set(newSelection));
+    if (mode === 'single') {
+      onSelectionChange([time]);
     } else {
-      // Sinon on l'ajoute à la sélection
-      setCurrentSelection(new Set([...selectedTimeSlots, time]));
-    }
-  };
-
-  const handleMouseEnter = (index: number, time: string) => {
-    if (isSelecting && selectionStart !== null) {
-      // Calculer la plage de sélection
-      const start = Math.min(selectionStart, index);
-      const end = Math.max(selectionStart, index);
+      setIsSelecting(true);
+      setSelectionStart(index);
       
-      // Créer une nouvelle sélection basée sur la plage
-      const rangeSelection = new Set(selectedTimeSlots);
-      for (let i = start; i <= end; i++) {
-        rangeSelection.add(timeSlots[i]);
-      }
-      setCurrentSelection(rangeSelection);
-    }
-  };
-
-  const toggleSingleSlot = (time: string) => {
-    if (!isSelecting) {
       if (selectedTimeSlots.includes(time)) {
         onSelectionChange(selectedTimeSlots.filter(t => t !== time));
       } else {
@@ -80,9 +209,29 @@ function TimeSlotSelector({
       }
     }
   };
-
-  const displaySelection = isSelecting ? currentSelection : new Set(selectedTimeSlots);
-
+  
+  const handleMouseEnter = (index: number) => {
+    if (isSelecting && selectionStart !== null && mode !== 'single') {
+      const start = Math.min(selectionStart, index);
+      const end = Math.max(selectionStart, index);
+      
+      const rangeSelection = [];
+      for (let i = start; i <= end; i++) {
+        rangeSelection.push(timeSlots[i]);
+      }
+      onSelectionChange(rangeSelection);
+    }
+  };
+  
+  const handleMouseUp = () => {
+    setIsSelecting(false);
+  };
+  
+  useEffect(() => {
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => window.removeEventListener('mouseup', handleMouseUp);
+  }, []);
+  
   return (
     <div className="space-y-2">
       <div className="flex gap-2 mb-2">
@@ -103,12 +252,11 @@ function TimeSlotSelector({
       </div>
       
       <div 
-        ref={containerRef}
-        className="grid grid-cols-4 gap-1 p-3 border-2 border-[#d4b5a0]/20 rounded-lg bg-white select-none"
+        className="grid grid-cols-4 gap-1 p-3 border-2 border-[#d4b5a0]/20 rounded-lg bg-white"
         style={{ userSelect: 'none' }}
       >
         {timeSlots.map((time, index) => {
-          const isSelected = displaySelection.has(time);
+          const isSelected = selectedTimeSlots.includes(time);
           return (
             <div
               key={time}
@@ -120,8 +268,7 @@ function TimeSlotSelector({
                 }
               `}
               onMouseDown={() => handleMouseDown(index, time)}
-              onMouseEnter={() => handleMouseEnter(index, time)}
-              onClick={() => toggleSingleSlot(time)}
+              onMouseEnter={() => handleMouseEnter(index)}
             >
               {time}
             </div>
@@ -130,18 +277,17 @@ function TimeSlotSelector({
       </div>
       
       <div className="text-xs text-gray-500">
-        💡 Astuce : Cliquez et glissez pour sélectionner une plage de créneaux
+        💡 {mode === 'single' ? 'Cliquez pour sélectionner un créneau' : 'Cliquez et glissez pour sélectionner une plage'}
       </div>
     </div>
   );
 }
 
-export default function QuickBlockManager() {
+export default function QuickBlockManagerEnhanced() {
   const [blockedSlots, setBlockedSlots] = useState<BlockedSlot[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [blockType, setBlockType] = useState<'single' | 'range' | 'specific' | 'timeRange'>('single');
+  const [blockType, setBlockType] = useState<'single' | 'range' | 'timeRange'>('single');
   
-  // Fonction pour formater une date en YYYY-MM-DD en heure locale
   const formatDateLocal = (date: Date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -150,7 +296,6 @@ export default function QuickBlockManager() {
   };
   
   const [selectedDate, setSelectedDate] = useState(formatDateLocal(new Date()));
-  const [selectedTime, setSelectedTime] = useState('');
   const [selectedEndDate, setSelectedEndDate] = useState('');
   const [selectedTimeSlots, setSelectedTimeSlots] = useState<string[]>([]);
   const [startTime, setStartTime] = useState('09:00');
@@ -172,17 +317,10 @@ export default function QuickBlockManager() {
 
   const fetchBlockedSlots = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/admin/blocked-slots', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await fetch('/api/admin/blocked-slots');
       if (response.ok) {
         const data = await response.json();
         setBlockedSlots(data);
-      } else {
-        console.error('Erreur lors du chargement des créneaux bloqués:', response.status);
       }
     } catch (error) {
       console.error('Erreur lors du chargement des créneaux bloqués:', error);
@@ -233,17 +371,6 @@ export default function QuickBlockManager() {
           });
         }
       }
-    } else if (blockType === 'specific') {
-      // Bloquer des créneaux spécifiques (déjà gérés via selectedTimeSlots)
-      if (selectedTimeSlots.length > 0) {
-        selectedTimeSlots.forEach(time => {
-          slotsToBlock.push({
-            date: selectedDate,
-            time,
-            reason: blockReason || 'Indisponible'
-          });
-        });
-      }
     } else if (blockType === 'timeRange') {
       // Bloquer une plage horaire sur une ou plusieurs dates
       const dates = [];
@@ -257,21 +384,16 @@ export default function QuickBlockManager() {
         dates.push(selectedDate);
       }
       
-      // Créer les créneaux entre startTime et endTime
-      const startIdx = timeSlots.indexOf(startTime);
-      const endIdx = timeSlots.indexOf(endTime);
-      
-      if (startIdx !== -1 && endIdx !== -1) {
-        dates.forEach(date => {
-          for (let i = startIdx; i <= endIdx; i++) {
-            slotsToBlock.push({
-              date,
-              time: timeSlots[i],
-              reason: blockReason || 'Plage horaire bloquée'
-            });
-          }
+      // Utiliser les créneaux sélectionnés
+      dates.forEach(date => {
+        selectedTimeSlots.forEach(time => {
+          slotsToBlock.push({
+            date,
+            time,
+            reason: blockReason || 'Plage horaire bloquée'
+          });
         });
-      }
+      });
     }
 
     // Envoyer les blocages au serveur
@@ -297,8 +419,9 @@ export default function QuickBlockManager() {
     // Réinitialiser le formulaire
     setShowAddModal(false);
     setSelectedTimeSlots([]);
-    setBlockReason('');
+    setBlockReason("");
     setAllDay(false);
+    setSelectedEndDate("");
     
     alert(`${slotsToBlock.length} créneaux bloqués avec succès`);
   };
@@ -404,27 +527,21 @@ export default function QuickBlockManager() {
                     </div>
                     
                     {!dayBlocked && (
-                      <div className="ml-8 space-y-1">
+                      <div className="ml-8 flex flex-wrap gap-1">
                         {slots.map(slot => (
-                          <div key={slot.id} className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <Clock className="w-4 h-4 text-gray-400" />
-                              <span className="text-sm text-[#2c3e50]/70">
-                                {slot.time || 'Journée entière'}
-                              </span>
-                              {slot.reason && slot.reason !== 'Indisponible' && (
-                                <span className="text-xs text-gray-500">
-                                  ({slot.reason})
-                                </span>
-                              )}
-                            </div>
+                          <span 
+                            key={slot.id} 
+                            className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 rounded text-xs"
+                          >
+                            <Clock className="w-3 h-3 text-gray-500" />
+                            {slot.time || 'Journée'}
                             <button
                               onClick={() => deleteBlockedSlot(slot.id)}
-                              className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                              className="ml-1 text-red-600 hover:bg-red-50 rounded p-0.5"
                             >
                               <X className="w-3 h-3" />
                             </button>
-                          </div>
+                          </span>
                         ))}
                       </div>
                     )}
@@ -451,10 +568,10 @@ export default function QuickBlockManager() {
         )}
       </div>
 
-      {/* Modal d'ajout */}
+      {/* Modal d'ajout améliorée */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-bold text-[#2c3e50] mb-4">
               Bloquer des créneaux
             </h3>
@@ -465,7 +582,7 @@ export default function QuickBlockManager() {
                 <label className="block text-sm font-medium text-[#2c3e50] mb-2">
                   Type de blocage
                 </label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   <button
                     onClick={() => setBlockType('single')}
                     className={`p-2 rounded-lg border transition-all text-sm ${
@@ -496,143 +613,70 @@ export default function QuickBlockManager() {
                   >
                     Plage horaire
                   </button>
-                  <button
-                    onClick={() => setBlockType('specific')}
-                    className={`p-2 rounded-lg border transition-all text-sm ${
-                      blockType === 'specific'
-                        ? 'bg-[#d4b5a0] text-white border-[#d4b5a0]'
-                        : 'border-gray-300 hover:border-[#d4b5a0]'
-                    }`}
-                  >
-                    Créneaux
-                  </button>
                 </div>
               </div>
 
-              {/* Date(s) */}
+              {/* Sélection de date avec calendrier */}
               <div>
                 <label className="block text-sm font-medium text-[#2c3e50] mb-2">
-                  {blockType === 'range' ? 'Date de début' : 'Date'}
+                  {blockType === 'range' ? 'Sélectionnez la période (cliquez et glissez)' : 
+                   blockType === 'timeRange' ? 'Sélectionnez les dates' : 
+                   'Sélectionnez la date'}
                 </label>
-                <input
-                  type="date"
-                  value={selectedDate}
-                  min={formatDateLocal(new Date())}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-[#d4b5a0]/20 rounded-lg focus:border-[#d4b5a0] focus:outline-none"
+                <DateRangeSelector
+                  selectedDate={selectedDate}
+                  selectedEndDate={selectedEndDate}
+                  onDateChange={setSelectedDate}
+                  onEndDateChange={setSelectedEndDate}
+                  mode={blockType === 'single' ? 'single' : 'range'}
                 />
               </div>
 
-              {(blockType === 'range' || blockType === 'timeRange') && (
-                <div>
-                  <label className="block text-sm font-medium text-[#2c3e50] mb-2">
-                    Date de fin {blockType === 'timeRange' && '(optionnel)'}
-                  </label>
-                  <input
-                    type="date"
-                    value={selectedEndDate}
-                    min={selectedDate}
-                    onChange={(e) => setSelectedEndDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-[#d4b5a0]/20 rounded-lg focus:border-[#d4b5a0] focus:outline-none"
-                  />
-                </div>
-              )}
-
               {/* Journée entière ou créneaux */}
-              {blockType !== 'timeRange' && (
-                <div>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={allDay}
-                      onChange={(e) => {
-                        setAllDay(e.target.checked);
-                        if (e.target.checked) {
-                          setSelectedTimeSlots([]);
-                        }
-                      }}
-                      className="w-4 h-4 text-[#d4b5a0] border-[#d4b5a0]/20 rounded focus:ring-[#d4b5a0]"
-                    />
-                    <span className="text-sm font-medium text-[#2c3e50]">
-                      Bloquer toute la journée
-                    </span>
-                  </label>
-                </div>
-              )}
+              <div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={allDay}
+                    onChange={(e) => {
+                      setAllDay(e.target.checked);
+                      if (e.target.checked) {
+                        setSelectedTimeSlots([]);
+                      }
+                    }}
+                    className="w-4 h-4 text-[#d4b5a0] border-[#d4b5a0]/20 rounded focus:ring-[#d4b5a0]"
+                  />
+                  <span className="text-sm font-medium text-[#2c3e50]">
+                    Bloquer toute la journée
+                  </span>
+                </label>
+              </div>
 
-              {/* Plage horaire pour blockType === 'timeRange' */}
-              {blockType === 'timeRange' && (
-                <div className="space-y-3">
-                  <label className="block text-sm font-medium text-[#2c3e50]">
-                    Plage horaire à bloquer
-                  </label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs text-[#2c3e50]/70 mb-1">De</label>
-                      <select
-                        value={startTime}
-                        onChange={(e) => setStartTime(e.target.value)}
-                        className="w-full px-3 py-2 border border-[#d4b5a0]/20 rounded-lg focus:border-[#d4b5a0] focus:outline-none"
-                      >
-                        {timeSlots.map(time => (
-                          <option key={time} value={time}>{time}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-xs text-[#2c3e50]/70 mb-1">À</label>
-                      <select
-                        value={endTime}
-                        onChange={(e) => setEndTime(e.target.value)}
-                        className="w-full px-3 py-2 border border-[#d4b5a0]/20 rounded-lg focus:border-[#d4b5a0] focus:outline-none"
-                      >
-                        {timeSlots.map(time => (
-                          <option key={time} value={time}>{time}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                  <div className="p-2 bg-blue-50 rounded-lg">
-                    <p className="text-xs text-blue-700">
-                      <Clock className="w-3 h-3 inline mr-1" />
-                      Tous les créneaux entre {startTime} et {endTime} seront bloqués
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Sélection des créneaux pour blockType === 'specific' */}
-              {!allDay && blockType === 'specific' && (
+              {/* Sélection des créneaux horaires */}
+              {!allDay && (
                 <div>
                   <label className="block text-sm font-medium text-[#2c3e50] mb-2">
-                    Créneaux à bloquer
+                    Sélectionnez les créneaux horaires (cliquez et glissez)
                   </label>
-                  <p className="text-xs text-[#2c3e50]/60 mb-2">
-                    Cliquez sur un créneau pour le sélectionner, ou cliquez et maintenez pour sélectionner plusieurs créneaux
-                  </p>
-                  <TimeSlotSelector
+                  <TimeSlotSelectorEnhanced
                     timeSlots={timeSlots}
                     selectedTimeSlots={selectedTimeSlots}
                     onSelectionChange={setSelectedTimeSlots}
+                    mode="multiple"
                   />
-                  {selectedTimeSlots.length > 0 && (
-                    <p className="text-xs text-[#d4b5a0] mt-2">
-                      {selectedTimeSlots.length} créneaux sélectionnés
-                    </p>
-                  )}
                 </div>
               )}
 
               {/* Raison */}
               <div>
                 <label className="block text-sm font-medium text-[#2c3e50] mb-2">
-                  Raison (optionnel)
+                  Raison du blocage (optionnel)
                 </label>
                 <input
                   type="text"
-                  placeholder="Ex: Congés, Formation, Rendez-vous..."
                   value={blockReason}
                   onChange={(e) => setBlockReason(e.target.value)}
+                  placeholder="Ex: Congés, Formation, Rendez-vous..."
                   className="w-full px-3 py-2 border border-[#d4b5a0]/20 rounded-lg focus:border-[#d4b5a0] focus:outline-none"
                 />
               </div>
@@ -652,8 +696,9 @@ export default function QuickBlockManager() {
                 onClick={() => {
                   setShowAddModal(false);
                   setSelectedTimeSlots([]);
-                  setBlockReason('');
+                  setBlockReason("");
                   setAllDay(false);
+                  setSelectedEndDate("");
                 }}
                 className="flex-1 px-4 py-2 border border-[#d4b5a0]/20 text-[#2c3e50] rounded-lg hover:bg-gray-50"
               >
@@ -661,11 +706,7 @@ export default function QuickBlockManager() {
               </button>
               <button
                 onClick={blockSlots}
-                disabled={
-                  blockType === 'timeRange' 
-                    ? false 
-                    : (!allDay && selectedTimeSlots.length === 0)
-                }
+                disabled={!allDay && selectedTimeSlots.length === 0}
                 className="flex-1 px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Ban className="w-4 h-4 inline mr-2" />

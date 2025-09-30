@@ -5,6 +5,7 @@ import { getPrismaClient } from '@/lib/prisma';
 async function getCompanySettings() {
   try {
     // Essayer de récupérer depuis la base de données
+    const prisma = await getPrismaClient();
     const settings = await prisma.setting.findFirst({
       where: { key: 'company_info' }
     });
@@ -64,8 +65,8 @@ function calculateVAT(amountTTC: number, vatRate: string) {
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-  const prisma = await getPrismaClient();
 ) {
+  const prisma = await getPrismaClient();
   try {
     const { id } = await params;
     const companyInfo = await getCompanySettings();

@@ -4,20 +4,13 @@ import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { CheckCircle, Calendar, Clock, MapPin, Phone, Mail, MessageCircle, Edit, X, Download, Instagram, ChevronRight } from "lucide-react";
 import { useSearchParams } from 'next/navigation';
+import { getReservationWithServiceNames, getServiceIcon } from '@/lib/service-utils';
 
 function ConfirmationContent() {
   const searchParams = useSearchParams();
   const [reservation, setReservation] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showReschedule, setShowReschedule] = useState(false);
-
-  const services = {
-    "hydro-naissance": { name: "Hydro'Naissance", icon: "👑" },
-    "hydro-cleaning": { name: "Hydro'Cleaning", icon: "💧" },
-    "renaissance": { name: "Renaissance", icon: "✨" },
-    "bb-glow": { name: "BB Glow", icon: "🌟" },
-    "led-therapie": { name: "LED Thérapie", icon: "💡" }
-  };
 
   useEffect(() => {
     const reservationId = searchParams.get('id');
@@ -37,13 +30,15 @@ function ConfirmationContent() {
 
       if (response.ok) {
         const data = await response.json();
-        setReservation(data);
+        // Utiliser notre fonction utilitaire pour enrichir les données
+        const enrichedReservation = await getReservationWithServiceNames(data);
+        setReservation(enrichedReservation);
         
         // Envoyer l'email de confirmation
-        await sendConfirmationEmail(data);
+        await sendConfirmationEmail(enrichedReservation);
         
         // Préparer le message WhatsApp
-        prepareWhatsAppMessage(data);
+        prepareWhatsAppMessage(enrichedReservation);
       }
     } catch (error) {
       console.error('Erreur:', error);
@@ -75,9 +70,8 @@ function ConfirmationContent() {
       year: 'numeric'
     });
     
-    const servicesList = JSON.parse(reservationData.services)
-      .map((s: string) => services[s as keyof typeof services]?.name)
-      .join(', ');
+    // Utiliser les noms formatés des services fournis par notre fonction utilitaire
+    const servicesList = reservationData.formattedServices?.join(', ') || 'Soins sélectionnés';
     
     const message = `Bonjour ${reservationData.user.name} ! 
 
@@ -125,9 +119,7 @@ Laia Skin Institut 🌸`;
     const endDate = new Date(startDate);
     endDate.setHours(endDate.getHours() + 1, endDate.getMinutes() + 30);
     
-    const servicesList = JSON.parse(reservation.services)
-      .map((s: string) => services[s as keyof typeof services]?.name)
-      .join(', ');
+    const servicesList = reservation.formattedServices?.join(', ') || 'Soins sélectionnés';
     
     const icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
@@ -223,14 +215,14 @@ END:VCALENDAR`;
                 <div>
                   <p className="font-medium text-[#2c3e50]">Soins réservés</p>
                   <div className="mt-2 space-y-2">
-                    {JSON.parse(reservation.services).map((serviceId: string) => {
-                      const service = services[serviceId as keyof typeof services];
-                      const packages = reservation.packages ? JSON.parse(reservation.packages) : {};
-                      const packageType = packages[serviceId];
+                    {reservation.services?.map((serviceId: string, index: number) => {
+                      const serviceName = reservation.serviceNames?.[index] || serviceId;
+                      const packageType = reservation.packages?.[serviceId];
+                      const icon = getServiceIcon(serviceId);
                       return (
                         <div key={serviceId} className="flex items-center gap-2">
-                          <span className="text-lg">{service?.icon}</span>
-                          <span className="text-[#2c3e50]/80">{service?.name}</span>
+                          <span className="text-lg">{icon}</span>
+                          <span className="text-[#2c3e50]/80">{serviceName}</span>
                           {packageType === 'forfait' && (
                             <span className="px-2 py-0.5 bg-[#d4b5a0]/20 text-[#d4b5a0] text-xs rounded-full font-medium">
                               Forfait 4 séances

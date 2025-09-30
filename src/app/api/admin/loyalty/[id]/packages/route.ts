@@ -5,8 +5,8 @@ import jwt from 'jsonwebtoken';
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-  const prisma = await getPrismaClient();
 ) {
+  const prisma = await getPrismaClient();
   try {
     const { id } = await params;
     const token = req.headers.get('authorization')?.replace('Bearer ', '');
