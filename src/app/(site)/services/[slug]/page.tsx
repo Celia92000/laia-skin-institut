@@ -26,6 +26,8 @@ interface Service {
   recommendations: string[];
   contraindications: string[];
   mainImage?: string;
+  gallery?: string;
+  videoUrl?: string;
 }
 
 interface Technology {
@@ -347,6 +349,55 @@ export default function ServiceDetailPage() {
           </div>
         </div>
       </section>
+
+      {/* Galerie d'images */}
+      {service.gallery && (() => {
+        try {
+          const galleryImages = JSON.parse(service.gallery);
+          return galleryImages.length > 0 ? (
+            <section className="py-16 bg-gradient-to-br from-gray-50 to-white">
+              <div className="max-w-7xl mx-auto px-4">
+                <div className="text-center mb-12">
+                  <h2 className="text-3xl font-playfair text-[#2c3e50] mb-4">
+                    Galerie
+                  </h2>
+                  <p className="text-gray-600">
+                    Découvrez notre univers en images
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {galleryImages.map((imageUrl: string, index: number) => (
+                    <div
+                      key={index}
+                      className="relative group overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer"
+                      style={{ height: '300px' }}
+                    >
+                      <img
+                        src={imageUrl}
+                        alt={`${service.name} - Image ${index + 1}`}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#2c3e50]/60 via-[#2c3e50]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div className="absolute bottom-4 left-4 right-4">
+                          <p className="text-white font-medium">
+                            {service.name}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+          ) : null;
+        } catch {
+          return null;
+        }
+      })()}
 
       {/* Section Description Détaillée */}
       <section className="py-20">

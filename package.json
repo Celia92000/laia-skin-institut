@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@prisma/client": "^6.16.1",
+    "@stripe/stripe-js": "^8.0.0",
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.56.0",
@@ -43,6 +44,7 @@
     "react-qr-code": "^2.0.18",
     "recharts": "^3.2.1",
     "resend": "^6.1.0",
+    "stripe": "^19.0.0",
     "twilio": "^5.10.2",
     "xlsx": "^0.18.5"
   },

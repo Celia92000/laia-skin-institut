@@ -6,7 +6,7 @@ import { Calendar, Clock, CheckCircle, XCircle, Gift, User, Users, Award, Trendi
 import AuthGuard from "@/components/AuthGuard";
 import AdminCalendarEnhanced from "@/components/AdminCalendarEnhanced";
 import AdminServicesTab from "@/components/AdminServicesTab";
-import AdminProductsTab from "@/components/AdminProductsTab";
+import AdminStockTab from "@/components/AdminStockTab";
 import AdminDashboardOptimized from "@/components/AdminDashboardOptimized";
 import UnifiedCRMTab, { type Client } from "@/components/UnifiedCRMTab";
 import PlanningCalendar from "@/components/PlanningCalendar";
@@ -2931,7 +2931,7 @@ export default function AdminDashboard() {
 
           {/* Onglet Services */}
           {activeTab === "services" && <AdminServicesTab />}
-          {activeTab === "products" && <AdminProductsTab />}
+          {activeTab === "products" && <AdminStockTab />}
           
           {activeTab === "whatsapp" && <WhatsAppFunctional />}
           

@@ -9,23 +9,16 @@ import {
 
 interface Product {
   id: string;
+  slug: string;
   name: string;
   description: string;
   shortDescription?: string;
   price: number;
   salePrice?: number;
-  cost?: number;
-  sku?: string;
-  barcode?: string;
-  stock: number;
-  stockAlert?: number;
   category?: string;
   brand?: string;
-  supplier?: string;
   mainImage?: string;
   gallery?: string;
-  weight?: number;
-  dimensions?: string;
   ingredients?: string;
   usage?: string;
   benefits?: string;
@@ -41,7 +34,7 @@ export default function AdminProductsTab() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [showNewProductForm, setShowNewProductForm] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'general' | 'stock' | 'media' | 'details'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'media' | 'details'>('general');
   const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set());
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [searchTerm, setSearchTerm] = useState('');
@@ -137,7 +130,7 @@ export default function AdminProductsTab() {
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           product.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          product.sku?.toLowerCase().includes(searchTerm.toLowerCase());
+                          product.slug?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = filterCategory === 'all' || product.category === filterCategory;
     return matchesSearch && matchesCategory;
   });
@@ -146,11 +139,10 @@ export default function AdminProductsTab() {
 
   const newProduct: Product = {
     id: 'new',
+    slug: '',
     name: '',
     description: '',
     price: 0,
-    stock: 0,
-    stockAlert: 5,
     active: true,
     featured: false,
     order: products.length
@@ -209,23 +201,11 @@ export default function AdminProductsTab() {
         </div>
 
         {/* Statistiques rapides */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mt-6">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
           <div className="bg-green-50 p-3 rounded-lg">
             <p className="text-sm text-gray-600">Produits actifs</p>
             <p className="text-xl font-bold text-green-600">
               {products.filter(p => p.active).length}
-            </p>
-          </div>
-          <div className="bg-blue-50 p-3 rounded-lg">
-            <p className="text-sm text-gray-600">Valeur stock</p>
-            <p className="text-xl font-bold text-blue-600">
-              {products.reduce((sum, p) => sum + (p.stock * p.price), 0).toFixed(0)}€
-            </p>
-          </div>
-          <div className="bg-yellow-50 p-3 rounded-lg">
-            <p className="text-sm text-gray-600">Stock faible</p>
-            <p className="text-xl font-bold text-yellow-600">
-              {products.filter(p => p.stock <= (p.stockAlert || 5)).length}
             </p>
           </div>
           <div className="bg-purple-50 p-3 rounded-lg">
@@ -234,10 +214,10 @@ export default function AdminProductsTab() {
               {products.filter(p => p.salePrice && p.salePrice < p.price).length}
             </p>
           </div>
-          <div className="bg-red-50 p-3 rounded-lg">
-            <p className="text-sm text-gray-600">Rupture stock</p>
-            <p className="text-xl font-bold text-red-600">
-              {products.filter(p => p.stock === 0).length}
+          <div className="bg-yellow-50 p-3 rounded-lg">
+            <p className="text-sm text-gray-600">En vedette</p>
+            <p className="text-xl font-bold text-yellow-600">
+              {products.filter(p => p.featured).length}
             </p>
           </div>
         </div>
@@ -271,24 +251,11 @@ export default function AdminProductsTab() {
                           En vedette
                         </span>
                       )}
-                      {product.stock === 0 && (
-                        <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs">
-                          Rupture
-                        </span>
-                      )}
-                      {product.stock > 0 && product.stock <= (product.stockAlert || 5) && (
-                        <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs">
-                          Stock faible
-                        </span>
-                      )}
                     </div>
                     <p className="text-sm text-gray-600 mt-1">{product.shortDescription || product.description}</p>
                     <div className="flex items-center gap-4 mt-2">
                       <span className="text-sm text-gray-500">
-                        SKU: {product.sku || 'Non défini'}
-                      </span>
-                      <span className="text-sm text-gray-500">
-                        Stock: <span className={product.stock === 0 ? 'text-red-600 font-bold' : ''}>{product.stock}</span>
+                        Slug: {product.slug || 'Non défini'}
                       </span>
                       <span className="text-sm">
                         Prix: {product.salePrice ? (
@@ -346,7 +313,7 @@ export default function AdminProductsTab() {
               {/* Détails étendus */}
               {expandedProducts.has(product.id) && (
                 <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                     <div>
                       <p className="text-xs text-gray-600">Catégorie</p>
                       <p className="font-semibold">{product.category || 'Non catégorisé'}</p>
@@ -356,18 +323,20 @@ export default function AdminProductsTab() {
                       <p className="font-semibold">{product.brand || 'Non défini'}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-600">Fournisseur</p>
-                      <p className="font-semibold">{product.supplier || 'Non défini'}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-600">Code-barres</p>
-                      <p className="font-semibold">{product.barcode || 'Non défini'}</p>
+                      <p className="text-xs text-gray-600">Ordre</p>
+                      <p className="font-semibold">{product.order}</p>
                     </div>
                   </div>
                   {product.ingredients && (
                     <div className="mt-4">
                       <p className="text-xs text-gray-600">Ingrédients</p>
                       <p className="text-sm mt-1">{product.ingredients}</p>
+                    </div>
+                  )}
+                  {product.usage && (
+                    <div className="mt-4">
+                      <p className="text-xs text-gray-600">Mode d'utilisation</p>
+                      <p className="text-sm mt-1">{product.usage}</p>
                     </div>
                   )}
                   {product.benefits && (
@@ -405,7 +374,7 @@ export default function AdminProductsTab() {
             <div className="p-6">
               {/* Onglets */}
               <div className="flex gap-2 mb-6 border-b">
-                {(['general', 'stock', 'media', 'details'] as const).map((tab) => (
+                {(['general', 'media', 'details'] as const).map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
@@ -416,7 +385,6 @@ export default function AdminProductsTab() {
                     }`}
                   >
                     {tab === 'general' && 'Général'}
-                    {tab === 'stock' && 'Stock & Prix'}
                     {tab === 'media' && 'Médias'}
                     {tab === 'details' && 'Détails'}
                   </button>
@@ -427,17 +395,30 @@ export default function AdminProductsTab() {
               <div className="space-y-4">
                 {activeTab === 'general' && (
                   <>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Nom du produit *</label>
-                      <input
-                        type="text"
-                        value={editingProduct?.name || ''}
-                        onChange={(e) => setEditingProduct({ ...editingProduct!, name: e.target.value })}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        required
-                      />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Nom du produit *</label>
+                        <input
+                          type="text"
+                          value={editingProduct?.name || ''}
+                          onChange={(e) => setEditingProduct({ ...editingProduct!, name: e.target.value })}
+                          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Slug (URL) *</label>
+                        <input
+                          type="text"
+                          value={editingProduct?.slug || ''}
+                          onChange={(e) => setEditingProduct({ ...editingProduct!, slug: e.target.value })}
+                          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          placeholder="ex: serum-vitamine-c"
+                          required
+                        />
+                      </div>
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium mb-1">Description courte</label>
                       <input
@@ -447,7 +428,7 @@ export default function AdminProductsTab() {
                         className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                       />
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium mb-1">Description complète</label>
                       <textarea
@@ -457,7 +438,31 @@ export default function AdminProductsTab() {
                         rows={4}
                       />
                     </div>
-                    
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Prix normal (€) *</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={editingProduct?.price || 0}
+                          onChange={(e) => setEditingProduct({ ...editingProduct!, price: parseFloat(e.target.value) })}
+                          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Prix promotionnel (€)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={editingProduct?.salePrice || ''}
+                          onChange={(e) => setEditingProduct({ ...editingProduct!, salePrice: e.target.value ? parseFloat(e.target.value) : undefined })}
+                          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        />
+                      </div>
+                    </div>
+
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium mb-1">Catégorie</label>
@@ -479,7 +484,17 @@ export default function AdminProductsTab() {
                         />
                       </div>
                     </div>
-                    
+
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Ordre d'affichage</label>
+                      <input
+                        type="number"
+                        value={editingProduct?.order || 0}
+                        onChange={(e) => setEditingProduct({ ...editingProduct!, order: parseInt(e.target.value) })}
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+
                     <div className="flex items-center gap-4">
                       <label className="flex items-center gap-2">
                         <input
@@ -503,110 +518,56 @@ export default function AdminProductsTab() {
                   </>
                 )}
 
-                {activeTab === 'stock' && (
-                  <>
-                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Prix normal *</label>
-                        <input
-                          type="number"
-                          step="0.01"
-                          value={editingProduct?.price || 0}
-                          onChange={(e) => setEditingProduct({ ...editingProduct!, price: parseFloat(e.target.value) })}
-                          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Prix promotionnel</label>
-                        <input
-                          type="number"
-                          step="0.01"
-                          value={editingProduct?.salePrice || ''}
-                          onChange={(e) => setEditingProduct({ ...editingProduct!, salePrice: e.target.value ? parseFloat(e.target.value) : undefined })}
-                          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Prix d'achat</label>
-                        <input
-                          type="number"
-                          step="0.01"
-                          value={editingProduct?.cost || ''}
-                          onChange={(e) => setEditingProduct({ ...editingProduct!, cost: e.target.value ? parseFloat(e.target.value) : undefined })}
-                          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Stock actuel *</label>
-                        <input
-                          type="number"
-                          value={editingProduct?.stock || 0}
-                          onChange={(e) => setEditingProduct({ ...editingProduct!, stock: parseInt(e.target.value) })}
-                          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Alerte stock faible</label>
-                        <input
-                          type="number"
-                          value={editingProduct?.stockAlert || 5}
-                          onChange={(e) => setEditingProduct({ ...editingProduct!, stockAlert: parseInt(e.target.value) })}
-                          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-1">SKU</label>
-                        <input
-                          type="text"
-                          value={editingProduct?.sku || ''}
-                          onChange={(e) => setEditingProduct({ ...editingProduct!, sku: e.target.value })}
-                          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Code-barres</label>
-                        <input
-                          type="text"
-                          value={editingProduct?.barcode || ''}
-                          onChange={(e) => setEditingProduct({ ...editingProduct!, barcode: e.target.value })}
-                          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Fournisseur</label>
-                      <input
-                        type="text"
-                        value={editingProduct?.supplier || ''}
-                        onChange={(e) => setEditingProduct({ ...editingProduct!, supplier: e.target.value })}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                      />
-                    </div>
-                  </>
-                )}
-
                 {activeTab === 'media' && (
                   <>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Image principale (URL)</label>
+                    <div className="bg-white p-6 rounded-lg border-2 border-purple-200">
+                      <label className="block text-lg font-semibold text-gray-800 mb-3">
+                        Image principale (URL)
+                      </label>
                       <input
                         type="text"
                         value={editingProduct?.mainImage || ''}
                         onChange={(e) => setEditingProduct({ ...editingProduct!, mainImage: e.target.value })}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        placeholder="https://..."
+                        className="w-full px-4 py-3 text-lg border-2 border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="https://exemple.com/image.jpg ou /images/mon-image.jpg"
                       />
+                      <p className="text-sm text-gray-500 mt-2">
+                        Formats: URL externe (https://...) ou chemin local (/images/...)
+                      </p>
+                      {editingProduct?.mainImage && (
+                        <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                          <div className="flex items-center justify-between mb-3">
+                            <p className="text-sm font-medium text-gray-700">Aperçu :</p>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                const img = e.currentTarget.parentElement?.parentElement?.querySelector('img');
+                                if (img) {
+                                  img.style.objectFit = img.style.objectFit === 'contain' ? 'cover' : 'contain';
+                                }
+                              }}
+                              className="px-3 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100 transition"
+                            >
+                              Ajuster
+                            </button>
+                          </div>
+                          <img
+                            src={editingProduct.mainImage}
+                            alt="Aperçu"
+                            className="w-full max-w-md h-64 rounded-lg shadow-md"
+                            style={{ objectFit: 'cover' }}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
+                              (e.target as HTMLImageElement).alt = 'Image non trouvée';
+                            }}
+                          />
+                          <p className="text-xs text-gray-500 mt-2">
+                            Cliquez sur "Ajuster" pour alterner entre recadrage automatique et affichage complet
+                          </p>
+                        </div>
+                      )}
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium mb-1">Galerie (URLs séparées par des virgules)</label>
                       <textarea
@@ -628,59 +589,30 @@ export default function AdminProductsTab() {
                         value={editingProduct?.ingredients || ''}
                         onChange={(e) => setEditingProduct({ ...editingProduct!, ingredients: e.target.value })}
                         className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        rows={3}
+                        rows={4}
+                        placeholder="Liste des ingrédients du produit"
                       />
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium mb-1">Mode d'utilisation</label>
                       <textarea
                         value={editingProduct?.usage || ''}
                         onChange={(e) => setEditingProduct({ ...editingProduct!, usage: e.target.value })}
                         className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        rows={3}
+                        rows={4}
+                        placeholder="Comment utiliser ce produit"
                       />
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium mb-1">Bénéfices</label>
                       <textarea
                         value={editingProduct?.benefits || ''}
                         onChange={(e) => setEditingProduct({ ...editingProduct!, benefits: e.target.value })}
                         className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        rows={3}
-                      />
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Poids (g)</label>
-                        <input
-                          type="number"
-                          value={editingProduct?.weight || ''}
-                          onChange={(e) => setEditingProduct({ ...editingProduct!, weight: e.target.value ? parseFloat(e.target.value) : undefined })}
-                          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Dimensions</label>
-                        <input
-                          type="text"
-                          value={editingProduct?.dimensions || ''}
-                          onChange={(e) => setEditingProduct({ ...editingProduct!, dimensions: e.target.value })}
-                          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                          placeholder="Ex: 10x5x3 cm"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Ordre d'affichage</label>
-                      <input
-                        type="number"
-                        value={editingProduct?.order || 0}
-                        onChange={(e) => setEditingProduct({ ...editingProduct!, order: parseInt(e.target.value) })}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        rows={4}
+                        placeholder="Les bénéfices et avantages du produit"
                       />
                     </div>
                   </>

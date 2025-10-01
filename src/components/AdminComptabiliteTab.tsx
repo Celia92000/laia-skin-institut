@@ -275,6 +275,114 @@ N° TVA Intracommunautaire: FR12 345678900`;
     downloadFile(content, `declaration_tva_${new Date().toISOString().split('T')[0]}.txt`, 'text/plain');
   };
 
+  const generateBilanSimple = () => {
+    const dateDebut = new Date();
+    const dateFin = new Date();
+
+    // Déterminer les dates selon la période
+    switch (period) {
+      case 'day':
+        dateDebut.setHours(0, 0, 0, 0);
+        dateFin.setHours(23, 59, 59, 999);
+        break;
+      case 'week':
+        dateDebut.setDate(dateDebut.getDate() - dateDebut.getDay());
+        dateDebut.setHours(0, 0, 0, 0);
+        break;
+      case 'month':
+        dateDebut.setDate(1);
+        dateDebut.setHours(0, 0, 0, 0);
+        dateFin.setMonth(dateFin.getMonth() + 1, 0);
+        dateFin.setHours(23, 59, 59, 999);
+        break;
+      case 'quarter':
+        const quarterStart = Math.floor(dateDebut.getMonth() / 3) * 3;
+        dateDebut.setMonth(quarterStart, 1);
+        dateDebut.setHours(0, 0, 0, 0);
+        dateFin.setMonth(quarterStart + 3, 0);
+        dateFin.setHours(23, 59, 59, 999);
+        break;
+      case 'year':
+        dateDebut.setMonth(0, 1);
+        dateDebut.setHours(0, 0, 0, 0);
+        dateFin.setMonth(11, 31);
+        dateFin.setHours(23, 59, 59, 999);
+        break;
+    }
+
+    const periodeName = {
+      day: 'Journée',
+      week: 'Semaine',
+      month: 'Mois',
+      quarter: 'Trimestre',
+      year: 'Année'
+    }[period];
+
+    const content = `╔═══════════════════════════════════════════════════════════════╗
+║             BILAN COMPTABLE SIMPLIFIÉ                         ║
+║             LAIA SKIN INSTITUT                                ║
+╚═══════════════════════════════════════════════════════════════╝
+
+Période: ${periodeName}
+Du ${dateDebut.toLocaleDateString('fr-FR')} au ${dateFin.toLocaleDateString('fr-FR')}
+Date d'édition: ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}
+
+═══════════════════════════════════════════════════════════════
+
+📊 CHIFFRE D'AFFAIRES
+───────────────────────────────────────────────────────────────
+Chiffre d'affaires total TTC    ${stats.totalRevenue.toFixed(2).padStart(15)} €
+  - Montant HT                   ${(stats.totalRevenue / 1.20).toFixed(2).padStart(15)} €
+  - TVA 20%                      ${stats.taxAmount.toFixed(2).padStart(15)} €
+
+Encaissements (payés)            ${stats.paidAmount.toFixed(2).padStart(15)} €
+En attente de paiement           ${stats.pendingAmount.toFixed(2).padStart(15)} €
+
+═══════════════════════════════════════════════════════════════
+
+💰 TRÉSORERIE
+───────────────────────────────────────────────────────────────
+Montant encaissé TTC             ${stats.paidAmount.toFixed(2).padStart(15)} €
+  - dont TVA collectée           ${stats.vatCollected.toFixed(2).padStart(15)} €
+TVA à reverser à l'État          ${stats.vatCollected.toFixed(2).padStart(15)} €
+
+═══════════════════════════════════════════════════════════════
+
+📈 ACTIVITÉ
+───────────────────────────────────────────────────────────────
+Nombre de prestations            ${stats.servicesCount.toString().padStart(15)}
+Nombre de clients                ${stats.clientsCount.toString().padStart(15)}
+Panier moyen                     ${stats.averageTicket.toFixed(2).padStart(15)} €
+Taux de fidélisation             ${stats.recurringRate.toFixed(1).padStart(15)} %
+Croissance vs mois précédent     ${stats.monthlyGrowth >= 0 ? '+' : ''}${stats.monthlyGrowth.toFixed(1).padStart(14)} %
+
+═══════════════════════════════════════════════════════════════
+
+💡 RÉSUMÉ
+───────────────────────────────────────────────────────────────
+Chiffre d'affaires encaissé      ${stats.paidAmount.toFixed(2).padStart(15)} €
+- TVA à reverser                 ${stats.vatCollected.toFixed(2).padStart(15)} €
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+= Résultat net (HT)              ${((stats.paidAmount / 1.20)).toFixed(2).padStart(15)} €
+
+═══════════════════════════════════════════════════════════════
+
+ℹ️  INFORMATIONS LÉGALES
+───────────────────────────────────────────────────────────────
+Régime TVA: TVA sur les encaissements
+Taux de TVA applicable: 20%
+SIRET: 123 456 789 00000
+N° TVA Intracommunautaire: FR12 345678900
+
+═══════════════════════════════════════════════════════════════
+
+Document généré automatiquement le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}
+LAIA SKIN INSTITUT - Institut de beauté
+Pour toute question: contact@laia-skin-institut.com`;
+
+    downloadFile(content, `bilan_simplifie_${period}_${new Date().toISOString().split('T')[0]}.txt`, 'text/plain;charset=utf-8;');
+  };
+
   const generateInvoice = (reservation: any) => {
     // Utiliser paymentAmount si disponible (montant réellement payé avec réductions)
     const montantTTC = reservation.paymentAmount || reservation.totalPrice || 0;
@@ -811,7 +919,7 @@ N° TVA Intracommunautaire: FR12 345678900`;
               </button>
               
               <button
-                onClick={() => alert('Bilan en cours de génération...')}
+                onClick={generateBilanSimple}
                 className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-[#d4b5a0] hover:bg-gray-50"
               >
                 <BarChart3 className="w-8 h-8 text-[#d4b5a0] mx-auto mb-2" />

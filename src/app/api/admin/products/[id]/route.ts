@@ -27,19 +27,19 @@ export async function PUT(
     const product = await prisma.product.update({
       where: { id },
       data: {
+        slug: body.slug || body.name?.toLowerCase().replace(/\s+/g, '-'),
         name: body.name,
         description: body.description,
         shortDescription: body.shortDescription,
         price: body.price,
         salePrice: body.salePrice,
-        cost: body.cost,
-        stock: body.stock,
-        stockAlert: body.stockAlert,
         category: body.category,
         brand: body.brand,
-        supplier: body.supplier,
         mainImage: body.mainImage,
         gallery: body.gallery ? JSON.stringify(body.gallery) : undefined,
+        ingredients: body.ingredients,
+        usage: body.usage,
+        benefits: body.benefits,
         active: body.active,
         featured: body.featured,
         order: body.order

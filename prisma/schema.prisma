@@ -38,6 +38,7 @@ model User {
   referredBy     Referral?         @relation("ReferralReferred")
   leads          Lead[]
   discounts      Discount[]
+  orders         Order[]
 }
 
 model Reservation {
@@ -102,6 +103,7 @@ model Service {
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
   reservations      Reservation[]
+  stockLinks        ServiceStock[]  // Relation avec le stock
 }
 
 model LoyaltyProfile {
@@ -506,18 +508,10 @@ model Product {
   keywords         String?
   price            Float
   salePrice        Float?
-  cost             Float?
-  sku              String?  @unique
-  barcode          String?
-  stock            Int      @default(0)
-  stockAlert       Int      @default(5)
   category         String?
   brand            String?
-  supplier         String?
   mainImage        String?
   gallery          String?  // JSON array d'URLs d'images
-  weight           Float?
-  dimensions       String?
   ingredients      String?
   usage            String?
   benefits         String?
@@ -526,6 +520,49 @@ model Product {
   order            Int      @default(0)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+}
+
+model Stock {
+  id              String    @id @default(cuid())
+  name            String
+  description     String?
+  category        String?   // Consommables, Matériel, Produits de soin, etc.
+  quantity        Int       @default(0)
+  minQuantity     Int       @default(5)  // Seuil d'alerte
+  unit            String?   // ml, g, pièce, etc.
+  cost            Float?    // Prix d'achat
+  supplier        String?
+  purchaseUrl     String?   // URL pour racheter le produit
+  reference       String?
+  barcode         String?
+  expiryDate      DateTime?
+  lastRestocked   DateTime?
+  location        String?   // Emplacement dans le stock
+  notes           String?
+  active          Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  serviceLinks    ServiceStock[]  // Relation avec les services
+
+  @@index([category])
+}
+
+// Table de liaison entre Services et Stock (Many-to-Many)
+model ServiceStock {
+  id                String    @id @default(cuid())
+  serviceId         String
+  stockId           String
+  quantityPerUse    Float     @default(1)  // Quantité consommée par prestation (ex: 5ml, 10g, etc.)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  service           Service   @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  stock             Stock     @relation(fields: [stockId], references: [id], onDelete: Cascade)
+
+  @@unique([serviceId, stockId])
+  @@index([serviceId])
+  @@index([stockId])
 }
 
 model Formation {
@@ -556,5 +593,47 @@ model Formation {
   order             Int      @default(0)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
+}
+
+model Order {
+  id              String   @id @default(cuid())
+  orderNumber     String   @unique // Numéro de commande unique (ex: ORD-2024-00001)
+  userId          String?  // Peut être null pour commandes invités
+  customerName    String
+  customerEmail   String
+  customerPhone   String?
+  customerAddress String?  // JSON avec adresse complète
+
+  orderType       String   // "product" ou "formation"
+  items           String   // JSON array des articles commandés [{id, name, quantity, price}]
+
+  subtotal        Float    // Sous-total
+  shippingCost    Float    @default(0)
+  discount        Float    @default(0)
+  totalAmount     Float    // Montant total
+
+  paymentStatus   String   @default("pending") // pending, paid, failed, refunded
+  paymentMethod   String?  // card, transfer, cash, stripe
+  paymentDate     DateTime?
+  transactionId   String?  // ID de transaction Stripe/autre
+
+  status          String   @default("pending") // pending, confirmed, processing, shipped, delivered, cancelled
+  shippingStatus  String?  // pending, shipped, delivered
+  trackingNumber  String?
+
+  notes           String?  // Notes client
+  adminNotes      String?  // Notes internes admin
+
+  invoiceUrl      String?  // URL de la facture générée
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user            User?    @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([orderNumber])
+  @@index([paymentStatus])
+  @@index([status])
 }
 

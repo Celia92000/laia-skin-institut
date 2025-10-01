@@ -7,6 +7,8 @@ import {
   Globe, FileText, Star, AlertCircle, CheckCircle, BookOpen
 } from "lucide-react";
 import AdminBlogTab from "./AdminBlogTab";
+import AdminProductsTab from "./AdminProductsTab";
+import AdminFormationsTab from "./AdminFormationsTab";
 
 interface Service {
   id: string;
@@ -593,17 +595,37 @@ export default function AdminServicesTab() {
                     💡 Formats: URL externe (https://...) ou chemin local (/images/...)
                   </p>
                   {formData.mainImage && (
-                    <div className="mt-4 p-2 bg-gray-50 rounded-lg">
-                      <p className="text-sm font-medium text-gray-700 mb-2">Aperçu :</p>
-                      <img 
-                        src={formData.mainImage} 
-                        alt="Aperçu" 
-                        className="w-full max-w-md h-64 object-cover rounded-lg shadow-md"
+                    <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <p className="text-sm font-medium text-gray-700">Aperçu :</p>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              const img = e.currentTarget.parentElement?.parentElement?.nextElementSibling?.querySelector('img');
+                              if (img) {
+                                img.style.objectFit = img.style.objectFit === 'contain' ? 'cover' : 'contain';
+                              }
+                            }}
+                            className="px-3 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100 transition"
+                          >
+                            Ajuster
+                          </button>
+                        </div>
+                      </div>
+                      <img
+                        src={formData.mainImage}
+                        alt="Aperçu"
+                        className="w-full max-w-md h-64 rounded-lg shadow-md"
+                        style={{ objectFit: 'cover' }}
                         onError={(e) => {
                           (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
                           (e.target as HTMLImageElement).alt = 'Image non trouvée';
                         }}
                       />
+                      <p className="text-xs text-gray-500 mt-2">
+                        💡 Cliquez sur "Ajuster" pour alterner entre recadrage automatique et affichage complet
+                      </p>
                     </div>
                   )}
                 </div>
@@ -628,31 +650,65 @@ export default function AdminServicesTab() {
                   <p className="text-sm text-gray-500 mb-4">
                     Ajoutez plusieurs images pour créer une galerie sur la page du service
                   </p>
-                  {gallery.map((url, index) => (
-                    <div key={index} className="flex gap-2 mb-2">
-                      <input
-                        type="text"
-                        value={url}
-                        onChange={(e) => updateListItem(gallery, setGallery, index, e.target.value)}
-                        placeholder="URL de l'image"
-                        className="flex-1 px-4 py-2 border border-[#d4b5a0]/20 rounded-lg focus:ring-2 focus:ring-[#d4b5a0] focus:border-transparent"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeListItem(gallery, setGallery, index)}
-                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
+
+                  <div className="space-y-4">
+                    {gallery.map((url, index) => (
+                      <div key={index} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <div className="flex gap-2 mb-3">
+                          <input
+                            type="text"
+                            value={url}
+                            onChange={(e) => updateListItem(gallery, setGallery, index, e.target.value)}
+                            placeholder="URL de l'image"
+                            className="flex-1 px-4 py-2 border border-[#d4b5a0]/20 rounded-lg focus:ring-2 focus:ring-[#d4b5a0] focus:border-transparent"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeListItem(gallery, setGallery, index)}
+                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
+                            title="Supprimer"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        {url && (
+                          <div className="relative">
+                            <img
+                              src={url}
+                              alt={`Galerie ${index + 1}`}
+                              className="w-full h-40 rounded-lg shadow-sm"
+                              style={{ objectFit: 'cover' }}
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
+                                (e.target as HTMLImageElement).alt = 'Image non trouvée';
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                const img = e.currentTarget.previousElementSibling as HTMLImageElement;
+                                if (img) {
+                                  img.style.objectFit = img.style.objectFit === 'contain' ? 'cover' : 'contain';
+                                }
+                              }}
+                              className="absolute top-2 right-2 px-2 py-1 text-xs bg-white/90 hover:bg-white border border-gray-300 rounded shadow-sm transition"
+                            >
+                              Ajuster
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
                   <button
                     type="button"
                     onClick={() => addListItem(gallery, setGallery)}
-                    className="px-4 py-2 bg-[#d4b5a0]/10 text-[#d4b5a0] rounded-lg hover:bg-[#d4b5a0]/20"
+                    className="mt-4 w-full px-4 py-3 bg-[#d4b5a0]/10 text-[#d4b5a0] rounded-lg hover:bg-[#d4b5a0]/20 transition-colors font-medium"
                   >
                     <Plus className="w-4 h-4 inline mr-2" />
-                    Ajouter une image
+                    Ajouter une image à la galerie
                   </button>
                 </div>
               </div>
@@ -824,45 +880,44 @@ export default function AdminServicesTab() {
     <div>
       {/* Main Tabs */}
       <div className="flex gap-4 mb-6 border-b border-[#d4b5a0]/20 overflow-x-auto">
-        {servicesCount > 0 && (
-          <button
-            onClick={() => setMainTab('services')}
-            className={`px-4 py-3 font-medium transition-all flex items-center gap-2 whitespace-nowrap ${
-              mainTab === 'services'
-                ? 'text-[#d4b5a0] border-b-2 border-[#d4b5a0]'
-                : 'text-[#2c3e50]/60 hover:text-[#2c3e50]'
-            }`}
-          >
-            <FileText className="w-5 h-5" />
-            Prestations
-          </button>
-        )}
-        {productsCount > 0 && (
-          <button
-            onClick={() => setMainTab('products')}
-            className={`px-4 py-3 font-medium transition-all flex items-center gap-2 whitespace-nowrap ${
-              mainTab === 'products'
-                ? 'text-[#d4b5a0] border-b-2 border-[#d4b5a0]'
-                : 'text-[#2c3e50]/60 hover:text-[#2c3e50]'
-            }`}
-          >
-            <Tag className="w-5 h-5" />
-            Produits
-          </button>
-        )}
-        {formationsCount > 0 && (
-          <button
-            onClick={() => setMainTab('formations')}
-            className={`px-4 py-3 font-medium transition-all flex items-center gap-2 whitespace-nowrap ${
-              mainTab === 'formations'
-                ? 'text-[#d4b5a0] border-b-2 border-[#d4b5a0]'
-                : 'text-[#2c3e50]/60 hover:text-[#2c3e50]'
-            }`}
-          >
-            <Star className="w-5 h-5" />
-            Formations
-          </button>
-        )}
+        <button
+          onClick={() => setMainTab('services')}
+          className={`px-4 py-3 font-medium transition-all flex items-center gap-2 whitespace-nowrap ${
+            mainTab === 'services'
+              ? 'text-[#d4b5a0] border-b-2 border-[#d4b5a0]'
+              : 'text-[#2c3e50]/60 hover:text-[#2c3e50]'
+          }`}
+        >
+          <FileText className="w-5 h-5" />
+          Prestations
+          {servicesCount > 0 && <span className="ml-1 text-xs">({servicesCount})</span>}
+        </button>
+
+        <button
+          onClick={() => setMainTab('products')}
+          className={`px-4 py-3 font-medium transition-all flex items-center gap-2 whitespace-nowrap ${
+            mainTab === 'products'
+              ? 'text-[#d4b5a0] border-b-2 border-[#d4b5a0]'
+              : 'text-[#2c3e50]/60 hover:text-[#2c3e50]'
+          }`}
+        >
+          <Tag className="w-5 h-5" />
+          Produits
+          {productsCount > 0 && <span className="ml-1 text-xs">({productsCount})</span>}
+        </button>
+
+        <button
+          onClick={() => setMainTab('formations')}
+          className={`px-4 py-3 font-medium transition-all flex items-center gap-2 whitespace-nowrap ${
+            mainTab === 'formations'
+              ? 'text-[#d4b5a0] border-b-2 border-[#d4b5a0]'
+              : 'text-[#2c3e50]/60 hover:text-[#2c3e50]'
+          }`}
+        >
+          <Star className="w-5 h-5" />
+          Formations
+          {formationsCount > 0 && <span className="ml-1 text-xs">({formationsCount})</span>}
+        </button>
         <button
           onClick={() => setMainTab('blog')}
           className={`px-4 py-3 font-medium transition-all flex items-center gap-2 whitespace-nowrap ${
@@ -1131,65 +1186,10 @@ export default function AdminServicesTab() {
         </>
       ) : mainTab === 'products' ? (
         /* Products Tab Content */
-        <div className="text-center py-20">
-          <div className="max-w-2xl mx-auto">
-            <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-[#d4b5a0] to-[#c9a084] rounded-full flex items-center justify-center">
-              <Tag className="w-10 h-10 text-white" />
-            </div>
-            <h2 className="text-3xl font-bold text-[#2c3e50] mb-4">Gestion des Produits</h2>
-            <p className="text-lg text-[#2c3e50]/60 mb-8">
-              Ajoutez et gérez vos produits cosmétiques : description, prix, stock, ingrédients...
-            </p>
-            <div className="bg-[#d4b5a0]/10 rounded-xl p-6 mb-8">
-              <h3 className="font-semibold text-[#2c3e50] mb-3">Fonctionnalités disponibles :</h3>
-              <ul className="text-left space-y-2 text-[#2c3e50]/70">
-                <li>✓ Ajouter un nouveau produit avec toutes ses informations</li>
-                <li>✓ Définir le prix, prix promo et gérer le stock</li>
-                <li>✓ Ajouter des images et une description détaillée</li>
-                <li>✓ Optimisation SEO (meta title, description, keywords)</li>
-                <li>✓ Synchronisation automatique avec le site public</li>
-              </ul>
-            </div>
-            <button
-              onClick={() => alert('Fonctionnalité en cours de développement. L\'interface d\'ajout de produits sera bientôt disponible !')}
-              className="px-8 py-4 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white rounded-xl hover:shadow-lg transition-all flex items-center gap-3 mx-auto text-lg font-medium"
-            >
-              <Plus className="w-6 h-6" />
-              Ajouter mon premier produit
-            </button>
-          </div>
-        </div>
+        <AdminProductsTab />
       ) : mainTab === 'formations' ? (
         /* Formations Tab Content */
-        <div className="text-center py-20">
-          <div className="max-w-2xl mx-auto">
-            <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-purple-500 to-purple-700 rounded-full flex items-center justify-center">
-              <Star className="w-10 h-10 text-white" />
-            </div>
-            <h2 className="text-3xl font-bold text-[#2c3e50] mb-4">Gestion des Formations</h2>
-            <p className="text-lg text-[#2c3e50]/60 mb-8">
-              Proposez vos formations professionnelles : programme, objectifs, certification...
-            </p>
-            <div className="bg-purple-50 rounded-xl p-6 mb-8">
-              <h3 className="font-semibold text-[#2c3e50] mb-3">Fonctionnalités disponibles :</h3>
-              <ul className="text-left space-y-2 text-[#2c3e50]/70">
-                <li>✓ Créer une nouvelle formation avec programme détaillé</li>
-                <li>✓ Définir la durée, le niveau (débutant/intermédiaire/avancé)</li>
-                <li>✓ Spécifier les objectifs pédagogiques et prérequis</li>
-                <li>✓ Ajouter des informations sur la certification</li>
-                <li>✓ Gérer le nombre de participants maximum</li>
-                <li>✓ Synchronisation automatique avec le site public</li>
-              </ul>
-            </div>
-            <button
-              onClick={() => alert('Fonctionnalité en cours de développement. L\'interface d\'ajout de formations sera bientôt disponible !')}
-              className="px-8 py-4 bg-gradient-to-r from-purple-500 to-purple-700 text-white rounded-xl hover:shadow-lg transition-all flex items-center gap-3 mx-auto text-lg font-medium"
-            >
-              <Plus className="w-6 h-6" />
-              Créer ma première formation
-            </button>
-          </div>
-        </div>
+        <AdminFormationsTab />
       ) : (
         /* Blog Tab Content */
         <AdminBlogTab />

@@ -30,9 +30,40 @@ export default function Header() {
     return () => window.removeEventListener('storage', checkUser);
   }, [pathname]);
 
+  const [showProducts, setShowProducts] = useState(false);
+  const [showFormations, setShowFormations] = useState(false);
+
+  useEffect(() => {
+    // Vérifier s'il y a des produits et formations actifs
+    const checkContent = async () => {
+      try {
+        const [productsRes, formationsRes] = await Promise.all([
+          fetch('/api/admin/products').catch(() => null),
+          fetch('/api/admin/formations').catch(() => null)
+        ]);
+
+        if (productsRes && productsRes.ok) {
+          const products = await productsRes.json();
+          setShowProducts(products.length > 0);
+        }
+
+        if (formationsRes && formationsRes.ok) {
+          const formations = await formationsRes.json();
+          setShowFormations(formations.length > 0);
+        }
+      } catch (error) {
+        console.log('Could not check content visibility');
+      }
+    };
+
+    checkContent();
+  }, [pathname]);
+
   const navItems = [
     { href: "/", label: "Accueil" },
     { href: "/prestations", label: "Mes Prestations" },
+    ...(showProducts ? [{ href: "/produits", label: "Produits" }] : []),
+    ...(showFormations ? [{ href: "/formations", label: "Formations" }] : []),
     { href: "/blog", label: "Blog" },
     { href: "/a-propos", label: "À Propos" },
     { href: "/reservation", label: "Réserver" },

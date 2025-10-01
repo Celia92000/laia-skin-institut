@@ -49,19 +49,19 @@ export async function POST(request: Request) {
     // Créer le produit
     const product = await prisma.product.create({
       data: {
+        slug: body.slug || body.name.toLowerCase().replace(/\s+/g, '-'),
         name: body.name,
         description: body.description || '',
         shortDescription: body.shortDescription,
         price: body.price,
         salePrice: body.salePrice,
-        cost: body.cost,
-        stock: body.stock || 0,
-        stockAlert: body.stockAlert || 5,
         category: body.category || 'Produit',
         brand: body.brand,
-        supplier: body.supplier,
         mainImage: body.mainImage || '/images/placeholder.png',
         gallery: body.gallery ? JSON.stringify(body.gallery) : null,
+        ingredients: body.ingredients,
+        usage: body.usage,
+        benefits: body.benefits,
         active: body.active ?? true,
         featured: body.featured ?? false,
         order: body.order || 0
