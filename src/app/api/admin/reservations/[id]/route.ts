@@ -177,6 +177,73 @@ export async function PATCH(
           console.log(`✨ Soin compté pour fidélité: ${loyaltyProfile.individualServicesCount + 1}/5`);
         }
       }
+
+      // Déduire automatiquement les quantités de stock
+      try {
+        // Récupérer les services de la réservation
+        let services;
+        try {
+          services = typeof reservation.services === 'string'
+            ? (reservation.services.startsWith('[') || reservation.services.startsWith('{')
+                ? JSON.parse(reservation.services)
+                : [reservation.services])
+            : reservation.services;
+        } catch (e) {
+          services = [reservation.services];
+        }
+
+        // Pour chaque service, récupérer et déduire les consommables
+        for (const serviceName of services) {
+          if (typeof serviceName !== 'string') continue;
+
+          // Trouver le service par son nom
+          const service = await prisma.service.findFirst({
+            where: { name: serviceName },
+            include: {
+              stockLinks: {
+                include: {
+                  stock: true
+                }
+              }
+            }
+          });
+
+          if (service && service.stockLinks) {
+            for (const link of service.stockLinks) {
+              // Vérifier qu'il y a assez de stock
+              if (link.stock.quantity >= link.quantityPerUse) {
+                // Déduire la quantité
+                await prisma.stock.update({
+                  where: { id: link.stockId },
+                  data: {
+                    quantity: {
+                      decrement: link.quantityPerUse
+                    }
+                  }
+                });
+
+                // Enregistrer le mouvement dans l'historique
+                await prisma.stockMovement.create({
+                  data: {
+                    stockId: link.stockId,
+                    type: 'OUT',
+                    quantity: -link.quantityPerUse,
+                    reason: `Utilisation pour prestation: ${serviceName}`,
+                    reservationId: reservationId
+                  }
+                });
+
+                console.log(`📦 Stock déduit: ${link.stock.name} -${link.quantityPerUse} ${link.stock.unit || 'unités'} (Service: ${serviceName})`);
+              } else {
+                console.warn(`⚠️ Stock insuffisant pour ${link.stock.name}: ${link.stock.quantity} < ${link.quantityPerUse}`);
+              }
+            }
+          }
+        }
+      } catch (stockError) {
+        console.error('Erreur lors de la déduction du stock:', stockError);
+        // On ne bloque pas la mise à jour de la réservation si la déduction échoue
+      }
     }
 
     // Préparer les données de mise à jour

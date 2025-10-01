@@ -5,6 +5,17 @@ import { prisma } from '@/lib/prisma';
 export async function GET(request: NextRequest) {
   try {
     const stocks = await prisma.stock.findMany({
+      include: {
+        serviceLinks: {
+          include: {
+            service: {
+              select: {
+                name: true
+              }
+            }
+          }
+        }
+      },
       orderBy: [{ category: 'asc' }, { name: 'asc' }]
     });
 
@@ -24,6 +35,7 @@ export async function POST(request: NextRequest) {
       description: body.description || null,
       category: body.category || null,
       quantity: body.quantity || 0,
+      initialQuantity: body.initialQuantity || body.quantity || null,
       minQuantity: body.minQuantity || 5,
       unit: body.unit || null,
       cost: body.cost ? parseFloat(body.cost) : null,

@@ -1,14 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { 
-  Plus, Edit2, Save, X, Trash2, Eye, EyeOff, Image, 
+import {
+  Plus, Edit2, Save, X, Trash2, Eye, EyeOff, Image,
   Clock, Euro, Tag, Search, Upload, ChevronUp, ChevronDown,
-  Globe, FileText, Star, AlertCircle, CheckCircle, BookOpen
+  Globe, FileText, Star, AlertCircle, CheckCircle, BookOpen,
+  ArrowUp, ArrowDown, ArrowLeft, ArrowRight, ChevronLeft, ChevronRight
 } from "lucide-react";
 import AdminBlogTab from "./AdminBlogTab";
 import AdminProductsTab from "./AdminProductsTab";
 import AdminFormationsTab from "./AdminFormationsTab";
+import ServiceStockLinkManager from "./ServiceStockLinkManager";
 
 interface Service {
   id: string;
@@ -44,13 +46,15 @@ export default function AdminServicesTab() {
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [showNewServiceForm, setShowNewServiceForm] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'general' | 'seo' | 'media' | 'details'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'seo' | 'media' | 'details' | 'stock'>('general');
   const [expandedServices, setExpandedServices] = useState<Set<string>>(new Set());
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [mainTab, setMainTab] = useState<'services' | 'products' | 'formations' | 'blog'>('services');
   const [productsCount, setProductsCount] = useState(0);
   const [formationsCount, setFormationsCount] = useState(0);
   const [servicesCount, setServicesCount] = useState(0);
+  const [imageObjectFit, setImageObjectFit] = useState<'cover' | 'contain'>('cover');
+  const [imagePosition, setImagePosition] = useState({ x: 50, y: 50 }); // Position en pourcentage
 
   useEffect(() => {
     fetchServices();
@@ -203,11 +207,12 @@ export default function AdminServicesTab() {
     } as Service);
 
     const [benefits, setBenefits] = useState<string[]>(parseJsonField(formData.benefits));
-    const [process, setProcess] = useState<string[]>(parseJsonField(formData.process));
+    const [processSteps, setProcessSteps] = useState<string[]>(parseJsonField(formData.process));
     const [protocol, setProtocol] = useState<{title: string, duration: string, desc: string}[]>(
       formData.protocol ? (typeof formData.protocol === 'string' ? JSON.parse(formData.protocol) : formData.protocol) : []
     );
     const [gallery, setGallery] = useState<string[]>(parseJsonField(formData.gallery));
+    const [imageObjectFit, setImageObjectFit] = useState<'cover' | 'contain'>('cover');
 
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
@@ -227,10 +232,10 @@ export default function AdminServicesTab() {
 
       const dataToSave = {
         ...formData,
-        benefits: JSON.stringify(benefits.filter(b => b.trim())),
-        process: JSON.stringify(process.filter(p => p.trim())),
+        benefits: JSON.stringify(benefits.filter(b => typeof b === 'string' && b.trim())),
+        process: JSON.stringify(processSteps.filter(p => typeof p === 'string' && p.trim())),
         protocol: JSON.stringify(protocol.filter(p => p.title?.trim() || p.desc?.trim())),
-        gallery: JSON.stringify(gallery.filter(g => g.trim()))
+        gallery: JSON.stringify(gallery.filter(g => typeof g === 'string' && g.trim()))
       };
 
       handleSaveService(dataToSave);
@@ -265,7 +270,7 @@ export default function AdminServicesTab() {
           <form onSubmit={handleSubmit} className="p-6 max-h-[calc(100vh-200px)] overflow-y-auto">
             {/* Tabs */}
             <div className="flex gap-2 mb-6 border-b border-[#d4b5a0]/20 overflow-x-auto">
-              {(['general', 'seo', 'media', 'details'] as const).map(tab => (
+              {(['general', 'seo', 'media', 'details', 'stock'] as const).map(tab => (
                 <button
                   key={tab}
                   type="button"
@@ -285,6 +290,7 @@ export default function AdminServicesTab() {
                     </span>
                   )}
                   {tab === 'details' && '📝 Détails'}
+                  {tab === 'stock' && '📦 Consommables'}
                 </button>
               ))}
             </div>
@@ -601,31 +607,127 @@ export default function AdminServicesTab() {
                         <div className="flex gap-2">
                           <button
                             type="button"
-                            onClick={(e) => {
-                              const img = e.currentTarget.parentElement?.parentElement?.nextElementSibling?.querySelector('img');
-                              if (img) {
-                                img.style.objectFit = img.style.objectFit === 'contain' ? 'cover' : 'contain';
-                              }
-                            }}
+                            onClick={() => setImageObjectFit(prev => prev === 'cover' ? 'contain' : 'cover')}
                             className="px-3 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100 transition"
                           >
-                            Ajuster
+                            Ajuster ({imageObjectFit === 'cover' ? 'Recadré' : 'Complet'})
                           </button>
                         </div>
                       </div>
-                      <img
-                        src={formData.mainImage}
-                        alt="Aperçu"
-                        className="w-full max-w-md h-64 rounded-lg shadow-md"
-                        style={{ objectFit: 'cover' }}
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
-                          (e.target as HTMLImageElement).alt = 'Image non trouvée';
-                        }}
-                      />
-                      <p className="text-xs text-gray-500 mt-2">
-                        💡 Cliquez sur "Ajuster" pour alterner entre recadrage automatique et affichage complet
-                      </p>
+
+                      {/* Interface moderne de positionnement */}
+                      <div className="space-y-4">
+                        {/* Aperçu interactif avec overlay cliquable */}
+                        <div
+                          className="relative w-full max-w-md h-64 rounded-lg shadow-lg overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 cursor-crosshair border-2 border-[#d4b5a0]/30"
+                          onClick={(e) => {
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            const x = ((e.clientX - rect.left) / rect.width) * 100;
+                            const y = ((e.clientY - rect.top) / rect.height) * 100;
+                            setImagePosition({ x: Math.round(x), y: Math.round(y) });
+                          }}
+                        >
+                          <img
+                            src={formData.mainImage}
+                            alt="Aperçu"
+                            className="w-full h-full pointer-events-none"
+                            style={{
+                              objectFit: imageObjectFit,
+                              objectPosition: `${imagePosition.x}% ${imagePosition.y}%`
+                            }}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
+                              (e.target as HTMLImageElement).alt = 'Image non trouvée';
+                            }}
+                          />
+                          {/* Point de référence */}
+                          <div
+                            className="absolute w-3 h-3 bg-[#d4b5a0] border-2 border-white rounded-full shadow-lg transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+                            style={{
+                              left: `${imagePosition.x}%`,
+                              top: `${imagePosition.y}%`
+                            }}
+                          />
+                          {/* Grille de référence légère */}
+                          <div className="absolute inset-0 pointer-events-none opacity-20">
+                            <div className="absolute inset-0 border border-white" style={{ left: '0%', width: '33.33%' }} />
+                            <div className="absolute inset-0 border border-white" style={{ left: '33.33%', width: '33.33%' }} />
+                            <div className="absolute inset-0 border border-white" style={{ left: '66.66%', width: '33.33%' }} />
+                          </div>
+                        </div>
+
+                        {/* Contrôles compacts et modernes */}
+                        <div className="flex items-center gap-4 bg-white p-3 rounded-lg border border-gray-200">
+                          <div className="flex-1 space-y-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-medium text-gray-600 w-8">X:</span>
+                              <input
+                                type="range"
+                                min="0"
+                                max="100"
+                                step="1"
+                                value={imagePosition.x}
+                                onChange={(e) => setImagePosition(prev => ({ ...prev, x: parseInt(e.target.value) }))}
+                                className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#d4b5a0]"
+                              />
+                              <span className="text-xs font-mono text-gray-700 w-10 text-right">{imagePosition.x}%</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-medium text-gray-600 w-8">Y:</span>
+                              <input
+                                type="range"
+                                min="0"
+                                max="100"
+                                step="1"
+                                value={imagePosition.y}
+                                onChange={(e) => setImagePosition(prev => ({ ...prev, y: parseInt(e.target.value) }))}
+                                className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#d4b5a0]"
+                              />
+                              <span className="text-xs font-mono text-gray-700 w-10 text-right">{imagePosition.y}%</span>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setImagePosition({ x: 50, y: 50 })}
+                            className="px-4 py-2 bg-[#d4b5a0] text-white rounded-lg hover:bg-[#c4a590] transition text-sm font-medium shadow-sm"
+                            title="Centrer"
+                          >
+                            Centrer
+                          </button>
+                        </div>
+
+                        {/* Positions prédéfinies */}
+                        <div className="grid grid-cols-3 gap-2">
+                          {[
+                            { label: '↖ Haut G.', x: 0, y: 0 },
+                            { label: '↑ Haut', x: 50, y: 0 },
+                            { label: '↗ Haut D.', x: 100, y: 0 },
+                            { label: '← Gauche', x: 0, y: 50 },
+                            { label: '⊙ Centre', x: 50, y: 50 },
+                            { label: '→ Droite', x: 100, y: 50 },
+                            { label: '↙ Bas G.', x: 0, y: 100 },
+                            { label: '↓ Bas', x: 50, y: 100 },
+                            { label: '↘ Bas D.', x: 100, y: 100 },
+                          ].map((preset) => (
+                            <button
+                              key={preset.label}
+                              type="button"
+                              onClick={() => setImagePosition({ x: preset.x, y: preset.y })}
+                              className={`px-2 py-2 text-xs rounded border transition ${
+                                imagePosition.x === preset.x && imagePosition.y === preset.y
+                                  ? 'bg-[#d4b5a0] text-white border-[#d4b5a0]'
+                                  : 'bg-white text-gray-700 border-gray-300 hover:border-[#d4b5a0] hover:text-[#d4b5a0]'
+                              }`}
+                            >
+                              {preset.label}
+                            </button>
+                          ))}
+                        </div>
+
+                        <p className="text-xs text-gray-500 text-center">
+                          💡 Cliquez sur l'image pour positionner, ou utilisez les curseurs et positions prédéfinies
+                        </p>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -759,7 +861,7 @@ export default function AdminServicesTab() {
                   <label className="block text-sm font-medium text-[#2c3e50] mb-2">
                     Étapes du protocole
                   </label>
-                  {process.map((step, index) => (
+                  {processSteps.map((step, index) => (
                     <div key={index} className="flex gap-2 mb-2">
                       <span className="flex-shrink-0 w-8 h-8 bg-[#d4b5a0] text-white rounded-full flex items-center justify-center text-sm font-bold">
                         {index + 1}
@@ -767,13 +869,13 @@ export default function AdminServicesTab() {
                       <input
                         type="text"
                         value={step}
-                        onChange={(e) => updateListItem(process, setProcess, index, e.target.value)}
+                        onChange={(e) => updateListItem(processSteps, setProcessSteps, index, e.target.value)}
                         placeholder="Ex: Diagnostic de peau personnalisé (10 min)"
                         className="flex-1 px-4 py-2 border border-[#d4b5a0]/20 rounded-lg focus:ring-2 focus:ring-[#d4b5a0] focus:border-transparent"
                       />
                       <button
                         type="button"
-                        onClick={() => removeListItem(process, setProcess, index)}
+                        onClick={() => removeListItem(processSteps, setProcessSteps, index)}
                         className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -782,7 +884,7 @@ export default function AdminServicesTab() {
                   ))}
                   <button
                     type="button"
-                    onClick={() => addListItem(process, setProcess)}
+                    onClick={() => addListItem(processSteps, setProcessSteps)}
                     className="px-4 py-2 bg-[#d4b5a0]/10 text-[#d4b5a0] rounded-lg hover:bg-[#d4b5a0]/20"
                   >
                     <Plus className="w-4 h-4 inline mr-2" />
@@ -815,6 +917,15 @@ export default function AdminServicesTab() {
                     className="w-full px-4 py-2 border border-[#d4b5a0]/20 rounded-lg focus:ring-2 focus:ring-[#d4b5a0] focus:border-transparent"
                   />
                 </div>
+              </div>
+            )}
+
+            {/* Stock/Consommables Tab */}
+            {activeTab === 'stock' && (
+              <div className="space-y-6">
+                <ServiceStockLinkManager
+                  serviceId={editingService?.id || 'new'}
+                />
               </div>
             )}
 

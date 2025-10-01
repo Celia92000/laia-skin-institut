@@ -3,10 +3,11 @@ import { getPrismaClient } from '@/lib/prisma';
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const prisma = await getPrismaClient();
   try {
+    const { id } = await params;
     const body = await request.json();
 
     const stockData = {
@@ -14,6 +15,7 @@ export async function PUT(
       description: body.description || null,
       category: body.category || null,
       quantity: body.quantity || 0,
+      initialQuantity: body.initialQuantity !== undefined ? body.initialQuantity : undefined,
       minQuantity: body.minQuantity || 5,
       unit: body.unit || null,
       cost: body.cost ? parseFloat(body.cost) : null,
@@ -29,7 +31,7 @@ export async function PUT(
     };
 
     const stock = await prisma.stock.update({
-      where: { id: params.id },
+      where: { id },
       data: stockData
     });
 
@@ -42,12 +44,13 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const prisma = await getPrismaClient();
   try {
+    const { id } = await params;
     await prisma.stock.delete({
-      where: { id: params.id }
+      where: { id }
     });
 
     return NextResponse.json({ message: 'Stock supprimé avec succès' });

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Package, AlertTriangle } from 'lucide-react';
+import { Plus, Trash2, Package, AlertTriangle, PackagePlus } from 'lucide-react';
 
 interface StockItem {
   id: string;
@@ -30,6 +30,14 @@ export default function ServiceStockLinkManager({ serviceId, onLinksChange }: Se
   const [loading, setLoading] = useState(true);
   const [selectedStockId, setSelectedStockId] = useState('');
   const [quantityPerUse, setQuantityPerUse] = useState(1);
+  const [showNewStockForm, setShowNewStockForm] = useState(false);
+  const [newStock, setNewStock] = useState({
+    name: '',
+    quantity: 0,
+    minQuantity: 5,
+    unit: 'ml',
+    category: 'Consommables'
+  });
 
   useEffect(() => {
     loadStockItems();
@@ -161,6 +169,49 @@ export default function ServiceStockLinkManager({ serviceId, onLinksChange }: Se
     return Math.floor(stock.quantity / link.quantityPerUse);
   };
 
+  const handleCreateNewStock = async () => {
+    if (!newStock.name || newStock.quantity <= 0) {
+      alert('Veuillez remplir au moins le nom et la quantité');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/admin/stock', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ...newStock,
+          initialQuantity: newStock.quantity,
+          active: true
+        })
+      });
+
+      if (response.ok) {
+        const createdStock = await response.json();
+        await loadStockItems();
+        setShowNewStockForm(false);
+        setNewStock({
+          name: '',
+          quantity: 0,
+          minQuantity: 5,
+          unit: 'ml',
+          category: 'Consommables'
+        });
+        // Sélectionner automatiquement le nouveau produit
+        setSelectedStockId(createdStock.id);
+      } else {
+        alert('Erreur lors de la création du consommable');
+      }
+    } catch (error) {
+      console.error('Erreur lors de la création:', error);
+      alert('Erreur lors de la création du consommable');
+    }
+  };
+
   if (loading) {
     return <div className="text-center py-4 text-gray-500">Chargement...</div>;
   }
@@ -175,6 +226,84 @@ export default function ServiceStockLinkManager({ serviceId, onLinksChange }: Se
         <p className="text-sm text-blue-700 mb-4">
           Définissez quels consommables sont utilisés et en quelle quantité. Le stock sera automatiquement diminué après chaque rendez-vous.
         </p>
+
+        {/* Bouton créer nouveau consommable */}
+        {!showNewStockForm && (
+          <button
+            type="button"
+            onClick={() => setShowNewStockForm(true)}
+            className="mb-4 flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+          >
+            <PackagePlus className="w-4 h-4" />
+            Créer un nouveau consommable
+          </button>
+        )}
+
+        {/* Formulaire création nouveau consommable */}
+        {showNewStockForm && (
+          <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex justify-between items-center mb-3">
+              <h5 className="font-semibold text-green-900">Nouveau consommable</h5>
+              <button
+                type="button"
+                onClick={() => setShowNewStockForm(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+              <input
+                type="text"
+                value={newStock.name}
+                onChange={(e) => setNewStock({...newStock, name: e.target.value})}
+                placeholder="Nom du consommable *"
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+              />
+              <select
+                value={newStock.category}
+                onChange={(e) => setNewStock({...newStock, category: e.target.value})}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+              >
+                <option value="Consommables">Consommables</option>
+                <option value="Matériel">Matériel</option>
+                <option value="Produits de soin">Produits de soin</option>
+                <option value="Accessoires">Accessoires</option>
+              </select>
+              <input
+                type="number"
+                value={newStock.quantity}
+                onChange={(e) => setNewStock({...newStock, quantity: parseFloat(e.target.value) || 0})}
+                placeholder="Quantité *"
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+              />
+              <input
+                type="text"
+                value={newStock.unit}
+                onChange={(e) => setNewStock({...newStock, unit: e.target.value})}
+                placeholder="Unité (ml, L, g...)"
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleCreateNewStock}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+              >
+                <Plus className="w-4 h-4" />
+                Créer et utiliser
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowNewStockForm(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Formulaire d'ajout */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">

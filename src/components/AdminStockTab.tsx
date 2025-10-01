@@ -12,6 +12,7 @@ interface StockItem {
   description?: string;
   category?: string;
   quantity: number;
+  initialQuantity?: number;
   minQuantity: number;
   unit?: string;
   cost?: number;
@@ -26,6 +27,10 @@ interface StockItem {
   active: boolean;
   createdAt?: Date;
   updatedAt?: Date;
+  serviceLinks?: Array<{
+    quantityPerUse: number;
+    service: { name: string };
+  }>;
 }
 
 export default function AdminStockTab() {
@@ -35,10 +40,17 @@ export default function AdminStockTab() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
+  const [showLowStockOnly, setShowLowStockOnly] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
   useEffect(() => {
     fetchStockItems();
+
+    // Vérifier si on doit afficher le filtre stock bas
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('lowStock') === 'true') {
+      setShowLowStockOnly(true);
+    }
   }, []);
 
   const fetchStockItems = async () => {
@@ -120,6 +132,7 @@ export default function AdminStockTab() {
       id: 'new',
       name: '',
       quantity: 0,
+      initialQuantity: 0,
       minQuantity: 5,
       active: true
     });
@@ -140,7 +153,8 @@ export default function AdminStockTab() {
   const filteredItems = stockItems.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = filterCategory === 'all' || item.category === filterCategory;
-    return matchesSearch && matchesCategory;
+    const matchesLowStock = !showLowStockOnly || item.quantity <= item.minQuantity;
+    return matchesSearch && matchesCategory && matchesLowStock;
   });
 
   const categories = ['Consommables', 'Matériel', 'Produits de soin', 'Accessoires', 'Autre'];
@@ -223,12 +237,23 @@ export default function AdminStockTab() {
             </div>
           )}
 
-          <div className="bg-white rounded-lg p-4 shadow">
-            <p className="text-sm text-gray-600 mb-1">Stock Bas</p>
+          <div
+            className={`bg-white rounded-lg p-4 shadow cursor-pointer transition-all hover:shadow-lg ${
+              showLowStockOnly ? 'border-2 border-red-400 ring-2 ring-red-200' : 'border-2 border-transparent'
+            }`}
+            onClick={() => {
+              setShowLowStockOnly(!showLowStockOnly);
+              setFilterCategory('all');
+            }}
+          >
+            <p className="text-sm text-gray-600 mb-1 flex items-center justify-between">
+              Stock Bas
+              {showLowStockOnly && <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">Actif</span>}
+            </p>
             <p className="text-2xl font-bold text-red-600">
               {lowStockItems.length}
             </p>
-            <p className="text-xs text-gray-500 mt-1">articles en alerte</p>
+            <p className="text-xs text-gray-500 mt-1">articles en alerte • Cliquez pour filtrer</p>
           </div>
 
           <div className="bg-white rounded-lg p-4 shadow">
@@ -271,16 +296,42 @@ export default function AdminStockTab() {
       </div>
 
       {/* Alerts */}
-      {lowStockItems.length > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+      {lowStockItems.length > 0 && !showLowStockOnly && (
+        <div
+          className="bg-red-50 border border-red-200 rounded-lg p-4 cursor-pointer hover:bg-red-100 transition-colors"
+          onClick={() => setShowLowStockOnly(true)}
+        >
           <div className="flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-            <div>
+            <div className="flex-1">
               <h3 className="font-semibold text-red-900">Stock bas</h3>
               <p className="text-sm text-red-700">
-                {lowStockItems.length} article(s) en dessous du seuil d'alerte
+                {lowStockItems.length} article(s) en dessous du seuil d'alerte • Cliquez pour voir le détail
               </p>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Active filter badge */}
+      {showLowStockOnly && (
+        <div className="bg-red-100 border border-red-300 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="w-5 h-5 text-red-600" />
+              <div>
+                <h3 className="font-semibold text-red-900">Filtre : Stock bas actif</h3>
+                <p className="text-sm text-red-700">
+                  Affichage de {filteredItems.length} article(s) en stock bas
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowLowStockOnly(false)}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+            >
+              Afficher tous les produits
+            </button>
           </div>
         </div>
       )}
@@ -353,16 +404,28 @@ export default function AdminStockTab() {
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-[#2c3e50] mb-2">
-                  Quantité *
+                  Quantité actuelle *
                 </label>
                 <input
                   type="number"
                   value={editingItem.quantity}
                   onChange={(e) => setEditingItem({ ...editingItem, quantity: parseInt(e.target.value) || 0 })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#2c3e50] mb-2">
+                  Quantité initiale
+                </label>
+                <input
+                  type="number"
+                  value={editingItem.initialQuantity || ''}
+                  onChange={(e) => setEditingItem({ ...editingItem, initialQuantity: parseInt(e.target.value) || undefined })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="Stock de départ"
                 />
               </div>
               <div>
@@ -589,8 +652,66 @@ export default function AdminStockTab() {
                         <div>
                           <span className="text-gray-500">Quantité:</span>
                           <p className="font-medium text-[#2c3e50]">
-                            {item.quantity} {item.unit || 'unité(s)'}
+                            {item.initialQuantity
+                              ? `${item.quantity} sur ${item.initialQuantity} ${item.unit || 'unités'}`
+                              : `${item.quantity} ${item.unit || 'unité(s)'}`
+                            }
                           </p>
+                          {item.serviceLinks && item.serviceLinks.length > 0 && (
+                            <div className="mt-2 space-y-2">
+                              {item.serviceLinks.map((link, linkIndex) => {
+                                const soinsRestants = Math.floor(item.quantity / link.quantityPerUse);
+                                return (
+                                  <div key={linkIndex}>
+                                    <div className="flex items-center justify-between mb-1">
+                                      <span className="text-xs font-medium text-purple-600">
+                                        {soinsRestants} soins restants
+                                      </span>
+                                      <span className="text-xs text-gray-500">
+                                        {link.service.name}
+                                      </span>
+                                    </div>
+                                    <div className="w-full bg-gray-200 rounded-full h-2">
+                                      <div
+                                        className={`h-2 rounded-full transition-all ${
+                                          item.initialQuantity
+                                            ? (item.quantity / item.initialQuantity) * 100 <= 25
+                                              ? 'bg-red-500'
+                                              : (item.quantity / item.initialQuantity) * 100 <= 50
+                                              ? 'bg-orange-500'
+                                              : 'bg-green-500'
+                                            : soinsRestants <= 5
+                                            ? 'bg-red-500'
+                                            : soinsRestants <= 10
+                                            ? 'bg-orange-500'
+                                            : 'bg-green-500'
+                                        }`}
+                                        style={{
+                                          width: item.initialQuantity
+                                            ? `${Math.min((item.quantity / item.initialQuantity) * 100, 100)}%`
+                                            : `${Math.min((soinsRestants / 20) * 100, 100)}%`
+                                        }}
+                                      />
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                          {!item.serviceLinks?.length && item.initialQuantity && item.initialQuantity > 0 && (
+                            <div className="mt-1 w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className={`h-2 rounded-full transition-all ${
+                                  (item.quantity / item.initialQuantity) * 100 <= 25
+                                    ? 'bg-red-500'
+                                    : (item.quantity / item.initialQuantity) * 100 <= 50
+                                    ? 'bg-orange-500'
+                                    : 'bg-green-500'
+                                }`}
+                                style={{ width: `${Math.min((item.quantity / item.initialQuantity) * 100, 100)}%` }}
+                              />
+                            </div>
+                          )}
                         </div>
                         {item.cost && (
                           <div>

@@ -39,6 +39,7 @@ model User {
   leads          Lead[]
   discounts      Discount[]
   orders         Order[]
+  stockMovements StockMovement[]
 }
 
 model Reservation {
@@ -70,6 +71,7 @@ model Reservation {
   user            User      @relation(fields: [userId], references: [id])
   service         Service?  @relation(fields: [serviceId], references: [id])
   review          Review?
+  stockMovements  StockMovement[]
 }
 
 model Service {
@@ -528,6 +530,7 @@ model Stock {
   description     String?
   category        String?   // Consommables, Matériel, Produits de soin, etc.
   quantity        Int       @default(0)
+  initialQuantity Int?      // Quantité initiale pour afficher "X sur Y"
   minQuantity     Int       @default(5)  // Seuil d'alerte
   unit            String?   // ml, g, pièce, etc.
   cost            Float?    // Prix d'achat
@@ -544,6 +547,7 @@ model Stock {
   updatedAt       DateTime  @updatedAt
 
   serviceLinks    ServiceStock[]  // Relation avec les services
+  movements       StockMovement[]  // Historique des mouvements
 
   @@index([category])
 }
@@ -563,6 +567,26 @@ model ServiceStock {
   @@unique([serviceId, stockId])
   @@index([serviceId])
   @@index([stockId])
+}
+
+// Historique des mouvements de stock
+model StockMovement {
+  id              String    @id @default(cuid())
+  stockId         String
+  type            String    // "IN" (ajout), "OUT" (utilisation), "ADJUSTMENT" (ajustement manuel)
+  quantity        Float     // Quantité (positive ou négative)
+  reason          String?   // Raison du mouvement
+  reservationId   String?   // Si lié à une réservation
+  userId          String?   // Qui a effectué l'action
+  createdAt       DateTime  @default(now())
+
+  stock           Stock     @relation(fields: [stockId], references: [id], onDelete: Cascade)
+  reservation     Reservation? @relation(fields: [reservationId], references: [id], onDelete: SetNull)
+  user            User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([stockId])
+  @@index([reservationId])
+  @@index([createdAt])
 }
 
 model Formation {
