@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  ArrowLeft, Save, Lock, Mail, User, Shield, 
-  Eye, EyeOff, Check, X, AlertCircle 
+import {
+  ArrowLeft, Save, Lock, Mail, User, Shield,
+  Eye, EyeOff, Check, X, AlertCircle, Settings as SettingsIcon, Globe
 } from 'lucide-react';
+import AdminConfigTab from '@/components/AdminConfigTab';
 
 export default function AdminSettings() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function AdminSettings() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [activeTab, setActiveTab] = useState<'account' | 'site'>('account');
   
   const [userInfo, setUserInfo] = useState({
     email: '',
@@ -99,7 +101,7 @@ export default function AdminSettings() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white p-6">
       {/* Header */}
-      <div className="max-w-4xl mx-auto mb-8">
+      <div className="max-w-7xl mx-auto mb-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
@@ -109,14 +111,47 @@ export default function AdminSettings() {
               <ArrowLeft className="w-5 h-5 text-gray-600" />
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Paramètres Admin</h1>
-              <p className="text-sm text-gray-600">Gérez vos informations et votre sécurité</p>
+              <h1 className="text-2xl font-bold text-gray-900">Paramètres</h1>
+              <p className="text-sm text-gray-600">Gérez votre compte et la configuration du site</p>
             </div>
           </div>
         </div>
+
+        {/* Tabs */}
+        <div className="flex gap-4 mt-6 border-b border-gray-200">
+          <button
+            onClick={() => setActiveTab('account')}
+            className={`flex items-center gap-2 pb-4 px-4 transition relative ${
+              activeTab === 'account'
+                ? 'text-[#d4b5a0] font-medium'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <SettingsIcon className="w-5 h-5" />
+            Paramètres du compte
+            {activeTab === 'account' && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#d4b5a0]"></div>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab('site')}
+            className={`flex items-center gap-2 pb-4 px-4 transition relative ${
+              activeTab === 'site'
+                ? 'text-[#d4b5a0] font-medium'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <Globe className="w-5 h-5" />
+            Configuration du site
+            {activeTab === 'site' && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#d4b5a0]"></div>
+            )}
+          </button>
+        </div>
       </div>
 
-      <div className="max-w-4xl mx-auto grid gap-6">
+      {activeTab === 'account' ? (
+        <div className="max-w-4xl mx-auto grid gap-6">
         {/* Informations du compte */}
         <div className="bg-white rounded-2xl shadow-lg p-6">
           <div className="flex items-center gap-3 mb-6">
@@ -300,6 +335,11 @@ export default function AdminSettings() {
           </div>
         </div>
       </div>
+      ) : (
+        <div className="max-w-7xl mx-auto">
+          <AdminConfigTab />
+        </div>
+      )}
     </div>
   );
 }

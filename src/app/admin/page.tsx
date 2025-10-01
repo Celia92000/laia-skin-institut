@@ -7,6 +7,7 @@ import AuthGuard from "@/components/AuthGuard";
 import AdminCalendarEnhanced from "@/components/AdminCalendarEnhanced";
 import AdminServicesTab from "@/components/AdminServicesTab";
 import AdminStockTab from "@/components/AdminStockTab";
+import AdminConfigTab from "@/components/AdminConfigTab";
 import AdminDashboardOptimized from "@/components/AdminDashboardOptimized";
 import UnifiedCRMTab, { type Client } from "@/components/UnifiedCRMTab";
 import PlanningCalendar from "@/components/PlanningCalendar";
