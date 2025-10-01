@@ -300,6 +300,56 @@ model Lead {
   user        User?    @relation(fields: [userId], references: [id])
 }
 
+model SiteConfig {
+  id                String   @id @default(cuid())
+
+  // Informations générales
+  siteName          String   @default("Laia Skin Institut")
+  siteTagline       String?  @default("Institut de Beauté & Bien-être")
+  siteDescription   String?
+
+  // Contact
+  email             String?  @default("contact@laiaskin.com")
+  phone             String?  @default("+33 6 XX XX XX XX")
+  address           String?
+  city              String?
+  postalCode        String?
+
+  // Réseaux sociaux
+  facebook          String?
+  instagram         String?
+  tiktok            String?
+  whatsapp          String?
+
+  // Apparence
+  primaryColor      String?  @default("#d4b5a0")
+  secondaryColor    String?  @default("#2c3e50")
+  accentColor       String?  @default("#20b2aa")
+  logoUrl           String?
+  faviconUrl        String?
+
+  // Horaires (JSON)
+  businessHours     String?  // {"lundi": "9h-18h", "mardi": "9h-18h", ...}
+
+  // Page d'accueil
+  heroTitle         String?
+  heroSubtitle      String?
+  heroImage         String?
+  aboutText         String?
+
+  // CGV et mentions légales
+  termsAndConditions String?
+  privacyPolicy      String?
+  legalNotice        String?
+
+  // Emails
+  emailSignature     String?
+  welcomeEmailText   String?
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
 model EmailHistory {
   id           String   @id @default(cuid())
   from         String   @default("contact@laiaskininstitut.fr")
