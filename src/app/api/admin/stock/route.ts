@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPrismaClient } from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 
 // API pour gérer les stocks (admin)
 export async function GET(request: NextRequest) {
-  const prisma = await getPrismaClient();
   try {
     const stocks = await prisma.stock.findMany({
       orderBy: [{ category: 'asc' }, { name: 'asc' }]
@@ -17,7 +16,6 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const prisma = await getPrismaClient();
   try {
     const body = await request.json();
 

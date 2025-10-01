@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from '@/lib/prisma';
-import { Clock, ArrowRight, Sparkles, Star, Package } from 'lucide-react';
+import { ArrowRight, Package } from 'lucide-react';
+import ProductCard from '@/components/ProductCard';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -47,79 +48,7 @@ export default async function ProduitsPage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {products.map((product) => (
-                <Link
-                  key={product.id}
-                  href={`/produits/${product.slug}`}
-                  className="group block h-full"
-                >
-                  <div className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-2 h-full flex flex-col min-h-[500px]">
-                    {/* Image */}
-                    <div className="h-64 bg-gradient-to-br from-[#d4b5a0]/30 to-[#c9a084]/30 relative overflow-hidden">
-                      {product.featured && (
-                        <div className="absolute top-4 right-4 z-20 flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white rounded-full shadow-lg">
-                          <Star className="w-4 h-4 fill-current" />
-                          <span className="text-xs font-bold">BEST-SELLER</span>
-                        </div>
-                      )}
-                      {product.mainImage ? (
-                        <img
-                          src={product.mainImage}
-                          alt={product.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Package className="w-20 h-20 text-[#2c3e50]/20" />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Content */}
-                    <div className="p-6 flex-1 flex flex-col">
-                      <h3 className="text-2xl font-playfair text-[#2c3e50] mb-3 group-hover:text-[#d4b5a0] transition-colors">
-                        {product.name}
-                      </h3>
-                      <p className="text-[#2c3e50]/70 mb-4 flex-1 line-clamp-3">
-                        {product.shortDescription || product.description}
-                      </p>
-
-                      {/* Price & Stock */}
-                      <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
-                        <div>
-                          {product.salePrice ? (
-                            <div>
-                              <span className="text-sm text-gray-400 line-through mr-2">
-                                {product.price}€
-                              </span>
-                              <span className="text-2xl font-bold text-[#d4b5a0]">
-                                {product.salePrice}€
-                              </span>
-                            </div>
-                          ) : (
-                            <span className="text-2xl font-bold text-[#2c3e50]">
-                              {product.price}€
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {product.stock > 0 ? (
-                            <span className="text-green-600">En stock</span>
-                          ) : (
-                            <span className="text-red-600">Rupture</span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* CTA */}
-                      <div className="mt-4">
-                        <div className="flex items-center text-[#d4b5a0] font-medium group-hover:gap-2 transition-all">
-                          <span>Découvrir</span>
-                          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
+                <ProductCard key={product.id} product={product} />
               ))}
             </div>
           )}

@@ -115,6 +115,7 @@ export default function AdminStockTab() {
   };
 
   const handleNewItem = () => {
+    console.log('Bouton Nouvel Article cliqué');
     setEditingItem({
       id: 'new',
       name: '',
@@ -123,6 +124,7 @@ export default function AdminStockTab() {
       active: true
     });
     setShowNewItemForm(true);
+    console.log('Formulaire ouvert:', true);
   };
 
   const handleEditItem = (item: StockItem) => {
@@ -180,14 +182,15 @@ export default function AdminStockTab() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center relative z-10">
         <div>
           <h2 className="text-2xl font-bold text-[#2c3e50]">Gestion des Stocks</h2>
           <p className="text-[#2c3e50]/60">Gérez vos consommables et votre matériel</p>
         </div>
         <button
+          type="button"
           onClick={handleNewItem}
-          className="px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-700 text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2"
+          className="px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-700 text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2 relative z-20 cursor-pointer"
         >
           <Plus className="w-5 h-5" />
           Nouvel Article

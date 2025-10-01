@@ -4,11 +4,12 @@ import { useState, useEffect } from 'react';
 import './page.module.css';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { 
+import {
   Clock, Star, Check, ArrowRight, Calendar, Shield, Sparkles,
   ChevronRight, Heart, Award, Users, Phone, ChevronDown,
   Gift, TrendingUp, Zap, Eye, Smile, RefreshCw
 } from 'lucide-react';
+import UniversalPaymentModal from '@/components/UniversalPaymentModal';
 
 interface Service {
   id: string;
@@ -50,6 +51,7 @@ export default function ServiceDetailPage() {
   const [activeTab, setActiveTab] = useState('benefits');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   useEffect(() => {
     fetchService();
@@ -301,13 +303,13 @@ export default function ServiceDetailPage() {
                   )}
                 </div>
                 
-                <Link 
-                  href="/reservation"
+                <button
+                  onClick={() => setShowPaymentModal(true)}
                   className="w-full bg-gradient-to-r from-[#20b2aa] to-[#48cae4] text-white py-4 rounded-xl font-medium text-lg hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 group"
                 >
                   Réserver ce soin
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </Link>
+                </button>
                 
                 <div className="flex items-center justify-center gap-4 mt-4 text-sm text-gray-500">
                   <span className="flex items-center gap-1">
@@ -780,6 +782,27 @@ export default function ServiceDetailPage() {
           </div>
         </div>
       </section>
+
+      {/* Modal de paiement */}
+      {showPaymentModal && service && (
+        <UniversalPaymentModal
+          item={{
+            id: service.id,
+            name: service.name,
+            price: service.price,
+            salePrice: service.launchPrice,
+            type: 'service',
+            image: service.mainImage,
+            duration: service.duration
+          }}
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          onSuccess={(orderId) => {
+            console.log('Réservation créée:', orderId);
+            setShowPaymentModal(false);
+          }}
+        />
+      )}
     </main>
   );
 }
