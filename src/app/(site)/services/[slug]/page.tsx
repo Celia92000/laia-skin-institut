@@ -27,6 +27,9 @@ interface Service {
   recommendations: string[];
   contraindications: string[];
   mainImage?: string;
+  imagePositionX?: number;
+  imagePositionY?: number;
+  imageObjectFit?: string;
   gallery?: string;
   videoUrl?: string;
 }
@@ -330,7 +333,11 @@ export default function ServiceDetailPage() {
                 <img
                   src={service.mainImage || `/images/${service.slug}.jpg`}
                   alt={service.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full"
+                  style={{
+                    objectFit: (service.imageObjectFit as 'cover' | 'contain') || 'cover',
+                    objectPosition: `${service.imagePositionX ?? 50}% ${service.imagePositionY ?? 50}%`
+                  }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#2c3e50]/40 via-transparent to-transparent"></div>
               </div>

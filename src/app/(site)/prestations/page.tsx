@@ -65,11 +65,14 @@ export default async function Prestations() {
                       </div>
                     )}
                     {service.mainImage ? (
-                      <img 
-                        src={service.mainImage} 
-                        alt={service.name} 
-                        className="w-full h-full object-cover object-center"
-                        style={{ objectPosition: '50% 50%' }}
+                      <img
+                        src={service.mainImage}
+                        alt={service.name}
+                        className="w-full h-full"
+                        style={{
+                          objectFit: service.imageObjectFit || 'cover',
+                          objectPosition: `${service.imagePositionX ?? 50}% ${service.imagePositionY ?? 50}%`
+                        }}
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">

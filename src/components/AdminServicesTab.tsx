@@ -32,6 +32,9 @@ interface Service {
   recommendations?: string;
   contraindications?: string;
   mainImage?: string;
+  imagePositionX?: number;
+  imagePositionY?: number;
+  imageObjectFit?: string;
   gallery?: string;
   videoUrl?: string;
   canBeOption: boolean;
@@ -212,7 +215,13 @@ export default function AdminServicesTab() {
       formData.protocol ? (typeof formData.protocol === 'string' ? JSON.parse(formData.protocol) : formData.protocol) : []
     );
     const [gallery, setGallery] = useState<string[]>(parseJsonField(formData.gallery));
-    const [imageObjectFit, setImageObjectFit] = useState<'cover' | 'contain'>('cover');
+    const [imageObjectFit, setImageObjectFit] = useState<'cover' | 'contain'>(
+      (formData.imageObjectFit as 'cover' | 'contain') || 'cover'
+    );
+    const [imagePosition, setImagePosition] = useState({
+      x: formData.imagePositionX ?? 50,
+      y: formData.imagePositionY ?? 50
+    });
 
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
@@ -235,7 +244,10 @@ export default function AdminServicesTab() {
         benefits: JSON.stringify(benefits.filter(b => typeof b === 'string' && b.trim())),
         process: JSON.stringify(processSteps.filter(p => typeof p === 'string' && p.trim())),
         protocol: JSON.stringify(protocol.filter(p => p.title?.trim() || p.desc?.trim())),
-        gallery: JSON.stringify(gallery.filter(g => typeof g === 'string' && g.trim()))
+        gallery: JSON.stringify(gallery.filter(g => typeof g === 'string' && g.trim())),
+        imagePositionX: imagePosition.x,
+        imagePositionY: imagePosition.y,
+        imageObjectFit: imageObjectFit
       };
 
       handleSaveService(dataToSave);

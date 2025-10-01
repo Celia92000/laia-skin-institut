@@ -95,6 +95,9 @@ model Service {
   recommendations   String?
   contraindications String?
   mainImage         String?
+  imagePositionX    Int?    @default(50) // Position horizontale en %
+  imagePositionY    Int?    @default(50) // Position verticale en %
+  imageObjectFit    String? @default("cover") // "cover" ou "contain"
   gallery           String? // JSON
   videoUrl          String?
   canBeOption       Boolean       @default(false)
