@@ -4,8 +4,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { Phone, Mail, MapPin, Clock, Instagram, Facebook, Sparkles, CheckCircle } from "lucide-react";
+import { useConfig } from "@/hooks/useConfig";
 
 export default function Footer() {
+  const { config } = useConfig();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
@@ -55,47 +57,53 @@ export default function Footer() {
                   className="object-contain"
                 />
               </div>
-              <h3 className="text-xl font-playfair tracking-normal text-white">LAIA SKIN INSTITUT</h3>
+              <h3 className="text-xl font-playfair tracking-normal text-white">{config.siteName?.toUpperCase() || 'LAIA SKIN INSTITUT'}</h3>
             </div>
             <p className="text-base text-white leading-relaxed mb-4 font-playfair italic">
-              Une peau respectée, une beauté révélée
+              {config.siteTagline || 'Une peau respectée, une beauté révélée'}
             </p>
             <div className="flex gap-3">
-              <a 
-                href="https://www.instagram.com/laia.skin/" 
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center"
-                title="Suivez-nous sur Instagram"
-              >
-                <Instagram size={18} />
-              </a>
-              <a 
-                href="https://www.facebook.com/profile.php?id=61578944046472" 
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center"
-                title="Suivez-nous sur Facebook"
-              >
-                <Facebook size={18} />
-              </a>
-              <a 
-                href="https://www.tiktok.com/@laia.skin" 
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center"
-                title="Suivez-nous sur TikTok"
-              >
-                <svg 
-                  width="18" 
-                  height="18" 
-                  viewBox="0 0 24 24" 
-                  fill="currentColor"
-                  xmlns="http://www.w3.org/2000/svg"
+              {config.instagram && (
+                <a
+                  href={config.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center"
+                  title="Suivez-nous sur Instagram"
                 >
-                  <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.37 6.37 0 0 0-1-.05A6.34 6.34 0 0 0 3 15.7a6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.34-6.34V8.44a8.27 8.27 0 0 0 4.74 1.48V6.46a4.79 4.79 0 0 1-1.83.23z"/>
-                </svg>
-              </a>
+                  <Instagram size={18} />
+                </a>
+              )}
+              {config.facebook && (
+                <a
+                  href={config.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center"
+                  title="Suivez-nous sur Facebook"
+                >
+                  <Facebook size={18} />
+                </a>
+              )}
+              {config.tiktok && (
+                <a
+                  href={config.tiktok}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center"
+                  title="Suivez-nous sur TikTok"
+                >
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.37 6.37 0 0 0-1-.05A6.34 6.34 0 0 0 3 15.7a6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.34-6.34V8.44a8.27 8.27 0 0 0 4.74 1.48V6.46a4.79 4.79 0 0 1-1.83.23z"/>
+                  </svg>
+                </a>
+              )}
             </div>
           </div>
 
@@ -167,27 +175,59 @@ export default function Footer() {
           <div>
             <h4 className="font-playfair text-xl mb-4 text-white">Contact</h4>
             <ul className="space-y-3">
-              <li className="flex items-start gap-3">
-                <MapPin size={16} className="text-primary mt-0.5 flex-shrink-0" />
-                <span className="text-base text-white/95">
-                  À 6 minutes de la gare<br />de Nanterre Université
-                </span>
-              </li>
-              <li className="flex items-center gap-3">
-                <Instagram size={16} className="text-primary flex-shrink-0" />
-                <a href="https://www.instagram.com/laia.skin/" target="_blank" rel="noopener noreferrer" className="text-base text-white/95 hover:text-white transition-colors">@laia.skin</a>
-              </li>
-              <li className="flex items-center gap-3">
-                <Mail size={16} className="text-primary flex-shrink-0" />
-                <span className="text-base text-white/95">contact@laiaskininstitut.fr</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <Clock size={16} className="text-primary mt-0.5 flex-shrink-0" />
-                <span className="text-base text-white/95">
-                  Lun-Ven: 14h-20h<br />
-                  Sam-Dim: 14h-20h
-                </span>
-              </li>
+              {config.address && (
+                <li className="flex items-start gap-3">
+                  <MapPin size={16} className="text-primary mt-0.5 flex-shrink-0" />
+                  <span className="text-base text-white/95">
+                    {config.address}
+                    {config.city && config.postalCode && <><br />{config.postalCode} {config.city}</>}
+                  </span>
+                </li>
+              )}
+              {config.instagram && (
+                <li className="flex items-center gap-3">
+                  <Instagram size={16} className="text-primary flex-shrink-0" />
+                  <a href={config.instagram} target="_blank" rel="noopener noreferrer" className="text-base text-white/95 hover:text-white transition-colors">
+                    @{config.instagram.split('/').pop() || 'laia.skin'}
+                  </a>
+                </li>
+              )}
+              {config.email && (
+                <li className="flex items-center gap-3">
+                  <Mail size={16} className="text-primary flex-shrink-0" />
+                  <a href={`mailto:${config.email}`} className="text-base text-white/95 hover:text-white transition-colors">
+                    {config.email}
+                  </a>
+                </li>
+              )}
+              {config.phone && (
+                <li className="flex items-center gap-3">
+                  <Phone size={16} className="text-primary flex-shrink-0" />
+                  <a href={`tel:${config.phone}`} className="text-base text-white/95 hover:text-white transition-colors">
+                    {config.phone}
+                  </a>
+                </li>
+              )}
+              {config.businessHours && (
+                <li className="flex items-start gap-3">
+                  <Clock size={16} className="text-primary mt-0.5 flex-shrink-0" />
+                  <span className="text-base text-white/95">
+                    {(() => {
+                      try {
+                        const hours = JSON.parse(config.businessHours);
+                        return Object.entries(hours).slice(0, 2).map(([day, time], i) => (
+                          <span key={day}>
+                            {i > 0 && <br />}
+                            {day}: {time as string}
+                          </span>
+                        ));
+                      } catch {
+                        return 'Lun-Ven: 14h-20h';
+                      }
+                    })()}
+                  </span>
+                </li>
+              )}
             </ul>
           </div>
         </div>
