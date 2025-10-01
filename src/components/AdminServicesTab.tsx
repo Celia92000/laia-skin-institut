@@ -45,10 +45,15 @@ export default function AdminServicesTab() {
   const [activeTab, setActiveTab] = useState<'general' | 'seo' | 'media' | 'details'>('general');
   const [expandedServices, setExpandedServices] = useState<Set<string>>(new Set());
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
-  const [mainTab, setMainTab] = useState<'services' | 'blog'>('services');
+  const [mainTab, setMainTab] = useState<'services' | 'products' | 'formations' | 'blog'>('services');
+  const [productsCount, setProductsCount] = useState(0);
+  const [formationsCount, setFormationsCount] = useState(0);
+  const [servicesCount, setServicesCount] = useState(0);
 
   useEffect(() => {
     fetchServices();
+    fetchProductsCount();
+    fetchFormationsCount();
   }, []);
 
   const fetchServices = async () => {
@@ -59,15 +64,52 @@ export default function AdminServicesTab() {
           'Authorization': `Bearer ${token}`
         }
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setServices(data);
+        setServicesCount(data.length);
       }
     } catch (error) {
       console.error('Erreur lors de la récupération des services:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchProductsCount = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/admin/products', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setProductsCount(data.length);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la récupération des produits:', error);
+    }
+  };
+
+  const fetchFormationsCount = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/admin/formations', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setFormationsCount(data.length);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la récupération des formations:', error);
     }
   };
 
@@ -781,21 +823,49 @@ export default function AdminServicesTab() {
   return (
     <div>
       {/* Main Tabs */}
-      <div className="flex gap-4 mb-6 border-b border-[#d4b5a0]/20">
-        <button
-          onClick={() => setMainTab('services')}
-          className={`px-4 py-3 font-medium transition-all flex items-center gap-2 ${
-            mainTab === 'services'
-              ? 'text-[#d4b5a0] border-b-2 border-[#d4b5a0]'
-              : 'text-[#2c3e50]/60 hover:text-[#2c3e50]'
-          }`}
-        >
-          <FileText className="w-5 h-5" />
-          Prestations
-        </button>
+      <div className="flex gap-4 mb-6 border-b border-[#d4b5a0]/20 overflow-x-auto">
+        {servicesCount > 0 && (
+          <button
+            onClick={() => setMainTab('services')}
+            className={`px-4 py-3 font-medium transition-all flex items-center gap-2 whitespace-nowrap ${
+              mainTab === 'services'
+                ? 'text-[#d4b5a0] border-b-2 border-[#d4b5a0]'
+                : 'text-[#2c3e50]/60 hover:text-[#2c3e50]'
+            }`}
+          >
+            <FileText className="w-5 h-5" />
+            Prestations
+          </button>
+        )}
+        {productsCount > 0 && (
+          <button
+            onClick={() => setMainTab('products')}
+            className={`px-4 py-3 font-medium transition-all flex items-center gap-2 whitespace-nowrap ${
+              mainTab === 'products'
+                ? 'text-[#d4b5a0] border-b-2 border-[#d4b5a0]'
+                : 'text-[#2c3e50]/60 hover:text-[#2c3e50]'
+            }`}
+          >
+            <Tag className="w-5 h-5" />
+            Produits
+          </button>
+        )}
+        {formationsCount > 0 && (
+          <button
+            onClick={() => setMainTab('formations')}
+            className={`px-4 py-3 font-medium transition-all flex items-center gap-2 whitespace-nowrap ${
+              mainTab === 'formations'
+                ? 'text-[#d4b5a0] border-b-2 border-[#d4b5a0]'
+                : 'text-[#2c3e50]/60 hover:text-[#2c3e50]'
+            }`}
+          >
+            <Star className="w-5 h-5" />
+            Formations
+          </button>
+        )}
         <button
           onClick={() => setMainTab('blog')}
-          className={`px-4 py-3 font-medium transition-all flex items-center gap-2 ${
+          className={`px-4 py-3 font-medium transition-all flex items-center gap-2 whitespace-nowrap ${
             mainTab === 'blog'
               ? 'text-[#d4b5a0] border-b-2 border-[#d4b5a0]'
               : 'text-[#2c3e50]/60 hover:text-[#2c3e50]'
@@ -1059,6 +1129,67 @@ export default function AdminServicesTab() {
             <ServiceForm service={editingService} onClose={() => setEditingService(null)} />
           )}
         </>
+      ) : mainTab === 'products' ? (
+        /* Products Tab Content */
+        <div className="text-center py-20">
+          <div className="max-w-2xl mx-auto">
+            <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-[#d4b5a0] to-[#c9a084] rounded-full flex items-center justify-center">
+              <Tag className="w-10 h-10 text-white" />
+            </div>
+            <h2 className="text-3xl font-bold text-[#2c3e50] mb-4">Gestion des Produits</h2>
+            <p className="text-lg text-[#2c3e50]/60 mb-8">
+              Ajoutez et gérez vos produits cosmétiques : description, prix, stock, ingrédients...
+            </p>
+            <div className="bg-[#d4b5a0]/10 rounded-xl p-6 mb-8">
+              <h3 className="font-semibold text-[#2c3e50] mb-3">Fonctionnalités disponibles :</h3>
+              <ul className="text-left space-y-2 text-[#2c3e50]/70">
+                <li>✓ Ajouter un nouveau produit avec toutes ses informations</li>
+                <li>✓ Définir le prix, prix promo et gérer le stock</li>
+                <li>✓ Ajouter des images et une description détaillée</li>
+                <li>✓ Optimisation SEO (meta title, description, keywords)</li>
+                <li>✓ Synchronisation automatique avec le site public</li>
+              </ul>
+            </div>
+            <button
+              onClick={() => alert('Fonctionnalité en cours de développement. L\'interface d\'ajout de produits sera bientôt disponible !')}
+              className="px-8 py-4 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white rounded-xl hover:shadow-lg transition-all flex items-center gap-3 mx-auto text-lg font-medium"
+            >
+              <Plus className="w-6 h-6" />
+              Ajouter mon premier produit
+            </button>
+          </div>
+        </div>
+      ) : mainTab === 'formations' ? (
+        /* Formations Tab Content */
+        <div className="text-center py-20">
+          <div className="max-w-2xl mx-auto">
+            <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-purple-500 to-purple-700 rounded-full flex items-center justify-center">
+              <Star className="w-10 h-10 text-white" />
+            </div>
+            <h2 className="text-3xl font-bold text-[#2c3e50] mb-4">Gestion des Formations</h2>
+            <p className="text-lg text-[#2c3e50]/60 mb-8">
+              Proposez vos formations professionnelles : programme, objectifs, certification...
+            </p>
+            <div className="bg-purple-50 rounded-xl p-6 mb-8">
+              <h3 className="font-semibold text-[#2c3e50] mb-3">Fonctionnalités disponibles :</h3>
+              <ul className="text-left space-y-2 text-[#2c3e50]/70">
+                <li>✓ Créer une nouvelle formation avec programme détaillé</li>
+                <li>✓ Définir la durée, le niveau (débutant/intermédiaire/avancé)</li>
+                <li>✓ Spécifier les objectifs pédagogiques et prérequis</li>
+                <li>✓ Ajouter des informations sur la certification</li>
+                <li>✓ Gérer le nombre de participants maximum</li>
+                <li>✓ Synchronisation automatique avec le site public</li>
+              </ul>
+            </div>
+            <button
+              onClick={() => alert('Fonctionnalité en cours de développement. L\'interface d\'ajout de formations sera bientôt disponible !')}
+              className="px-8 py-4 bg-gradient-to-r from-purple-500 to-purple-700 text-white rounded-xl hover:shadow-lg transition-all flex items-center gap-3 mx-auto text-lg font-medium"
+            >
+              <Plus className="w-6 h-6" />
+              Créer ma première formation
+            </button>
+          </div>
+        </div>
       ) : (
         /* Blog Tab Content */
         <AdminBlogTab />
