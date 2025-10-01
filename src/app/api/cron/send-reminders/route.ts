@@ -107,7 +107,7 @@ export async function GET(request: Request) {
 </html>`;
         
         await resend!.emails.send({
-          from: 'LAIA SKIN Institut <onboarding@resend.dev>',
+          from: process.env.RESEND_FROM_EMAIL || 'LAIA SKIN Institut <onboarding@resend.dev>',
           to: [reservation.user.email],
           subject: `📅 Rappel : Votre rendez-vous demain à ${reservation.time}`,
           html: htmlContent,
@@ -210,7 +210,7 @@ export async function GET(request: Request) {
 </html>`;
           
           await resend!.emails.send({
-            from: 'LAIA SKIN Institut <onboarding@resend.dev>',
+            from: process.env.RESEND_FROM_EMAIL || 'LAIA SKIN Institut <onboarding@resend.dev>',
             to: [reservation.user.email],
             subject: `⏰ Rappel urgent : Votre rendez-vous dans 2 heures`,
             html: htmlContent,
@@ -303,7 +303,7 @@ export async function GET(request: Request) {
 </html>`;
             
             await resend!.emails.send({
-              from: 'LAIA SKIN Institut <onboarding@resend.dev>',
+              from: process.env.RESEND_FROM_EMAIL || 'LAIA SKIN Institut <onboarding@resend.dev>',
               to: [user.email],
               subject: `🎂 Joyeux anniversaire ${user.name} ! Une surprise vous attend`,
               html: htmlContent,

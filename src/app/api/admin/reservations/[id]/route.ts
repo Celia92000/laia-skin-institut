@@ -77,13 +77,28 @@ export async function PATCH(
       // Si pas déjà compté, on incrémente
       if (!existingHistory) {
         // Déterminer si c'est un soin individuel ou un forfait
-        const services = typeof reservation.services === 'string' 
-          ? JSON.parse(reservation.services) 
-          : reservation.services;
-        
-        const packages = typeof reservation.packages === 'string'
-          ? JSON.parse(reservation.packages || '{}')
-          : reservation.packages || {};
+        let services;
+        try {
+          services = typeof reservation.services === 'string'
+            ? (reservation.services.startsWith('[') || reservation.services.startsWith('{')
+                ? JSON.parse(reservation.services)
+                : [reservation.services])
+            : reservation.services;
+        } catch (e) {
+          // Si le parsing échoue, traiter comme un simple string
+          services = [reservation.services];
+        }
+
+        let packages;
+        try {
+          packages = typeof reservation.packages === 'string'
+            ? (reservation.packages.startsWith('{')
+                ? JSON.parse(reservation.packages)
+                : {})
+            : reservation.packages || {};
+        } catch (e) {
+          packages = {};
+        }
         
         // Vérifier si c'est un forfait :
         // 1. Soit le champ packages est rempli

@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
-    if (decoded.role !== 'admin') {
+    if (decoded.role?.toLowerCase() !== 'admin') {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
 
@@ -27,23 +27,33 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Utilisateur non trouvé' }, { status: 404 });
     }
     
+    // Créer une réduction disponible dans la table Discount
+    const discount = await prisma.discount.create({
+      data: {
+        userId,
+        type: 'custom',
+        amount,
+        status: 'available',
+        originalReason: description,
+        notes: `Réduction personnalisée appliquée par admin`
+      }
+    });
+
     // Créer une entrée dans l'historique de fidélité
     await prisma.loyaltyHistory.create({
       data: {
         userId,
         action: 'discount_applied',
         points: -amount, // Négatif pour représenter une réduction
-        description
+        description: `${description} (ID: ${discount.id})`
       }
     });
-    
-    // Note: Les champs pendingDiscount et pendingDiscountReason n'existent pas dans le modèle User
-    // Pour implémenter cette fonctionnalité, il faudrait ajouter ces champs au schéma Prisma
-    // ou utiliser une table séparée pour les réductions en attente
-    console.log(`Réduction de ${amount}€ appliquée pour l'utilisateur ${userId}: ${description}`);
-    
+
+    console.log(`Réduction de ${amount}€ créée pour l'utilisateur ${userId}: ${description}`);
+
     return NextResponse.json({
       success: true,
+      discount,
       message: `Réduction de ${amount}€ appliquée avec succès`
     });
     

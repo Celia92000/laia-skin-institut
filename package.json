@@ -43,6 +43,7 @@
     "react-qr-code": "^2.0.18",
     "recharts": "^3.2.1",
     "resend": "^6.1.0",
+    "twilio": "^5.10.2",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {

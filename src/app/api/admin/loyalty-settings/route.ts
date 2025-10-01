@@ -17,12 +17,24 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
 
-    // Pour l'instant, retourner les paramètres par défaut
-    // TODO: Implémenter la persistance dans la base de données
+    // Récupérer les paramètres depuis la base de données
+    try {
+      const savedSettings = await prisma.setting.findUnique({
+        where: { key: 'loyalty_settings' }
+      });
+
+      if (savedSettings) {
+        return NextResponse.json(JSON.parse(savedSettings.value));
+      }
+    } catch (dbError) {
+      console.log('Pas de paramètres sauvegardés, utilisation des valeurs par défaut');
+    }
+
+    // Paramètres par défaut
     const defaultSettings = {
-      serviceThreshold: 6,
+      serviceThreshold: 5,    // 5ème soin = -20€
       serviceDiscount: 20,
-      packageThreshold: 4,
+      packageThreshold: 3,    // 3ème forfait = -40€
       packageDiscount: 40,
       birthdayDiscount: 10,
       referralBonus: 1,

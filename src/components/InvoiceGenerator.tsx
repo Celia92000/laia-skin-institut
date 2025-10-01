@@ -361,13 +361,45 @@ export function InvoiceButton({ reservation }: { reservation: any }) {
     };
 
     const invoiceHTML = generateInvoiceHTML(invoiceData);
+
+    // Ajouter des boutons d'action dans la facture
+    const htmlWithActions = invoiceHTML.replace(
+      '</body>',
+      `
+      <div style="position: fixed; top: 20px; right: 20px; display: flex; gap: 10px; z-index: 1000; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <button onclick="window.print()" style="padding: 10px 20px; background: #d4b5a0; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: 500;">
+          🖨️ Imprimer
+        </button>
+        <button onclick="downloadInvoice()" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: 500;">
+          📥 Télécharger
+        </button>
+        <button onclick="window.close()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: 500;">
+          ✕ Fermer
+        </button>
+      </div>
+      <script>
+        function downloadInvoice() {
+          const blob = new Blob([document.documentElement.outerHTML], { type: 'text/html' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'facture_${invoiceData.invoiceNumber}.html';
+          a.click();
+          URL.revokeObjectURL(url);
+        }
+      </script>
+      <style>
+        @media print {
+          button, div[style*="position: fixed"] { display: none !important; }
+        }
+      </style>
+      </body>`
+    );
+
     const newWindow = window.open('', '_blank');
     if (newWindow) {
-      newWindow.document.write(invoiceHTML);
+      newWindow.document.write(htmlWithActions);
       newWindow.document.close();
-      setTimeout(() => {
-        newWindow.print();
-      }, 500);
     }
   };
 
@@ -376,7 +408,7 @@ export function InvoiceButton({ reservation }: { reservation: any }) {
       onClick={handleGenerateInvoice}
       className="px-3 py-1 bg-[#d4b5a0] text-white rounded-lg hover:bg-[#c4a590] transition-colors text-sm"
     >
-      📄 Facture
+      👁️ Voir facture
     </button>
   );
 }

@@ -107,6 +107,38 @@ export async function POST(
       }
     }
 
+    // Marquer les réductions de la base de données comme utilisées
+    if (appliedDiscount && currentReservation.userId) {
+      // Trouver et marquer les réductions disponibles comme utilisées
+      const availableDiscounts = await prisma.discount.findMany({
+        where: {
+          userId: currentReservation.userId,
+          status: 'available'
+        },
+        orderBy: {
+          createdAt: 'asc'
+        }
+      });
+
+      // Marquer les réductions correspondant au montant appliqué
+      let remainingDiscount = appliedDiscount.amount;
+      for (const discount of availableDiscounts) {
+        if (remainingDiscount <= 0) break;
+
+        await prisma.discount.update({
+          where: { id: discount.id },
+          data: {
+            status: 'used',
+            usedAt: new Date(),
+            usedForReservation: id
+          }
+        });
+
+        remainingDiscount -= discount.amount;
+        console.log(`✅ Réduction ${discount.originalReason} (${discount.amount}€) marquée comme utilisée`);
+      }
+    }
+
     // Si une réduction de fidélité a été appliquée, réinitialiser les compteurs
     if (resetIndividualServicesCount || resetPackagesCount) {
       const loyaltyProfile = await prisma.loyaltyProfile.findUnique({

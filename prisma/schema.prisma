@@ -497,9 +497,13 @@ model CommunicationHistory {
 
 model Product {
   id               String   @id @default(cuid())
+  slug             String   @unique @default("")
   name             String
   description      String
   shortDescription String?
+  metaTitle        String?
+  metaDescription  String?
+  keywords         String?
   price            Float
   salePrice        Float?
   cost             Float?
@@ -522,5 +526,35 @@ model Product {
   order            Int      @default(0)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+}
+
+model Formation {
+  id                String   @id @default(cuid())
+  slug              String   @unique @default("")
+  name              String
+  shortDescription  String   @default("")
+  description       String
+  metaTitle         String?
+  metaDescription   String?
+  keywords          String?
+  price             Float
+  promoPrice        Float?
+  duration          Int      // Durée en heures
+  level             String?  // Débutant, Intermédiaire, Avancé
+  program           String?  // JSON - Programme détaillé de la formation
+  objectives        String?  // JSON - Objectifs pédagogiques
+  prerequisites     String?  // Prérequis
+  certification     String?  // Type de certification délivrée
+  maxParticipants   Int?     // Nombre max de participants
+  mainImage         String?
+  gallery           String?  // JSON
+  videoUrl          String?
+  category          String?
+  instructor        String?  // Nom du formateur
+  active            Boolean  @default(true)
+  featured          Boolean  @default(false)
+  order             Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 

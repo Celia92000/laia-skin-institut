@@ -149,7 +149,7 @@ export async function GET(request: Request) {
 </html>`;
 
         await resend!.emails.send({
-          from: 'LAIA SKIN Institut <onboarding@resend.dev>',
+          from: process.env.RESEND_FROM_EMAIL || 'LAIA SKIN Institut <onboarding@resend.dev>',
           to: [reservation.user.email],
           subject: `✨ Comment s'est passé votre soin ${serviceNames} ?`,
           html: htmlContent,
@@ -348,7 +348,7 @@ export async function POST(request: Request) {
 </html>`;
 
     await resend!.emails.send({
-      from: 'LAIA SKIN Institut <onboarding@resend.dev>',
+      from: process.env.RESEND_FROM_EMAIL || 'LAIA SKIN Institut <onboarding@resend.dev>',
       to: [reservation.user.email],
       subject: `✨ Comment s'est passé votre soin ${serviceNames} ?`,
       html: htmlContent,

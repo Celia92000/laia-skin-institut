@@ -126,18 +126,21 @@ export default function AdminComptabiliteTab({ reservations, fetchReservations }
       ? ((currentMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 
       : 0;
     
+    // Calcul correct de la TVA : TTC - (TTC / 1.20) = TVA
+    const calculateTVA = (ttc: number) => ttc - (ttc / 1.20);
+
     setStats({
-      totalRevenue: filteredData.reduce((sum, r) => sum + (r.totalPrice || 0), 0),
+      totalRevenue: filteredData.reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice || 0), 0),
       paidAmount: paidReservations.reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice || 0), 0),
       pendingAmount: pendingReservations.reduce((sum, r) => sum + (r.totalPrice || 0), 0),
-      taxAmount: paidReservations.reduce((sum, r) => sum + ((r.paymentAmount || r.totalPrice || 0) * 0.20), 0),
+      taxAmount: paidReservations.reduce((sum, r) => sum + calculateTVA(r.paymentAmount || r.totalPrice || 0), 0),
       servicesCount: filteredData.length,
-      averageTicket: filteredData.length > 0 ? 
-        filteredData.reduce((sum, r) => sum + (r.totalPrice || 0), 0) / filteredData.length : 0,
+      averageTicket: filteredData.length > 0 ?
+        filteredData.reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice || 0), 0) / filteredData.length : 0,
       clientsCount: uniqueClients,
       recurringRate: uniqueClients > 0 ? (recurringClients.length / uniqueClients) * 100 : 0,
-      vatCollected: paidReservations.reduce((sum, r) => sum + ((r.paymentAmount || r.totalPrice || 0) * 0.20 / 1.20), 0),
-      vatDue: filteredData.reduce((sum, r) => sum + ((r.totalPrice || 0) * 0.20 / 1.20), 0),
+      vatCollected: paidReservations.reduce((sum, r) => sum + calculateTVA(r.paymentAmount || r.totalPrice || 0), 0),
+      vatDue: filteredData.reduce((sum, r) => sum + calculateTVA(r.totalPrice || 0), 0),
       monthlyGrowth,
       yearlyGrowth: 0
     });
@@ -145,34 +148,43 @@ export default function AdminComptabiliteTab({ reservations, fetchReservations }
 
   const exportToExcel = () => {
     const headers = [
-      'Date', 
+      'Date',
       'N° Facture',
-      'Client', 
+      'Client',
       'Email',
       'Téléphone',
-      'Services', 
-      'Montant HT', 
-      'TVA 20%', 
-      'Montant TTC', 
+      'Services',
+      'Réductions',
+      'Montant HT',
+      'TVA 20%',
+      'Montant TTC',
       'Statut paiement',
       'Mode de paiement',
       'Date de paiement'
     ];
-    
-    const rows = reservations.map(r => ({
-      'Date': new Date(r.date).toLocaleDateString('fr-FR'),
-      'N° Facture': r.invoiceNumber || generateInvoiceNumber(new Date(r.date)),
-      'Client': r.userName || 'Client',
-      'Email': r.userEmail || '',
-      'Téléphone': r.phone || '',
-      'Services': Array.isArray(r.services) ? r.services.join(', ') : r.services || '',
-      'Montant HT': (r.totalPrice / 1.20).toFixed(2),
-      'TVA 20%': (r.totalPrice * 0.20 / 1.20).toFixed(2),
-      'Montant TTC': r.totalPrice?.toFixed(2) || '0',
-      'Statut paiement': r.paymentStatus === 'paid' ? 'Payé' : 'En attente',
-      'Mode de paiement': r.paymentMethod || '',
-      'Date de paiement': r.paymentStatus === 'paid' ? new Date(r.paymentDate || r.createdAt).toLocaleDateString('fr-FR') : ''
-    }));
+
+    // Exporter uniquement les réservations filtrées
+    const rows = filteredReservations.map(r => {
+      const montantTTC = r.paymentAmount || r.totalPrice || 0;
+      const montantHT = montantTTC / 1.20;
+      const montantTVA = montantTTC - montantHT;
+
+      return {
+        'Date': new Date(r.date).toLocaleDateString('fr-FR'),
+        'N° Facture': r.invoiceNumber || generateInvoiceNumber(new Date(r.date), r.id),
+        'Client': r.userName || 'Client',
+        'Email': r.userEmail || '',
+        'Téléphone': r.phone || '',
+        'Services': Array.isArray(r.services) ? r.services.join(', ') : r.services || '',
+        'Réductions': r.appliedDiscounts ? JSON.stringify(r.appliedDiscounts) : '',
+        'Montant HT': montantHT.toFixed(2),
+        'TVA 20%': montantTVA.toFixed(2),
+        'Montant TTC': montantTTC.toFixed(2),
+        'Statut paiement': r.paymentStatus === 'paid' ? 'Payé' : 'En attente',
+        'Mode de paiement': r.paymentMethod || '',
+        'Date de paiement': r.paymentStatus === 'paid' ? new Date(r.paymentDate || r.createdAt).toLocaleDateString('fr-FR') : ''
+      };
+    });
     
     const csv = generateCSVExport(rows, headers);
     downloadFile(csv, `comptabilite_laia_${new Date().toISOString().split('T')[0]}.csv`, 'text/csv;charset=utf-8;');
@@ -198,19 +210,24 @@ export default function AdminComptabiliteTab({ reservations, fetchReservations }
     let cumulTTC = 0;
     
     const rows = paidReservations
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .sort((a, b) => {
+        // Trier par date de paiement (la plus récente en premier), puis par date de réservation
+        const dateA = a.paymentDate ? new Date(a.paymentDate).getTime() : new Date(a.date).getTime();
+        const dateB = b.paymentDate ? new Date(b.paymentDate).getTime() : new Date(b.date).getTime();
+        return dateB - dateA;
+      })
       .map(r => {
-        const ht = r.totalPrice / 1.20;
-        const tva = r.totalPrice * 0.20 / 1.20;
-        const ttc = r.totalPrice;
-        
+        const ttc = r.paymentAmount || r.totalPrice || 0;
+        const ht = ttc / 1.20;
+        const tva = ttc - ht;
+
         cumulHT += ht;
         cumulTVA += tva;
         cumulTTC += ttc;
-        
+
         return {
           'Date': new Date(r.date).toLocaleDateString('fr-FR'),
-          'N° Pièce': r.invoiceNumber || generateInvoiceNumber(new Date(r.date)),
+          'N° Pièce': r.invoiceNumber || generateInvoiceNumber(new Date(r.date), r.id),
           'Client': r.userName || 'Client',
           'Mode de règlement': r.paymentMethod || 'CB',
           'Montant HT': ht.toFixed(2),
@@ -259,8 +276,13 @@ N° TVA Intracommunautaire: FR12 345678900`;
   };
 
   const generateInvoice = (reservation: any) => {
+    // Utiliser paymentAmount si disponible (montant réellement payé avec réductions)
+    const montantTTC = reservation.paymentAmount || reservation.totalPrice || 0;
+    const montantHT = montantTTC / 1.20;
+    const montantTVA = montantTTC - montantHT;
+
     const invoice = {
-      invoiceNumber: reservation.invoiceNumber || generateInvoiceNumber(new Date(reservation.date)),
+      invoiceNumber: reservation.invoiceNumber || generateInvoiceNumber(new Date(reservation.date), reservation.id),
       date: new Date(reservation.date),
       client: {
         name: reservation.userName || 'Client',
@@ -268,27 +290,27 @@ N° TVA Intracommunautaire: FR12 345678900`;
         phone: reservation.phone,
         address: ''
       },
-      services: Array.isArray(reservation.services) 
+      services: Array.isArray(reservation.services)
         ? reservation.services.map((s: string) => ({
             name: s,
             quantity: 1,
-            unitPrice: reservation.totalPrice / reservation.services.length / 1.20,
+            unitPrice: montantHT / reservation.services.length,
             vatRate: 20
           }))
         : [{
             name: reservation.services || 'Prestation',
             quantity: 1,
-            unitPrice: reservation.totalPrice / 1.20,
+            unitPrice: montantHT,
             vatRate: 20
           }],
-      totalHT: reservation.totalPrice / 1.20,
-      totalVAT: reservation.totalPrice * 0.20 / 1.20,
-      totalTTC: reservation.totalPrice,
+      totalHT: montantHT,
+      totalVAT: montantTVA,
+      totalTTC: montantTTC,
       paymentMethod: reservation.paymentMethod || 'CB',
       paymentStatus: reservation.paymentStatus as 'paid' | 'pending',
       notes: reservation.notes
     };
-    
+
     setCurrentInvoice(invoice);
     setShowInvoiceModal(true);
   };
@@ -302,26 +324,67 @@ N° TVA Intracommunautaire: FR12 345678900`;
   const printInvoice = () => {
     if (!currentInvoice) return;
     const html = formatInvoiceHTML(currentInvoice);
+
+    // Ajouter des boutons d'action dans la facture
+    const htmlWithActions = html.replace(
+      '</body>',
+      `
+      <div style="position: fixed; top: 20px; right: 20px; display: flex; gap: 10px; z-index: 1000; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <button onclick="window.print()" style="padding: 10px 20px; background: #d4b5a0; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: 500;">
+          🖨️ Imprimer
+        </button>
+        <button onclick="downloadInvoice()" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: 500;">
+          📥 Télécharger
+        </button>
+        <button onclick="window.close()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: 500;">
+          ✕ Fermer
+        </button>
+      </div>
+      <script>
+        function downloadInvoice() {
+          const blob = new Blob([document.documentElement.outerHTML], { type: 'text/html' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'facture_${currentInvoice.invoiceNumber}.html';
+          a.click();
+          URL.revokeObjectURL(url);
+        }
+      </script>
+      <style>
+        @media print {
+          button, div[style*="position: fixed"] { display: none !important; }
+        }
+      </style>
+      </body>`
+    );
+
     const printWindow = window.open('', '_blank');
     if (printWindow) {
-      printWindow.document.write(html);
+      printWindow.document.write(htmlWithActions);
       printWindow.document.close();
-      printWindow.print();
     }
   };
 
-  const filteredReservations = reservations.filter(r => {
-    const matchesSearch = searchTerm === '' ||
-      r.userName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      r.userEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      r.invoiceNumber?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = filterStatus === 'all' ||
-      (filterStatus === 'paid' && r.paymentStatus === 'paid') ||
-      (filterStatus === 'pending' && r.paymentStatus !== 'paid');
-    
-    return matchesSearch && matchesStatus;
-  });
+  const filteredReservations = reservations
+    .filter(r => {
+      const matchesSearch = searchTerm === '' ||
+        r.userName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        r.userEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        r.invoiceNumber?.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesStatus = filterStatus === 'all' ||
+        (filterStatus === 'paid' && r.paymentStatus === 'paid') ||
+        (filterStatus === 'pending' && r.paymentStatus !== 'paid');
+
+      return matchesSearch && matchesStatus;
+    })
+    .sort((a, b) => {
+      // Trier par date de paiement (plus récent en premier), puis par date de mise à jour
+      const dateA = a.paymentDate ? new Date(a.paymentDate).getTime() : new Date(a.updatedAt || a.date).getTime();
+      const dateB = b.paymentDate ? new Date(b.paymentDate).getTime() : new Date(b.updatedAt || b.date).getTime();
+      return dateB - dateA;
+    });
 
   const toggleSection = (section: keyof typeof expandedSections) => {
     setExpandedSections(prev => ({
@@ -677,7 +740,10 @@ N° TVA Intracommunautaire: FR12 345678900`;
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
                           <button
-                            onClick={() => generateInvoice(reservation)}
+                            onClick={() => {
+                              generateInvoice(reservation);
+                              setTimeout(printInvoice, 100);
+                            }}
                             className="p-1 text-gray-400 hover:text-blue-600"
                             title="Voir"
                           >

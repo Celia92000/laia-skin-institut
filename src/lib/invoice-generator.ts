@@ -21,12 +21,21 @@ export interface InvoiceData {
   notes?: string;
 }
 
-export function generateInvoiceNumber(date: Date = new Date()): string {
+export function generateInvoiceNumber(date: Date = new Date(), reservationId?: string): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
+
+  // Si on a un ID de réservation, utiliser les 4 derniers caractères pour un numéro unique
+  if (reservationId) {
+    const uniqueId = reservationId.slice(-4).toUpperCase();
+    return `LAIA-${year}${month}-${uniqueId}`;
+  }
+
+  // Sinon, générer un numéro séquentiel basé sur la date et l'heure
   const day = String(date.getDate()).padStart(2, '0');
-  const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-  return `LAIA-${year}${month}${day}-${random}`;
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `LAIA-${year}${month}${day}-${hours}${minutes}`;
 }
 
 export function calculateInvoiceTotals(services: InvoiceData['services']) {
@@ -82,8 +91,7 @@ export function formatInvoiceHTML(invoice: InvoiceData): string {
       TVA: FR12 345678900</p>
     </div>
     <div class="invoice-info">
-      <h1>FACTURE</h1>
-      <p><strong>N°:</strong> ${invoice.invoiceNumber}<br>
+      <p><strong>Facture N°:</strong> ${invoice.invoiceNumber}<br>
       <strong>Date:</strong> ${formattedDate}<br>
       <span class="${invoice.paymentStatus === 'paid' ? 'paid-stamp' : 'pending-stamp'}">
         ${invoice.paymentStatus === 'paid' ? 'PAYÉE' : 'EN ATTENTE'}

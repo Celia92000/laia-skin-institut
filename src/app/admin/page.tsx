@@ -1087,6 +1087,33 @@ export default function AdminDashboard() {
           >
             CRM Clients
           </button>
+          {/* Emailing et WhatsApp après CRM */}
+          {(userRole === 'ADMIN' || userRole === 'admin') && (
+            <>
+              <button
+                onClick={() => setActiveTab("emailing")}
+                className={`px-3 sm:px-6 py-2 sm:py-3 rounded-full font-medium transition-all whitespace-nowrap flex-shrink-0 text-sm sm:text-base ${
+                  activeTab === "emailing"
+                    ? "bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white shadow-lg"
+                    : "bg-white text-[#2c3e50] hover:shadow-md"
+                }`}
+              >
+                <Mail className="w-4 h-4 inline mr-2" />
+                Emailing
+              </button>
+              <button
+                onClick={() => setActiveTab("whatsapp")}
+                className={`px-3 sm:px-6 py-2 sm:py-3 rounded-full font-medium transition-all whitespace-nowrap flex-shrink-0 text-sm sm:text-base ${
+                  activeTab === "whatsapp"
+                    ? "bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white shadow-lg"
+                    : "bg-white text-[#2c3e50] hover:shadow-md"
+                }`}
+              >
+                <MessageCircle className="w-4 h-4 inline mr-2" />
+                WhatsApp
+              </button>
+            </>
+          )}
           {/* Services et Produits - uniquement pour ADMIN */}
           {(userRole === 'ADMIN' || userRole === 'admin') && (
             <>
@@ -1125,28 +1152,6 @@ export default function AdminDashboard() {
               >
                 <Euro className="w-4 h-4 inline mr-2" />
                 Comptabilité
-              </button>
-              <button
-                onClick={() => setActiveTab("emailing")}
-                className={`px-3 sm:px-6 py-2 sm:py-3 rounded-full font-medium transition-all whitespace-nowrap flex-shrink-0 text-sm sm:text-base ${
-                  activeTab === "emailing"
-                    ? "bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white shadow-lg"
-                    : "bg-white text-[#2c3e50] hover:shadow-md"
-                }`}
-              >
-                <Mail className="w-4 h-4 inline mr-2" />
-                Emailing
-              </button>
-              <button
-                onClick={() => setActiveTab("whatsapp")}
-                className={`px-3 sm:px-6 py-2 sm:py-3 rounded-full font-medium transition-all whitespace-nowrap flex-shrink-0 text-sm sm:text-base ${
-                  activeTab === "whatsapp"
-                    ? "bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white shadow-lg"
-                    : "bg-white text-[#2c3e50] hover:shadow-md"
-                }`}
-              >
-                <MessageCircle className="w-4 h-4 inline mr-2" />
-                WhatsApp
               </button>
             </>
           )}

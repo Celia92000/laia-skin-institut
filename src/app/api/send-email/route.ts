@@ -122,8 +122,9 @@ export async function POST(request: NextRequest) {
 
     try {
       // Envoyer l'email avec Resend
+      const fromEmail = process.env.RESEND_FROM_EMAIL || 'LAIA SKIN Institut <onboarding@resend.dev>';
       const data = await resend.emails.send({
-        from: 'LAIA SKIN Institut <onboarding@resend.dev>', // Domaine de test gratuit de Resend
+        from: fromEmail,
         to: [to],
         subject: subject,
         html: htmlContent,

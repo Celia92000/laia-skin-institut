@@ -16,7 +16,9 @@ export async function PUT(
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
-    if (decoded.role !== 'admin') {
+    console.log('🔐 Token décodé:', { role: decoded.role, userId: decoded.userId });
+    if (decoded.role?.toLowerCase() !== 'admin') {
+      console.log('❌ Accès refusé - rôle:', decoded.role);
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
 

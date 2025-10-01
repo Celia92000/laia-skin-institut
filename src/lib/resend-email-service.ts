@@ -201,8 +201,9 @@ WhatsApp : 06 83 71 70 50
 Instagram : @laia.skin`;
 
     // Envoyer l'email via Resend
+    const fromEmail = process.env.RESEND_FROM_EMAIL || 'LAIA SKIN Institut <onboarding@resend.dev>';
     const { data: emailData, error } = await resend.emails.send({
-      from: 'LAIA SKIN Institut <onboarding@resend.dev>', // Temporaire en attendant validation domaine
+      from: fromEmail,
       to: [data.to],
       subject: `✨ Confirmation RDV - ${data.date} à ${data.time}`,
       html: htmlContent,

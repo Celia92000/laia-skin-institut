@@ -30,10 +30,51 @@ export default function PaymentSectionEnhanced({ reservation, loyaltyProfiles, r
   const [manualDiscountReason, setManualDiscountReason] = useState('');
   const [availableReferralRewards, setAvailableReferralRewards] = useState(0);
   const [loadingReferrals, setLoadingReferrals] = useState(true);
-  
+  const [databaseDiscounts, setDatabaseDiscounts] = useState<any[]>([]);
+  const [loadingDiscounts, setLoadingDiscounts] = useState(true);
+
   // Trouver le profil de fidélité du client
   const userProfile = loyaltyProfiles.find(p => p.user.email === reservation.userEmail);
-  
+
+  // Charger les réductions depuis la base de données
+  useEffect(() => {
+    const loadDiscounts = async () => {
+      if (!reservation.userId) return;
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/admin/discounts?userId=${reservation.userId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          const discounts = await response.json();
+          const availableDiscounts = discounts.filter((d: any) => d.status === 'available');
+          setDatabaseDiscounts(availableDiscounts);
+
+          // Auto-appliquer les réductions de la base de données
+          if (availableDiscounts.length > 0) {
+            const autoAppliedDiscounts = availableDiscounts.map((d: any) => ({
+              type: 'manual' as const,
+              amount: d.amount,
+              description: d.originalReason || `Réduction ${d.type}`,
+              icon: Gift,
+              color: 'bg-orange-500',
+              automatic: false
+            }));
+            setAppliedDiscounts(prev => [...prev, ...autoAppliedDiscounts]);
+          }
+        }
+      } catch (error) {
+        console.error('Erreur chargement réductions:', error);
+      } finally {
+        setLoadingDiscounts(false);
+      }
+    };
+
+    loadDiscounts();
+  }, [reservation.userId]);
+
   // Calculer les réductions disponibles
   const availableDiscounts: AvailableDiscount[] = [];
   
@@ -77,11 +118,76 @@ export default function PaymentSectionEnhanced({ reservation, loyaltyProfiles, r
     }
   }
 
+  // Ajouter les réductions de la base de données
+  databaseDiscounts.forEach(discount => {
+    availableDiscounts.push({
+      type: 'manual',
+      amount: discount.amount,
+      description: discount.originalReason || `Réduction ${discount.type}`,
+      icon: Gift,
+      color: 'bg-orange-500',
+      automatic: false
+    });
+  });
+
+  // Auto-appliquer les réductions automatiques au chargement
+  useEffect(() => {
+    // Ne le faire qu'une fois au chargement du composant
+    if (appliedDiscounts.length > 0 || !userProfile) return;
+
+    const autoDiscounts: AvailableDiscount[] = [];
+
+    // 5 soins individuels = -20€
+    if (userProfile.individualServicesCount >= 5) {
+      autoDiscounts.push({
+        type: 'individual',
+        amount: 20,
+        description: '5 soins réalisés',
+        icon: Gift,
+        color: 'bg-[#d4b5a0]',
+        automatic: true
+      });
+    }
+
+    // 3 forfaits = -40€
+    if (userProfile.packagesCount >= 3) {
+      autoDiscounts.push({
+        type: 'package',
+        amount: 40,
+        description: '3 forfaits achetés',
+        icon: Star,
+        color: 'bg-purple-500',
+        automatic: true
+      });
+    }
+
+    // Anniversaire = -10€
+    if (userProfile.user.birthDate) {
+      const birthDate = new Date(userProfile.user.birthDate);
+      const today = new Date();
+      if (birthDate.getMonth() === today.getMonth()) {
+        autoDiscounts.push({
+          type: 'birthday',
+          amount: 10,
+          description: `Anniversaire (${birthDate.getDate()}/${birthDate.getMonth() + 1})`,
+          icon: Cake,
+          color: 'bg-pink-500',
+          automatic: true
+        });
+      }
+    }
+
+    // Appliquer automatiquement ces réductions
+    if (autoDiscounts.length > 0) {
+      setAppliedDiscounts(autoDiscounts);
+    }
+  }, [userProfile]);
+
   // Charger les récompenses de parrainage disponibles
   useEffect(() => {
     const fetchReferralRewards = async () => {
       if (!userProfile) return;
-      
+
       try {
         const token = localStorage.getItem('token');
         const response = await fetch('/api/referral/available', {
@@ -98,7 +204,7 @@ export default function PaymentSectionEnhanced({ reservation, loyaltyProfiles, r
         if (response.ok) {
           const data = await response.json();
           setAvailableReferralRewards(data.totalAmount || 0);
-          
+
           // Ajouter les réductions de parrainage disponibles
           if (data.rewards && data.rewards.length > 0) {
             data.rewards.forEach((reward: any) => {

@@ -22,8 +22,8 @@ export default function PaymentSection({ reservation, loyaltyProfiles, recordPay
   
   // Trouver le profil de fidélité du client
   const userProfile = loyaltyProfiles.find(p => p.user.email === reservation.userEmail);
-  const hasIndividualDiscount = userProfile && userProfile.individualServicesCount >= 5 && (userProfile.individualServicesCount + 1) % 6 === 0;
-  const hasPackageDiscount = userProfile && userProfile.packagesCount >= 3 && (userProfile.packagesCount + 1) % 4 === 0;
+  const hasIndividualDiscount = userProfile && userProfile.individualServicesCount >= 5;  // 5ème soin = réduction
+  const hasPackageDiscount = userProfile && userProfile.packagesCount >= 3;  // 3ème forfait = réduction
   const isBirthday = userProfile && userProfile.user.birthDate && 
     new Date(userProfile.user.birthDate).getMonth() === new Date().getMonth() &&
     new Date(userProfile.user.birthDate).getDate() === new Date().getDate();

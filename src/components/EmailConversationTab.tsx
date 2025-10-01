@@ -115,12 +115,12 @@ export default function EmailConversationTab() {
 
   const sendReply = async () => {
     if (!selectedConversation || !replyContent.trim()) return;
-    
+
     setSending(true);
     try {
       const lastEmail = selectedConversation.lastMessage;
       const replyTo = lastEmail.direction === 'incoming' ? lastEmail.from : lastEmail.to;
-      
+
       const response = await fetch('/api/admin/emails/reply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -133,7 +133,16 @@ export default function EmailConversationTab() {
 
       if (response.ok) {
         setReplyContent('');
+        // Sauvegarder l'ID de la conversation actuelle
+        const currentConvId = selectedConversation.id;
         await loadEmails();
+        // Forcer la mise à jour après un court délai pour laisser le temps aux conversations de se reconstruire
+        setTimeout(() => {
+          const updatedConv = conversations.find(c => c.id === currentConvId);
+          if (updatedConv) {
+            setSelectedConversation(updatedConv);
+          }
+        }, 100);
       } else {
         alert('Erreur lors de l\'envoi de l\'email');
       }

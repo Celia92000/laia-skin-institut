@@ -211,9 +211,10 @@ export async function GET(request: NextRequest) {
           }
         }
       },
-      orderBy: {
-        date: 'desc'
-      }
+      orderBy: [
+        { updatedAt: 'desc' },
+        { date: 'desc' }
+      ]
     });
     } catch (dbError) {
       console.error('Erreur de connexion à la DB pour les réservations:', dbError);
