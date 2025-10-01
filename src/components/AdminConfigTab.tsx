@@ -451,6 +451,88 @@ export default function AdminConfigTab() {
                 placeholder="https://exemple.com/favicon.ico"
               />
             </div>
+
+            <div className="mt-8 pt-8 border-t border-gray-200">
+              <h4 className="text-md font-semibold text-[#2c3e50] mb-4">Typographie</h4>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Police principale
+                  </label>
+                  <select
+                    value={config.fontFamily || 'Inter'}
+                    onChange={(e) => setConfig({ ...config, fontFamily: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4b5a0] focus:border-transparent"
+                  >
+                    <option value="Inter">Inter (par défaut)</option>
+                    <option value="Arial">Arial</option>
+                    <option value="Helvetica">Helvetica</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Times New Roman">Times New Roman</option>
+                    <option value="Roboto">Roboto</option>
+                    <option value="Open Sans">Open Sans</option>
+                    <option value="Lato">Lato</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Police des titres
+                  </label>
+                  <select
+                    value={config.headingFont || 'Playfair Display'}
+                    onChange={(e) => setConfig({ ...config, headingFont: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4b5a0] focus:border-transparent"
+                  >
+                    <option value="Playfair Display">Playfair Display (par défaut)</option>
+                    <option value="Merriweather">Merriweather</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Lora">Lora</option>
+                    <option value="Montserrat">Montserrat</option>
+                    <option value="Poppins">Poppins</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Taille de texte de base
+                  </label>
+                  <select
+                    value={config.baseFontSize || '16px'}
+                    onChange={(e) => setConfig({ ...config, baseFontSize: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4b5a0] focus:border-transparent"
+                  >
+                    <option value="14px">Petite (14px)</option>
+                    <option value="16px">Normale (16px) - par défaut</option>
+                    <option value="18px">Grande (18px)</option>
+                    <option value="20px">Très grande (20px)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Taille des titres
+                  </label>
+                  <select
+                    value={config.headingSize || '2.5rem'}
+                    onChange={(e) => setConfig({ ...config, headingSize: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4b5a0] focus:border-transparent"
+                  >
+                    <option value="2rem">Petite (2rem)</option>
+                    <option value="2.5rem">Normale (2.5rem) - par défaut</option>
+                    <option value="3rem">Grande (3rem)</option>
+                    <option value="3.5rem">Très grande (3.5rem)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <p className="text-sm text-blue-800">
+                  💡 <strong>Aperçu :</strong> Les changements de typographie s'appliqueront immédiatement après sauvegarde.
+                </p>
+              </div>
+            </div>
           </div>
         )}
 

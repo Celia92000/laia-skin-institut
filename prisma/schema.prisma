@@ -328,6 +328,12 @@ model SiteConfig {
   logoUrl           String?
   faviconUrl        String?
 
+  // Typographie
+  fontFamily        String?  @default("Inter") // Police principale
+  headingFont       String?  @default("Playfair Display") // Police des titres
+  baseFontSize      String?  @default("16px") // Taille de base
+  headingSize       String?  @default("2.5rem") // Taille des titres
+
   // Horaires (JSON)
   businessHours     String?  // {"lundi": "9h-18h", "mardi": "9h-18h", ...}
 

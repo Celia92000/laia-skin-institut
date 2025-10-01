@@ -66,6 +66,22 @@ export function useConfig() {
         if (data.accentColor) {
           document.documentElement.style.setProperty('--color-accent', data.accentColor);
         }
+
+        // Appliquer la typographie
+        if (data.fontFamily) {
+          document.documentElement.style.setProperty('--font-family', data.fontFamily);
+          document.body.style.fontFamily = data.fontFamily;
+        }
+        if (data.headingFont) {
+          document.documentElement.style.setProperty('--font-heading', data.headingFont);
+        }
+        if (data.baseFontSize) {
+          document.documentElement.style.setProperty('--font-size-base', data.baseFontSize);
+          document.documentElement.style.fontSize = data.baseFontSize;
+        }
+        if (data.headingSize) {
+          document.documentElement.style.setProperty('--font-size-heading', data.headingSize);
+        }
       }
     } catch (error) {
       console.error('Erreur lors du chargement de la configuration:', error);
