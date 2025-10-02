@@ -4,11 +4,50 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
-// Créer une instance Prisma avec pool de connexions optimisé
+// Créer une instance Prisma avec pool de connexions optimisé pour Supabase free tier
 const createPrismaClient = () => {
   return new PrismaClient({
     log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
-    errorFormat: 'minimal'
+    errorFormat: 'minimal',
+    datasources: {
+      db: {
+        url: process.env.DATABASE_URL
+      }
+    }
+  }).$extends({
+    query: {
+      async $allOperations({ operation, model, args, query }) {
+        const start = performance.now();
+        let retries = 3;
+        let lastError;
+
+        while (retries > 0) {
+          try {
+            return await query(args);
+          } catch (error: any) {
+            lastError = error;
+            // Si le moteur n'est pas connecté ou la réponse est vide, réessayer
+            if (error.message?.includes('Engine is not yet connected') ||
+                error.message?.includes('Response from the Engine was empty')) {
+              retries--;
+              if (retries > 0) {
+                // Attendre un peu avant de réessayer (backoff exponentiel)
+                await new Promise(resolve => setTimeout(resolve, (4 - retries) * 100));
+                continue;
+              }
+            }
+            throw error;
+          } finally {
+            const end = performance.now();
+            if (end - start > 1000) {
+              console.warn(`Slow query: ${model}.${operation} took ${end - start}ms`);
+            }
+          }
+        }
+
+        throw lastError;
+      }
+    }
   });
 };
 

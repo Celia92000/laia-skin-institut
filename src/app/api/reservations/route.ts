@@ -9,7 +9,7 @@ export async function POST(request: Request) {
   try {
     const prisma = await getPrismaClient();
     const body = await request.json();
-    const { services, packages, date, time, notes, totalPrice, clientInfo } = body;
+    const { services, packages, date, time, notes, totalPrice, clientInfo, rescheduleId } = body;
     
     // Validation : vérifier qu'il y a au moins un service
     if (!services || !Array.isArray(services) || services.length === 0) {
@@ -107,10 +107,14 @@ export async function POST(request: Request) {
     // Ajouter 15 minutes de préparation
     totalDurationMinutes += 15;
 
+    // Normaliser la date à minuit pour la comparaison
+    const normalizedDate = new Date(date);
+    normalizedDate.setHours(0, 0, 0, 0);
+
     // Vérifier qu'il n'y a pas déjà une réservation à ce créneau
     const existingReservation = await prisma.reservation.findFirst({
       where: {
-        date: new Date(date),
+        date: normalizedDate,
         time: time,
         status: {
           notIn: ['cancelled'] // Exclure seulement les réservations annulées
@@ -127,7 +131,7 @@ export async function POST(request: Request) {
     // Vérifier les conflits avec les autres réservations
     const allReservations = await prisma.reservation.findMany({
       where: {
-        date: new Date(date),
+        date: normalizedDate,
         status: {
           notIn: ['cancelled']
         }
@@ -238,13 +242,26 @@ export async function POST(request: Request) {
         services: JSON.stringify(services),
         packages: packages ? JSON.stringify(packages) : '{}',
         isSubscription,
-        date: new Date(date),
+        date: normalizedDate, // Utiliser la date normalisée
         time,
         notes,
         totalPrice: finalPrice,
-        status: 'pending' // Toujours en attente de validation admin
+        status: 'pending', // Toujours en attente de validation admin
+        ...(rescheduleId && { rescheduledFrom: rescheduleId }) // Ajouter la référence si c'est une reprogrammation
       }
     });
+
+    // Si c'est une reprogrammation, annuler l'ancienne réservation et mettre à jour les références
+    if (rescheduleId) {
+      await prisma.reservation.update({
+        where: { id: rescheduleId },
+        data: {
+          status: 'cancelled',
+          rescheduledTo: reservation.id,
+          rescheduledAt: new Date()
+        }
+      });
+    }
     
     // Créer ou mettre à jour le profil de fidélité pour ce client
     await prisma.loyaltyProfile.upsert({
@@ -263,7 +280,17 @@ export async function POST(request: Request) {
     // Envoyer une notification WhatsApp à l'admin
     const adminPhone = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+33683717050';
     if (user) {
-      const adminMessage = `🔔 *Nouvelle réservation à valider*\n\n` +
+      const adminMessage = rescheduleId ?
+        `🔄 *Reprogrammation de rendez-vous*\n\n` +
+        `Client: ${user.name}\n` +
+        `Nouvelle date: ${new Date(date).toLocaleDateString('fr-FR')}\n` +
+        `Nouvelle heure: ${time}\n` +
+        `Services: ${services.join(', ')}\n` +
+        `Total: ${totalPrice}€\n\n` +
+        `⚠️ L'ancien rendez-vous a été automatiquement annulé.\n\n` +
+        `Connectez-vous pour valider: https://laiaskin.fr/admin`
+        :
+        `🔔 *Nouvelle réservation à valider*\n\n` +
         `Client: ${user.name}\n` +
         `Date: ${new Date(date).toLocaleDateString('fr-FR')}\n` +
         `Heure: ${time}\n` +

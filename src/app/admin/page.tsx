@@ -28,6 +28,7 @@ import RealTimeStats from "@/components/admin/RealTimeStats";
 import DynamicCharts from "@/components/admin/DynamicCharts";
 import DataExport from "@/components/admin/DataExport";
 import ObjectivesSettings from "@/components/ObjectivesSettings";
+import { checkAndCleanAuth, getAuthToken, clearAuthData } from '@/lib/auth-utils';
 import ReservationTableAdvanced from "@/components/ReservationTableAdvanced";
 import QuickBlockManagerEnhanced from "@/components/QuickBlockManagerEnhanced";
 import QuickActionModal from "@/components/QuickActionModal";
@@ -137,15 +138,30 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     const checkAuth = () => {
-      const token = localStorage.getItem('token');
+      // Nettoyer les tokens invalides automatiquement
+      if (!checkAndCleanAuth()) {
+        router.push('/login');
+        return;
+      }
+
+      const token = getAuthToken();
       const user = localStorage.getItem('user');
-      
+
       if (!token || !user) {
         router.push('/login');
         return;
       }
 
-      const userInfo = JSON.parse(user);
+      let userInfo;
+      try {
+        userInfo = JSON.parse(user);
+      } catch (error) {
+        console.error('Erreur parsing user data:', error);
+        clearAuthData();
+        router.push('/login');
+        return;
+      }
+
       // Autoriser admin ET employés
       if (userInfo.role !== 'admin' && userInfo.role !== 'ADMIN' && userInfo.role !== 'EMPLOYEE') {
         router.push('/espace-client');
@@ -163,11 +179,15 @@ export default function AdminDashboard() {
         setActiveTab(tabParam);
       }
 
-      fetchReservations();
-      fetchClients();
-      fetchLoyaltyProfiles();
-      fetchServices();
-      fetchReviewStatistics();
+      // Charger séquentiellement pour éviter de saturer la connection pool (1 seule connexion Supabase)
+      const loadData = async () => {
+        await fetchReservations();
+        await fetchClients();
+        await fetchServices();
+        await fetchLoyaltyProfiles();
+        await fetchReviewStatistics();
+      };
+      loadData();
     };
 
     checkAuth();
@@ -182,10 +202,10 @@ export default function AdminDashboard() {
     // Exposer la fonction de mise à jour pour les composants enfants
     (window as any).updateLoyaltyProfiles = setLoyaltyProfiles;
     
-    // Rafraîchir les réservations toutes les 30 secondes pour vérifier les nouvelles
+    // Rafraîchir les réservations toutes les 2 minutes (au lieu de 30s) pour réduire la charge DB
     const interval = setInterval(() => {
       fetchReservations();
-    }, 30000);
+    }, 120000); // 2 minutes
     
     return () => {
       clearInterval(interval);
@@ -216,6 +236,17 @@ export default function AdminDashboard() {
 
   const fetchServices = async () => {
     try {
+      // Cache des services pendant 5 minutes (ils changent rarement)
+      const cachedServices = localStorage.getItem('cachedServices');
+      const cacheTime = localStorage.getItem('cachedServicesTime');
+      const now = Date.now();
+
+      if (cachedServices && cacheTime && (now - parseInt(cacheTime) < 5 * 60 * 1000)) {
+        const data = JSON.parse(cachedServices);
+        setDbServices(data);
+        return;
+      }
+
       const token = localStorage.getItem('token');
       const response = await fetch('/api/services', {
         headers: {
@@ -234,6 +265,10 @@ export default function AdminDashboard() {
           duration: Number(s.duration),
           active: Boolean(s.active)
         }));
+
+        // Mettre en cache
+        localStorage.setItem('cachedServices', JSON.stringify(cleanedData));
+        localStorage.setItem('cachedServicesTime', now.toString());
         setDbServices(cleanedData);
       }
     } catch (error) {
@@ -243,18 +278,27 @@ export default function AdminDashboard() {
 
   const fetchReservations = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getAuthToken();
       if (!token) {
-        console.error('Pas de token d\'authentification');
+        console.error('Token invalide ou expiré');
+        clearAuthData();
+        router.push('/login');
         return;
       }
-      
+
       const response = await fetch('/api/admin/reservations', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
+
+      if (response.status === 401) {
+        console.error('Non autorisé - redirection vers login');
+        clearAuthData();
+        router.push('/login');
+        return;
+      }
 
       if (response.ok) {
         const data = await response.json();
@@ -610,9 +654,13 @@ export default function AdminDashboard() {
           notes: ''
         });
         fetchReservations();
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || 'Erreur lors de la création de la réservation');
       }
     } catch (error) {
       console.error('Erreur lors de la création de la réservation:', error);
+      alert('Erreur lors de la création de la réservation');
     }
   };
 
@@ -945,11 +993,11 @@ export default function AdminDashboard() {
             </button>
             <button
               onClick={() => setShowDetailsModal('pending')}
-              className="bg-gradient-to-br from-[#e8b4b8]/20 to-[#fff9f0] rounded-xl p-4 hover:shadow-md transition-all text-left group border border-[#e8b4b8]/20"
+              className="bg-gradient-to-br from-[#f5e6d3]/30 to-[#fdfbf7] rounded-xl p-4 hover:shadow-md transition-all text-left group border border-[#d4a574]/20"
             >
               <p className="text-sm text-[#2c3e50]/60 mb-1">En attente</p>
-              <p className="text-2xl font-bold text-[#e8b4b8]">{stats.pendingReservations}</p>
-              <p className="text-xs text-[#e8b4b8]/70 mt-1">À confirmer</p>
+              <p className="text-2xl font-bold text-[#d4a574]">{stats.pendingReservations}</p>
+              <p className="text-xs text-[#d4a574]/70 mt-1">À confirmer</p>
             </button>
             <button
               onClick={() => setShowDetailsModal('completed')}
@@ -969,7 +1017,7 @@ export default function AdminDashboard() {
             </button>
             <button
               onClick={() => setActiveTab('reviews')}
-              className="bg-gradient-to-br from-[#fdfbf7] to-[#f5e6d3]/30 rounded-xl p-4 hover:shadow-md transition-all text-left group border border-[#d4a574]/20"
+              className="bg-gradient-to-br from-[#d4a574]/20 to-[#f5e6d3]/20 rounded-xl p-4 hover:shadow-md transition-all text-left group border border-[#d4a574]/20"
             >
               <p className="text-sm text-[#2c3e50]/60 mb-1">Satisfaction</p>
               <div className="flex items-center gap-1">
@@ -1348,55 +1396,55 @@ export default function AdminDashboard() {
                     <AlertCircle className="w-5 h-5 text-yellow-500" />
                     Nouvelles réservations à valider ({reservations.filter(r => r.status === 'pending').length})
                   </h3>
-                  <div className="grid md:grid-cols-2 gap-3">
-                    {reservations
-                      .filter(r => r.status === 'pending')
-                      .slice(0, 4)
-                      .map((reservation) => (
-                        <div key={reservation.id} className="bg-white rounded-lg p-4 border border-yellow-200">
-                          <div className="flex justify-between items-start mb-2">
-                            <div>
-                              <p className="font-semibold text-[#2c3e50]">{reservation.userName}</p>
-                              <p className="text-sm text-[#2c3e50]/60">{reservation.userEmail}</p>
+                  <div className="max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                    <div className="grid md:grid-cols-2 gap-3">
+                      {reservations
+                        .filter(r => r.status === 'pending')
+                        .map((reservation) => (
+                          <div key={reservation.id} className="bg-white rounded-lg p-4 border border-yellow-200 hover:shadow-md transition-all">
+                            <div className="flex justify-between items-start mb-2">
+                              <div>
+                                <p className="font-semibold text-[#2c3e50]">{reservation.userName}</p>
+                                <p className="text-sm text-[#2c3e50]/60">{reservation.userEmail}</p>
+                              </div>
+                              <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">
+                                En attente
+                              </span>
                             </div>
-                            <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">
-                              En attente
-                            </span>
+                            <div className="flex items-center gap-4 text-sm text-[#2c3e50]/70">
+                              <span className="flex items-center gap-1">
+                                <Calendar className="w-3 h-3" />
+                                {new Date(reservation.date).toLocaleDateString('fr-FR')}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                {reservation.time}
+                              </span>
+                            </div>
+                            <p className="text-sm mt-2 font-medium text-[#d4b5a0]">
+                              {reservation.services.map((s: string) => cleanServices[s as keyof typeof cleanServices] || s).join(', ')}
+                            </p>
+                            <div className="flex gap-2 mt-3">
+                              <button
+                                onClick={() => updateReservationStatus(reservation.id, 'confirmed')}
+                                className="flex-1 px-3 py-1.5 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600 transition-colors"
+                              >
+                                Confirmer
+                              </button>
+                              <button
+                                onClick={() => updateReservationStatus(reservation.id, 'cancelled')}
+                                className="flex-1 px-3 py-1.5 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 transition-colors"
+                              >
+                                Refuser
+                              </button>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-4 text-sm text-[#2c3e50]/70">
-                            <span className="flex items-center gap-1">
-                              <Calendar className="w-3 h-3" />
-                              {new Date(reservation.date).toLocaleDateString('fr-FR')}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
-                              {reservation.time}
-                            </span>
-                          </div>
-                          <p className="text-sm mt-2 font-medium text-[#d4b5a0]">
-                            {reservation.services.map((s: string) => cleanServices[s as keyof typeof cleanServices] || s).join(', ')}
-                          </p>
-                          <div className="flex gap-2 mt-3">
-                            <button
-                              onClick={() => updateReservationStatus(reservation.id, 'confirmed')}
-                              className="flex-1 px-3 py-1.5 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600 transition-colors"
-                            >
-                              Confirmer
-                            </button>
-                            <button
-                              onClick={() => updateReservationStatus(reservation.id, 'cancelled')}
-                              className="flex-1 px-3 py-1.5 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 transition-colors"
-                            >
-                              Refuser
-                            </button>
-                          </div>
-                        </div>
-                      ))}
+                        ))}
+                    </div>
                   </div>
-                  {reservations.filter(r => r.status === 'pending').length > 4 && (
-                    <div className="mt-4 text-center text-sm text-[#2c3e50]/60">
-                      Affichez uniquement les 4 premières réservations en attente.
-                      <br />Total : {reservations.filter(r => r.status === 'pending').length} réservations à valider
+                  {reservations.filter(r => r.status === 'pending').length > 6 && (
+                    <div className="mt-3 text-center text-xs text-[#2c3e50]/50">
+                      Faites défiler pour voir toutes les réservations
                     </div>
                   )}
                 </div>
@@ -1416,16 +1464,42 @@ export default function AdminDashboard() {
                               date: typeof r.date === 'string' ? r.date : r.date.toISOString(),
                               userName: r.userName || 'Client',
                               userEmail: r.userEmail || '',
-                              serviceName: r.serviceName || (r.services && r.services.length > 0 
-                                ? r.services.map((s: string) => {
-                                    const serviceName = cleanServices[s as keyof typeof cleanServices];
-                                    return typeof serviceName === 'string' ? serviceName : s;
+                              // Convertir services en tableau de strings uniquement
+                              services: r.services && r.services.length > 0
+                                ? r.services.map((s: any) => {
+                                    if (typeof s === 'string') return s;
+                                    if (typeof s === 'object' && s.slug) return s.slug;
+                                    if (typeof s === 'object' && s.name) return s.name;
+                                    return 'service-inconnu';
+                                  })
+                                : [],
+                              serviceName: r.serviceName || (r.services && r.services.length > 0
+                                ? r.services.map((s: any) => {
+                                    // Si s est un objet, extraire le nom
+                                    if (typeof s === 'object' && s.name) {
+                                      return s.name;
+                                    }
+                                    // Si s est une string, chercher dans cleanServices
+                                    if (typeof s === 'string') {
+                                      const serviceName = cleanServices[s];
+                                      // S'assurer qu'on retourne toujours une string
+                                      return serviceName && typeof serviceName === 'string' ? serviceName : s;
+                                    }
+                                    return 'Service inconnu';
                                   }).join(', ')
                                 : 'Service non défini'),
                               serviceDuration: r.services && r.services.length > 0
-                                ? r.services.reduce((total: number, serviceSlug: string) => {
-                                    const service = dbServices.find(s => s.slug === serviceSlug);
-                                    return total + (service?.duration || 60);
+                                ? r.services.reduce((total: number, serviceSlug: any) => {
+                                    // Si serviceSlug est un objet avec duration, l'utiliser
+                                    if (typeof serviceSlug === 'object' && serviceSlug.duration) {
+                                      return total + serviceSlug.duration;
+                                    }
+                                    // Si serviceSlug est une string, chercher le service dans dbServices
+                                    if (typeof serviceSlug === 'string') {
+                                      const service = dbServices.find(s => s.slug === serviceSlug);
+                                      return total + (service?.duration || 60);
+                                    }
+                                    return total + 60;
                                   }, 0)
                                 : 60
                             }))}
@@ -1451,17 +1525,28 @@ export default function AdminDashboard() {
                       onClose={() => setShowQuickActionModal(false)}
                       services={dbServices}
                       onCreateReservation={async (data) => {
-                        // Créer la réservation
-                        await fetch('/api/admin/reservations', {
-                          method: 'POST',
-                          headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-                          },
-                          body: JSON.stringify(data)
-                        });
-                        fetchReservations();
-                        setShowQuickActionModal(false);
+                        try {
+                          // Créer la réservation
+                          const response = await fetch('/api/admin/reservations', {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/json',
+                              'Authorization': `Bearer ${localStorage.getItem('token') || localStorage.getItem('adminToken')}`
+                            },
+                            body: JSON.stringify(data)
+                          });
+
+                          if (response.ok) {
+                            fetchReservations();
+                            setShowQuickActionModal(false);
+                          } else {
+                            const errorData = await response.json();
+                            alert(errorData.error || 'Erreur lors de la création de la réservation');
+                          }
+                        } catch (error) {
+                          console.error('Erreur:', error);
+                          alert('Erreur lors de la création de la réservation');
+                        }
                       }}
                       onBlockSlot={async (data) => {
                         // Bloquer le créneau

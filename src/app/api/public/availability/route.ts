@@ -13,10 +13,14 @@ export async function GET(request: NextRequest) {
       if (!dateStr) {
         return NextResponse.json({ error: 'Date requise' }, { status: 400 });
       }
-      
+
+      // Récupérer la durée des services si fournie
+      const serviceDuration = searchParams.get('duration');
+      const duration = serviceDuration ? parseInt(serviceDuration) : undefined;
+
       const date = new Date(dateStr);
-      const slots = await getAvailableSlots(date);
-      
+      const slots = await getAvailableSlots(date, duration);
+
       return NextResponse.json({ slots });
     } 
     else if (action === 'blocked') {

@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { 
-  Calendar, ChevronLeft, ChevronRight, Eye, CalendarDays, 
+import {
+  Calendar, ChevronLeft, ChevronRight, Eye, CalendarDays,
   Grid3x3, CalendarRange, User, Clock, Euro, Ban, Plus,
   X, Check, AlertCircle
 } from "lucide-react";
+import { isTimeSlotAvailable, getTotalDuration } from "@/lib/time-utils";
 
 interface Reservation {
   id: string;
@@ -59,6 +60,13 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
   const [clientPhone, setClientPhone] = useState<string>('');
   const [localServices, setLocalServices] = useState<any[]>([]);
   const [isBlockMode, setIsBlockMode] = useState(false);
+
+  // États pour la modification de réservation
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editedReservation, setEditedReservation] = useState<any>(null);
+  const [editDate, setEditDate] = useState<string>('');
+  const [editTime, setEditTime] = useState<string>('');
+  const [editStatus, setEditStatus] = useState<string>('');
 
   // Debug: vérifier les props
   useEffect(() => {
@@ -270,15 +278,14 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
   // Fonctions pour la sélection par glisser-déposer
   const handleMouseDown = (time: string, date: Date = currentDate) => {
     const dateStr = formatDateLocal(date);
-    const hasReservation = reservations.some(r => 
-      r.date.split('T')[0] === dateStr && r.time === time && r.status === 'confirmed'
+    // Utiliser la nouvelle fonction qui prend en compte la durée
+    const isAvailable = isTimeSlotAvailable(time, date, reservations, dbServices);
+    const isBlocked = blockedSlots.some(slot =>
+      slot.date === dateStr && (slot.allDay || slot.time === time)
     );
-    const isBlocked = blockedSlots.some(slot => 
-      slot.date === dateStr && slot.time === time
-    );
-    
+
     // Ne permettre le drag que si pas de réservation
-    if (!hasReservation && !isDateBlocked(date)) {
+    if (isAvailable && !isBlocked && !isDateBlocked(date)) {
       // En mode blocage on peut sélectionner tous les créneaux
       // En mode normal, seulement les créneaux non bloqués
       if (isBlockMode || !isBlocked) {
@@ -594,11 +601,24 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
                             </span>
                           </div>
                           <div className="text-xs text-white/80">
-                            {reservation.serviceName || 
-                             (typeof reservation.services?.[0] === 'object' ? reservation.services[0].name : 
-                              (services && reservation.services?.[0] && typeof services[reservation.services[0]] === 'string' ? services[reservation.services[0]] : null) || 
-                              reservation.services?.[0]) || 
-                             'Service'}
+                            {(() => {
+                              // S'assurer de toujours retourner une string
+                              if (reservation.serviceName) return reservation.serviceName;
+                              if (reservation.services?.[0]) {
+                                const firstService = reservation.services[0];
+                                if (typeof firstService === 'object' && firstService.name) {
+                                  return String(firstService.name);
+                                }
+                                if (typeof firstService === 'string') {
+                                  const serviceName = services?.[firstService];
+                                  if (serviceName && typeof serviceName === 'string') {
+                                    return serviceName;
+                                  }
+                                  return firstService;
+                                }
+                              }
+                              return 'Service';
+                            })()}
                           </div>
                           <div className="text-lg font-bold text-white">
                             {reservation.totalPrice}€
@@ -663,11 +683,9 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
       if (!isBlockMode) return; // Seulement en mode blocage
       
       const dateStr = formatDateLocal(date);
-      const hasReservation = reservations.some(r => 
-        r.date.split('T')[0] === dateStr && r.time === time && r.status === 'confirmed'
-      );
-      
-      if (!hasReservation && !isDateBlocked(date)) {
+      const isAvailable = isTimeSlotAvailable(time, date, reservations, dbServices);
+
+      if (isAvailable && !isDateBlocked(date)) {
         setIsDragging(true);
         setDragStartTime(time);
         setDragDate(date);
@@ -1423,9 +1441,21 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
                         {reservation.time} - {reservation.userName}
                       </p>
                       <p className="text-sm text-[#2c3e50]/60">
-                        {reservation.serviceName || (reservation.services && reservation.services.length > 0 ? 
-                          (services && typeof services[reservation.services[0]] === 'string' ? services[reservation.services[0]] : reservation.services[0]) : 
-                          'Service')}
+                        {(() => {
+                          if (reservation.serviceName) return reservation.serviceName;
+                          if (reservation.services && reservation.services.length > 0) {
+                            const firstService = reservation.services[0];
+                            if (typeof firstService === 'string' && services) {
+                              const serviceName = services[firstService];
+                              if (serviceName && typeof serviceName === 'string') {
+                                return serviceName;
+                              }
+                              return firstService;
+                            }
+                            return typeof firstService === 'string' ? firstService : 'Service';
+                          }
+                          return 'Service';
+                        })()}
                       </p>
                       <p className="text-sm text-[#2c3e50]/70">
                         {reservation.totalPrice}€
@@ -1517,11 +1547,11 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
                     selectedReservation.services.map((service: any, index: number) => (
                       <div key={index} className="flex justify-between items-center text-sm">
                         <span>
-                          {typeof service === 'string' 
+                          {typeof service === 'string'
                             ? (services && typeof services[service] === 'string' ? services[service] : service)
-                            : service.name || 'Service'}
+                            : (typeof service === 'object' && service !== null ? (service.name || 'Service inconnu') : 'Service')}
                         </span>
-                        {typeof service === 'object' && service.price && (
+                        {typeof service === 'object' && service !== null && service.price && (
                           <span className="font-medium">{service.price}€</span>
                         )}
                       </div>
@@ -1569,12 +1599,252 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
                   Fermer
                 </button>
                 {selectedReservation.status !== 'cancelled' && (
-                  <button
-                    className="flex-1 px-4 py-2 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white rounded-lg hover:shadow-lg transition-all"
-                  >
-                    Modifier
-                  </button>
+                  <>
+                    <button
+                      onClick={() => {
+                        setIsEditMode(true);
+                        setEditedReservation(selectedReservation);
+                        setEditDate(new Date(selectedReservation.date).toISOString().split('T')[0]);
+                        setEditTime(selectedReservation.time);
+                        setEditStatus(selectedReservation.status);
+                      }}
+                      className="flex-1 px-4 py-2 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white rounded-lg hover:shadow-lg transition-all"
+                    >
+                      Modifier
+                    </button>
+                    <button
+                      onClick={async () => {
+                        if (confirm('Êtes-vous sûr de vouloir supprimer cette réservation ?')) {
+                          try {
+                            const token = localStorage.getItem('token');
+                            const response = await fetch(`/api/admin/reservations/${selectedReservation.id}`, {
+                              method: 'DELETE',
+                              headers: {
+                                'Authorization': `Bearer ${token}`
+                              }
+                            });
+
+                            if (response.ok) {
+                              alert('Réservation supprimée avec succès');
+                              setShowReservationDetail(false);
+                              setSelectedReservation(null);
+                              fetchReservations(); // Rafraîchir les réservations
+                              setRefreshKey(prev => prev + 1); // Forcer le rafraîchissement
+                            } else {
+                              const errorData = await response.json();
+                              alert(errorData.error || 'Erreur lors de la suppression');
+                            }
+                          } catch (error) {
+                            alert('Erreur lors de la suppression de la réservation');
+                          }
+                        }
+                      }}
+                      className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                    >
+                      Supprimer
+                    </button>
+                  </>
                 )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de modification de réservation */}
+      {isEditMode && editedReservation && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-[#2c3e50]">
+                Modifier la réservation
+              </h3>
+              <button
+                onClick={() => {
+                  setIsEditMode(false);
+                  setEditedReservation(null);
+                }}
+                className="text-[#2c3e50]/50 hover:text-[#2c3e50]"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Informations client (non modifiables) */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-[#2c3e50] mb-3">Client</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-[#2c3e50]/70">Nom:</span>
+                    <span className="font-medium">{editedReservation.userName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#2c3e50]/70">Email:</span>
+                    <span className="font-medium">{editedReservation.userEmail}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Date modifiable */}
+              <div>
+                <label className="block text-sm font-medium text-[#2c3e50] mb-2">
+                  Date
+                </label>
+                <input
+                  type="date"
+                  value={editDate}
+                  onChange={(e) => setEditDate(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4b5a0] focus:border-transparent"
+                />
+              </div>
+
+              {/* Heure modifiable */}
+              <div>
+                <label className="block text-sm font-medium text-[#2c3e50] mb-3">
+                  Heure
+                </label>
+                <div className="grid grid-cols-4 gap-2 max-h-64 overflow-y-auto">
+                  {["09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
+                    "12:00", "12:30", "13:00", "13:30", "14:00", "14:30",
+                    "15:00", "15:30", "16:00", "16:30", "17:00", "17:30",
+                    "18:00", "18:30", "19:00", "19:30", "20:00", "20:30",
+                    "21:00", "21:30", "22:00", "22:30", "23:00"].map(time => {
+                    // Vérifier si ce créneau est disponible pour la date sélectionnée
+                    const dateToCheck = editDate ? new Date(editDate) : new Date();
+                    // Utiliser la fonction qui prend en compte la durée des services
+                    const filteredReservations = reservations.filter(r => r.id !== editedReservation.id);
+                    const isAvailable = isTimeSlotAvailable(time, dateToCheck, filteredReservations, dbServices);
+                    // Vérifier les créneaux bloqués
+                    const isBlocked = blockedSlots.some(s =>
+                      new Date(s.date).toDateString() === dateToCheck.toDateString() &&
+                      (s.allDay || s.time === time)
+                    );
+                    const hasConflict = !isAvailable || isBlocked;
+
+                    return (
+                      <button
+                        key={time}
+                        type="button"
+                        onClick={() => !hasConflict && setEditTime(time)}
+                        disabled={hasConflict}
+                        className={`py-2 px-3 rounded-lg border-2 font-medium text-sm transition-all duration-300 ${
+                          hasConflict
+                            ? "border-red-200 bg-red-50 text-red-400 cursor-not-allowed line-through"
+                            : editTime === time
+                            ? "border-[#d4b5a0] bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white shadow-lg"
+                            : "border-gray-200 hover:border-[#d4b5a0] text-[#2c3e50] hover:shadow-md"
+                        }`}
+                        title={
+                          !isAvailable ? "Ce créneau est déjà réservé ou en conflit" :
+                          isBlocked ? "Ce créneau est bloqué" :
+                          "Créneau disponible"
+                        }
+                      >
+                        {time}
+                      </button>
+                    );
+                  })}
+                </div>
+                {/* Légende */}
+                <div className="mt-3 flex gap-4 text-xs">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 border-2 border-gray-200 rounded"></div>
+                    <span className="text-[#2c3e50]/60">Disponible</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-red-50 border-2 border-red-200 rounded"></div>
+                    <span className="text-[#2c3e50]/60">Indisponible</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] rounded"></div>
+                    <span className="text-[#2c3e50]/60">Sélectionné</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Statut modifiable */}
+              <div>
+                <label className="block text-sm font-medium text-[#2c3e50] mb-2">
+                  Statut
+                </label>
+                <select
+                  value={editStatus}
+                  onChange={(e) => setEditStatus(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4b5a0] focus:border-transparent"
+                >
+                  <option value="pending">En attente</option>
+                  <option value="confirmed">Confirmé</option>
+                  <option value="completed">Terminé</option>
+                  <option value="cancelled">Annulé</option>
+                </select>
+              </div>
+
+              {/* Services (non modifiables pour l'instant) */}
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-[#2c3e50] mb-3">Services</h4>
+                <div className="space-y-2">
+                  {editedReservation.services && editedReservation.services.map((service: any, index: number) => (
+                    <div key={index} className="text-sm">
+                      {typeof service === 'string' ? service : service.name}
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 text-lg font-bold text-[#d4b5a0]">
+                  Total: {editedReservation.totalPrice}€
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 pt-4 border-t">
+                <button
+                  onClick={() => {
+                    setIsEditMode(false);
+                    setEditedReservation(null);
+                  }}
+                  className="flex-1 px-4 py-2 bg-gray-100 text-[#2c3e50] rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      const token = localStorage.getItem('token');
+                      const response = await fetch(`/api/admin/reservations/${editedReservation.id}`, {
+                        method: 'PUT',
+                        headers: {
+                          'Authorization': `Bearer ${token}`,
+                          'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                          date: editDate,
+                          time: editTime,
+                          status: editStatus,
+                          totalPrice: editedReservation.totalPrice,
+                          services: editedReservation.services
+                        })
+                      });
+
+                      if (response.ok) {
+                        alert('Réservation modifiée avec succès');
+                        setIsEditMode(false);
+                        setEditedReservation(null);
+                        setShowReservationDetail(false);
+                        setSelectedReservation(null);
+                        fetchReservations(); // Rafraîchir les réservations
+                        setRefreshKey(prev => prev + 1); // Forcer le rafraîchissement
+                      } else {
+                        const errorData = await response.json();
+                        alert(errorData.error || 'Erreur lors de la modification');
+                      }
+                    } catch (error) {
+                      alert('Erreur lors de la modification de la réservation');
+                    }
+                  }}
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white rounded-lg hover:shadow-lg transition-all"
+                >
+                  Enregistrer les modifications
+                </button>
               </div>
             </div>
           </div>
@@ -1633,11 +1903,11 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
 
             <div className="space-y-4">
               {/* Informations du créneau */}
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <div className="flex items-center gap-3 mb-2">
+              <div className="bg-blue-50 p-4 rounded-lg space-y-3">
+                <div className="flex items-center gap-3">
                   <CalendarDays className="w-5 h-5 text-blue-600" />
                   <span className="font-semibold text-[#2c3e50]">
-                    {selectedSlot.date.toLocaleDateString('fr-FR', { 
+                    {selectedSlot.date.toLocaleDateString('fr-FR', {
                       weekday: 'long',
                       day: 'numeric',
                       month: 'long',
@@ -1645,13 +1915,72 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
                     })}
                   </span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <Clock className="w-5 h-5 text-blue-600" />
-                  <span className="font-semibold text-[#2c3e50]">
-                    {selectedSlot.slots && selectedSlot.slots.length > 1 
-                      ? `${selectedSlot.time} - ${selectedSlot.endTime} (${selectedSlot.slots.length * 30} minutes)`
-                      : selectedSlot.time}
-                  </span>
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Clock className="w-5 h-5 text-blue-600" />
+                    <label className="text-sm font-medium text-[#2c3e50]">Horaire</label>
+                  </div>
+                  <div className="grid grid-cols-4 gap-2 max-h-64 overflow-y-auto">
+                    {["09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
+                      "12:00", "12:30", "13:00", "13:30", "14:00", "14:30",
+                      "15:00", "15:30", "16:00", "16:30", "17:00", "17:30",
+                      "18:00", "18:30", "19:00", "19:30", "20:00", "20:30",
+                      "21:00", "21:30", "22:00", "22:30", "23:00"].map(time => {
+                      // Vérifier si ce créneau est disponible avec la durée du service
+                      const isAvailable = isTimeSlotAvailable(time, selectedSlot.date, reservations, dbServices);
+                      const isBlocked = blockedSlots.some(s =>
+                        new Date(s.date).toDateString() === selectedSlot.date.toDateString() &&
+                        (s.allDay || s.time === time)
+                      );
+                      const hasConflict = !isAvailable || isBlocked;
+
+                      return (
+                        <button
+                          key={time}
+                          type="button"
+                          onClick={() => {
+                            if (!hasConflict) {
+                              setSelectedSlot({
+                                ...selectedSlot,
+                                time: time,
+                                slots: [time]
+                              });
+                            }
+                          }}
+                          disabled={hasConflict}
+                          className={`py-2 px-3 rounded-lg border-2 font-medium text-sm transition-all duration-300 ${
+                            hasConflict
+                              ? "border-red-200 bg-red-50 text-red-400 cursor-not-allowed line-through"
+                              : selectedSlot.time === time
+                              ? "border-[#d4b5a0] bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white shadow-lg"
+                              : "border-gray-200 hover:border-[#d4b5a0] text-[#2c3e50] hover:shadow-md"
+                          }`}
+                          title={
+                            !isAvailable ? "Ce créneau est déjà réservé ou en conflit" :
+                            isBlocked ? "Ce créneau est bloqué" :
+                            "Créneau disponible"
+                          }
+                        >
+                          {time}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {/* Légende */}
+                  <div className="mt-3 flex gap-4 text-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 border-2 border-gray-200 rounded"></div>
+                      <span className="text-[#2c3e50]/60">Disponible</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-red-50 border-2 border-red-200 rounded"></div>
+                      <span className="text-[#2c3e50]/60">Indisponible</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] rounded"></div>
+                      <span className="text-[#2c3e50]/60">Sélectionné</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -1755,37 +2084,38 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
                     try {
                       const token = localStorage.getItem('token');
                       const dateStr = formatDateLocal(selectedSlot.date);
-                      
+
                       // Calculer l'heure de fin avec le temps de préparation
                       const endMinutes = timeToMinutes(selectedSlot.time) + totalDuration;
                       const endTime = minutesToTime(endMinutes);
-                      
-                      // Créer la réservation
-                      const reservationData = {
-                        date: dateStr,
-                        time: selectedSlot.time,
-                        endTime: endTime,
-                        service: selectedService,
-                        serviceDuration: totalDuration,
-                        clientName,
-                        clientEmail,
-                        clientPhone,
-                        status: 'confirmed',
-                        totalPrice: getServicePrice(selectedService)
-                      };
 
-                      // Sauvegarder dans le localStorage
-                      const existingReservations = JSON.parse(localStorage.getItem('admin_reservations') || '[]');
-                      const newReservation = {
-                        ...reservationData,
-                        id: `res_${Date.now()}`,
-                        userName: clientName,
-                        userEmail: clientEmail,
-                        services: [{ name: selectedService, price: getServicePrice(selectedService), duration: totalDuration }],
-                        createdAt: new Date().toISOString()
-                      };
-                      existingReservations.push(newReservation);
-                      localStorage.setItem('admin_reservations', JSON.stringify(existingReservations));
+                      // Créer la réservation via l'API (qui vérifie les doublons)
+                      const response = await fetch('/api/admin/reservations', {
+                        method: 'POST',
+                        headers: {
+                          'Authorization': `Bearer ${token}`,
+                          'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                          client: clientName,
+                          email: clientEmail,
+                          phone: clientPhone,
+                          date: dateStr,
+                          time: selectedSlot.time,
+                          services: [selectedService],
+                          totalPrice: getServicePrice(selectedService),
+                          status: 'confirmed',
+                          source: 'admin-calendar'
+                        })
+                      });
+
+                      if (!response.ok) {
+                        const errorData = await response.json();
+                        alert(errorData.error || 'Erreur lors de la création de la réservation');
+                        return;
+                      }
+
+                      const newReservation = await response.json();
 
                       // Bloquer automatiquement les 15 minutes après pour la préparation
                       const prepStartMinutes = endMinutes;

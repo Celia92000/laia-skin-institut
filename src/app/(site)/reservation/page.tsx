@@ -8,6 +8,7 @@ import { getDisplayPrice, getForfaitDisplayPrice, hasPromotion, getDiscountPerce
 
 function ReservationContent() {
   const searchParams = useSearchParams();
+  const rescheduleId = searchParams.get('reschedule'); // ID de la réservation à reprogrammer
   const [step, setStep] = useState(1);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
@@ -76,6 +77,44 @@ function ReservationContent() {
         setServices([]);
       });
   }, []);
+
+  // Charger les détails de la réservation à reprogrammer
+  useEffect(() => {
+    if (rescheduleId) {
+      const fetchReservationDetails = async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const response = await fetch(`/api/reservations/${rescheduleId}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          if (response.ok) {
+            const reservation = await response.json();
+            // Préfiller les services sélectionnés
+            if (reservation.services) {
+              const serviceList = typeof reservation.services === 'string'
+                ? JSON.parse(reservation.services)
+                : reservation.services;
+              setSelectedServices(serviceList);
+            }
+            // Préfiller les informations du client si connecté
+            if (reservation.user) {
+              setFormData(prev => ({
+                ...prev,
+                name: reservation.user.name || '',
+                email: reservation.user.email || '',
+                phone: reservation.user.phone || ''
+              }));
+            }
+          }
+        } catch (error) {
+          console.error('Erreur lors du chargement de la réservation:', error);
+        }
+      };
+      fetchReservationDetails();
+    }
+  }, [rescheduleId]);
 
   // Charger les dates bloquées
   useEffect(() => {
@@ -172,7 +211,7 @@ function ReservationContent() {
     if (selectedDate) {
       fetchAvailableSlots();
     }
-  }, [selectedDate]);
+  }, [selectedDate, selectedServices]); // Refetch quand les services changent aussi
 
   // Détecter les changements dans le formulaire
   useEffect(() => {
@@ -203,7 +242,25 @@ function ReservationContent() {
 
   const fetchAvailableSlots = async () => {
     try {
-      const response = await fetch(`/api/public/availability?action=slots&date=${selectedDate}`);
+      // Calculer la durée totale des services sélectionnés
+      let totalDuration = 0;
+      if (selectedServices.length > 0) {
+        selectedServices.forEach(serviceId => {
+          const service = services.find(s => s.id === serviceId);
+          if (service) {
+            // Extraire la durée du service (ex: "60 min" -> 60)
+            const duration = parseInt(service.duration) || 60;
+            totalDuration += duration;
+          }
+        });
+        // Ajouter 15 minutes de préparation
+        totalDuration += 15;
+      } else {
+        // Par défaut si aucun service sélectionné: 60 + 15 min
+        totalDuration = 75;
+      }
+
+      const response = await fetch(`/api/public/availability?action=slots&date=${selectedDate}&duration=${totalDuration}`);
       if (response.ok) {
         const data = await response.json();
         setAvailableSlots(data.slots || []);
@@ -394,6 +451,22 @@ function ReservationContent() {
       if (response.ok) {
         const responseData = await response.json();
         console.log('Réservation créée avec succès:', responseData);
+
+        // Si c'est une reprogrammation, annuler l'ancienne réservation
+        if (rescheduleId && token) {
+          try {
+            await fetch(`/api/reservations/${rescheduleId}`, {
+              method: 'DELETE',
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            });
+            console.log('Ancienne réservation annulée');
+          } catch (error) {
+            console.error('Erreur lors de l\'annulation de l\'ancienne réservation:', error);
+          }
+        }
+
         // Réinitialiser le flag de changements avant la redirection
         hasChanges.current = false;
         // Rediriger vers la page de confirmation
@@ -466,10 +539,21 @@ function ReservationContent() {
           <div className="flex items-center justify-center gap-3 mb-6">
             <Sparkles className="w-8 h-8 text-[#d4b5a0]" />
             <h1 className="text-5xl md:text-6xl font-serif font-bold text-[#2c3e50] animate-fade-in-up">
-              Réservation en ligne
+              {rescheduleId ? 'Reprogrammation' : 'Réservation en ligne'}
             </h1>
             <Sparkles className="w-8 h-8 text-[#d4b5a0]" />
           </div>
+
+          {rescheduleId && (
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+              <div className="flex items-center gap-3">
+                <AlertCircle className="w-5 h-5 text-blue-600" />
+                <p className="text-sm font-medium text-blue-800">
+                  Vous êtes en train de reprogrammer votre rendez-vous. L'ancien rendez-vous sera automatiquement annulé.
+                </p>
+              </div>
+            </div>
+          )}
           <p className="text-xl text-[#2c3e50]/80 mb-8 animate-fade-in-up animation-delay-200">
             Réservez votre soin en quelques clics et offrez-vous un moment d'exception
           </p>

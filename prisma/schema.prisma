@@ -66,6 +66,9 @@ model Reservation {
   reminderSent       Boolean   @default(false)
   reminder24hSent    Boolean   @default(false)
   reminder2hSent     Boolean   @default(false)
+  rescheduledFrom    String?   // ID de la réservation d'origine si reprogrammée
+  rescheduledTo      String?   // ID de la nouvelle réservation si reprogrammée
+  rescheduledAt      DateTime? // Date de la reprogrammation
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
   user            User      @relation(fields: [userId], references: [id])
@@ -718,5 +721,17 @@ model Order {
   @@index([orderNumber])
   @@index([paymentStatus])
   @@index([status])
+}
+
+model MagicLink {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  email     String
+  used      Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([email])
 }
 

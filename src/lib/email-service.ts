@@ -227,10 +227,10 @@ export async function sendConfirmationEmail({
                                   <div style="background-color: #fff8f3; padding: 20px; border-left: 4px solid #d4b5a0; margin: 0 0 30px 0;">
                                       <h4 style="color: #2c3e50; font-size: 16px; margin: 0 0 10px 0;">📍 Adresse de l'institut</h4>
                                       <p style="color: #666; font-size: 14px; line-height: 1.5; margin: 0;">
-                                          5 allée Jean de la Fontaine<br>
+                                          Allée Jean de la Fontaine<br>
                                           92000 Nanterre<br>
-                                          <strong>Bâtiment 5, 2ème étage, Porte 523</strong><br>
-                                          <strong>🔔 Interphone : JOLLY</strong><br>
+                                          <strong>📱 Appelez-moi au 06 83 71 70 50</strong><br>
+                                          <strong>quand vous serez arrivé</strong><br>
                                           <em>🚇 À 6 minutes à pied de la gare Nanterre Université</em>
                                       </p>
                                   </div>

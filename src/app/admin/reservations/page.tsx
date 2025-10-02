@@ -38,6 +38,9 @@ interface Reservation {
   status: string;
   notes?: string;
   createdAt: string;
+  rescheduledFrom?: string;
+  rescheduledTo?: string;
+  rescheduledAt?: string;
 }
 
 type Status = "confirmed" | "pending" | "completed" | "cancelled";
@@ -314,7 +317,14 @@ export default function AdminReservations() {
                 {paginatedReservations.map((reservation) => (
                   <tr key={reservation.id} className="hover:bg-[#fdfbf7]/50 transition-colors">
                     <td className="px-4 py-4 text-sm font-medium text-[#2c3e50]">
-                      {reservation.id}
+                      <div className="flex items-center gap-2">
+                        {reservation.id}
+                        {(reservation.rescheduledFrom || reservation.rescheduledTo) && (
+                          <span className="text-yellow-600" title="Reprogrammation">
+                            🔄
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-4">
                       <div>
@@ -486,6 +496,28 @@ export default function AdminReservations() {
                   <p className="text-sm text-[#2c3e50] bg-[#fdfbf7] p-3 rounded-lg">
                     {selectedReservation.notes}
                   </p>
+                </div>
+              )}
+
+              {/* Informations de reprogrammation */}
+              {(selectedReservation.rescheduledFrom || selectedReservation.rescheduledTo) && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <p className="text-sm font-semibold text-yellow-800 mb-2">🔄 Reprogrammation</p>
+                  {selectedReservation.rescheduledFrom && (
+                    <p className="text-sm text-yellow-700">
+                      Cette réservation remplace une précédente réservation annulée
+                    </p>
+                  )}
+                  {selectedReservation.rescheduledTo && (
+                    <p className="text-sm text-yellow-700">
+                      Cette réservation a été reprogrammée vers une nouvelle date
+                    </p>
+                  )}
+                  {selectedReservation.rescheduledAt && (
+                    <p className="text-xs text-yellow-600 mt-1">
+                      Reprogrammée le {new Date(selectedReservation.rescheduledAt).toLocaleDateString('fr-FR')}
+                    </p>
+                  )}
                 </div>
               )}
             </div>

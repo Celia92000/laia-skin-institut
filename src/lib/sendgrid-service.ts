@@ -67,16 +67,16 @@ export async function sendEmailWithSendGrid(data: EmailData): Promise<boolean> {
       <div class="address-box">
         <h3>📍 Adresse de l'institut</h3>
         <p><strong>LAIA SKIN INSTITUT</strong><br>
-        5 allée Jean de la Fontaine<br>
+        Allée Jean de la Fontaine<br>
         92000 Nanterre</p>
         <p style="background: #d4b5a0; color: white; padding: 10px; border-radius: 5px; margin: 10px 0;">
-          <strong>🏢 Bâtiment 5 - 2ème étage - Porte 523</strong>
+          <strong>📱 Appelez-moi au 06 83 71 70 50 quand vous serez arrivé</strong>
         </p>
         <p>🚇 À 6 minutes à pied de la gare Nanterre Université</p>
       </div>
       
       <div style="text-align: center; margin: 30px 0;">
-        <a href="https://maps.google.com/?q=5+allée+Jean+de+la+Fontaine+92000+Nanterre" class="button">
+        <a href="https://maps.google.com/?q=Nanterre+Université+RER+A" class="button">
           📍 Voir sur Google Maps
         </a>
         <a href="https://wa.me/33683717050" class="button" style="background: #25D366;">
@@ -123,11 +123,11 @@ Montant : ${data.totalPrice}€
 
 ADRESSE :
 LAIA SKIN INSTITUT
-5 allée Jean de la Fontaine, 92000 Nanterre
-Bâtiment 5 - 2ème étage - Porte 523
+Allée Jean de la Fontaine, 92000 Nanterre
+📱 Appelez-moi au 06 83 71 70 50 quand vous serez arrivé
 (6 min à pied de la gare Nanterre Université)
 
-Google Maps : https://maps.google.com/?q=5+allée+Jean+de+la+Fontaine+92000+Nanterre
+Google Maps : https://maps.google.com/?q=Nanterre+Université+RER+A
 
 À très bientôt !
 Laïa

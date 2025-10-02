@@ -1,4 +1,5 @@
 import { getPrismaClient } from '@/lib/prisma';
+import { hasTimeConflict, timeToMinutes } from '@/lib/time-utils';
 
 export interface TimeSlot {
   time: string;
@@ -78,8 +79,10 @@ export async function isSlotAvailable(date: Date, time: string): Promise<boolean
 
 /**
  * Récupère tous les créneaux disponibles pour une date donnée
+ * @param date - La date pour laquelle vérifier les créneaux
+ * @param duration - La durée du service en minutes (incluant le temps de préparation)
  */
-export async function getAvailableSlots(date: Date): Promise<TimeSlot[]> {
+export async function getAvailableSlots(date: Date, duration?: number): Promise<TimeSlot[]> {
   const prisma = await getPrismaClient();
   const normalizedDate = new Date(date);
   normalizedDate.setHours(0, 0, 0, 0);
@@ -115,12 +118,65 @@ export async function getAvailableSlots(date: Date): Promise<TimeSlot[]> {
   const startMinutes = startHour * 60 + startMin;
   const endMinutes = endHour * 60 + endMin;
 
+  // Si une durée est fournie, récupérer toutes les réservations pour vérifier les conflits
+  const reservations = duration ? await prisma.reservation.findMany({
+    where: {
+      date: normalizedDate,
+      status: {
+        in: ['confirmed', 'pending']
+      }
+    },
+    include: {
+      services: true
+    }
+  }) : [];
+
+  // Récupérer les créneaux bloqués
+  const blockedSlots = await prisma.blockedSlot.findMany({
+    where: {
+      date: normalizedDate,
+      allDay: false
+    }
+  });
+
   // Créer un créneau toutes les 30 minutes
   for (let minutes = startMinutes; minutes < endMinutes; minutes += 30) {
     const hour = Math.floor(minutes / 60);
     const minute = minutes % 60;
     const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-    const available = await isSlotAvailable(normalizedDate, timeStr);
+
+    let available = true;
+
+    // Vérifier les créneaux bloqués
+    const isBlocked = blockedSlots.some(slot => slot.time === timeStr);
+    if (isBlocked) {
+      available = false;
+    }
+
+    // Si une durée est fournie, vérifier les conflits avec les réservations existantes
+    if (available && duration) {
+      for (const reservation of reservations) {
+        // Calculer la durée de la réservation existante
+        let reservationDuration = 75; // Par défaut: 60 min + 15 min de préparation
+
+        if (reservation.services && typeof reservation.services === 'object') {
+          const services = reservation.services as any[];
+          reservationDuration = services.reduce((total: number, service: any) => {
+            return total + (service.duration || 60);
+          }, 15); // 15 min de préparation
+        }
+
+        // Vérifier s'il y a conflit entre ce créneau et la réservation
+        if (hasTimeConflict(timeStr, duration, reservation.time, reservationDuration)) {
+          available = false;
+          break;
+        }
+      }
+    } else if (available && !duration) {
+      // Si pas de durée fournie, utiliser l'ancienne méthode
+      available = await isSlotAvailable(normalizedDate, timeStr);
+    }
+
     slots.push({ time: timeStr, available });
   }
 

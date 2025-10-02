@@ -10,7 +10,6 @@ function ConfirmationContent() {
   const searchParams = useSearchParams();
   const [reservation, setReservation] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [showReschedule, setShowReschedule] = useState(false);
 
   useEffect(() => {
     const reservationId = searchParams.get('id');
@@ -82,12 +81,11 @@ function ConfirmationContent() {
 💆 Soins : ${servicesList}
 💰 Prix : ${reservationData.totalPrice}€
 
-📍 Adresse complète :
+📍 Adresse :
 Laia Skin Institut
-5 allée Jean de la Fontaine
+Allée Jean de la Fontaine
 92000 Nanterre
-Bâtiment 5, 2ème étage, Porte 523
-🔔 Interphone : JOLLY
+📱 Appelez-moi au 06 83 71 70 50 quand vous serez arrivé
 
 🚇 À 6 minutes à pied de la gare de Nanterre Université
 
@@ -128,8 +126,8 @@ BEGIN:VEVENT
 DTSTART:${startDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z
 DTEND:${endDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z
 SUMMARY:Laia Skin - ${servicesList}
-DESCRIPTION:Rendez-vous chez Laia Skin Institut\\nSoins: ${servicesList}\\nPrix: ${reservation.totalPrice}€\\n\\nBâtiment 5, 2ème étage, Porte 523\\nInterphone: JOLLY\\n\\nPaiement en espèces sur place
-LOCATION:5 allée Jean de la Fontaine, 92000 Nanterre (Interphone JOLLY)
+DESCRIPTION:Rendez-vous chez Laia Skin Institut\\nSoins: ${servicesList}\\nPrix: ${reservation.totalPrice}€\\n\\nAppelez au 06 83 71 70 50 quand vous serez arrivé\\n\\nPaiement en espèces sur place
+LOCATION:Allée Jean de la Fontaine, 92000 Nanterre
 URL:https://www.instagram.com/laia.skin/
 END:VEVENT
 END:VCALENDAR`;
@@ -288,15 +286,12 @@ END:VCALENDAR`;
                   <p className="font-bold text-lg text-[#2c3e50] mb-2">📍 Adresse de l'institut</p>
                   <div className="bg-white p-3 rounded-lg shadow-sm">
                     <p className="text-base font-medium text-[#2c3e50]">
-                      5 allée Jean de la Fontaine<br/>
+                      Allée Jean de la Fontaine<br/>
                       92000 Nanterre
                     </p>
                     <div className="mt-2 p-2 bg-[#d4b5a0]/10 rounded border-l-4 border-[#d4b5a0]">
                       <p className="text-sm font-semibold text-[#2c3e50]">
-                        🏢 Bâtiment 5<br/>
-                        🔢 2ème étage<br/>
-                        🚪 Porte 523<br/>
-                        🔔 Interphone : JOLLY
+                        📱 Appelez-moi au 06 83 71 70 50 quand vous serez arrivé
                       </p>
                     </div>
                     <p className="text-sm text-[#2c3e50]/70 mt-2 flex items-center gap-2">
@@ -305,7 +300,7 @@ END:VCALENDAR`;
                     </p>
                   </div>
                   <button 
-                    onClick={() => window.open('https://maps.google.com/?q=5+allée+Jean+de+la+Fontaine+92000+Nanterre', '_blank')}
+                    onClick={() => window.open('https://maps.google.com/?q=Nanterre+Université+RER+A', '_blank')}
                     className="mt-3 text-sm text-[#d4b5a0] hover:text-[#c9a084] font-medium flex items-center gap-1"
                   >
                     📍 Voir sur Google Maps →
@@ -326,13 +321,13 @@ END:VCALENDAR`;
             Besoin de modifier votre rendez-vous ?
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button
-              onClick={() => setShowReschedule(true)}
+            <Link
+              href={`/reservation?reschedule=${reservation.id}`}
               className="flex items-center justify-center gap-2 px-6 py-2 text-[#d4b5a0] hover:underline"
             >
               <Edit className="w-4 h-4" />
               Reprogrammer
-            </button>
+            </Link>
             <button
               onClick={() => {
                 if (confirm('Êtes-vous sûr de vouloir annuler votre réservation ?')) {
@@ -348,42 +343,6 @@ END:VCALENDAR`;
           </div>
         </div>
 
-        {/* Modal de reprogrammation */}
-        {showReschedule && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl p-6 max-w-md w-full">
-              <h3 className="text-xl font-serif font-bold text-[#2c3e50] mb-4">
-                Reprogrammer votre rendez-vous
-              </h3>
-              <p className="text-[#2c3e50]/70 mb-4">
-                Pour reprogrammer votre rendez-vous, contactez-nous :
-              </p>
-              <div className="space-y-3">
-                <button
-                  onClick={openWhatsApp}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-                >
-                  <MessageCircle className="w-5 h-5" />
-                  Via WhatsApp
-                </button>
-                <a
-                  href="https://www.instagram.com/laiaskin"
-                  target="_blank"
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:shadow-lg transition-all"
-                >
-                  <Instagram className="w-5 h-5" />
-                  Via Instagram
-                </a>
-              </div>
-              <button
-                onClick={() => setShowReschedule(false)}
-                className="mt-4 w-full px-4 py-2 text-[#2c3e50]/60 hover:text-[#2c3e50] transition-colors"
-              >
-                Fermer
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* Footer Actions */}
         <div className="mt-8 text-center">

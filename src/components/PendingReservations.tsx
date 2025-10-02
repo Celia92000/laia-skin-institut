@@ -283,8 +283,15 @@ export default function PendingReservations() {
                   {selectedReservation.services && selectedReservation.services.length > 0 ? (
                     selectedReservation.services.map((service: any, index: number) => (
                       <div key={index} className="flex justify-between items-center text-sm">
-                        <span>{service.name || service}</span>
-                        {service.price && <span className="font-medium">{service.price}€</span>}
+                        <span>
+                          {typeof service === 'string'
+                            ? service
+                            : service.name || 'Service inconnu'
+                          }
+                        </span>
+                        {typeof service === 'object' && service.price && (
+                          <span className="font-medium">{service.price}€</span>
+                        )}
                       </div>
                     ))
                   ) : (

@@ -708,11 +708,11 @@ export default function EspaceClient() {
                                 Annuler
                               </button>
                               <Link
-                                href={`/espace-client/modifier-reservation/${reservation.id}/choix`}
+                                href={`/reservation?reschedule=${reservation.id}`}
                                 className="flex items-center gap-1 px-3 py-2 border border-[#d4b5a0] text-[#d4b5a0] rounded-lg text-sm hover:bg-[#d4b5a0]/10 transition-all"
                               >
                                 <Edit2 className="w-4 h-4" />
-                                Modifier
+                                Reprogrammer
                               </Link>
                             </>
                           )}
@@ -720,11 +720,11 @@ export default function EspaceClient() {
                           {reservation.status === 'pending' && (
                             <>
                               <Link
-                                href={`/espace-client/modifier-reservation/${reservation.id}/choix`}
+                                href={`/reservation?reschedule=${reservation.id}`}
                                 className="flex items-center gap-1 px-3 py-2 bg-[#d4b5a0] text-white rounded-lg text-sm hover:bg-[#c9a084] transition-all"
                               >
                                 <Edit className="w-4 h-4" />
-                                Modifier
+                                Reprogrammer
                               </Link>
                               <button
                                 onClick={() => {

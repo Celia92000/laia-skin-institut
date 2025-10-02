@@ -151,15 +151,13 @@ export async function POST(request: NextRequest) {
                 </h4>
                 <p style="color: #333; font-size: 15px; line-height: 1.8; margin: 0;">
                   <strong>LAIA SKIN INSTITUT</strong><br>
-                  5 allée Jean de la Fontaine<br>
+                  Allée Jean de la Fontaine<br>
                   92000 Nanterre
                 </p>
                 <div style="background: white; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 3px solid #d4b5a0;">
                   <p style="color: #d4b5a0; font-size: 14px; margin: 0; line-height: 1.8;">
-                    <strong>🏢 Bâtiment 5</strong><br>
-                    <strong>🔢 2ème étage</strong><br>
-                    <strong>🚪 Porte 523</strong><br>
-                    <strong style="font-size: 16px;">🔔 Interphone : JOLLY</strong>
+                    <strong>📱 Appelez-moi au 06 83 71 70 50</strong><br>
+                    <strong>quand vous serez arrivé</strong>
                   </p>
                 </div>
                 <p style="color: #666; font-size: 14px; margin: 10px 0 0 0;">
@@ -252,7 +250,7 @@ export async function POST(request: NextRequest) {
       to: [to],
       subject: `✨ Confirmation - RDV du ${date} à ${reservation.time}`,
       html: htmlContent,
-      text: `Confirmation de votre réservation chez LAIA SKIN INSTITUT\n\nDate: ${date}\nHeure: ${reservation.time}\nTotal: ${reservation.totalPrice}€\n\nAdresse: 5 allée Jean de la Fontaine, 92000 Nanterre\nBâtiment 5, 2ème étage, Porte 523\nInterphone: JOLLY\n\nÀ très bientôt !`
+      text: `Confirmation de votre réservation chez LAIA SKIN INSTITUT\n\nDate: ${date}\nHeure: ${reservation.time}\nTotal: ${reservation.totalPrice}€\n\nAdresse: Allée Jean de la Fontaine, 92000 Nanterre\n📱 Appelez-moi au 06 83 71 70 50 quand vous serez arrivé\n\nÀ très bientôt !`
     });
 
     if (error) {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getPrismaClient } from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
 import { getReservationWithServiceNamesFromDB } from '@/lib/service-utils-server';
+import { isSlotAvailable } from '@/lib/availability-service';
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,6 +31,43 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const { client, email, phone, date, time, services, notes, totalPrice, status, source, packages } = body;
+
+    // Vérifier la disponibilité du créneau AVANT de créer le client
+    const reservationDate = new Date(date);
+    // Normaliser la date à minuit pour la comparaison (comme dans isSlotAvailable)
+    reservationDate.setHours(0, 0, 0, 0);
+
+    const available = await isSlotAvailable(reservationDate, time);
+
+    if (!available) {
+      // Vérifier s'il y a déjà une réservation à ce créneau pour un message plus précis
+      const existingReservation = await prisma.reservation.findFirst({
+        where: {
+          date: reservationDate,
+          time: time,
+          status: {
+            in: ['confirmed', 'pending']
+          }
+        },
+        include: {
+          user: {
+            select: {
+              name: true
+            }
+          }
+        }
+      });
+
+      if (existingReservation) {
+        return NextResponse.json({
+          error: `Ce créneau est déjà réservé par ${existingReservation.user?.name || 'un client'}. Veuillez choisir un autre horaire.`
+        }, { status: 409 });
+      } else {
+        return NextResponse.json({
+          error: 'Ce créneau n\'est pas disponible (hors horaires de travail ou bloqué).'
+        }, { status: 409 });
+      }
+    }
 
     // Créer ou trouver le client
     let clientUser = await prisma.user.findFirst({
@@ -97,7 +135,7 @@ export async function POST(request: NextRequest) {
         serviceId: primaryServiceId, // Lier le service principal
         services: JSON.stringify(services), // Garder aussi la liste pour compatibilité
         packages: packages ? JSON.stringify(packages) : '{}',
-        date: new Date(date),
+        date: reservationDate, // Utiliser la date normalisée
         time,
         totalPrice: finalPrice,
         status: status || 'confirmed',
@@ -222,36 +260,65 @@ export async function GET(request: NextRequest) {
       return NextResponse.json([]);
     }
 
-    // Formater les données avec enrichissement des noms de services
-    const formattedReservations = await Promise.all(
-      reservations.map(async (r) => {
-        // Enrichir avec les noms de services
-        const enriched = await getReservationWithServiceNamesFromDB(r);
-        
-        return {
-          id: r.id,
-          userId: r.user.id,
-          userName: r.user.name,
-          userEmail: r.user.email,
-          phone: r.user.phone,
-          services: enriched.services,
-          packages: enriched.packages,
-          serviceName: enriched.formattedServices?.join(', ') || r.service?.name || 'Service inconnu',
-          date: r.date.toISOString(),
-          time: r.time,
-          totalPrice: r.totalPrice,
-          status: r.status,
-          notes: r.notes,
-          source: r.source || 'site',
-          createdAt: r.createdAt.toISOString(),
-          paymentStatus: r.paymentStatus,
-          paymentDate: r.paymentDate?.toISOString(),
-          paymentAmount: r.paymentAmount,
-          paymentMethod: r.paymentMethod,
-          formattedServices: enriched.formattedServices
-        };
-      })
-    );
+    // Récupérer tous les services une seule fois
+    const allServices = await prisma.service.findMany({
+      select: {
+        id: true,
+        slug: true,
+        name: true
+      }
+    });
+
+    // Créer un map pour un accès rapide
+    const serviceMap = new Map(allServices.map(s => [s.slug, s.name]));
+
+    // Formater les données avec enrichissement des noms de services (séquentiel pour éviter la saturation)
+    const formattedReservations = [];
+    for (const r of reservations) {
+      // Parser les services
+      let servicesList = [];
+      try {
+        servicesList = JSON.parse(r.services || '[]');
+      } catch (e) {
+        servicesList = [];
+      }
+
+      // Parser les packages
+      let packagesObj = {};
+      try {
+        packagesObj = JSON.parse(r.packages || '{}');
+      } catch (e) {
+        packagesObj = {};
+      }
+
+      // Formatter les noms de services
+      const formattedServices = servicesList.map((slug: string) =>
+        serviceMap.get(slug) || slug
+      );
+
+      formattedReservations.push({
+        id: r.id,
+        userId: r.user.id,
+        userName: r.user.name,
+        userEmail: r.user.email,
+        phone: r.user.phone,
+        services: servicesList,
+        packages: packagesObj,
+        serviceName: formattedServices.join(', ') || r.service?.name || 'Service inconnu',
+        date: r.date.toISOString(),
+        time: r.time,
+        totalPrice: r.totalPrice,
+        status: r.status,
+        notes: r.notes,
+        source: r.source || 'site',
+        createdAt: r.createdAt.toISOString(),
+        paymentStatus: r.paymentStatus,
+        paymentDate: r.paymentDate?.toISOString(),
+        paymentAmount: r.paymentAmount,
+        paymentMethod: r.paymentMethod,
+        formattedServices
+      });
+    }
 
     return NextResponse.json(formattedReservations);
   } catch (error) {

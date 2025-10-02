@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { User, Lock, Eye, EyeOff, ArrowRight, Shield, Users, Calculator, Briefcase, GraduationCap, Info, ChevronDown, CheckCircle, AlertCircle } from "lucide-react";
+import { User, Lock, Eye, EyeOff, ArrowRight, Shield, Users, Calculator, Briefcase, GraduationCap, Info, ChevronDown, CheckCircle, AlertCircle, LogOut } from "lucide-react";
 
 export default function SecureLoginPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -11,6 +11,11 @@ export default function SecureLoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const [magicLinkEmail, setMagicLinkEmail] = useState("");
+  const [sendingMagicLink, setSendingMagicLink] = useState(false);
+  const [loginMethod, setLoginMethod] = useState<'password' | 'magic'>('password'); // password ou magic
+  const ENABLE_MAGIC_LINK = false; // Désactivé temporairement à cause de la limite Supabase free tier (1 connexion)
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -20,9 +25,20 @@ export default function SecureLoginPage() {
     referralCode: ""
   });
 
-  // Charger seulement l'email sauvegardé au chargement (jamais le mot de passe)
-  useState(() => {
+  // Vérifier si déjà connecté
+  const [alreadyLoggedIn, setAlreadyLoggedIn] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  useEffect(() => {
     if (typeof window !== 'undefined') {
+      // Vérifier si déjà connecté
+      const token = localStorage.getItem('token');
+      const user = localStorage.getItem('user');
+      if (token && user) {
+        setAlreadyLoggedIn(true);
+        setCurrentUser(JSON.parse(user));
+      }
+
       const savedEmail = localStorage.getItem('rememberedEmail');
       if (savedEmail) {
         setFormData(prev => ({ ...prev, email: savedEmail }));
@@ -31,7 +47,7 @@ export default function SecureLoginPage() {
       // Supprimer tout mot de passe potentiellement stocké
       localStorage.removeItem('rememberedPassword');
     }
-  });
+  }, []);
 
   // Comptes de démonstration désactivés pour la sécurité
   const demoAccounts = false ? [
@@ -189,6 +205,119 @@ export default function SecureLoginPage() {
     setError("Entrez le mot de passe sécurisé fourni");
   };
 
+  // Fonction pour envoyer le lien magique
+  const handleSendMagicLink = async () => {
+    if (!magicLinkEmail) {
+      setError("Veuillez entrer votre email");
+      return;
+    }
+
+    setSendingMagicLink(true);
+    setError("");
+
+    try {
+      const response = await fetch('/api/auth/magic-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: magicLinkEmail })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMagicLinkSent(true);
+      } else {
+        setError(data.error || 'Erreur lors de l\'envoi du lien');
+      }
+    } catch (error) {
+      console.error('Erreur:', error);
+      setError('Erreur lors de l\'envoi du lien magique');
+    } finally {
+      setSendingMagicLink(false);
+    }
+  };
+
+  // Fonction de déconnexion
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('userRole');
+    document.cookie = 'token=; path=/; max-age=0';
+    setAlreadyLoggedIn(false);
+    setCurrentUser(null);
+  };
+
+  // Fonction de redirection vers l'espace approprié
+  const goToSpace = () => {
+    const roleRedirects: {[key: string]: string} = {
+      'ADMIN': '/admin',
+      'admin': '/admin',
+      'COMPTABLE': '/admin/finances',
+      'EMPLOYEE': '/admin/planning',
+      'STAGIAIRE': '/admin/planning',
+      'CLIENT': '/espace-client',
+      'client': '/espace-client'
+    };
+
+    const redirectPath = roleRedirects[currentUser?.role] || '/espace-client';
+    window.location.href = redirectPath;
+  };
+
+  // Si déjà connecté, afficher l'écran de choix
+  if (alreadyLoggedIn && currentUser) {
+    return (
+      <main className="pt-24 pb-20 min-h-screen bg-gradient-to-br from-[#fdfbf7] to-[#f8f6f0]">
+        <div className="max-w-md mx-auto px-4">
+          <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+            <div className="bg-gradient-to-r from-[#8B7355] to-[#6B5D54] p-8 text-white text-center">
+              <User className="w-16 h-16 mx-auto mb-4 opacity-90" />
+              <h1 className="text-3xl font-serif mb-2">
+                Vous êtes déjà connecté
+              </h1>
+              <p className="text-sm opacity-90">
+                Connecté en tant que {currentUser.name}
+              </p>
+            </div>
+
+            <div className="p-8">
+              <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  💡 Vous avez déjà une session active. Que souhaitez-vous faire ?
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <button
+                  onClick={goToSpace}
+                  className="w-full bg-gradient-to-r from-[#8B7355] to-[#A0826D] text-white py-3 rounded-lg font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                >
+                  <User className="w-5 h-5" />
+                  Aller vers mon espace
+                </button>
+
+                <button
+                  onClick={handleLogout}
+                  className="w-full bg-red-500 text-white py-3 rounded-lg font-medium hover:bg-red-600 transition-all flex items-center justify-center gap-2"
+                >
+                  <LogOut className="w-5 h-5" />
+                  Se déconnecter et utiliser un autre compte
+                </button>
+              </div>
+
+              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                <p className="text-xs text-gray-600 text-center">
+                  Rôle : <span className="font-semibold">{currentUser.role}</span>
+                  <br />
+                  Email : <span className="font-semibold">{currentUser.email}</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="pt-24 pb-20 min-h-screen bg-gradient-to-br from-[#fdfbf7] to-[#f8f6f0]">
       <div className="max-w-md mx-auto px-4">
@@ -208,7 +337,7 @@ export default function SecureLoginPage() {
             {/* Toggle Login/Register */}
             <div className="flex mb-6 bg-laia-nude rounded-lg p-1">
               <button
-                onClick={() => {setIsLogin(true); setError("");}}
+                onClick={() => {setIsLogin(true); setError(""); setMagicLinkSent(false);}}
                 className={`flex-1 py-2.5 rounded-md transition-all font-medium ${
                   isLogin
                     ? "bg-white text-laia-primary shadow-sm"
@@ -218,7 +347,7 @@ export default function SecureLoginPage() {
                 Connexion
               </button>
               <button
-                onClick={() => {setIsLogin(false); setError("");}}
+                onClick={() => {setIsLogin(false); setError(""); setMagicLinkSent(false);}}
                 className={`flex-1 py-2.5 rounded-md transition-all font-medium ${
                   !isLogin
                     ? "bg-white text-laia-primary shadow-sm"
@@ -229,6 +358,44 @@ export default function SecureLoginPage() {
               </button>
             </div>
 
+            {/* Toggle Méthode de connexion (seulement en mode Login) */}
+            {isLogin && ENABLE_MAGIC_LINK && (
+              <div className="mb-6">
+                <p className="text-sm text-laia-gray mb-3 text-center">Choisissez votre méthode de connexion</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => {setLoginMethod('password'); setError(""); setMagicLinkSent(false);}}
+                    className={`p-4 rounded-xl border-2 transition-all ${
+                      loginMethod === 'password'
+                        ? "border-[#8B7355] bg-gradient-to-br from-[#8B7355]/10 to-[#A0826D]/10 shadow-md"
+                        : "border-gray-200 hover:border-[#8B7355]/50"
+                    }`}
+                  >
+                    <Lock className={`w-6 h-6 mx-auto mb-2 ${loginMethod === 'password' ? 'text-[#8B7355]' : 'text-gray-400'}`} />
+                    <p className={`text-sm font-medium ${loginMethod === 'password' ? 'text-[#8B7355]' : 'text-gray-600'}`}>
+                      Mot de passe
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">Connexion classique</p>
+                  </button>
+
+                  <button
+                    onClick={() => {setLoginMethod('magic'); setError(""); setMagicLinkSent(false);}}
+                    className={`p-4 rounded-xl border-2 transition-all ${
+                      loginMethod === 'magic'
+                        ? "border-[#8B7355] bg-gradient-to-br from-[#8B7355]/10 to-[#A0826D]/10 shadow-md"
+                        : "border-gray-200 hover:border-[#8B7355]/50"
+                    }`}
+                  >
+                    <Shield className={`w-6 h-6 mx-auto mb-2 ${loginMethod === 'magic' ? 'text-[#8B7355]' : 'text-gray-400'}`} />
+                    <p className={`text-sm font-medium ${loginMethod === 'magic' ? 'text-[#8B7355]' : 'text-gray-600'}`}>
+                      ✨ Email magique
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">Sans mot de passe</p>
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Message d'erreur */}
             {error && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
@@ -237,6 +404,7 @@ export default function SecureLoginPage() {
               </div>
             )}
 
+            {/* Formulaire classique (mot de passe ou inscription) */}
             <form onSubmit={handleSubmit} className="space-y-4">
               {!isLogin && (
                 <div>
@@ -386,8 +554,8 @@ export default function SecureLoginPage() {
               </button>
             </form>
 
-            {/* Section des types d'accès (environnement de développement uniquement) */}
-            {process.env.NODE_ENV === 'development' && isLogin && (
+            {/* Section des types d'accès désactivée */}
+            {false && (
               <div className="mt-8 pt-6 border-t border-gray-200">
                 <button
                   onClick={() => setShowDemoAccounts(!showDemoAccounts)}

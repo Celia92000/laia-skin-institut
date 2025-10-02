@@ -33,8 +33,8 @@ export async function sendEmailWithEmailJS(data: EmailJSData): Promise<boolean> 
       
       // Informations de l'institut
       institute_name: 'LAIA SKIN Institut',
-      institute_address: '5 allée Jean de la Fontaine, 92000 Nanterre',
-      institute_details: 'Bâtiment 5 - 2ème étage - Porte 523',
+      institute_address: 'Allée Jean de la Fontaine, 92000 Nanterre',
+      institute_details: 'Appelez-moi au 06 83 71 70 50 quand vous serez arrivé',
       institute_phone: '06 83 71 70 50',
       institute_instagram: '@laia.skin',
       
@@ -51,9 +51,9 @@ Votre rendez-vous est confirmé !
 
 📍 Adresse :
 LAIA SKIN Institut
-5 allée Jean de la Fontaine
+Allée Jean de la Fontaine
 92000 Nanterre
-Bâtiment 5 - 2ème étage - Porte 523
+📱 Appelez-moi au 06 83 71 70 50 quand vous serez arrivé
 
 À très bientôt !
 Laïa

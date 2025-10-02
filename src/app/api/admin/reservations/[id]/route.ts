@@ -285,6 +285,99 @@ export async function PATCH(
   }
 }
 
+// PUT - Modifier une réservation
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  const admin = await verifyAdmin(request);
+  if (!admin) {
+    return NextResponse.json(
+      { error: 'Non autorisé' },
+      { status: 401 }
+    );
+  }
+
+  try {
+    const prisma = await getPrismaClient();
+    const body = await request.json();
+    const { date, time, status, totalPrice, services } = body;
+
+    // Normaliser la date si fournie
+    let normalizedDate;
+    if (date) {
+      normalizedDate = new Date(date);
+      normalizedDate.setHours(0, 0, 0, 0);
+    }
+
+    // Vérifier la disponibilité du nouveau créneau (sauf si on annule)
+    if (status !== 'cancelled' && normalizedDate && time) {
+      const existingReservation = await prisma.reservation.findFirst({
+        where: {
+          date: normalizedDate,
+          time: time,
+          status: {
+            in: ['confirmed', 'pending']
+          },
+          NOT: {
+            id: id // Exclure la réservation actuelle
+          }
+        }
+      });
+
+      if (existingReservation) {
+        return NextResponse.json(
+          { error: `Ce créneau est déjà réservé. Veuillez choisir un autre horaire.` },
+          { status: 409 }
+        );
+      }
+    }
+
+    // Mettre à jour la réservation
+    const updatedReservation = await prisma.reservation.update({
+      where: { id },
+      data: {
+        ...(normalizedDate && { date: normalizedDate }),
+        ...(time && { time }),
+        ...(status && { status }),
+        ...(totalPrice !== undefined && { totalPrice }),
+        ...(services && { services: JSON.stringify(services) })
+      },
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true,
+            phone: true
+          }
+        }
+      }
+    });
+
+    return NextResponse.json({
+      id: updatedReservation.id,
+      userId: updatedReservation.userId,
+      userName: updatedReservation.user.name,
+      userEmail: updatedReservation.user.email,
+      phone: updatedReservation.user.phone,
+      services: JSON.parse(updatedReservation.services),
+      date: updatedReservation.date.toISOString(),
+      time: updatedReservation.time,
+      totalPrice: updatedReservation.totalPrice,
+      status: updatedReservation.status,
+      notes: updatedReservation.notes,
+      createdAt: updatedReservation.createdAt.toISOString()
+    });
+  } catch (error) {
+    console.error('Erreur lors de la modification de la réservation:', error);
+    return NextResponse.json(
+      { error: 'Erreur lors de la modification' },
+      { status: 500 }
+    );
+  }
+}
+
 // DELETE - Supprimer une réservation
 export async function DELETE(
   request: NextRequest,
