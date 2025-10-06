@@ -62,8 +62,8 @@ export default function Header() {
   const navItems = [
     { href: "/", label: "Accueil" },
     { href: "/prestations", label: "Mes Prestations" },
-    ...(showProducts ? [{ href: "/produits", label: "Produits" }] : []),
-    ...(showFormations ? [{ href: "/formations", label: "Formations" }] : []),
+    { href: "/produits", label: "Mes Produits" },
+    { href: "/formations", label: "Mes Formations" },
     { href: "/blog", label: "Blog" },
     { href: "/a-propos", label: "À Propos" },
     { href: "/reservation", label: "Réserver" },

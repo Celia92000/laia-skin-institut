@@ -56,8 +56,9 @@ export default function AdminServicesTab() {
   const [productsCount, setProductsCount] = useState(0);
   const [formationsCount, setFormationsCount] = useState(0);
   const [servicesCount, setServicesCount] = useState(0);
-  const [imageObjectFit, setImageObjectFit] = useState<'cover' | 'contain'>('cover');
+  const [imageObjectFit, setImageObjectFit] = useState<'cover' | 'contain' | 'fill'>('cover');
   const [imagePosition, setImagePosition] = useState({ x: 50, y: 50 }); // Position en pourcentage
+  const [imageZoom, setImageZoom] = useState(100);
 
   useEffect(() => {
     fetchServices();
@@ -76,8 +77,10 @@ export default function AdminServicesTab() {
 
       if (response.ok) {
         const data = await response.json();
-        setServices(data);
-        setServicesCount(data.length);
+        // Trier les services par ordre d'affichage
+        const sortedData = data.sort((a: Service, b: Service) => a.order - b.order);
+        setServices(sortedData);
+        setServicesCount(sortedData.length);
       }
     } catch (error) {
       console.error('Erreur lors de la récupération des services:', error);
@@ -613,132 +616,244 @@ export default function AdminServicesTab() {
                     💡 Formats: URL externe (https://...) ou chemin local (/images/...)
                   </p>
                   {formData.mainImage && (
-                    <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                      <div className="flex items-center justify-between mb-3">
-                        <p className="text-sm font-medium text-gray-700">Aperçu :</p>
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setImageObjectFit(prev => prev === 'cover' ? 'contain' : 'cover')}
-                            className="px-3 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100 transition"
-                          >
-                            Ajuster ({imageObjectFit === 'cover' ? 'Recadré' : 'Complet'})
-                          </button>
-                        </div>
+                    <div className="mt-6 bg-gradient-to-br from-[#d4b5a0]/10 to-white rounded-xl shadow-lg border-2 border-[#d4b5a0]/30 overflow-hidden">
+                      {/* Header */}
+                      <div className="bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] px-6 py-4">
+                        <h3 className="text-white font-semibold text-lg flex items-center gap-2">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          Éditeur d'image avancé
+                        </h3>
+                        <p className="text-white/90 text-sm mt-1">Ajustez précisément votre image en temps réel</p>
                       </div>
 
-                      {/* Interface moderne de positionnement */}
-                      <div className="space-y-4">
-                        {/* Aperçu interactif avec overlay cliquable */}
-                        <div
-                          className="relative w-full max-w-md h-64 rounded-lg shadow-lg overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 cursor-crosshair border-2 border-[#d4b5a0]/30"
-                          onClick={(e) => {
-                            const rect = e.currentTarget.getBoundingClientRect();
-                            const x = ((e.clientX - rect.left) / rect.width) * 100;
-                            const y = ((e.clientY - rect.top) / rect.height) * 100;
-                            setImagePosition({ x: Math.round(x), y: Math.round(y) });
-                          }}
-                        >
-                          <img
-                            src={formData.mainImage}
-                            alt="Aperçu"
-                            className="w-full h-full pointer-events-none"
-                            style={{
-                              objectFit: imageObjectFit,
-                              objectPosition: `${imagePosition.x}% ${imagePosition.y}%`
-                            }}
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
-                              (e.target as HTMLImageElement).alt = 'Image non trouvée';
-                            }}
-                          />
-                          {/* Point de référence */}
+                      <div className="p-6 space-y-6">
+                        {/* Preview Section */}
+                        <div className="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl overflow-hidden shadow-2xl border border-gray-700">
+                          {/* Grid overlay */}
+                          <div className="absolute inset-0 pointer-events-none opacity-20 z-10">
+                            <div className="grid grid-cols-3 grid-rows-3 h-full">
+                              {[...Array(9)].map((_, i) => (
+                                <div key={i} className="border border-white/30"></div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Interactive Image */}
                           <div
-                            className="absolute w-3 h-3 bg-[#d4b5a0] border-2 border-white rounded-full shadow-lg transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-                            style={{
-                              left: `${imagePosition.x}%`,
-                              top: `${imagePosition.y}%`
+                            className="relative h-80 cursor-crosshair"
+                            onClick={(e) => {
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              const x = Math.round(((e.clientX - rect.left) / rect.width) * 100);
+                              const y = Math.round(((e.clientY - rect.top) / rect.height) * 100);
+                              setImagePosition({ x, y });
                             }}
-                          />
-                          {/* Grille de référence légère */}
-                          <div className="absolute inset-0 pointer-events-none opacity-20">
-                            <div className="absolute inset-0 border border-white" style={{ left: '0%', width: '33.33%' }} />
-                            <div className="absolute inset-0 border border-white" style={{ left: '33.33%', width: '33.33%' }} />
-                            <div className="absolute inset-0 border border-white" style={{ left: '66.66%', width: '33.33%' }} />
+                          >
+                            <img
+                              src={formData.mainImage}
+                              alt="Aperçu"
+                              className="w-full h-full transition-all duration-300"
+                              style={{
+                                objectFit: imageObjectFit,
+                                objectPosition: `${imagePosition.x}% ${imagePosition.y}%`,
+                                transform: `scale(${imageZoom / 100})`
+                              }}
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
+                              }}
+                            />
+                            {/* Position indicator */}
+                            <div
+                              className="absolute w-4 h-4 bg-[#d4b5a0] border-2 border-white rounded-full shadow-lg transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20 animate-pulse"
+                              style={{ left: `${imagePosition.x}%`, top: `${imagePosition.y}%` }}
+                            />
+                          </div>
+
+                          {/* Quick info overlay */}
+                          <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm text-white px-3 py-2 rounded-lg text-xs font-mono">
+                            Position: {imagePosition.x}%, {imagePosition.y}% | Zoom: {imageZoom}%
                           </div>
                         </div>
 
-                        {/* Contrôles compacts et modernes */}
-                        <div className="flex items-center gap-4 bg-white p-3 rounded-lg border border-gray-200">
-                          <div className="flex-1 space-y-2">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-medium text-gray-600 w-8">X:</span>
-                              <input
-                                type="range"
-                                min="0"
-                                max="100"
-                                step="1"
-                                value={imagePosition.x}
-                                onChange={(e) => setImagePosition(prev => ({ ...prev, x: parseInt(e.target.value) }))}
-                                className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#d4b5a0]"
-                              />
-                              <span className="text-xs font-mono text-gray-700 w-10 text-right">{imagePosition.x}%</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-medium text-gray-600 w-8">Y:</span>
-                              <input
-                                type="range"
-                                min="0"
-                                max="100"
-                                step="1"
-                                value={imagePosition.y}
-                                onChange={(e) => setImagePosition(prev => ({ ...prev, y: parseInt(e.target.value) }))}
-                                className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#d4b5a0]"
-                              />
-                              <span className="text-xs font-mono text-gray-700 w-10 text-right">{imagePosition.y}%</span>
+                        {/* Controls Section */}
+                        <div className="space-y-4">
+                          {/* Object Fit Modes */}
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-800 mb-3">Mode d'affichage</label>
+                            <div className="grid grid-cols-3 gap-3">
+                              <button
+                                type="button"
+                                onClick={() => setImageObjectFit('cover')}
+                                className={`group relative px-4 py-3 rounded-xl border-2 transition-all ${
+                                  imageObjectFit === 'cover'
+                                    ? 'border-[#d4b5a0] bg-[#d4b5a0]/10 shadow-md'
+                                    : 'border-gray-200 hover:border-[#d4b5a0] hover:bg-[#d4b5a0]/5'
+                                }`}
+                              >
+                                <div className="text-2xl mb-1">📐</div>
+                                <div className="text-xs font-semibold text-gray-700">Remplir</div>
+                                <div className="text-xs text-gray-500">Cover</div>
+                                {imageObjectFit === 'cover' && (
+                                  <div className="absolute top-2 right-2 w-2 h-2 bg-[#d4b5a0] rounded-full"></div>
+                                )}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setImageObjectFit('contain')}
+                                className={`group relative px-4 py-3 rounded-xl border-2 transition-all ${
+                                  imageObjectFit === 'contain'
+                                    ? 'border-[#d4b5a0] bg-[#d4b5a0]/10 shadow-md'
+                                    : 'border-gray-200 hover:border-[#d4b5a0] hover:bg-[#d4b5a0]/5'
+                                }`}
+                              >
+                                <div className="text-2xl mb-1">🔲</div>
+                                <div className="text-xs font-semibold text-gray-700">Contenir</div>
+                                <div className="text-xs text-gray-500">Contain</div>
+                                {imageObjectFit === 'contain' && (
+                                  <div className="absolute top-2 right-2 w-2 h-2 bg-[#d4b5a0] rounded-full"></div>
+                                )}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setImageObjectFit('fill')}
+                                className={`group relative px-4 py-3 rounded-xl border-2 transition-all ${
+                                  imageObjectFit === 'fill'
+                                    ? 'border-[#d4b5a0] bg-[#d4b5a0]/10 shadow-md'
+                                    : 'border-gray-200 hover:border-[#d4b5a0] hover:bg-[#d4b5a0]/5'
+                                }`}
+                              >
+                                <div className="text-2xl mb-1">↔️</div>
+                                <div className="text-xs font-semibold text-gray-700">Étirer</div>
+                                <div className="text-xs text-gray-500">Fill</div>
+                                {imageObjectFit === 'fill' && (
+                                  <div className="absolute top-2 right-2 w-2 h-2 bg-[#d4b5a0] rounded-full"></div>
+                                )}
+                              </button>
                             </div>
                           </div>
+
+                          {/* Position Controls */}
+                          <div className="bg-white rounded-xl p-4 border border-gray-200">
+                            <label className="block text-sm font-semibold text-gray-800 mb-3">Position de l'image</label>
+                            <div className="space-y-3">
+                              <div>
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-xs font-medium text-gray-600">Horizontal (X)</span>
+                                  <span className="text-xs font-mono font-bold text-[#d4b5a0]">{imagePosition.x}%</span>
+                                </div>
+                                <input
+                                  type="range"
+                                  min="0"
+                                  max="100"
+                                  value={imagePosition.x}
+                                  onChange={(e) => setImagePosition(prev => ({ ...prev, x: parseInt(e.target.value) }))}
+                                  className="w-full h-2 bg-gradient-to-r from-[#d4b5a0]/30 via-[#d4b5a0]/60 to-[#d4b5a0] rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-[#d4b5a0]"
+                                />
+                              </div>
+                              <div>
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-xs font-medium text-gray-600">Vertical (Y)</span>
+                                  <span className="text-xs font-mono font-bold text-[#d4b5a0]">{imagePosition.y}%</span>
+                                </div>
+                                <input
+                                  type="range"
+                                  min="0"
+                                  max="100"
+                                  value={imagePosition.y}
+                                  onChange={(e) => setImagePosition(prev => ({ ...prev, y: parseInt(e.target.value) }))}
+                                  className="w-full h-2 bg-gradient-to-r from-[#d4b5a0]/30 via-[#d4b5a0]/60 to-[#d4b5a0] rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-[#d4b5a0]"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Position Presets */}
+                            <div className="mt-4">
+                              <span className="text-xs font-medium text-gray-600 mb-2 block">Positions rapides</span>
+                              <div className="grid grid-cols-3 gap-2">
+                                {[
+                                  { label: '↖', x: 0, y: 0 },
+                                  { label: '↑', x: 50, y: 0 },
+                                  { label: '↗', x: 100, y: 0 },
+                                  { label: '←', x: 0, y: 50 },
+                                  { label: '⊙', x: 50, y: 50 },
+                                  { label: '→', x: 100, y: 50 },
+                                  { label: '↙', x: 0, y: 100 },
+                                  { label: '↓', x: 50, y: 100 },
+                                  { label: '↘', x: 100, y: 100 },
+                                ].map((preset) => (
+                                  <button
+                                    key={preset.label}
+                                    type="button"
+                                    onClick={() => setImagePosition({ x: preset.x, y: preset.y })}
+                                    className={`px-3 py-2 text-sm rounded-lg border transition-all ${
+                                      imagePosition.x === preset.x && imagePosition.y === preset.y
+                                        ? 'bg-[#d4b5a0] text-white border-[#d4b5a0] shadow-md'
+                                        : 'bg-white text-gray-700 border-gray-200 hover:border-[#d4b5a0] hover:bg-[#d4b5a0]/10'
+                                    }`}
+                                  >
+                                    {preset.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Zoom Control */}
+                          <div className="bg-white rounded-xl p-4 border border-gray-200">
+                            <div className="flex items-center justify-between mb-3">
+                              <label className="text-sm font-semibold text-gray-800">Zoom</label>
+                              <span className="text-sm font-mono font-bold text-[#d4b5a0]">{imageZoom}%</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <button
+                                type="button"
+                                onClick={() => setImageZoom(Math.max(50, imageZoom - 10))}
+                                className="px-3 py-2 bg-[#d4b5a0]/20 text-[#d4b5a0] rounded-lg hover:bg-[#d4b5a0]/30 transition-colors font-bold"
+                              >
+                                −
+                              </button>
+                              <input
+                                type="range"
+                                min="50"
+                                max="200"
+                                value={imageZoom}
+                                onChange={(e) => setImageZoom(parseInt(e.target.value))}
+                                className="flex-1 h-2 bg-gradient-to-r from-blue-200 via-[#d4b5a0] to-pink-300 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-[#d4b5a0]"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setImageZoom(Math.min(200, imageZoom + 10))}
+                                className="px-3 py-2 bg-[#d4b5a0]/20 text-[#d4b5a0] rounded-lg hover:bg-[#d4b5a0]/30 transition-colors font-bold"
+                              >
+                                +
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Reset Button */}
                           <button
                             type="button"
-                            onClick={() => setImagePosition({ x: 50, y: 50 })}
-                            className="px-4 py-2 bg-[#d4b5a0] text-white rounded-lg hover:bg-[#c4a590] transition text-sm font-medium shadow-sm"
-                            title="Centrer"
+                            onClick={() => {
+                              setImageObjectFit('cover');
+                              setImagePosition({ x: 50, y: 50 });
+                              setImageZoom(100);
+                            }}
+                            className="w-full px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium flex items-center justify-center gap-2"
                           >
-                            Centrer
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Réinitialiser
                           </button>
                         </div>
 
-                        {/* Positions prédéfinies */}
-                        <div className="grid grid-cols-3 gap-2">
-                          {[
-                            { label: '↖ Haut G.', x: 0, y: 0 },
-                            { label: '↑ Haut', x: 50, y: 0 },
-                            { label: '↗ Haut D.', x: 100, y: 0 },
-                            { label: '← Gauche', x: 0, y: 50 },
-                            { label: '⊙ Centre', x: 50, y: 50 },
-                            { label: '→ Droite', x: 100, y: 50 },
-                            { label: '↙ Bas G.', x: 0, y: 100 },
-                            { label: '↓ Bas', x: 50, y: 100 },
-                            { label: '↘ Bas D.', x: 100, y: 100 },
-                          ].map((preset) => (
-                            <button
-                              key={preset.label}
-                              type="button"
-                              onClick={() => setImagePosition({ x: preset.x, y: preset.y })}
-                              className={`px-2 py-2 text-xs rounded border transition ${
-                                imagePosition.x === preset.x && imagePosition.y === preset.y
-                                  ? 'bg-[#d4b5a0] text-white border-[#d4b5a0]'
-                                  : 'bg-white text-gray-700 border-gray-300 hover:border-[#d4b5a0] hover:text-[#d4b5a0]'
-                              }`}
-                            >
-                              {preset.label}
-                            </button>
-                          ))}
+                        {/* Info */}
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                          <p className="text-xs text-blue-800">
+                            💡 <strong>Astuce :</strong> Cliquez directement sur l'image pour positionner le point focal, ou utilisez les curseurs pour un ajustement précis.
+                          </p>
                         </div>
-
-                        <p className="text-xs text-gray-500 text-center">
-                          💡 Cliquez sur l'image pour positionner, ou utilisez les curseurs et positions prédéfinies
-                        </p>
                       </div>
                     </div>
                   )}
@@ -788,28 +903,65 @@ export default function AdminServicesTab() {
 
                         {url && (
                           <div className="relative">
+                            {/* Adjustment Buttons */}
+                            <div className="flex gap-2 mb-2">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  const img = e.currentTarget.closest('.relative')?.querySelector('img') as HTMLImageElement;
+                                  if (img) img.style.objectFit = 'cover';
+                                }}
+                                className="px-2 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-[#d4b5a0]/20 hover:border-[#d4b5a0] transition"
+                                title="Remplir"
+                              >
+                                📐
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  const img = e.currentTarget.closest('.relative')?.querySelector('img') as HTMLImageElement;
+                                  if (img) img.style.objectFit = 'contain';
+                                }}
+                                className="px-2 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-[#d4b5a0]/20 hover:border-[#d4b5a0] transition"
+                                title="Afficher entière"
+                              >
+                                🔲
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  const img = e.currentTarget.closest('.relative')?.querySelector('img') as HTMLImageElement;
+                                  if (img) img.style.objectFit = 'fill';
+                                }}
+                                className="px-2 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-[#d4b5a0]/20 hover:border-[#d4b5a0] transition"
+                                title="Étirer"
+                              >
+                                ↔️
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  const img = e.currentTarget.closest('.relative')?.querySelector('img') as HTMLImageElement;
+                                  if (img) {
+                                    img.style.objectPosition = img.style.objectPosition === 'top' ? 'center' : 'top';
+                                  }
+                                }}
+                                className="px-2 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-[#d4b5a0]/20 hover:border-[#d4b5a0] transition"
+                                title="Position Haut/Centre"
+                              >
+                                ⬆️
+                              </button>
+                            </div>
                             <img
                               src={url}
                               alt={`Galerie ${index + 1}`}
                               className="w-full h-40 rounded-lg shadow-sm"
-                              style={{ objectFit: 'cover' }}
+                              style={{ objectFit: 'cover', objectPosition: 'center' }}
                               onError={(e) => {
                                 (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
                                 (e.target as HTMLImageElement).alt = 'Image non trouvée';
                               }}
                             />
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                const img = e.currentTarget.previousElementSibling as HTMLImageElement;
-                                if (img) {
-                                  img.style.objectFit = img.style.objectFit === 'contain' ? 'cover' : 'contain';
-                                }
-                              }}
-                              className="absolute top-2 right-2 px-2 py-1 text-xs bg-white/90 hover:bg-white border border-gray-300 rounded shadow-sm transition"
-                            >
-                              Ajuster
-                            </button>
                           </div>
                         )}
                       </div>

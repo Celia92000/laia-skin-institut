@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Star, Package, ShoppingCart } from 'lucide-react';
-import UniversalPaymentModal from './UniversalPaymentModal';
+// import UniversalPaymentModal from './UniversalPaymentModal';
 
 interface ProductCardProps {
   product: {
@@ -14,8 +14,9 @@ interface ProductCardProps {
     shortDescription?: string;
     price: number;
     salePrice?: number;
-    stock: number;
+    stock?: number;
     mainImage?: string;
+    imageSettings?: string;
     featured?: boolean;
   };
 }
@@ -44,17 +45,32 @@ export default function ProductCard({ product }: ProductCardProps) {
                 <span className="text-xs font-bold">BEST-SELLER</span>
               </div>
             )}
-            {product.mainImage ? (
-              <img
-                src={product.mainImage}
-                alt={product.name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <Package className="w-20 h-20 text-[#2c3e50]/20" />
-              </div>
-            )}
+            <div className="w-full h-full overflow-hidden">
+              {product.mainImage ? (
+                <img
+                  src={product.mainImage}
+                  alt={product.name}
+                  className="w-full h-full"
+                  style={(() => {
+                    try {
+                      if (product.imageSettings) {
+                        const settings = JSON.parse(product.imageSettings);
+                        return {
+                          objectFit: settings.objectFit || 'cover',
+                          objectPosition: `${settings.position?.x || 50}% ${settings.position?.y || 50}%`,
+                          transform: `scale(${(settings.zoom || 100) / 100})`
+                        };
+                      }
+                    } catch {}
+                    return { objectFit: 'cover' as const };
+                  })()}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Package className="w-20 h-20 text-[#2c3e50]/20" />
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Content */}
@@ -85,7 +101,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 )}
               </div>
               <div className="text-sm text-gray-500">
-                {product.stock > 0 ? (
+                {product.stock === undefined || product.stock > 0 ? (
                   <span className="text-green-600">En stock</span>
                 ) : (
                   <span className="text-red-600">Rupture</span>
@@ -97,11 +113,11 @@ export default function ProductCard({ product }: ProductCardProps) {
             <div className="mt-4 flex gap-2">
               <button
                 onClick={handleBuyClick}
-                disabled={product.stock === 0}
+                disabled={product.stock !== undefined && product.stock === 0}
                 className="flex-1 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white py-3 rounded-lg font-medium hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ShoppingCart className="w-4 h-4" />
-                {product.stock === 0 ? 'Rupture' : 'Acheter'}
+                {product.stock !== undefined && product.stock === 0 ? 'Rupture' : 'Acheter'}
               </button>
               <div className="flex items-center text-[#d4b5a0] font-medium group-hover:gap-2 transition-all px-3">
                 <span className="text-sm">Détails</span>
@@ -112,14 +128,13 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
       </Link>
 
-      {/* Modal de paiement */}
-      {showPaymentModal && (
+      {/* Modal de paiement - temporairement désactivé */}
+      {/* {showPaymentModal && (
         <UniversalPaymentModal
           item={{
             id: product.id,
             name: product.name,
-            price: product.price,
-            salePrice: product.salePrice,
+            price: product.salePrice || product.price,
             type: 'product',
             image: product.mainImage
           }}
@@ -130,7 +145,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             setShowPaymentModal(false);
           }}
         />
-      )}
+      )} */}
     </>
   );
 }

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { prisma } from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 import { ArrowRight, GraduationCap } from 'lucide-react';
 import FormationCard from '@/components/FormationCard';
 
@@ -7,6 +7,7 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export default async function FormationsPage() {
+  const prisma = await getPrismaClient();
   let formations: any[] = [];
 
   try {

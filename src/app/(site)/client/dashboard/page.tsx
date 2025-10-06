@@ -84,15 +84,47 @@ export default function ClientDashboard() {
                     </div>
                   </div>
                 </div>
-                <Link
-                  href="/reservation"
-                  className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center justify-center"
-                >
-                  <Calendar className="mr-2" size={20} />
-                  Nouvelle réservation
-                </Link>
               </div>
             </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <Link
+              href="/reservation"
+              className="bg-white rounded-2xl shadow-xl p-6 hover:shadow-2xl transition-all transform hover:-translate-y-1"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="bg-primary/10 p-3 rounded-full">
+                      <Calendar className="text-primary" size={24} />
+                    </div>
+                    <h3 className="text-xl font-semibold">Réserver un soin</h3>
+                  </div>
+                  <p className="text-muted">Prenez rendez-vous pour votre prochain soin</p>
+                </div>
+                <ChevronRight className="text-primary" size={24} />
+              </div>
+            </Link>
+
+            <Link
+              href="/carte-cadeau"
+              className="bg-white rounded-2xl shadow-xl p-6 hover:shadow-2xl transition-all transform hover:-translate-y-1"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="bg-primary/10 p-3 rounded-full">
+                      <Gift className="text-primary" size={24} />
+                    </div>
+                    <h3 className="text-xl font-semibold">Offrir une carte cadeau</h3>
+                  </div>
+                  <p className="text-muted">Le cadeau idéal pour faire plaisir</p>
+                </div>
+                <ChevronRight className="text-primary" size={24} />
+              </div>
+            </Link>
           </div>
 
           <div className="grid md:grid-cols-4 gap-6">

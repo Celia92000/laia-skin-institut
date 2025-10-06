@@ -6,7 +6,7 @@ import Link from 'next/link';
 import {
   ArrowRight, GraduationCap, Star, Check, Shield, ChevronRight, Clock, Users, Calendar, BookOpen
 } from 'lucide-react';
-import UniversalPaymentModal from '@/components/UniversalPaymentModal';
+// import UniversalPaymentModal from '@/components/UniversalPaymentModal';
 
 interface Formation {
   id: string;
@@ -159,7 +159,7 @@ export default function FormationDetailPage() {
                 </div>
 
                 <button
-                  onClick={() => setShowPaymentModal(true)}
+                  onClick={() => window.location.href = `/contact?formation=${encodeURIComponent(formation?.name || '')}`}
                   className="w-full bg-gradient-to-r from-purple-500 to-purple-700 text-white py-4 rounded-xl font-medium text-lg hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 group"
                 >
                   <GraduationCap className="w-5 h-5" />
@@ -325,8 +325,8 @@ export default function FormationDetailPage() {
         </div>
       </section>
 
-      {/* Modal de paiement */}
-      {showPaymentModal && formation && (
+      {/* Modal de paiement - temporairement désactivé */}
+      {/* {showPaymentModal && formation && (
         <UniversalPaymentModal
           item={{
             id: formation.id,
@@ -343,7 +343,7 @@ export default function FormationDetailPage() {
             setShowPaymentModal(false);
           }}
         />
-      )}
+      )} */}
     </div>
   );
 }

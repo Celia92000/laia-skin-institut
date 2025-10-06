@@ -487,7 +487,8 @@ export default function EspaceClient() {
         </div>
 
         {/* Notification d'abonnement */}
-        {(() => {
+        {/* Formule Liberté temporairement désactivée */}
+        {false && (() => {
           const subscriptionStatus = getSubscriptionStatus();
           if (subscriptionStatus.hasSubscription && !subscriptionStatus.monthlyUsed && !subscriptionStatus.upcoming) {
             return (
@@ -502,7 +503,7 @@ export default function EspaceClient() {
                       Votre rendez-vous mensuel vous attend !
                     </h3>
                     <p className="text-purple-700 mb-4">
-                      Votre abonnement Formule Liberté inclut une séance ce mois-ci. 
+                      Votre abonnement Formule Liberté inclut une séance ce mois-ci.
                       <span className="font-semibold"> Ne perdez pas votre avantage !</span>
                     </p>
                     <p className="text-sm text-purple-600 mb-4">

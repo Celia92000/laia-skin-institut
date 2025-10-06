@@ -36,6 +36,7 @@ export async function PUT(
         category: body.category,
         brand: body.brand,
         mainImage: body.mainImage,
+        imageSettings: body.imageSettings,
         gallery: body.gallery ? JSON.stringify(body.gallery) : undefined,
         ingredients: body.ingredients,
         usage: body.usage,

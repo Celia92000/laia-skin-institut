@@ -738,8 +738,8 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
               </div>
             </div>
 
-            {/* Abonnement - uniquement si forfait existe */}
-            {forfaitDisplayPrice ? (
+            {/* Formule Liberté temporairement désactivée */}
+            {false && forfaitDisplayPrice ? (
             <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all transform hover:-translate-y-1 flex flex-col h-full">
               <div className="p-6" style={{
                 background: `linear-gradient(135deg, ${enrichment.color}10, ${enrichment.secondaryColor}10)`
@@ -773,10 +773,10 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
                     Sans engagement
                   </li>
                 </ul>
-                <Link 
+                <Link
                   href={`/reservation?service=${slug}&package=abonnement`}
                   className="block text-center py-3 rounded-lg font-semibold transition-all hover:shadow-lg mt-auto"
-                  style={{ 
+                  style={{
                     backgroundColor: enrichment.color,
                     color: 'white'
                   }}

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import {
   ArrowRight, Package, Star, Check, Shield, ChevronRight, Tag, Box, ShoppingCart
 } from 'lucide-react';
-import UniversalPaymentModal from '@/components/UniversalPaymentModal';
+// import UniversalPaymentModal from '@/components/UniversalPaymentModal';
 
 interface Product {
   id: string;
@@ -16,8 +16,9 @@ interface Product {
   shortDescription?: string;
   price: number;
   salePrice?: number;
-  stock: number;
+  stock?: number;
   mainImage?: string;
+  imageSettings?: string;
   gallery?: string;
   brand?: string;
   ingredients?: string;
@@ -126,10 +127,12 @@ export default function ProductDetailPage() {
                     )}
                   </div>
                   <div className="text-right">
-                    {product.stock > 0 ? (
+                    {product.stock === undefined || product.stock > 0 ? (
                       <>
                         <p className="text-green-600 font-medium">En stock</p>
-                        <p className="text-sm text-gray-500">{product.stock} disponible(s)</p>
+                        {product.stock !== undefined && (
+                          <p className="text-sm text-gray-500">{product.stock} disponible(s)</p>
+                        )}
                       </>
                     ) : (
                       <p className="text-red-600 font-medium">Rupture de stock</p>
@@ -139,12 +142,12 @@ export default function ProductDetailPage() {
 
                 <button
                   onClick={() => setShowPaymentModal(true)}
-                  disabled={product.stock === 0}
+                  disabled={product.stock !== undefined && product.stock === 0}
                   className="w-full bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white py-4 rounded-xl font-medium text-lg hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ShoppingCart className="w-5 h-5" />
-                  {product.stock === 0 ? 'Rupture de stock' : 'Acheter maintenant'}
-                  {product.stock > 0 && <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}
+                  {product.stock !== undefined && product.stock === 0 ? 'Rupture de stock' : 'Acheter maintenant'}
+                  {(product.stock === undefined || product.stock > 0) && <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}
                 </button>
 
                 <div className="flex items-center justify-center gap-4 mt-4 text-sm text-gray-500">
@@ -163,7 +166,20 @@ export default function ProductDetailPage() {
                   <img
                     src={product.mainImage}
                     alt={product.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full"
+                    style={(() => {
+                      try {
+                        if (product.imageSettings) {
+                          const settings = JSON.parse(product.imageSettings);
+                          return {
+                            objectFit: settings.objectFit || 'cover',
+                            objectPosition: `${settings.position?.x || 50}% ${settings.position?.y || 50}%`,
+                            transform: `scale(${(settings.zoom || 100) / 100})`
+                          };
+                        }
+                      } catch {}
+                      return { objectFit: 'cover' as const };
+                    })()}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#d4b5a0]/30 to-[#c9a084]/30">
@@ -301,8 +317,8 @@ export default function ProductDetailPage() {
         </div>
       </section>
 
-      {/* Modal de paiement */}
-      {showPaymentModal && product && (
+      {/* Modal de paiement - temporairement désactivé */}
+      {/* {showPaymentModal && product && (
         <UniversalPaymentModal
           item={{
             id: product.id,
@@ -319,7 +335,7 @@ export default function ProductDetailPage() {
             setShowPaymentModal(false);
           }}
         />
-      )}
+      )} */}
     </div>
   );
 }

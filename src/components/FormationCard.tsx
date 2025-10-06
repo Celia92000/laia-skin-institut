@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Star, GraduationCap, Clock, Users } from 'lucide-react';
-import UniversalPaymentModal from './UniversalPaymentModal';
+// import UniversalPaymentModal from './UniversalPaymentModal';
 
 interface FormationCardProps {
   formation: {
@@ -28,7 +28,8 @@ export default function FormationCard({ formation }: FormationCardProps) {
   const handleRegisterClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setShowPaymentModal(true);
+    // Redirection vers la page de contact avec le nom de la formation
+    window.location.href = `/contact?formation=${encodeURIComponent(formation.name)}`;
   };
 
   return (
@@ -125,8 +126,8 @@ export default function FormationCard({ formation }: FormationCardProps) {
         </div>
       </Link>
 
-      {/* Modal de paiement */}
-      {showPaymentModal && (
+      {/* Modal de paiement - temporairement désactivé */}
+      {/* {showPaymentModal && (
         <UniversalPaymentModal
           item={{
             id: formation.id,
@@ -143,7 +144,7 @@ export default function FormationCard({ formation }: FormationCardProps) {
             setShowPaymentModal(false);
           }}
         />
-      )}
+      )} */}
     </>
   );
 }

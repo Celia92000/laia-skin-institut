@@ -1,12 +1,13 @@
 import Link from "next/link";
-import { prisma } from '@/lib/prisma';
-import { ArrowRight, Package } from 'lucide-react';
-import ProductCard from '@/components/ProductCard';
+import { getPrismaClient } from '@/lib/prisma';
+import { ArrowRight } from 'lucide-react';
+import ProductsPageClient from '@/components/ProductsPageClient';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export default async function ProduitsPage() {
+  const prisma = await getPrismaClient();
   let products: any[] = [];
 
   try {
@@ -35,24 +36,9 @@ export default async function ProduitsPage() {
         </div>
       </section>
 
-      {/* Products Grid */}
+      {/* Products avec filtres */}
       <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {products.length === 0 ? (
-            <div className="text-center py-20">
-              <Package className="w-16 h-16 mx-auto text-[#2c3e50]/20 mb-4" />
-              <p className="text-xl text-[#2c3e50]/60">
-                Nos produits arrivent bientôt...
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          )}
-        </div>
+        <ProductsPageClient products={products} />
       </section>
 
       {/* CTA Section */}

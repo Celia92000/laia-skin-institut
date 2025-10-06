@@ -98,6 +98,7 @@ model Service {
   recommendations   String?
   contraindications String?
   mainImage         String?
+  imageSettings     String? // JSON pour objectFit, position, zoom
   imagePositionX    Int?    @default(50) // Position horizontale en %
   imagePositionY    Int?    @default(50) // Position verticale en %
   imageObjectFit    String? @default("cover") // "cover" ou "contain"
@@ -562,8 +563,8 @@ model CommunicationHistory {
 }
 
 model Product {
-  id               String   @id @default(cuid())
-  slug             String   @unique @default("")
+  id               String            @id @default(cuid())
+  slug             String            @unique @default("")
   name             String
   description      String
   shortDescription String?
@@ -573,8 +574,11 @@ model Product {
   price            Float
   salePrice        Float?
   category         String?
+  categoryId       String?
+  productCategory  ProductCategory?  @relation(fields: [categoryId], references: [id])
   brand            String?
   mainImage        String?
+  imageSettings    String?  // JSON pour objectFit, position, zoom
   gallery          String?  // JSON array d'URLs d'images
   ingredients      String?
   usage            String?
@@ -584,6 +588,17 @@ model Product {
   order            Int      @default(0)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+}
+
+model ProductCategory {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  active    Boolean   @default(true)
+  order     Int       @default(0)
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 model Stock {
@@ -670,6 +685,7 @@ model Formation {
   certification     String?  // Type de certification délivrée
   maxParticipants   Int?     // Nombre max de participants
   mainImage         String?
+  imageSettings     String?  // JSON pour objectFit, position, zoom
   gallery           String?  // JSON
   videoUrl          String?
   category          String?

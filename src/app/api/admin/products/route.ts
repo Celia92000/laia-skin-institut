@@ -58,6 +58,7 @@ export async function POST(request: Request) {
         category: body.category || 'Produit',
         brand: body.brand,
         mainImage: body.mainImage || '/images/placeholder.png',
+        imageSettings: body.imageSettings,
         gallery: body.gallery ? JSON.stringify(body.gallery) : null,
         ingredients: body.ingredients,
         usage: body.usage,

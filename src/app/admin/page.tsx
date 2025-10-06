@@ -1729,7 +1729,8 @@ export default function AdminDashboard() {
                                     Forfait 4 séances
                                   </span>
                                 )}
-                                {reservation.packages && reservation.packages[serviceId] === 'abonnement' && (
+                                {/* Formule Liberté temporairement désactivée */}
+                                {false && reservation.packages && reservation.packages[serviceId] === 'abonnement' && (
                                   <span className="ml-1 text-xs px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded-full font-medium">
                                     Formule Liberté
                                   </span>

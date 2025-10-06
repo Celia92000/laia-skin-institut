@@ -23,13 +23,13 @@ export async function GET(request: NextRequest) {
       select: { role: true }
     });
 
-    if (!user || (user.role !== 'admin' && user.role !== 'ADMIN' && user.role !== 'EMPLOYEE') && user.role !== 'ADMIN' && user.role !== 'EMPLOYEE') {
+    if (!user || (user.role !== 'admin' && user.role !== 'ADMIN' && user.role !== 'EMPLOYEE')) {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
 
-    // Récupérer tous les services
+    // Récupérer tous les services triés par ordre d'affichage
     const services = await prisma.service.findMany({
-      orderBy: { createdAt: 'asc' }
+      orderBy: { order: 'asc' }
     });
 
     return NextResponse.json(services);
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
       select: { role: true }
     });
 
-    if (!user || (user.role !== 'admin' && user.role !== 'ADMIN' && user.role !== 'EMPLOYEE') && user.role !== 'ADMIN' && user.role !== 'EMPLOYEE') {
+    if (!user || (user.role !== 'admin' && user.role !== 'ADMIN' && user.role !== 'EMPLOYEE')) {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
 

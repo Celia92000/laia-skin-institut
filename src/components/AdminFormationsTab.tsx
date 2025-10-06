@@ -47,6 +47,7 @@ export default function AdminFormationsTab() {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterLevel, setFilterLevel] = useState('all');
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     fetchFormations();
@@ -162,6 +163,37 @@ export default function AdminFormationsTab() {
       newExpanded.add(id);
     }
     setExpandedFormations(newExpanded);
+  };
+
+  const handleImageUpload = async (file: File): Promise<string | null> => {
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return data.url;
+      } else {
+        alert('Erreur lors du téléchargement de l\'image');
+        return null;
+      }
+    } catch (error) {
+      console.error('Erreur:', error);
+      alert('Erreur lors du téléchargement');
+      return null;
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const filteredFormations = formations.filter(formation => {
@@ -486,15 +518,299 @@ export default function AdminFormationsTab() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-[#2c3e50] mb-2">
-                  Image principale (URL)
+                  Image principale
                 </label>
-                <input
-                  type="text"
-                  value={editingFormation.mainImage || ''}
-                  onChange={(e) => setEditingFormation({ ...editingFormation, mainImage: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  placeholder="https://..."
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={editingFormation.mainImage || ''}
+                    onChange={(e) => setEditingFormation({ ...editingFormation, mainImage: e.target.value })}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="https://... ou /images/..."
+                  />
+                  <label className="relative cursor-pointer">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const url = await handleImageUpload(file);
+                          if (url && editingFormation) {
+                            setEditingFormation({ ...editingFormation, mainImage: url });
+                          }
+                        }
+                      }}
+                    />
+                    <span className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                      {uploadingImage ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          Upload...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-4 h-4" />
+                          📁 Parcourir
+                        </>
+                      )}
+                    </span>
+                  </label>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  💡 Entrez une URL ou cliquez sur "Parcourir" pour télécharger une image depuis votre ordinateur
+                </p>
+
+                {/* Modern Image Adjustment Interface */}
+                {editingFormation.mainImage && (() => {
+                  const [objectFit, setObjectFit] = useState<'cover' | 'contain' | 'fill'>('cover');
+                  const [position, setPosition] = useState({ x: 50, y: 50 });
+                  const [zoom, setZoom] = useState(100);
+
+                  return (
+                    <div className="mt-6 bg-gradient-to-br from-purple-50 to-white rounded-xl shadow-lg border-2 border-purple-200 overflow-hidden">
+                      {/* Header */}
+                      <div className="bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-4">
+                        <h3 className="text-white font-semibold text-lg flex items-center gap-2">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          Éditeur d'image avancé
+                        </h3>
+                        <p className="text-purple-100 text-sm mt-1">Ajustez précisément votre image en temps réel</p>
+                      </div>
+
+                      <div className="p-6 space-y-6">
+                        {/* Preview Section */}
+                        <div className="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl overflow-hidden shadow-2xl border border-gray-700">
+                          {/* Grid overlay */}
+                          <div className="absolute inset-0 pointer-events-none opacity-20 z-10">
+                            <div className="grid grid-cols-3 grid-rows-3 h-full">
+                              {[...Array(9)].map((_, i) => (
+                                <div key={i} className="border border-white/30"></div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Interactive Image */}
+                          <div
+                            className="relative h-80 cursor-crosshair"
+                            onClick={(e) => {
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              const x = Math.round(((e.clientX - rect.left) / rect.width) * 100);
+                              const y = Math.round(((e.clientY - rect.top) / rect.height) * 100);
+                              setPosition({ x, y });
+                            }}
+                          >
+                            <img
+                              src={editingFormation.mainImage}
+                              alt="Aperçu"
+                              className="w-full h-full transition-all duration-300"
+                              style={{
+                                objectFit,
+                                objectPosition: `${position.x}% ${position.y}%`,
+                                transform: `scale(${zoom / 100})`
+                              }}
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
+                              }}
+                            />
+                            {/* Position indicator */}
+                            <div
+                              className="absolute w-4 h-4 bg-purple-500 border-2 border-white rounded-full shadow-lg transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20 animate-pulse"
+                              style={{ left: `${position.x}%`, top: `${position.y}%` }}
+                            />
+                          </div>
+
+                          {/* Quick info overlay */}
+                          <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm text-white px-3 py-2 rounded-lg text-xs font-mono">
+                            Position: {position.x}%, {position.y}% | Zoom: {zoom}%
+                          </div>
+                        </div>
+
+                        {/* Controls Section */}
+                        <div className="space-y-4">
+                          {/* Object Fit Modes */}
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-800 mb-3">Mode d'affichage</label>
+                            <div className="grid grid-cols-3 gap-3">
+                              <button
+                                type="button"
+                                onClick={() => setObjectFit('cover')}
+                                className={`group relative px-4 py-3 rounded-xl border-2 transition-all ${
+                                  objectFit === 'cover'
+                                    ? 'border-purple-500 bg-purple-50 shadow-md'
+                                    : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50/50'
+                                }`}
+                              >
+                                <div className="text-2xl mb-1">📐</div>
+                                <div className="text-xs font-semibold text-gray-700">Remplir</div>
+                                <div className="text-xs text-gray-500">Cover</div>
+                                {objectFit === 'cover' && (
+                                  <div className="absolute top-2 right-2 w-2 h-2 bg-purple-500 rounded-full"></div>
+                                )}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setObjectFit('contain')}
+                                className={`group relative px-4 py-3 rounded-xl border-2 transition-all ${
+                                  objectFit === 'contain'
+                                    ? 'border-purple-500 bg-purple-50 shadow-md'
+                                    : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50/50'
+                                }`}
+                              >
+                                <div className="text-2xl mb-1">🔲</div>
+                                <div className="text-xs font-semibold text-gray-700">Contenir</div>
+                                <div className="text-xs text-gray-500">Contain</div>
+                                {objectFit === 'contain' && (
+                                  <div className="absolute top-2 right-2 w-2 h-2 bg-purple-500 rounded-full"></div>
+                                )}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setObjectFit('fill')}
+                                className={`group relative px-4 py-3 rounded-xl border-2 transition-all ${
+                                  objectFit === 'fill'
+                                    ? 'border-purple-500 bg-purple-50 shadow-md'
+                                    : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50/50'
+                                }`}
+                              >
+                                <div className="text-2xl mb-1">↔️</div>
+                                <div className="text-xs font-semibold text-gray-700">Étirer</div>
+                                <div className="text-xs text-gray-500">Fill</div>
+                                {objectFit === 'fill' && (
+                                  <div className="absolute top-2 right-2 w-2 h-2 bg-purple-500 rounded-full"></div>
+                                )}
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Position Controls */}
+                          <div className="bg-white rounded-xl p-4 border border-gray-200">
+                            <label className="block text-sm font-semibold text-gray-800 mb-3">Position de l'image</label>
+                            <div className="space-y-3">
+                              <div>
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-xs font-medium text-gray-600">Horizontal (X)</span>
+                                  <span className="text-xs font-mono font-bold text-purple-600">{position.x}%</span>
+                                </div>
+                                <input
+                                  type="range"
+                                  min="0"
+                                  max="100"
+                                  value={position.x}
+                                  onChange={(e) => setPosition(prev => ({ ...prev, x: parseInt(e.target.value) }))}
+                                  className="w-full h-2 bg-gradient-to-r from-purple-200 via-purple-400 to-purple-600 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-purple-500"
+                                />
+                              </div>
+                              <div>
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-xs font-medium text-gray-600">Vertical (Y)</span>
+                                  <span className="text-xs font-mono font-bold text-purple-600">{position.y}%</span>
+                                </div>
+                                <input
+                                  type="range"
+                                  min="0"
+                                  max="100"
+                                  value={position.y}
+                                  onChange={(e) => setPosition(prev => ({ ...prev, y: parseInt(e.target.value) }))}
+                                  className="w-full h-2 bg-gradient-to-r from-purple-200 via-purple-400 to-purple-600 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-purple-500"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Position Presets */}
+                            <div className="mt-4">
+                              <span className="text-xs font-medium text-gray-600 mb-2 block">Positions rapides</span>
+                              <div className="grid grid-cols-3 gap-2">
+                                {[
+                                  { label: '↖', x: 0, y: 0 },
+                                  { label: '↑', x: 50, y: 0 },
+                                  { label: '↗', x: 100, y: 0 },
+                                  { label: '←', x: 0, y: 50 },
+                                  { label: '⊙', x: 50, y: 50 },
+                                  { label: '→', x: 100, y: 50 },
+                                  { label: '↙', x: 0, y: 100 },
+                                  { label: '↓', x: 50, y: 100 },
+                                  { label: '↘', x: 100, y: 100 },
+                                ].map((preset) => (
+                                  <button
+                                    key={preset.label}
+                                    type="button"
+                                    onClick={() => setPosition({ x: preset.x, y: preset.y })}
+                                    className={`px-3 py-2 text-sm rounded-lg border transition-all ${
+                                      position.x === preset.x && position.y === preset.y
+                                        ? 'bg-purple-500 text-white border-purple-500 shadow-md'
+                                        : 'bg-white text-gray-700 border-gray-200 hover:border-purple-300 hover:bg-purple-50'
+                                    }`}
+                                  >
+                                    {preset.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Zoom Control */}
+                          <div className="bg-white rounded-xl p-4 border border-gray-200">
+                            <div className="flex items-center justify-between mb-3">
+                              <label className="text-sm font-semibold text-gray-800">Zoom</label>
+                              <span className="text-sm font-mono font-bold text-purple-600">{zoom}%</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <button
+                                type="button"
+                                onClick={() => setZoom(Math.max(50, zoom - 10))}
+                                className="px-3 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors font-bold"
+                              >
+                                −
+                              </button>
+                              <input
+                                type="range"
+                                min="50"
+                                max="200"
+                                value={zoom}
+                                onChange={(e) => setZoom(parseInt(e.target.value))}
+                                className="flex-1 h-2 bg-gradient-to-r from-blue-200 via-purple-400 to-pink-600 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-purple-500"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setZoom(Math.min(200, zoom + 10))}
+                                className="px-3 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors font-bold"
+                              >
+                                +
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Reset Button */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setObjectFit('cover');
+                              setPosition({ x: 50, y: 50 });
+                              setZoom(100);
+                            }}
+                            className="w-full px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium flex items-center justify-center gap-2"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Réinitialiser
+                          </button>
+                        </div>
+
+                        {/* Info */}
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                          <p className="text-xs text-blue-800">
+                            💡 <strong>Astuce :</strong> Cliquez directement sur l'image pour positionner le point focal, ou utilisez les curseurs pour un ajustement précis.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               <div>
@@ -508,6 +824,56 @@ export default function AdminFormationsTab() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   placeholder='["url1", "url2", "url3"]'
                 />
+
+                {/* Gallery Preview */}
+                {editingFormation.gallery && (() => {
+                  try {
+                    const urls = JSON.parse(editingFormation.gallery);
+                    return Array.isArray(urls) && urls.length > 0 ? (
+                      <div className="mt-3 grid grid-cols-2 gap-3">
+                        {urls.map((url: string, index: number) => (
+                          <div key={index} className="relative">
+                            <div className="flex gap-2 mb-2">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  const img = e.currentTarget.closest('.relative')?.querySelector('img') as HTMLImageElement;
+                                  if (img) img.style.objectFit = 'cover';
+                                }}
+                                className="px-2 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-purple-50 transition"
+                                title="Remplir"
+                              >
+                                📐
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  const img = e.currentTarget.closest('.relative')?.querySelector('img') as HTMLImageElement;
+                                  if (img) img.style.objectFit = 'contain';
+                                }}
+                                className="px-2 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-purple-50 transition"
+                                title="Afficher entière"
+                              >
+                                🔲
+                              </button>
+                            </div>
+                            <img
+                              src={url}
+                              alt={`Galerie ${index + 1}`}
+                              className="w-full h-32 rounded-lg shadow-sm"
+                              style={{ objectFit: 'cover' }}
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
+                              }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    ) : null;
+                  } catch {
+                    return null;
+                  }
+                })()}
               </div>
 
               <div>
