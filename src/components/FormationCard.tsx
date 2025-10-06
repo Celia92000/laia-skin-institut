@@ -18,6 +18,7 @@ interface FormationCardProps {
     level?: string;
     maxParticipants?: number;
     mainImage?: string;
+    imageSettings?: string;
     featured?: boolean;
   };
 }
@@ -47,17 +48,32 @@ export default function FormationCard({ formation }: FormationCardProps) {
                 <span className="text-xs font-bold">À LA UNE</span>
               </div>
             )}
-            {formation.mainImage ? (
-              <img
-                src={formation.mainImage}
-                alt={formation.name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <GraduationCap className="w-20 h-20 text-white/40" />
-              </div>
-            )}
+            <div className="w-full h-full overflow-hidden">
+              {formation.mainImage ? (
+                <img
+                  src={formation.mainImage}
+                  alt={formation.name}
+                  className="w-full h-full"
+                  style={(() => {
+                    try {
+                      if (formation.imageSettings) {
+                        const settings = JSON.parse(formation.imageSettings);
+                        return {
+                          objectFit: settings.objectFit || 'cover',
+                          objectPosition: `${settings.position?.x || 50}% ${settings.position?.y || 50}%`,
+                          transform: `scale(${(settings.zoom || 100) / 100})`
+                        };
+                      }
+                    } catch {}
+                    return { objectFit: 'cover' as const };
+                  })()}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <GraduationCap className="w-20 h-20 text-white/40" />
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Content */}

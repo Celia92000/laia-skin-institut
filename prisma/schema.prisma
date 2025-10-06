@@ -143,6 +143,7 @@ model LoyaltyHistory {
   points        Int            @default(0)
   description   String
   reservationId String?
+  orderId       String?        // Pour achats produits/formations
   createdAt     DateTime       @default(now())
   user          User           @relation(fields: [userId], references: [id])
   profile       LoyaltyProfile? @relation(fields: [profileId], references: [id])
@@ -215,7 +216,11 @@ model Review {
   id            String       @id @default(cuid())
   userId        String
   reservationId String?      @unique
+  orderId       String?      @unique // Pour avis sur produits/formations
   serviceName   String?
+  itemType      String?      // "service", "product", "formation"
+  itemId        String?      // ID du service/produit/formation
+  itemName      String?      // Nom du service/produit/formation
   rating        Int
   comment       String
   satisfaction  Int          @default(5)
@@ -230,6 +235,7 @@ model Review {
   updatedAt     DateTime     @updatedAt
   user          User         @relation(fields: [userId], references: [id])
   reservation   Reservation? @relation(fields: [reservationId], references: [id])
+  order         Order?       @relation(fields: [orderId], references: [id])
 }
 
 model Notification {
@@ -732,6 +738,7 @@ model Order {
   updatedAt       DateTime @updatedAt
 
   user            User?    @relation(fields: [userId], references: [id])
+  reviews         Review[]
 
   @@index([userId])
   @@index([orderNumber])

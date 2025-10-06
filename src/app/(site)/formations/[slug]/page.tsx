@@ -20,6 +20,7 @@ interface Formation {
   level?: string;
   maxParticipants?: number;
   mainImage?: string;
+  imageSettings?: string;
   gallery?: string;
   program?: string;
   prerequisites?: string;
@@ -187,7 +188,20 @@ export default function FormationDetailPage() {
                   <img
                     src={formation.mainImage}
                     alt={formation.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full"
+                    style={(() => {
+                      try {
+                        if (formation.imageSettings) {
+                          const settings = JSON.parse(formation.imageSettings);
+                          return {
+                            objectFit: settings.objectFit || 'cover',
+                            objectPosition: `${settings.position?.x || 50}% ${settings.position?.y || 50}%`,
+                            transform: `scale(${(settings.zoom || 100) / 100})`
+                          };
+                        }
+                      } catch {}
+                      return { objectFit: 'cover' as const };
+                    })()}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-500/30 to-purple-700/30">
