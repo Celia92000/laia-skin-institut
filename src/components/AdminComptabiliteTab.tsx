@@ -44,11 +44,11 @@ export default function AdminComptabiliteTab({ reservations, fetchReservations }
     yearlyGrowth: 0
   });
 
+  const [orders, setOrders] = useState<any[]>([]);
+
   useEffect(() => {
     calculateStats();
   }, [reservations, orders, period]);
-
-  const [orders, setOrders] = useState<any[]>([]);
 
   // Charger les commandes
   useEffect(() => {
