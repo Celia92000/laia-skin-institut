@@ -715,22 +715,30 @@ export default function AdminFormationsTab() {
                           {/* Quick positions */}
                           <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
                             {[
-                              { x: 0, y: 0, icon: '↖' }, { x: 50, y: 0, icon: '↑' }, { x: 100, y: 0, icon: '↗' },
-                              { x: 0, y: 50, icon: '←' }, { x: 50, y: 50, icon: '·' }, { x: 100, y: 50, icon: '→' },
-                              { x: 0, y: 100, icon: '↙' }, { x: 50, y: 100, icon: '↓' }, { x: 100, y: 100, icon: '↘' }
-                            ].map(({ x, y, icon }) => (
+                              { dx: -10, dy: -10, icon: '↖' }, { dx: 0, dy: -10, icon: '↑' }, { dx: 10, dy: -10, icon: '↗' },
+                              { dx: -10, dy: 0, icon: '←' }, { dx: 0, dy: 0, icon: '·', reset: true }, { dx: 10, dy: 0, icon: '→' },
+                              { dx: -10, dy: 10, icon: '↙' }, { dx: 0, dy: 10, icon: '↓' }, { dx: 10, dy: 10, icon: '↘' }
+                            ].map(({ dx, dy, icon, reset }, idx) => (
                               <button
-                                key={`${x}-${y}`}
+                                key={idx}
                                 type="button"
                                 onClick={(e) => {
                                   e.preventDefault();
-                                  setPosition({ x, y });
+                                  if (reset) {
+                                    setPosition({ x: 50, y: 50 });
+                                  } else {
+                                    setPosition({
+                                      x: Math.max(0, Math.min(100, position.x + dx)),
+                                      y: Math.max(0, Math.min(100, position.y + dy))
+                                    });
+                                  }
                                 }}
                                 className={`w-7 h-7 text-xs rounded transition-all ${
-                                  position.x === x && position.y === y
+                                  reset && position.x === 50 && position.y === 50
                                     ? 'bg-purple-500 text-white shadow-sm'
                                     : 'text-gray-600 hover:bg-white'
                                 }`}
+                                title={reset ? 'Centrer' : `Déplacer de ${Math.abs(dx || dy)}%`}
                               >
                                 {icon}
                               </button>

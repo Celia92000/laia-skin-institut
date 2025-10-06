@@ -31,6 +31,21 @@ export async function getAdminStatistics() {
       }
     });
 
+    // Séparer les commandes par type (produits vs formations)
+    const productOrders: any[] = [];
+    const formationOrders: any[] = [];
+
+    orders.forEach(order => {
+      try {
+        const items = JSON.parse(order.items || '[]');
+        const hasProducts = items.some((item: any) => item.type === 'product');
+        const hasFormations = items.some((item: any) => item.type === 'formation');
+
+        if (hasProducts) productOrders.push(order);
+        if (hasFormations) formationOrders.push(order);
+      } catch (e) {}
+    });
+
     // Calculer les revenus des commandes
     const ordersRevenue = orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
     const paidOrdersRevenue = orders
@@ -40,7 +55,22 @@ export async function getAdminStatistics() {
       .filter(o => o.paymentStatus === 'pending' || o.paymentStatus === 'unpaid')
       .reduce((sum, o) => sum + (o.totalAmount || 0), 0);
 
+    // Calculer les revenus par type
+    const productRevenue = productOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+    const formationRevenue = formationOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+    const paidProductRevenue = productOrders
+      .filter(o => o.paymentStatus === 'paid')
+      .reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+    const paidFormationRevenue = formationOrders
+      .filter(o => o.paymentStatus === 'paid')
+      .reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+
     // Calculer les statistiques (réservations + commandes)
+    const servicesRevenue = reservations.reduce((sum, r) => sum + (r.totalPrice || 0), 0);
+    const paidServicesRevenue = reservations
+      .filter(r => r.paymentStatus === 'paid')
+      .reduce((sum, r) => sum + (r.totalPrice || 0), 0);
+
     const stats = {
       totalReservations: reservations.length,
       pendingReservations: reservations.filter(r => r.status === 'pending').length,
@@ -51,10 +81,16 @@ export async function getAdminStatistics() {
         return resDate >= today && resDate < tomorrow;
       }).length,
       totalOrders: orders.length,
-      totalRevenue: reservations.reduce((sum, r) => sum + (r.totalPrice || 0), 0) + ordersRevenue,
-      paidRevenue: reservations
-        .filter(r => r.paymentStatus === 'paid')
-        .reduce((sum, r) => sum + (r.totalPrice || 0), 0) + paidOrdersRevenue,
+      totalProductOrders: productOrders.length,
+      totalFormationOrders: formationOrders.length,
+      totalRevenue: servicesRevenue + ordersRevenue,
+      servicesRevenue: servicesRevenue,
+      productRevenue: productRevenue,
+      formationRevenue: formationRevenue,
+      paidRevenue: paidServicesRevenue + paidOrdersRevenue,
+      paidServicesRevenue: paidServicesRevenue,
+      paidProductRevenue: paidProductRevenue,
+      paidFormationRevenue: paidFormationRevenue,
       pendingPayments: reservations
         .filter(r => r.paymentStatus === 'pending' || r.paymentStatus === 'unpaid')
         .reduce((sum, r) => sum + (r.totalPrice || 0), 0) + pendingOrdersRevenue
@@ -74,10 +110,33 @@ export async function getAdminStatistics() {
       return orderDate >= startOfMonth && orderDate <= endOfMonth;
     });
 
-    stats.monthlyRevenue = monthReservations.reduce((sum, r) => sum + (r.totalPrice || 0), 0) +
-                           monthOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+    const monthProductOrders = monthOrders.filter(o => {
+      try {
+        const items = JSON.parse(o.items || '[]');
+        return items.some((item: any) => item.type === 'product');
+      } catch { return false; }
+    });
+
+    const monthFormationOrders = monthOrders.filter(o => {
+      try {
+        const items = JSON.parse(o.items || '[]');
+        return items.some((item: any) => item.type === 'formation');
+      } catch { return false; }
+    });
+
+    const monthServicesRevenue = monthReservations.reduce((sum, r) => sum + (r.totalPrice || 0), 0);
+    const monthOrdersRevenue = monthOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+    const monthProductRevenue = monthProductOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+    const monthFormationRevenue = monthFormationOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+
+    stats.monthlyRevenue = monthServicesRevenue + monthOrdersRevenue;
+    stats.monthlyServicesRevenue = monthServicesRevenue;
+    stats.monthlyProductRevenue = monthProductRevenue;
+    stats.monthlyFormationRevenue = monthFormationRevenue;
     stats.monthlyReservations = monthReservations.length;
     stats.monthlyOrders = monthOrders.length;
+    stats.monthlyProductOrders = monthProductOrders.length;
+    stats.monthlyFormationOrders = monthFormationOrders.length;
 
     // Calculer le chiffre d'affaires du jour (réservations + commandes)
     const todayReservationsRevenue = reservations.filter(r => {

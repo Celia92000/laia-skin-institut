@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Calendar, Clock, CheckCircle, XCircle, Gift, User, Users, Award, TrendingUp, UserCheck, Settings, Euro, Edit2, Save, FileText, Heart, AlertCircle, CreditCard, Download, Receipt, LogOut, MapPin, Phone, Mail, Instagram, Globe, Grid3x3, List, Cake, CreditCard as CardIcon, Star, MessageCircle, Send, X, Target, BarChart3, Package, Search, Ban } from "lucide-react";
+import { Calendar, Clock, CheckCircle, XCircle, Gift, User, Users, Award, TrendingUp, UserCheck, Settings, Euro, Edit2, Save, FileText, Heart, AlertCircle, CreditCard, Download, Receipt, LogOut, MapPin, Phone, Mail, Instagram, Globe, Grid3x3, List, Cake, CreditCard as CardIcon, Star, MessageCircle, Send, X, Target, BarChart3, Package, Search, Ban, GraduationCap } from "lucide-react";
 import AuthGuard from "@/components/AuthGuard";
 import AdminCalendarEnhanced from "@/components/AdminCalendarEnhanced";
 import AdminServicesTab from "@/components/AdminServicesTab";
@@ -38,6 +38,9 @@ import ValidationPaymentModal from "@/components/ValidationPaymentModal";
 import { generateInvoiceNumber, calculateInvoiceTotals, formatInvoiceHTML, generateCSVExport, downloadFile } from '@/lib/invoice-generator';
 import AdminComptabiliteTab from "@/components/AdminComptabiliteTab";
 import AdvancedSearch from "@/components/AdvancedSearch";
+import FormationOrderSection from "@/components/FormationOrderSection";
+import AdminGiftCardsTab from "@/components/AdminGiftCardsTab";
+import AdminPendingOrdersTab from "@/components/AdminPendingOrdersTab";
 
 interface Reservation {
   id: string;
@@ -99,6 +102,13 @@ export default function AdminDashboard() {
   const [showObjectivesSettings, setShowObjectivesSettings] = useState(false);
   const [selectedStatDetail, setSelectedStatDetail] = useState<string | null>(null);
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [orderToSchedule, setOrderToSchedule] = useState<any>(null);
+  const [scheduleData, setScheduleData] = useState({
+    date: new Date().toISOString().split('T')[0],
+    time: '09:00'
+  });
   const [newReservation, setNewReservation] = useState({
     client: '',
     email: '',
@@ -109,6 +119,12 @@ export default function AdminDashboard() {
     notes: ''
   });
   const [dbServices, setDbServices] = useState<any[]>([]);
+
+  // États pour la carte cadeau dans nouvelle réservation
+  const [giftCardCode, setGiftCardCode] = useState("");
+  const [giftCardData, setGiftCardData] = useState<any>(null);
+  const [giftCardError, setGiftCardError] = useState("");
+  const [isVerifyingGiftCard, setIsVerifyingGiftCard] = useState(false);
 
   // Services par défaut (au cas où la BDD est vide)
   const defaultServices = {
@@ -186,6 +202,7 @@ export default function AdminDashboard() {
         await fetchServices();
         await fetchLoyaltyProfiles();
         await fetchReviewStatistics();
+        await fetchOrders();
       };
       loadData();
     };
@@ -276,6 +293,27 @@ export default function AdminDashboard() {
     }
   };
 
+  const fetchOrders = async () => {
+    try {
+      const token = getAuthToken();
+      if (!token) return;
+
+      const response = await fetch('/api/admin/orders', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setOrders(data);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la récupération des commandes:', error);
+    }
+  };
+
   const fetchReservations = async () => {
     try {
       const token = getAuthToken();
@@ -303,7 +341,7 @@ export default function AdminDashboard() {
       if (response.ok) {
         const data = await response.json();
         setReservations(data);
-        
+
         // Vérifier les nouvelles réservations en attente
         const pendingReservations = data.filter((r: Reservation) => r.status === 'pending');
         const storedLastChecked = localStorage.getItem('lastCheckedReservations');
@@ -621,12 +659,58 @@ export default function AdminDashboard() {
     }
   };
 
+  const verifyGiftCard = async () => {
+    if (!giftCardCode.trim()) {
+      setGiftCardError("Veuillez entrer un code");
+      return;
+    }
+
+    setIsVerifyingGiftCard(true);
+    setGiftCardError("");
+    setGiftCardData(null);
+
+    try {
+      const response = await fetch(`/api/gift-cards?code=${encodeURIComponent(giftCardCode.toUpperCase())}`);
+      const data = await response.json();
+
+      if (response.ok && data.valid) {
+        setGiftCardData(data);
+        setGiftCardError("");
+      } else {
+        setGiftCardError(data.error || "Code invalide");
+        setGiftCardData(null);
+      }
+    } catch (error) {
+      setGiftCardError("Erreur lors de la vérification du code");
+      setGiftCardData(null);
+    } finally {
+      setIsVerifyingGiftCard(false);
+    }
+  };
+
   const createNewReservation = async () => {
     try {
       const token = localStorage.getItem('token');
-      
+
       // Calculer le prix total en fonction des services sélectionnés
       const totalPrice = calculateTotalPrice(newReservation.services);
+
+      // Préparer les données de la réservation avec la carte cadeau si applicable
+      const reservationData: any = {
+        ...newReservation,
+        totalPrice,
+        status: 'confirmed',
+        source: 'admin'
+      };
+
+      // Si une carte cadeau est valide, l'inclure
+      if (giftCardData?.valid && giftCardData?.giftCard?.id) {
+        const giftCardBalance = giftCardData.balance || 0;
+        const usedAmount = Math.min(giftCardBalance, totalPrice);
+
+        reservationData.giftCardId = giftCardData.giftCard.id;
+        reservationData.giftCardUsedAmount = usedAmount;
+      }
 
       const response = await fetch('/api/admin/reservations', {
         method: 'POST',
@@ -634,12 +718,7 @@ export default function AdminDashboard() {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          ...newReservation,
-          totalPrice,
-          status: 'confirmed',
-          source: 'admin'
-        })
+        body: JSON.stringify(reservationData)
       });
 
       if (response.ok) {
@@ -653,6 +732,9 @@ export default function AdminDashboard() {
           services: [],
           notes: ''
         });
+        setGiftCardCode("");
+        setGiftCardData(null);
+        setGiftCardError("");
         fetchReservations();
       } else {
         const errorData = await response.json();
@@ -661,6 +743,40 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('Erreur lors de la création de la réservation:', error);
       alert('Erreur lors de la création de la réservation');
+    }
+  };
+
+  const scheduleOrder = async () => {
+    if (!orderToSchedule) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/admin/orders/${orderToSchedule.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          scheduledDate: new Date(scheduleData.date).toISOString(),
+          scheduledTime: scheduleData.time,
+          status: 'confirmed'
+        })
+      });
+
+      if (response.ok) {
+        alert('Commande planifiée avec succès !');
+        setShowScheduleModal(false);
+        setOrderToSchedule(null);
+        setScheduleData({ date: new Date().toISOString().split('T')[0], time: '09:00' });
+        fetchOrders();
+      } else {
+        const error = await response.json();
+        alert(`Erreur: ${error.error || 'Erreur lors de la planification'}`);
+      }
+    } catch (error) {
+      console.error('Erreur planification commande:', error);
+      alert('Erreur lors de la planification de la commande');
     }
   };
 
@@ -1089,7 +1205,7 @@ export default function AdminDashboard() {
             }`}
           >
             <span className="relative group">
-              Gestion Fidélité
+              Fidélité / Cartes Cadeaux
               {(() => {
                 const clientsWithRewards = clients.filter(client => {
                   const clientReservations = reservations.filter(r => 
@@ -1186,6 +1302,17 @@ export default function AdminDashboard() {
               >
                 <Package className="w-4 h-4 inline mr-2" />
                 Gestion des Stocks
+              </button>
+              <button
+                onClick={() => setActiveTab("pending")}
+                className={`px-3 sm:px-6 py-2 sm:py-3 rounded-full font-medium transition-all whitespace-nowrap flex-shrink-0 text-sm sm:text-base ${
+                  activeTab === "pending"
+                    ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg"
+                    : "bg-white text-[#2c3e50] hover:shadow-md"
+                }`}
+              >
+                <Clock className="w-4 h-4 inline mr-2" />
+                Commandes en attente
               </button>
             </>
           )}
@@ -1389,12 +1516,12 @@ export default function AdminDashboard() {
                 </div>
               </div>
               
-              {/* Section nouvelles réservations en attente */}
-              {reservations.filter(r => r.status === 'pending').length > 0 && (
+              {/* Section nouvelles réservations et commandes en attente */}
+              {(reservations.filter(r => r.status === 'pending').length > 0 || orders.filter(o => !o.scheduledDate).length > 0) && (
                 <div className="mb-6 bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300 rounded-xl p-6">
                   <h3 className="text-lg font-bold text-[#2c3e50] mb-4 flex items-center gap-2">
                     <AlertCircle className="w-5 h-5 text-yellow-500" />
-                    Nouvelles réservations à valider ({reservations.filter(r => r.status === 'pending').length})
+                    Nouvelles réservations à valider ({reservations.filter(r => r.status === 'pending').length + orders.filter(o => !o.scheduledDate).length})
                   </h3>
                   <div className="max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                     <div className="grid md:grid-cols-2 gap-3">
@@ -1440,11 +1567,82 @@ export default function AdminDashboard() {
                             </div>
                           </div>
                         ))}
+
+                      {/* Commandes en attente (produits et formations sans date) */}
+                      {orders
+                        .filter(o => !o.scheduledDate)
+                        .map((order) => {
+                          const items = JSON.parse(order.items || '[]');
+                          const orderType = items[0]?.type || 'commande';
+                          const isProduct = orderType === 'product';
+                          const isFormation = orderType === 'formation';
+                          const isGiftCard = orderType === 'giftcard';
+
+                          return (
+                            <div key={order.id} className={`bg-white rounded-lg p-4 border-2 hover:shadow-md transition-all ${
+                              isProduct ? 'border-indigo-200' :
+                              isFormation ? 'border-purple-200' :
+                              isGiftCard ? 'border-pink-200' : 'border-gray-200'
+                            }`}>
+                              <div className="flex justify-between items-start mb-2">
+                                <div>
+                                  <p className="font-semibold text-[#2c3e50] flex items-center gap-2">
+                                    {isProduct ? <Package className="w-4 h-4 text-indigo-500" /> :
+                                     isFormation ? <GraduationCap className="w-4 h-4 text-purple-500" /> :
+                                     isGiftCard ? <Gift className="w-4 h-4 text-pink-500" /> : null}
+                                    {order.user?.name}
+                                  </p>
+                                  <p className="text-sm text-[#2c3e50]/60">{order.user?.email}</p>
+                                </div>
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                  isProduct ? 'bg-indigo-100 text-indigo-700' :
+                                  isFormation ? 'bg-purple-100 text-purple-700' :
+                                  isGiftCard ? 'bg-pink-100 text-pink-700' : 'bg-gray-100 text-gray-700'
+                                }`}>
+                                  {isProduct ? 'Produit' : isFormation ? 'Formation' : isGiftCard ? 'Carte Cadeau' : 'Commande'}
+                                </span>
+                              </div>
+                              <div className="text-sm text-[#2c3e50]/70 mb-2">
+                                <p className="text-xs text-gray-500">
+                                  Commandé le {new Date(order.createdAt).toLocaleDateString('fr-FR')}
+                                </p>
+                              </div>
+                              <p className="text-sm mt-2 font-medium text-[#d4b5a0]">
+                                {items.map((item: any) => `${item.quantity}x ${item.name}`).join(', ')}
+                              </p>
+                              <p className="text-sm font-bold text-green-600 mt-1">
+                                Total: {order.totalAmount}€
+                              </p>
+                              <div className="flex gap-2 mt-3">
+                                <button
+                                  onClick={() => {
+                                    setOrderToSchedule(order);
+                                    setShowScheduleModal(true);
+                                  }}
+                                  className="flex-1 px-3 py-1.5 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600 transition-colors"
+                                >
+                                  Planifier
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    if (confirm('Annuler cette commande ?')) {
+                                      // TODO: Annuler la commande
+                                      alert('Annulation à implémenter');
+                                    }
+                                  }}
+                                  className="px-3 py-1.5 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 transition-colors"
+                                >
+                                  Annuler
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
                     </div>
                   </div>
-                  {reservations.filter(r => r.status === 'pending').length > 6 && (
+                  {(reservations.filter(r => r.status === 'pending').length + orders.filter(o => !o.scheduledDate).length) > 6 && (
                     <div className="mt-3 text-center text-xs text-[#2c3e50]/50">
-                      Faites défiler pour voir toutes les réservations
+                      Faites défiler pour voir toutes les réservations et commandes
                     </div>
                   )}
                 </div>
@@ -1455,11 +1653,34 @@ export default function AdminDashboard() {
                 <>
                   {(() => {
                     try {
+                      // Convertir les commandes planifiées en format "réservation" pour l'affichage calendrier
+                      const scheduledOrders = orders
+                        .filter(o => o.scheduledDate && o.status === 'confirmed')
+                        .map(o => {
+                          const items = JSON.parse(o.items || '[]');
+                          const orderType = items[0]?.type || 'commande';
+                          return {
+                            id: o.id,
+                            date: new Date(o.scheduledDate).toISOString().split('T')[0],
+                            time: o.scheduledTime || '09:00',
+                            userName: o.user?.name || 'Client',
+                            userEmail: o.user?.email || '',
+                            services: [`${orderType}-order`], // Marqueur pour identifier que c'est une commande
+                            serviceName: items.map((item: any) => `${item.quantity}x ${item.name}`).join(', '),
+                            serviceDuration: 30, // Durée fixe pour les commandes
+                            status: 'confirmed',
+                            totalPrice: o.totalAmount,
+                            isOrder: true, // Marqueur pour distinguer les commandes des réservations
+                            orderType // product ou formation
+                          };
+                        });
+
                       return (
-                        <PlanningCalendar 
-                          reservations={reservations
-                            .filter(r => r.status !== 'cancelled')
-                            .map(r => ({
+                        <PlanningCalendar
+                          reservations={[
+                            ...reservations
+                              .filter(r => r.status !== 'cancelled')
+                              .map(r => ({
                               ...r,
                               date: typeof r.date === 'string' ? r.date : r.date.toISOString(),
                               userName: r.userName || 'Client',
@@ -1502,7 +1723,9 @@ export default function AdminDashboard() {
                                     return total + 60;
                                   }, 0)
                                 : 60
-                            }))}
+                            })),
+                            ...scheduledOrders
+                          ]}
                           services={cleanServices}
                           dbServices={dbServices}
                           onNewReservation={() => setShowNewReservationModal(true)}
@@ -1927,6 +2150,92 @@ export default function AdminDashboard() {
                 }
                 return null;
               })()}
+
+              {/* Section Vente de Formations */}
+              <div className="mb-8">
+                <FormationOrderSection onOrderCreated={fetchOrders} />
+              </div>
+
+              {/* Section historique des commandes (produits et formations) */}
+              {orders.length > 0 && (
+                <div className="mb-8">
+                  <h3 className="text-lg font-semibold text-[#2c3e50] mb-4 flex items-center gap-2">
+                    <Package className="w-5 h-5 text-purple-500" />
+                    Historique des commandes
+                  </h3>
+
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Articles</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paiement</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                          {orders
+                            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                            .map((order) => {
+                              let items = [];
+                              try {
+                                items = JSON.parse(order.items || '[]');
+                              } catch (e) {}
+
+                              return (
+                                <tr key={order.id} className="hover:bg-gray-50">
+                                  <td className="px-4 py-3 text-sm text-gray-900">
+                                    {new Date(order.createdAt).toLocaleDateString('fr-FR')}
+                                  </td>
+                                  <td className="px-4 py-3">
+                                    <div className="text-sm font-medium text-gray-900">{order.user?.name}</div>
+                                    <div className="text-sm text-gray-500">{order.user?.email}</div>
+                                  </td>
+                                  <td className="px-4 py-3">
+                                    <div className="text-sm text-gray-900">
+                                      {items.map((item: any, idx: number) => (
+                                        <div key={idx} className="flex items-center gap-2">
+                                          {item.type === 'product' ? (
+                                            <Package className="w-3 h-3 text-purple-500" />
+                                          ) : (
+                                            <GraduationCap className="w-3 h-3 text-purple-500" />
+                                          )}
+                                          <span>{item.name} x{item.quantity}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </td>
+                                  <td className="px-4 py-3 text-sm font-semibold text-gray-900">
+                                    {order.totalAmount}€
+                                  </td>
+                                  <td className="px-4 py-3 text-sm text-gray-500">
+                                    {order.paymentMethod === 'cash' ? 'Espèces' :
+                                     order.paymentMethod === 'card' ? 'Carte' :
+                                     order.paymentMethod === 'transfer' ? 'Virement' :
+                                     order.paymentMethod}
+                                  </td>
+                                  <td className="px-4 py-3">
+                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                      order.paymentStatus === 'paid'
+                                        ? 'bg-green-100 text-green-800'
+                                        : 'bg-yellow-100 text-yellow-800'
+                                    }`}>
+                                      {order.paymentStatus === 'paid' ? '✓ Payé' : 'En attente'}
+                                    </span>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Section historique des paiements */}
               <div>
@@ -2803,6 +3112,8 @@ export default function AdminDashboard() {
             <AdminComptabiliteTab
               reservations={reservations}
               fetchReservations={fetchReservations}
+              orders={orders}
+              fetchOrders={fetchOrders}
             />
           )}
 
@@ -3019,7 +3330,8 @@ export default function AdminDashboard() {
           {/* Onglet Services */}
           {activeTab === "services" && <AdminServicesTab />}
           {activeTab === "products" && <AdminStockTab />}
-          
+          {activeTab === "pending" && <AdminPendingOrdersTab />}
+
           {activeTab === "whatsapp" && <WhatsAppFunctional />}
           
           {activeTab === "reviews" && <AdminReviewsManager />}
@@ -3033,9 +3345,9 @@ export default function AdminDashboard() {
             // Si on clique sur le fond (backdrop) et pas sur le contenu
             if (e.target === e.currentTarget) {
               // Vérifier si des données ont été saisies
-              const hasData = newReservation.client || newReservation.email || 
-                             newReservation.phone || newReservation.services.length > 0 || 
-                             newReservation.notes;
+              const hasData = newReservation.client || newReservation.email ||
+                             newReservation.phone || newReservation.services.length > 0 ||
+                             newReservation.notes || giftCardCode || giftCardData;
               
               if (hasData) {
                 // Demander confirmation avant de fermer
@@ -3050,16 +3362,19 @@ export default function AdminDashboard() {
                     date: new Date().toISOString().split('T')[0],
                     time: '09:00',
                     services: [],
-                    notes: '',
-                    status: 'confirmed',
-                    source: 'admin',
-                    totalPrice: 0
+                    notes: ''
                   });
+                  setGiftCardCode("");
+                  setGiftCardData(null);
+                  setGiftCardError("");
                 }
               } else {
                 // Pas de données, on peut fermer directement
                 setShowNewReservationModal(false);
                 localStorage.removeItem('preselectedClient');
+                setGiftCardCode("");
+                setGiftCardData(null);
+                setGiftCardError("");
               }
             }
           }}
@@ -3177,6 +3492,80 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
+              {/* Carte Cadeau */}
+              <div>
+                <label className="block text-sm font-medium text-[#2c3e50] mb-1">
+                  Code Carte Cadeau (optionnel)
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={giftCardCode}
+                    onChange={(e) => setGiftCardCode(e.target.value.toUpperCase())}
+                    className="flex-1 px-3 py-2 border border-[#d4b5a0]/20 rounded-lg focus:border-[#d4b5a0] focus:outline-none uppercase"
+                    placeholder="GIFT-XXXX-XXXX"
+                    maxLength={14}
+                  />
+                  <button
+                    onClick={verifyGiftCard}
+                    disabled={isVerifyingGiftCard || !giftCardCode.trim()}
+                    className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isVerifyingGiftCard ? 'Vérification...' : 'Vérifier'}
+                  </button>
+                </div>
+
+                {/* Message d'erreur */}
+                {giftCardError && (
+                  <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-sm text-red-600">{giftCardError}</p>
+                  </div>
+                )}
+
+                {/* Carte valide */}
+                {giftCardData?.valid && (
+                  <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-sm font-medium text-green-800">✓ Carte valide</span>
+                      <span className="text-sm font-bold text-green-600">{giftCardData.balance}€</span>
+                    </div>
+                    <p className="text-xs text-green-600">
+                      Expire le {new Date(giftCardData.giftCard.expiryDate).toLocaleDateString('fr-FR')}
+                    </p>
+                    {newReservation.services.length > 0 && (
+                      <div className="mt-2 pt-2 border-t border-green-200">
+                        <div className="flex justify-between text-xs">
+                          <span className="text-green-700">Montant déduit :</span>
+                          <span className="font-semibold text-green-800">
+                            {Math.min(
+                              giftCardData.balance,
+                              newReservation.services.reduce((sum, serviceSlug) => {
+                                const service = dbServices.find(s => s.slug === serviceSlug);
+                                return sum + (service ? (service.promoPrice || service.price) : 0);
+                              }, 0)
+                            )}€
+                          </span>
+                        </div>
+                        {giftCardData.balance < newReservation.services.reduce((sum, serviceSlug) => {
+                          const service = dbServices.find(s => s.slug === serviceSlug);
+                          return sum + (service ? (service.promoPrice || service.price) : 0);
+                        }, 0) && (
+                          <div className="flex justify-between text-xs mt-1">
+                            <span className="text-green-700">Reste à payer :</span>
+                            <span className="font-semibold text-orange-600">
+                              {newReservation.services.reduce((sum, serviceSlug) => {
+                                const service = dbServices.find(s => s.slug === serviceSlug);
+                                return sum + (service ? (service.promoPrice || service.price) : 0);
+                              }, 0) - giftCardData.balance}€
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
               {/* Notes */}
               <div>
                 <label className="block text-sm font-medium text-[#2c3e50] mb-1">Notes</label>
@@ -3208,7 +3597,12 @@ export default function AdminDashboard() {
             {/* Boutons */}
             <div className="flex gap-3 mt-6">
               <button
-                onClick={() => setShowNewReservationModal(false)}
+                onClick={() => {
+                  setShowNewReservationModal(false);
+                  setGiftCardCode("");
+                  setGiftCardData(null);
+                  setGiftCardError("");
+                }}
                 className="flex-1 px-4 py-2 border border-[#d4b5a0]/20 text-[#2c3e50] rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Annuler
@@ -3832,6 +4226,80 @@ export default function AdminDashboard() {
           }}
           onClose={() => setShowAdvancedSearch(false)}
         />
+      )}
+
+      {/* Modal de planification de commande */}
+      {showScheduleModal && orderToSchedule && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full">
+            <h3 className="text-xl font-bold text-[#2c3e50] mb-4">
+              Planifier la commande
+            </h3>
+
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 mb-2">
+                <strong>Client:</strong> {orderToSchedule.user?.name}
+              </p>
+              <p className="text-sm text-gray-600 mb-2">
+                <strong>Commande:</strong>
+              </p>
+              <ul className="text-sm text-gray-700 ml-4 list-disc">
+                {JSON.parse(orderToSchedule.items || '[]').map((item: any, idx: number) => (
+                  <li key={idx}>{item.quantity}x {item.name} - {item.price}€</li>
+                ))}
+              </ul>
+              <p className="text-sm font-bold text-green-600 mt-2">
+                Total: {orderToSchedule.totalAmount}€
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-[#2c3e50] mb-1">Date*</label>
+                  <input
+                    type="date"
+                    value={scheduleData.date}
+                    onChange={(e) => setScheduleData({...scheduleData, date: e.target.value})}
+                    className="w-full px-3 py-2 border border-[#d4b5a0]/20 rounded-lg focus:border-[#d4b5a0] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[#2c3e50] mb-1">Heure*</label>
+                  <select
+                    value={scheduleData.time}
+                    onChange={(e) => setScheduleData({...scheduleData, time: e.target.value})}
+                    className="w-full px-3 py-2 border border-[#d4b5a0]/20 rounded-lg focus:border-[#d4b5a0] focus:outline-none"
+                  >
+                    {['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00'].map(time => (
+                      <option key={time} value={time}>{time}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex gap-2 mt-6">
+                <button
+                  onClick={() => {
+                    setShowScheduleModal(false);
+                    setOrderToSchedule(null);
+                    setScheduleData({ date: new Date().toISOString().split('T')[0], time: '09:00' });
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={scheduleOrder}
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:shadow-lg transition-all font-semibold"
+                >
+                  Confirmer
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
       </div>
     </div>

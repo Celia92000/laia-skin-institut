@@ -770,29 +770,34 @@ export default function AdminServicesTab() {
                             {/* Position Presets */}
                             <div className="mt-4">
                               <span className="text-xs font-medium text-gray-600 mb-2 block">Positions rapides</span>
-                              <div className="grid grid-cols-3 gap-2">
+                              <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
                                 {[
-                                  { label: '↖', x: 0, y: 0 },
-                                  { label: '↑', x: 50, y: 0 },
-                                  { label: '↗', x: 100, y: 0 },
-                                  { label: '←', x: 0, y: 50 },
-                                  { label: '⊙', x: 50, y: 50 },
-                                  { label: '→', x: 100, y: 50 },
-                                  { label: '↙', x: 0, y: 100 },
-                                  { label: '↓', x: 50, y: 100 },
-                                  { label: '↘', x: 100, y: 100 },
-                                ].map((preset) => (
+                                  { dx: -10, dy: -10, icon: '↖' }, { dx: 0, dy: -10, icon: '↑' }, { dx: 10, dy: -10, icon: '↗' },
+                                  { dx: -10, dy: 0, icon: '←' }, { dx: 0, dy: 0, icon: '·', reset: true }, { dx: 10, dy: 0, icon: '→' },
+                                  { dx: -10, dy: 10, icon: '↙' }, { dx: 0, dy: 10, icon: '↓' }, { dx: 10, dy: 10, icon: '↘' }
+                                ].map(({ dx, dy, icon, reset }, idx) => (
                                   <button
-                                    key={preset.label}
+                                    key={idx}
                                     type="button"
-                                    onClick={() => setImagePosition({ x: preset.x, y: preset.y })}
-                                    className={`px-3 py-2 text-sm rounded-lg border transition-all ${
-                                      imagePosition.x === preset.x && imagePosition.y === preset.y
-                                        ? 'bg-[#d4b5a0] text-white border-[#d4b5a0] shadow-md'
-                                        : 'bg-white text-gray-700 border-gray-200 hover:border-[#d4b5a0] hover:bg-[#d4b5a0]/10'
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      if (reset) {
+                                        setImagePosition({ x: 50, y: 50 });
+                                      } else {
+                                        setImagePosition({
+                                          x: Math.max(0, Math.min(100, imagePosition.x + dx)),
+                                          y: Math.max(0, Math.min(100, imagePosition.y + dy))
+                                        });
+                                      }
+                                    }}
+                                    className={`w-7 h-7 text-xs rounded transition-all ${
+                                      reset && imagePosition.x === 50 && imagePosition.y === 50
+                                        ? 'bg-[#d4b5a0] text-white shadow-sm'
+                                        : 'text-gray-600 hover:bg-white'
                                     }`}
+                                    title={reset ? 'Centrer' : `Déplacer de ${Math.abs(dx || dy)}%`}
                                   >
-                                    {preset.label}
+                                    {icon}
                                   </button>
                                 ))}
                               </div>

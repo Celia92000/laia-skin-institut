@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { client, email, phone, date, time, services, notes, totalPrice, status, source, packages } = body;
+    const { client, email, phone, date, time, services, notes, totalPrice, status, source, packages, giftCardId, giftCardUsedAmount } = body;
 
     // Vérifier la disponibilité du créneau AVANT de créer le client
     const reservationDate = new Date(date);
@@ -128,6 +128,36 @@ export async function POST(request: NextRequest) {
       }
     });
     
+    // Si une carte cadeau est utilisée, vérifier sa validité et mettre à jour son solde
+    if (giftCardId && giftCardUsedAmount) {
+      const giftCard = await prisma.giftCard.findUnique({
+        where: { id: giftCardId }
+      });
+
+      if (!giftCard || giftCard.status !== 'active') {
+        return NextResponse.json({
+          error: 'Carte cadeau invalide ou inactive'
+        }, { status: 400 });
+      }
+
+      const currentBalance = giftCard.initialAmount - giftCard.usedAmount;
+
+      if (currentBalance < giftCardUsedAmount) {
+        return NextResponse.json({
+          error: 'Solde insuffisant sur la carte cadeau'
+        }, { status: 400 });
+      }
+
+      // Mettre à jour le solde de la carte cadeau
+      await prisma.giftCard.update({
+        where: { id: giftCardId },
+        data: {
+          usedAmount: { increment: giftCardUsedAmount },
+          status: (currentBalance - giftCardUsedAmount) <= 0 ? 'used' : 'active'
+        }
+      });
+    }
+
     // Créer la réservation avec le service principal
     const reservation = await prisma.reservation.create({
       data: {
@@ -140,7 +170,9 @@ export async function POST(request: NextRequest) {
         totalPrice: finalPrice,
         status: status || 'confirmed',
         notes,
-        source: source || 'admin'
+        source: source || 'admin',
+        giftCardId: giftCardId || null,
+        giftCardUsedAmount: giftCardUsedAmount || 0
       },
       include: {
         user: {

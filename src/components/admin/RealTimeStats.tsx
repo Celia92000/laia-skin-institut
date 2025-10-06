@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Euro, Users, Calendar, TrendingUp, Clock, CheckCircle } from 'lucide-react';
+import { Euro, Users, Calendar, TrendingUp, Clock, CheckCircle, Package, GraduationCap, Scissors } from 'lucide-react';
 
 interface Stats {
   totalReservations: number;
@@ -15,6 +15,15 @@ interface Stats {
   monthlyRevenue: number;
   monthlyReservations: number;
   todayRevenue: number;
+  servicesRevenue?: number;
+  productRevenue?: number;
+  formationRevenue?: number;
+  paidServicesRevenue?: number;
+  paidProductRevenue?: number;
+  paidFormationRevenue?: number;
+  totalOrders?: number;
+  totalProductOrders?: number;
+  totalFormationOrders?: number;
 }
 
 export default function RealTimeStats() {
@@ -199,6 +208,56 @@ export default function RealTimeStats() {
           </p>
         </div>
       </div>
+
+      {/* Ligne 3: Répartition CA par type */}
+      {(stats.servicesRevenue || stats.productRevenue || stats.formationRevenue) && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-gradient-to-br from-pink-50 to-rose-50 rounded-xl p-4 border border-pink-200">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-600 flex items-center gap-2">
+                <Scissors className="w-4 h-4 text-pink-600" />
+                CA Prestations
+              </span>
+            </div>
+            <p className="text-2xl font-bold text-pink-700">
+              {formatCurrency(stats.paidServicesRevenue || 0)}
+            </p>
+            <p className="text-xs text-pink-600 mt-1">
+              {stats.totalReservations} réservations · {formatCurrency(stats.servicesRevenue || 0)} total
+            </p>
+          </div>
+
+          <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-4 border border-indigo-200">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-600 flex items-center gap-2">
+                <Package className="w-4 h-4 text-indigo-600" />
+                CA Produits
+              </span>
+            </div>
+            <p className="text-2xl font-bold text-indigo-700">
+              {formatCurrency(stats.paidProductRevenue || 0)}
+            </p>
+            <p className="text-xs text-indigo-600 mt-1">
+              {stats.totalProductOrders || 0} commandes · {formatCurrency(stats.productRevenue || 0)} total
+            </p>
+          </div>
+
+          <div className="bg-gradient-to-br from-violet-50 to-purple-50 rounded-xl p-4 border border-violet-200">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-600 flex items-center gap-2">
+                <GraduationCap className="w-4 h-4 text-violet-600" />
+                CA Formations
+              </span>
+            </div>
+            <p className="text-2xl font-bold text-violet-700">
+              {formatCurrency(stats.paidFormationRevenue || 0)}
+            </p>
+            <p className="text-xs text-violet-600 mt-1">
+              {stats.totalFormationOrders || 0} commandes · {formatCurrency(stats.formationRevenue || 0)} total
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

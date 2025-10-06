@@ -40,6 +40,7 @@ model User {
   discounts      Discount[]
   orders         Order[]
   stockMovements StockMovement[]
+  giftCards      GiftCard[]        @relation("GiftCardPurchaser")
 }
 
 model Reservation {
@@ -69,10 +70,13 @@ model Reservation {
   rescheduledFrom    String?   // ID de la réservation d'origine si reprogrammée
   rescheduledTo      String?   // ID de la nouvelle réservation si reprogrammée
   rescheduledAt      DateTime? // Date de la reprogrammation
+  giftCardId         String?   // ID de la carte cadeau utilisée pour cette réservation
+  giftCardUsedAmount Float?    // Montant de la carte cadeau utilisé
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
   user            User      @relation(fields: [userId], references: [id])
   service         Service?  @relation(fields: [serviceId], references: [id])
+  giftCard        GiftCard? @relation("GiftCardReservations", fields: [giftCardId], references: [id])
   review          Review?
   stockMovements  StockMovement[]
 }
@@ -729,6 +733,9 @@ model Order {
   shippingStatus  String?  // pending, shipped, delivered
   trackingNumber  String?
 
+  scheduledDate   DateTime? // Date prévue de retrait/livraison/formation
+  scheduledTime   String?   // Heure prévue (format HH:mm)
+
   notes           String?  // Notes client
   adminNotes      String?  // Notes internes admin
 
@@ -756,5 +763,33 @@ model MagicLink {
 
   @@index([token])
   @@index([email])
+}
+
+model GiftCard {
+  id              String    @id @default(cuid())
+  code            String    @unique // Code unique de la carte cadeau (ex: GIFT-XXXX-XXXX)
+  amount          Float     // Montant de la carte cadeau
+  initialAmount   Float     // Montant initial (pour historique)
+  balance         Float     // Solde restant
+  purchasedBy     String?   // ID de l'utilisateur qui a acheté
+  purchasedFor    String?   // Nom du bénéficiaire si cadeau
+  recipientEmail  String?   // Email du bénéficiaire
+  recipientPhone  String?   // Téléphone du bénéficiaire
+  message         String?   // Message personnalisé
+  status          String    @default("active") // active, used, expired, cancelled
+  purchaseDate    DateTime  @default(now())
+  expiryDate      DateTime? // Date d'expiration (optionnelle)
+  usedDate        DateTime? // Date d'utilisation complète
+  createdBy       String?   // ID admin qui a créé (si création manuelle)
+  notes           String?   // Notes admin
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  purchaser       User?     @relation("GiftCardPurchaser", fields: [purchasedBy], references: [id])
+  reservations    Reservation[] @relation("GiftCardReservations") // Réservations faites avec cette carte
+
+  @@index([code])
+  @@index([purchasedBy])
+  @@index([status])
 }
 

@@ -50,6 +50,86 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// POST - Créer une nouvelle commande
+export async function POST(request: NextRequest) {
+  const prisma = await getPrismaClient();
+  try {
+    const token = request.headers.get('authorization')?.replace('Bearer ', '');
+
+    if (!token) {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+    }
+
+    const decoded = verifyToken(token);
+
+    if (!decoded) {
+      return NextResponse.json({ error: 'Token invalide' }, { status: 401 });
+    }
+
+    // Vérifier que c'est un admin
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      select: { role: true }
+    });
+
+    if (!user || (user.role !== 'admin' && user.role !== 'ADMIN' && user.role !== 'EMPLOYEE')) {
+      return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
+    }
+
+    const body = await request.json();
+    const { userId, items, totalAmount, paymentMethod, paymentStatus } = body;
+
+    if (!userId || !items || !totalAmount) {
+      return NextResponse.json({ error: 'Données manquantes' }, { status: 400 });
+    }
+
+    // Créer la commande
+    const order = await prisma.order.create({
+      data: {
+        userId,
+        items,
+        totalAmount,
+        paymentMethod: paymentMethod || 'cash',
+        paymentStatus: paymentStatus || 'pending'
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true
+          }
+        }
+      }
+    });
+
+    // Si c'est un produit, décrémenter le stock
+    try {
+      const itemsArray = JSON.parse(items);
+      for (const item of itemsArray) {
+        if (item.type === 'product' && item.id) {
+          await prisma.product.update({
+            where: { id: item.id },
+            data: {
+              stock: {
+                decrement: item.quantity || 1
+              }
+            }
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Erreur mise à jour stock:', error);
+    }
+
+    return NextResponse.json(order, { status: 201 });
+  } catch (error) {
+    console.error('Erreur création commande:', error);
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
+  }
+}
+
 // PUT - Mettre à jour une commande
 export async function PUT(request: NextRequest) {
   const prisma = await getPrismaClient();

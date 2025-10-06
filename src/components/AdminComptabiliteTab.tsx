@@ -14,9 +14,11 @@ import { generateInvoiceNumber, calculateInvoiceTotals, formatInvoiceHTML, gener
 interface AdminComptabiliteTabProps {
   reservations: any[];
   fetchReservations: () => void;
+  orders?: any[];
+  fetchOrders?: () => void;
 }
 
-export default function AdminComptabiliteTab({ reservations, fetchReservations }: AdminComptabiliteTabProps) {
+export default function AdminComptabiliteTab({ reservations, fetchReservations, orders: externalOrders, fetchOrders: externalFetchOrders }: AdminComptabiliteTabProps) {
   const [period, setPeriod] = useState<'day' | 'week' | 'month' | 'quarter' | 'year'>('month');
   const [selectedReservations, setSelectedReservations] = useState<string[]>([]);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
@@ -28,7 +30,7 @@ export default function AdminComptabiliteTab({ reservations, fetchReservations }
     factures: true,
     export: true
   });
-  
+
   const [stats, setStats] = useState({
     totalRevenue: 0,
     paidAmount: 0,
@@ -44,37 +46,67 @@ export default function AdminComptabiliteTab({ reservations, fetchReservations }
     yearlyGrowth: 0
   });
 
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>(externalOrders || []);
+  const [giftCards, setGiftCards] = useState<any[]>([]);
+
+  // Utiliser les commandes externes si disponibles
+  useEffect(() => {
+    if (externalOrders) {
+      setOrders(externalOrders);
+    }
+  }, [externalOrders]);
 
   useEffect(() => {
     calculateStats();
-  }, [reservations, orders, period]);
+  }, [reservations, orders, giftCards, period]);
 
-  // Charger les commandes
+  // Charger les cartes cadeaux
   useEffect(() => {
-    const fetchOrders = async () => {
+    const fetchGiftCards = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch('/api/admin/orders', {
+        const response = await fetch('/api/admin/gift-cards', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (response.ok) {
           const data = await response.json();
-          setOrders(data);
+          setGiftCards(data);
         }
       } catch (error) {
-        console.error('Erreur chargement commandes:', error);
+        console.error('Erreur chargement cartes cadeaux:', error);
       }
     };
-    fetchOrders();
+    fetchGiftCards();
   }, []);
+
+  // Charger les commandes localement si pas fournies
+  useEffect(() => {
+    if (!externalOrders) {
+      const fetchOrders = async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const response = await fetch('/api/admin/orders', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (response.ok) {
+            const data = await response.json();
+            setOrders(data);
+          }
+        } catch (error) {
+          console.error('Erreur chargement commandes:', error);
+        }
+      };
+      fetchOrders();
+    }
+  }, [externalOrders]);
 
   const calculateStats = () => {
     const now = new Date();
     let filteredData = reservations;
     let filteredOrders = orders;
+    let filteredGiftCards = giftCards;
 
-    // Filtrer les réservations par période
+    // Filtrer les réservations, commandes et cartes cadeaux par période
     switch (period) {
       case 'day':
         filteredData = reservations.filter(r => {
@@ -83,6 +115,10 @@ export default function AdminComptabiliteTab({ reservations, fetchReservations }
         });
         filteredOrders = orders.filter(o => {
           const date = new Date(o.createdAt);
+          return date.toDateString() === now.toDateString();
+        });
+        filteredGiftCards = giftCards.filter(gc => {
+          const date = new Date(gc.createdAt);
           return date.toDateString() === now.toDateString();
         });
         break;
@@ -97,6 +133,10 @@ export default function AdminComptabiliteTab({ reservations, fetchReservations }
           const date = new Date(o.createdAt);
           return date >= weekStart;
         });
+        filteredGiftCards = giftCards.filter(gc => {
+          const date = new Date(gc.createdAt);
+          return date >= weekStart;
+        });
         break;
       case 'month':
         filteredData = reservations.filter(r => {
@@ -106,6 +146,11 @@ export default function AdminComptabiliteTab({ reservations, fetchReservations }
         });
         filteredOrders = orders.filter(o => {
           const date = new Date(o.createdAt);
+          return date.getMonth() === now.getMonth() &&
+                 date.getFullYear() === now.getFullYear();
+        });
+        filteredGiftCards = giftCards.filter(gc => {
+          const date = new Date(gc.createdAt);
           return date.getMonth() === now.getMonth() &&
                  date.getFullYear() === now.getFullYear();
         });
@@ -122,6 +167,10 @@ export default function AdminComptabiliteTab({ reservations, fetchReservations }
           const date = new Date(o.createdAt);
           return date >= quarterStart;
         });
+        filteredGiftCards = giftCards.filter(gc => {
+          const date = new Date(gc.createdAt);
+          return date >= quarterStart;
+        });
         break;
       case 'year':
         filteredData = reservations.filter(r => {
@@ -130,6 +179,10 @@ export default function AdminComptabiliteTab({ reservations, fetchReservations }
         });
         filteredOrders = orders.filter(o => {
           const date = new Date(o.createdAt);
+          return date.getFullYear() === now.getFullYear();
+        });
+        filteredGiftCards = giftCards.filter(gc => {
+          const date = new Date(gc.createdAt);
           return date.getFullYear() === now.getFullYear();
         });
         break;
@@ -142,10 +195,16 @@ export default function AdminComptabiliteTab({ reservations, fetchReservations }
     const paidOrders = filteredOrders.filter(o => o.paymentStatus === 'paid');
     const pendingOrders = filteredOrders.filter(o => o.paymentStatus !== 'paid' && o.status !== 'cancelled');
 
+    // Cartes cadeaux validées (les cartes active sont considérées comme payées)
+    const validatedGiftCards = filteredGiftCards.filter(gc => gc.status === 'active' || gc.status === 'used');
+
     // Calculer les revenus des commandes
     const ordersRevenue = filteredOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
     const paidOrdersRevenue = paidOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
     const pendingOrdersRevenue = pendingOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+
+    // Calculer les revenus des cartes cadeaux
+    const giftCardsRevenue = validatedGiftCards.reduce((sum, gc) => sum + (gc.amount || 0), 0);
 
     // Calculer les clients uniques (réservations + commandes)
     const reservationEmails = new Set(filteredData.map(r => r.userEmail));
@@ -183,10 +242,10 @@ export default function AdminComptabiliteTab({ reservations, fetchReservations }
     // Calcul correct de la TVA : TTC - (TTC / 1.20) = TVA
     const calculateTVA = (ttc: number) => ttc - (ttc / 1.20);
 
-    // Revenus combinés (réservations + commandes)
+    // Revenus combinés (réservations + commandes + cartes cadeaux)
     const reservationsRevenue = filteredData.reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice || 0), 0);
-    const totalRevenueAmount = reservationsRevenue + ordersRevenue;
-    const totalPaidAmount = paidReservations.reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice || 0), 0) + paidOrdersRevenue;
+    const totalRevenueAmount = reservationsRevenue + ordersRevenue + giftCardsRevenue;
+    const totalPaidAmount = paidReservations.reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice || 0), 0) + paidOrdersRevenue + giftCardsRevenue;
     const totalPendingAmount = pendingReservations.reduce((sum, r) => sum + (r.totalPrice || 0), 0) + pendingOrdersRevenue;
 
     setStats({

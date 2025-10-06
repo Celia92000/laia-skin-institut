@@ -64,6 +64,7 @@ export default function Header() {
     { href: "/prestations", label: "Mes Prestations" },
     { href: "/produits", label: "Mes Produits" },
     { href: "/formations", label: "Mes Formations" },
+    { href: "/carte-cadeau", label: "Carte Cadeau" },
     { href: "/blog", label: "Blog" },
     { href: "/a-propos", label: "À Propos" },
     { href: "/reservation", label: "Réserver" },

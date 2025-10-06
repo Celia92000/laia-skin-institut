@@ -6,10 +6,16 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import {
   Gift, CreditCard, User, Mail, Phone, Check,
-  ChevronRight, Sparkles, Heart, Star
+  ChevronRight, Sparkles, Heart, Star, Search, Calendar
 } from "lucide-react";
 
 export default function CarteCadeau() {
+  const [mode, setMode] = useState<'buy' | 'use'>('buy'); // buy = acheter, use = utiliser
+  const [giftCardCode, setGiftCardCode] = useState("");
+  const [giftCardData, setGiftCardData] = useState<any>(null);
+  const [isCheckingCode, setIsCheckingCode] = useState(false);
+  const [codeError, setCodeError] = useState("");
+
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState("");
   const [recipientInfo, setRecipientInfo] = useState({
@@ -50,6 +56,37 @@ export default function CarteCadeau() {
 
   const getTotalAmount = () => {
     return selectedAmount || 0;
+  };
+
+  const checkGiftCardCode = async () => {
+    if (!giftCardCode.trim()) {
+      setCodeError("Veuillez entrer un code");
+      return;
+    }
+
+    setIsCheckingCode(true);
+    setCodeError("");
+    setGiftCardData(null);
+
+    try {
+      const response = await fetch(`/api/gift-cards?code=${encodeURIComponent(giftCardCode.toUpperCase())}`);
+      const data = await response.json();
+
+      if (response.ok && data.valid) {
+        setGiftCardData(data);
+      } else {
+        setCodeError(data.error || "Code invalide");
+      }
+    } catch (error) {
+      setCodeError("Erreur lors de la vérification du code");
+    } finally {
+      setIsCheckingCode(false);
+    }
+  };
+
+  const handleUseGiftCard = () => {
+    // Redirection vers /reservation avec le code pré-rempli
+    window.location.href = `/reservation?giftCard=${giftCardCode.toUpperCase()}`;
   };
 
   const canProceedToNextStep = () => {
@@ -109,15 +146,145 @@ export default function CarteCadeau() {
           {/* Header */}
           <div className="text-center mb-12">
             <h1 className="text-4xl font-serif text-primary mb-4">
-              Offrez une Carte Cadeau
+              Cartes Cadeaux
             </h1>
             <p className="text-lg text-muted max-w-2xl mx-auto">
-              Le cadeau idéal pour faire plaisir à vos proches.
-              Valable 1 an sur tous nos soins et produits.
+              Offrez ou utilisez une carte cadeau pour profiter de nos soins.
             </p>
           </div>
 
-          {/* Progress Indicator */}
+          {/* Mode Toggle */}
+          <div className="flex justify-center gap-4 mb-12">
+            <button
+              onClick={() => setMode('buy')}
+              className={`px-8 py-3 rounded-full font-medium transition-all ${
+                mode === 'buy'
+                  ? 'bg-primary text-white shadow-lg'
+                  : 'bg-white text-gray-600 hover:shadow-md'
+              }`}
+            >
+              <Gift className="inline mr-2" size={20} />
+              Acheter une carte
+            </button>
+            <button
+              onClick={() => setMode('use')}
+              className={`px-8 py-3 rounded-full font-medium transition-all ${
+                mode === 'use'
+                  ? 'bg-primary text-white shadow-lg'
+                  : 'bg-white text-gray-600 hover:shadow-md'
+              }`}
+            >
+              <Search className="inline mr-2" size={20} />
+              Utiliser ma carte
+            </button>
+          </div>
+
+          {/* Use Gift Card Mode */}
+          {mode === 'use' && (
+            <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
+              <h2 className="text-2xl font-semibold mb-6 flex items-center">
+                <Search className="mr-3 text-primary" />
+                Vérifier mon solde
+              </h2>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium mb-2">
+                  Entrez votre code carte cadeau
+                </label>
+                <div className="flex gap-3">
+                  <input
+                    type="text"
+                    value={giftCardCode}
+                    onChange={(e) => {
+                      setGiftCardCode(e.target.value.toUpperCase());
+                      setCodeError("");
+                      setGiftCardData(null);
+                    }}
+                    placeholder="GIFT-XXXX-XXXX"
+                    className="flex-1 p-4 border border-gray-300 rounded-lg focus:border-primary focus:outline-none uppercase"
+                    maxLength={14}
+                  />
+                  <button
+                    onClick={checkGiftCardCode}
+                    disabled={isCheckingCode}
+                    className="px-6 py-4 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors disabled:bg-gray-300"
+                  >
+                    {isCheckingCode ? 'Vérification...' : 'Vérifier'}
+                  </button>
+                </div>
+                {codeError && (
+                  <p className="text-red-500 text-sm mt-2">{codeError}</p>
+                )}
+              </div>
+
+              {giftCardData && (
+                <div className="bg-gradient-to-br from-primary/10 to-secondary/20 rounded-xl p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h3 className="text-xl font-bold text-primary mb-2">
+                        {giftCardData.code}
+                      </h3>
+                      <p className="text-sm text-muted">
+                        Valide jusqu'au {new Date(giftCardData.expiryDate).toLocaleDateString('fr-FR')}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-muted">Solde disponible</p>
+                      <p className="text-3xl font-bold text-primary">
+                        {giftCardData.balance}€
+                      </p>
+                    </div>
+                  </div>
+
+                  {giftCardData.balance !== giftCardData.initialAmount && (
+                    <div className="mb-4 p-3 bg-white/50 rounded-lg">
+                      <p className="text-sm text-muted">
+                        Montant initial: <strong>{giftCardData.initialAmount}€</strong>
+                      </p>
+                      <p className="text-sm text-muted">
+                        Montant utilisé: <strong>{giftCardData.initialAmount - giftCardData.balance}€</strong>
+                      </p>
+                    </div>
+                  )}
+
+                  {giftCardData.reservations && giftCardData.reservations.length > 0 && (
+                    <div className="mb-4">
+                      <h4 className="font-medium mb-2 text-sm">Historique d'utilisation:</h4>
+                      <div className="space-y-2">
+                        {giftCardData.reservations.map((res: any) => (
+                          <div key={res.id} className="bg-white/50 rounded-lg p-3 text-sm">
+                            <div className="flex justify-between">
+                              <span>{new Date(res.date).toLocaleDateString('fr-FR')} - {res.time}</span>
+                              <span className="font-semibold text-primary">-{res.giftCardUsedAmount}€</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {giftCardData.balance > 0 && (
+                    <button
+                      onClick={handleUseGiftCard}
+                      className="w-full py-4 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-semibold flex items-center justify-center"
+                    >
+                      <Calendar className="mr-2" size={20} />
+                      Réserver un soin avec cette carte
+                    </button>
+                  )}
+
+                  {giftCardData.balance === 0 && (
+                    <div className="text-center p-4 bg-gray-100 rounded-lg">
+                      <p className="text-muted">Cette carte a été entièrement utilisée</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Buy Mode - Progress Indicator */}
+          {mode === 'buy' && (
           <div className="flex items-center justify-center mb-12">
             <div className="flex items-center space-x-4">
               <div className={`flex items-center justify-center w-10 h-10 rounded-full ${
@@ -141,8 +308,10 @@ export default function CarteCadeau() {
               </div>
             </div>
           </div>
+          )}
 
-          {/* Step Content */}
+          {/* Buy Mode - Step Content */}
+          {mode === 'buy' && (
           <div className="bg-white rounded-2xl shadow-xl p-8">
             {step === 1 && (
               <div>
@@ -424,8 +593,10 @@ export default function CarteCadeau() {
               </button>
             </div>
           </div>
+          )}
 
           {/* Features */}
+          {mode === 'buy' && (
           <div className="mt-12 grid md:grid-cols-3 gap-6">
             <div className="text-center">
               <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -455,6 +626,7 @@ export default function CarteCadeau() {
               </p>
             </div>
           </div>
+          )}
         </div>
       </main>
       <Footer />
