@@ -11,6 +11,11 @@ interface Review {
   clientEmail?: string;
   clientPhone?: string;
   serviceName?: string;
+  itemType?: string; // "service", "product", "formation"
+  itemId?: string;
+  itemName?: string;
+  orderId?: string;
+  reservationId?: string;
   source: 'website' | 'email' | 'whatsapp' | 'google';
   createdAt: string;
   published: boolean;
@@ -294,7 +299,7 @@ export default function AdminReviewsTab() {
                 <div className="text-[#2c3e50]/90 mb-3">
                   "{review.comment}"
                 </div>
-                
+
                 <div className="flex flex-wrap gap-4 text-sm text-[#2c3e50]/60">
                   {review.clientName && (
                     <span className="flex items-center gap-1">
@@ -302,21 +307,33 @@ export default function AdminReviewsTab() {
                       {review.clientName}
                     </span>
                   )}
-                  
+
                   {review.clientEmail && (
                     <span className="flex items-center gap-1">
                       <Mail className="w-4 h-4" />
                       {review.clientEmail}
                     </span>
                   )}
-                  
-                  {review.serviceName && (
+
+                  {/* Afficher le nom du service/produit/formation */}
+                  {(review.itemName || review.serviceName) && (
                     <span className="flex items-center gap-1">
                       <MessageSquare className="w-4 h-4" />
-                      {review.serviceName}
+                      {review.itemName || review.serviceName}
+                      {review.itemType && (
+                        <span className={`ml-1 px-2 py-0.5 text-xs rounded-full ${
+                          review.itemType === 'product' ? 'bg-blue-100 text-blue-700' :
+                          review.itemType === 'formation' ? 'bg-green-100 text-green-700' :
+                          'bg-gray-100 text-gray-700'
+                        }`}>
+                          {review.itemType === 'product' ? 'Produit' :
+                           review.itemType === 'formation' ? 'Formation' :
+                           'Service'}
+                        </span>
+                      )}
                     </span>
                   )}
-                  
+
                   <span className="flex items-center gap-1">
                     <Calendar className="w-4 h-4" />
                     {new Date(review.createdAt).toLocaleDateString('fr-FR')}

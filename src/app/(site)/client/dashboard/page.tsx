@@ -1,16 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { 
-  Calendar, Clock, Gift, User, LogOut, Star, 
-  ChevronRight, Award, Heart, Settings
+import {
+  Calendar, Clock, Gift, User, LogOut, Star,
+  ChevronRight, Award, Heart, Settings, Package, ShoppingBag
 } from "lucide-react";
 
 export default function ClientDashboard() {
   const [activeTab, setActiveTab] = useState("appointments");
+  const [orders, setOrders] = useState<any[]>([]);
 
   const clientInfo = {
     name: "Marie Dupont",
@@ -59,6 +60,31 @@ export default function ClientDashboard() {
       price: "65€"
     }
   ];
+
+  // Charger les commandes du client
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const response = await fetch('/api/admin/orders', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          const allOrders = await response.json();
+          // Filtrer pour ne garder que les commandes du client actuel
+          // (Dans un vrai cas, on utiliserait l'ID du client connecté)
+          setOrders(allOrders.filter((o: any) => o.customerEmail === clientInfo.email));
+        }
+      } catch (error) {
+        console.error('Erreur chargement commandes:', error);
+      }
+    };
+
+    fetchOrders();
+  }, []);
 
   return (
     <>
@@ -157,6 +183,20 @@ export default function ClientDashboard() {
                     <div className="flex items-center gap-3">
                       <Award size={20} />
                       <span>Fidélité</span>
+                    </div>
+                    <ChevronRight size={16} />
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("purchases")}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${
+                      activeTab === "purchases"
+                        ? "bg-primary text-white"
+                        : "hover:bg-gray-100"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <ShoppingBag size={20} />
+                      <span>Mes achats</span>
                     </div>
                     <ChevronRight size={16} />
                   </button>
@@ -303,6 +343,94 @@ export default function ClientDashboard() {
                       </div>
                     </div>
                   </div>
+                </div>
+              )}
+
+              {activeTab === "purchases" && (
+                <div className="bg-white rounded-2xl shadow-xl p-6">
+                  <h2 className="text-xl font-semibold mb-6 flex items-center">
+                    <ShoppingBag className="mr-2 text-primary" size={24} />
+                    Mes achats
+                  </h2>
+
+                  {orders.length > 0 ? (
+                    <div className="space-y-4">
+                      {orders.map((order) => {
+                        let items = [];
+                        try {
+                          items = JSON.parse(order.items || '[]');
+                        } catch (e) {
+                          console.error('Erreur parsing items:', e);
+                        }
+
+                        return (
+                          <div key={order.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all">
+                            <div className="flex justify-between items-start mb-3">
+                              <div>
+                                <p className="font-mono text-sm text-primary font-semibold mb-1">
+                                  {order.orderNumber}
+                                </p>
+                                <p className="text-sm text-muted">
+                                  {new Date(order.createdAt).toLocaleDateString('fr-FR', {
+                                    day: 'numeric',
+                                    month: 'long',
+                                    year: 'numeric'
+                                  })}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <span className={`inline-block px-3 py-1 text-xs rounded-full font-medium ${
+                                  order.orderType === 'product'
+                                    ? 'bg-blue-100 text-blue-800'
+                                    : 'bg-green-100 text-green-800'
+                                }`}>
+                                  {order.orderType === 'product' ? 'Produit' : 'Formation'}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="mb-3">
+                              <p className="text-sm font-medium mb-2">Articles :</p>
+                              <ul className="space-y-1">
+                                {items.map((item: any, idx: number) => (
+                                  <li key={idx} className="text-sm text-gray-700 flex justify-between">
+                                    <span>{item.name} (x{item.quantity})</span>
+                                    <span className="font-medium">{item.price}€</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+
+                            <div className="flex justify-between items-center pt-3 border-t">
+                              <div>
+                                <span className={`px-3 py-1 text-xs rounded-full font-medium ${
+                                  order.paymentStatus === 'paid'
+                                    ? 'bg-green-100 text-green-800'
+                                    : 'bg-orange-100 text-orange-800'
+                                }`}>
+                                  {order.paymentStatus === 'paid' ? 'Payé' : 'En attente'}
+                                </span>
+                              </div>
+                              <p className="text-xl font-bold text-primary">
+                                {order.totalAmount?.toFixed(2)}€
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                      <p className="text-muted">Aucun achat pour le moment</p>
+                      <Link
+                        href="/boutique"
+                        className="inline-block mt-4 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
+                      >
+                        Découvrir nos produits
+                      </Link>
+                    </div>
+                  )}
                 </div>
               )}
 

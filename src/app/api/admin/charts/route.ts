@@ -56,7 +56,7 @@ export async function GET(request: Request) {
       endDate = now;
     }
 
-    // Récupérer toutes les réservations dans la période
+    // Récupérer toutes les réservations et commandes dans la période
     const prisma = await getPrismaClient();
     const reservations = await prisma.reservation.findMany({
       where: {
@@ -70,13 +70,26 @@ export async function GET(request: Request) {
       }
     });
 
+    const orders = await prisma.order.findMany({
+      where: {
+        createdAt: {
+          gte: startDate,
+          lte: endDate
+        }
+      },
+      include: {
+        user: true
+      }
+    });
+
     // Calculer les données pour les graphiques
     const chartData = {
-      dailyRevenue: calculateDailyRevenue(reservations, period),
-      monthlyRevenue: calculateMonthlyRevenue(reservations),
+      dailyRevenue: calculateDailyRevenue(reservations, orders, period),
+      monthlyRevenue: calculateMonthlyRevenue(reservations, orders),
       serviceDistribution: await calculateServiceDistribution(),
       statusDistribution: calculateStatusDistribution(reservations),
-      hourlyDistribution: calculateHourlyDistribution(reservations)
+      hourlyDistribution: calculateHourlyDistribution(reservations),
+      orderTypeDistribution: calculateOrderTypeDistribution(orders)
     };
 
     return NextResponse.json(chartData);
@@ -93,13 +106,14 @@ export async function GET(request: Request) {
   }
 }
 
-function calculateDailyRevenue(reservations: any[], period: string) {
-  const revenueMap = new Map<string, { revenue: number; reservations: number }>();
-  
+function calculateDailyRevenue(reservations: any[], orders: any[], period: string) {
+  const revenueMap = new Map<string, { revenue: number; reservations: number; orders: number }>();
+
+  // Ajouter les réservations
   reservations.forEach(res => {
     const date = new Date(res.date);
     let key = '';
-    
+
     switch (period) {
       case 'day':
         key = date.toISOString().split('T')[0];
@@ -117,11 +131,42 @@ function calculateDailyRevenue(reservations: any[], period: string) {
         key = String(date.getFullYear());
         break;
     }
-    
-    const current = revenueMap.get(key) || { revenue: 0, reservations: 0 };
+
+    const current = revenueMap.get(key) || { revenue: 0, reservations: 0, orders: 0 };
     revenueMap.set(key, {
       revenue: current.revenue + (res.totalPrice || 0),
-      reservations: current.reservations + 1
+      reservations: current.reservations + 1,
+      orders: current.orders
+    });
+  });
+
+  // Ajouter les commandes
+  orders.forEach(order => {
+    const date = new Date(order.createdAt);
+    let key = '';
+
+    switch (period) {
+      case 'day':
+        key = date.toISOString().split('T')[0];
+        break;
+      case 'week':
+        const weekStart = new Date(date);
+        weekStart.setDate(date.getDate() - date.getDay());
+        key = `S${weekStart.toISOString().split('T')[0]}`;
+        break;
+      case 'month':
+        key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        break;
+      case 'year':
+        key = String(date.getFullYear());
+        break;
+    }
+
+    const current = revenueMap.get(key) || { revenue: 0, reservations: 0, orders: 0 };
+    revenueMap.set(key, {
+      revenue: current.revenue + (order.totalAmount || 0),
+      reservations: current.reservations,
+      orders: current.orders + 1
     });
   });
 
@@ -159,13 +204,21 @@ function formatDateLabel(date: string, period: string): string {
   return date;
 }
 
-function calculateMonthlyRevenue(reservations: any[]) {
+function calculateMonthlyRevenue(reservations: any[], orders: any[]) {
   const monthMap = new Map<string, number>();
-  
+
+  // Ajouter les réservations
   reservations.forEach(res => {
     const date = new Date(res.date);
     const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
     monthMap.set(key, (monthMap.get(key) || 0) + (res.totalPrice || 0));
+  });
+
+  // Ajouter les commandes
+  orders.forEach(order => {
+    const date = new Date(order.createdAt);
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    monthMap.set(key, (monthMap.get(key) || 0) + (order.totalAmount || 0));
   });
 
   const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 
@@ -249,7 +302,7 @@ function calculateStatusDistribution(reservations: any[]) {
 
 function calculateHourlyDistribution(reservations: any[]) {
   const hourMap = new Map<number, number>();
-  
+
   // Initialiser toutes les heures de 9h à 19h
   for (let h = 9; h <= 19; h++) {
     hourMap.set(h, 0);
@@ -270,4 +323,24 @@ function calculateHourlyDistribution(reservations: any[]) {
       count
     }))
     .sort((a, b) => parseInt(a.hour) - parseInt(b.hour));
+}
+
+function calculateOrderTypeDistribution(orders: any[]) {
+  const typeCount = {
+    product: 0,
+    formation: 0
+  };
+
+  orders.forEach(order => {
+    if (order.orderType === 'product') {
+      typeCount.product++;
+    } else if (order.orderType === 'formation') {
+      typeCount.formation++;
+    }
+  });
+
+  return [
+    { name: 'Produits', value: typeCount.product, color: '#3B82F6' },
+    { name: 'Formations', value: typeCount.formation, color: '#10B981' }
+  ];
 }

@@ -46,17 +46,43 @@ export default function AdminComptabiliteTab({ reservations, fetchReservations }
 
   useEffect(() => {
     calculateStats();
-  }, [reservations, period]);
+  }, [reservations, orders, period]);
+
+  const [orders, setOrders] = useState<any[]>([]);
+
+  // Charger les commandes
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/admin/orders', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setOrders(data);
+        }
+      } catch (error) {
+        console.error('Erreur chargement commandes:', error);
+      }
+    };
+    fetchOrders();
+  }, []);
 
   const calculateStats = () => {
     const now = new Date();
     let filteredData = reservations;
-    
-    // Filtrer par période
+    let filteredOrders = orders;
+
+    // Filtrer les réservations par période
     switch (period) {
       case 'day':
         filteredData = reservations.filter(r => {
           const date = new Date(r.date);
+          return date.toDateString() === now.toDateString();
+        });
+        filteredOrders = orders.filter(o => {
+          const date = new Date(o.createdAt);
           return date.toDateString() === now.toDateString();
         });
         break;
@@ -67,11 +93,20 @@ export default function AdminComptabiliteTab({ reservations, fetchReservations }
           const date = new Date(r.date);
           return date >= weekStart;
         });
+        filteredOrders = orders.filter(o => {
+          const date = new Date(o.createdAt);
+          return date >= weekStart;
+        });
         break;
       case 'month':
         filteredData = reservations.filter(r => {
           const date = new Date(r.date);
-          return date.getMonth() === now.getMonth() && 
+          return date.getMonth() === now.getMonth() &&
+                 date.getFullYear() === now.getFullYear();
+        });
+        filteredOrders = orders.filter(o => {
+          const date = new Date(o.createdAt);
+          return date.getMonth() === now.getMonth() &&
                  date.getFullYear() === now.getFullYear();
         });
         break;
@@ -83,10 +118,18 @@ export default function AdminComptabiliteTab({ reservations, fetchReservations }
           const date = new Date(r.date);
           return date >= quarterStart;
         });
+        filteredOrders = orders.filter(o => {
+          const date = new Date(o.createdAt);
+          return date >= quarterStart;
+        });
         break;
       case 'year':
         filteredData = reservations.filter(r => {
           const date = new Date(r.date);
+          return date.getFullYear() === now.getFullYear();
+        });
+        filteredOrders = orders.filter(o => {
+          const date = new Date(o.createdAt);
           return date.getFullYear() === now.getFullYear();
         });
         break;
@@ -94,9 +137,20 @@ export default function AdminComptabiliteTab({ reservations, fetchReservations }
     
     const paidReservations = filteredData.filter(r => r.paymentStatus === 'paid');
     const pendingReservations = filteredData.filter(r => r.paymentStatus !== 'paid' && r.status !== 'cancelled');
-    
-    // Calculer les clients uniques
-    const uniqueClients = new Set(filteredData.map(r => r.userEmail)).size;
+
+    // Commandes payées et en attente
+    const paidOrders = filteredOrders.filter(o => o.paymentStatus === 'paid');
+    const pendingOrders = filteredOrders.filter(o => o.paymentStatus !== 'paid' && o.status !== 'cancelled');
+
+    // Calculer les revenus des commandes
+    const ordersRevenue = filteredOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+    const paidOrdersRevenue = paidOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+    const pendingOrdersRevenue = pendingOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+
+    // Calculer les clients uniques (réservations + commandes)
+    const reservationEmails = new Set(filteredData.map(r => r.userEmail));
+    const orderEmails = new Set(filteredOrders.map(o => o.customerEmail));
+    const uniqueClients = new Set([...reservationEmails, ...orderEmails]).size;
     const recurringClients = reservations.filter(r => {
       const clientReservations = reservations.filter(res => res.userEmail === r.userEmail);
       return clientReservations.length > 1;
@@ -129,18 +183,24 @@ export default function AdminComptabiliteTab({ reservations, fetchReservations }
     // Calcul correct de la TVA : TTC - (TTC / 1.20) = TVA
     const calculateTVA = (ttc: number) => ttc - (ttc / 1.20);
 
+    // Revenus combinés (réservations + commandes)
+    const reservationsRevenue = filteredData.reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice || 0), 0);
+    const totalRevenueAmount = reservationsRevenue + ordersRevenue;
+    const totalPaidAmount = paidReservations.reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice || 0), 0) + paidOrdersRevenue;
+    const totalPendingAmount = pendingReservations.reduce((sum, r) => sum + (r.totalPrice || 0), 0) + pendingOrdersRevenue;
+
     setStats({
-      totalRevenue: filteredData.reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice || 0), 0),
-      paidAmount: paidReservations.reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice || 0), 0),
-      pendingAmount: pendingReservations.reduce((sum, r) => sum + (r.totalPrice || 0), 0),
-      taxAmount: paidReservations.reduce((sum, r) => sum + calculateTVA(r.paymentAmount || r.totalPrice || 0), 0),
-      servicesCount: filteredData.length,
-      averageTicket: filteredData.length > 0 ?
-        filteredData.reduce((sum, r) => sum + (r.paymentAmount || r.totalPrice || 0), 0) / filteredData.length : 0,
+      totalRevenue: totalRevenueAmount,
+      paidAmount: totalPaidAmount,
+      pendingAmount: totalPendingAmount,
+      taxAmount: paidReservations.reduce((sum, r) => sum + calculateTVA(r.paymentAmount || r.totalPrice || 0), 0) + paidOrders.reduce((sum, o) => sum + calculateTVA(o.totalAmount || 0), 0),
+      servicesCount: filteredData.length + filteredOrders.length,
+      averageTicket: (filteredData.length + filteredOrders.length) > 0 ?
+        totalRevenueAmount / (filteredData.length + filteredOrders.length) : 0,
       clientsCount: uniqueClients,
       recurringRate: uniqueClients > 0 ? (recurringClients.length / uniqueClients) * 100 : 0,
-      vatCollected: paidReservations.reduce((sum, r) => sum + calculateTVA(r.paymentAmount || r.totalPrice || 0), 0),
-      vatDue: filteredData.reduce((sum, r) => sum + calculateTVA(r.totalPrice || 0), 0),
+      vatCollected: paidReservations.reduce((sum, r) => sum + calculateTVA(r.paymentAmount || r.totalPrice || 0), 0) + paidOrders.reduce((sum, o) => sum + calculateTVA(o.totalAmount || 0), 0),
+      vatDue: filteredData.reduce((sum, r) => sum + calculateTVA(r.totalPrice || 0), 0) + filteredOrders.reduce((sum, o) => sum + calculateTVA(o.totalAmount || 0), 0),
       monthlyGrowth,
       yearlyGrowth: 0
     });
@@ -873,6 +933,102 @@ Pour toute question: contact@laia-skin-institut.com`;
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* Section Commandes Produits/Formations */}
+            <div className="mt-8 border-t pt-6">
+              <h4 className="text-md font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Package className="w-5 h-5 text-purple-600" />
+                Commandes Produits & Formations
+              </h4>
+
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-y">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">N° Commande</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Date</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Client</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Type</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Articles</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Montant</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Statut</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {orders.filter(o => {
+                      const matchesSearch = searchTerm === '' ||
+                        o.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        o.customerEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        o.orderNumber?.toLowerCase().includes(searchTerm.toLowerCase());
+
+                      const matchesStatus = filterStatus === 'all' ||
+                        (filterStatus === 'paid' && o.paymentStatus === 'paid') ||
+                        (filterStatus === 'pending' && o.paymentStatus !== 'paid');
+
+                      return matchesSearch && matchesStatus;
+                    }).slice(0, 10).map(order => {
+                      let items = [];
+                      try {
+                        items = JSON.parse(order.items || '[]');
+                      } catch (e) {
+                        console.error('Erreur parsing items:', e);
+                      }
+
+                      return (
+                        <tr key={order.id} className="hover:bg-gray-50">
+                          <td className="px-4 py-3 text-sm">
+                            <span className="font-mono font-semibold text-purple-600">
+                              {order.orderNumber}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            {new Date(order.createdAt).toLocaleDateString('fr-FR')}
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            <div>
+                              <p className="font-medium">{order.customerName}</p>
+                              <p className="text-xs text-gray-500">{order.customerEmail}</p>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                              order.orderType === 'product'
+                                ? 'bg-blue-100 text-blue-800'
+                                : 'bg-green-100 text-green-800'
+                            }`}>
+                              {order.orderType === 'product' ? 'Produit' : 'Formation'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-600 max-w-xs truncate">
+                            {items.map((item: any) => `${item.name} (x${item.quantity})`).join(', ') || 'N/A'}
+                          </td>
+                          <td className="px-4 py-3 text-sm font-bold">
+                            {order.totalAmount?.toFixed(2)}€
+                          </td>
+                          <td className="px-4 py-3">
+                            {order.paymentStatus === 'paid' ? (
+                              <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                                Payé
+                              </span>
+                            ) : (
+                              <span className="px-2 py-1 text-xs font-medium bg-orange-100 text-orange-800 rounded-full">
+                                En attente
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {orders.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  Aucune commande enregistrée
+                </div>
+              )}
             </div>
           </div>
         )}

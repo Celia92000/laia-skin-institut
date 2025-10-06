@@ -7,7 +7,7 @@ export async function getAdminStatistics() {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
     
-    // Récupérer toutes les réservations
+    // Récupérer toutes les réservations et commandes
     const prisma = await getPrismaClient();
     const reservations = await prisma.reservation.findMany({
       include: {
@@ -19,8 +19,28 @@ export async function getAdminStatistics() {
         }
       }
     });
-    
-    // Calculer les statistiques
+
+    const orders = await prisma.order.findMany({
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true
+          }
+        }
+      }
+    });
+
+    // Calculer les revenus des commandes
+    const ordersRevenue = orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+    const paidOrdersRevenue = orders
+      .filter(o => o.paymentStatus === 'paid')
+      .reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+    const pendingOrdersRevenue = orders
+      .filter(o => o.paymentStatus === 'pending' || o.paymentStatus === 'unpaid')
+      .reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+
+    // Calculer les statistiques (réservations + commandes)
     const stats = {
       totalReservations: reservations.length,
       pendingReservations: reservations.filter(r => r.status === 'pending').length,
@@ -30,34 +50,47 @@ export async function getAdminStatistics() {
         const resDate = new Date(r.date);
         return resDate >= today && resDate < tomorrow;
       }).length,
-      totalRevenue: reservations.reduce((sum, r) => sum + (r.totalPrice || 0), 0),
+      totalOrders: orders.length,
+      totalRevenue: reservations.reduce((sum, r) => sum + (r.totalPrice || 0), 0) + ordersRevenue,
       paidRevenue: reservations
         .filter(r => r.paymentStatus === 'paid')
-        .reduce((sum, r) => sum + (r.totalPrice || 0), 0),
+        .reduce((sum, r) => sum + (r.totalPrice || 0), 0) + paidOrdersRevenue,
       pendingPayments: reservations
         .filter(r => r.paymentStatus === 'pending' || r.paymentStatus === 'unpaid')
-        .reduce((sum, r) => sum + (r.totalPrice || 0), 0)
+        .reduce((sum, r) => sum + (r.totalPrice || 0), 0) + pendingOrdersRevenue
     };
     
-    // Calculer les revenus du mois
+    // Calculer les revenus du mois (réservations + commandes)
     const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-    
+
     const monthReservations = reservations.filter(r => {
       const resDate = new Date(r.date);
       return resDate >= startOfMonth && resDate <= endOfMonth;
     });
-    
-    stats.monthlyRevenue = monthReservations.reduce((sum, r) => sum + (r.totalPrice || 0), 0);
+
+    const monthOrders = orders.filter(o => {
+      const orderDate = new Date(o.createdAt);
+      return orderDate >= startOfMonth && orderDate <= endOfMonth;
+    });
+
+    stats.monthlyRevenue = monthReservations.reduce((sum, r) => sum + (r.totalPrice || 0), 0) +
+                           monthOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
     stats.monthlyReservations = monthReservations.length;
-    
-    // Calculer le chiffre d'affaires du jour
-    const todayRevenue = reservations.filter(r => {
+    stats.monthlyOrders = monthOrders.length;
+
+    // Calculer le chiffre d'affaires du jour (réservations + commandes)
+    const todayReservationsRevenue = reservations.filter(r => {
       const resDate = new Date(r.date);
       return resDate >= today && resDate < tomorrow;
     }).reduce((sum, r) => sum + (r.totalPrice || 0), 0);
-    
-    stats.todayRevenue = todayRevenue;
+
+    const todayOrdersRevenue = orders.filter(o => {
+      const orderDate = new Date(o.createdAt);
+      return orderDate >= today && orderDate < tomorrow;
+    }).reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+
+    stats.todayRevenue = todayReservationsRevenue + todayOrdersRevenue;
     
     return stats;
   } catch (error) {

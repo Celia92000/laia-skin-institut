@@ -427,10 +427,28 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
     }
   };
 
-  const handleShowReservations = (userId: string, userName: string) => {
+  const [selectedClientOrders, setSelectedClientOrders] = useState<any[]>([]);
+
+  const handleShowReservations = async (userId: string, userName: string) => {
     const clientReservations = reservations.filter(r => r.userId === userId);
     setSelectedClientReservations(clientReservations);
     setSelectedClientName(userName);
+
+    // Charger aussi les commandes du client
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/admin/orders', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const allOrders = await response.json();
+        const clientOrders = allOrders.filter((o: any) => o.userId === userId);
+        setSelectedClientOrders(clientOrders);
+      }
+    } catch (error) {
+      console.error('Erreur chargement commandes:', error);
+    }
+
     setShowReservationsModal(true);
   };
 
@@ -1014,7 +1032,7 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
                         <button
                           onClick={() => handleShowReservations(profile.userId, profile.user.name)}
                           className="text-[#d4b5a0] hover:text-[#c4a590] transition-colors"
-                          title="Voir les réservations"
+                          title="Voir les réservations et commandes"
                         >
                           <Eye className="w-4 h-4" />
                         </button>
@@ -1291,14 +1309,14 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
               </button>
             </div>
 
-            {selectedClientReservations.length === 0 ? (
+            {selectedClientReservations.length === 0 && selectedClientOrders.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
-                Aucune réservation trouvée pour ce client
+                Aucune réservation ou commande trouvée pour ce client
               </div>
             ) : (
               <div>
                 {/* Statistiques rapides */}
-                <div className="grid grid-cols-4 gap-4 mb-6">
+                <div className="grid grid-cols-5 gap-4 mb-6">
                   <div className="bg-green-50 rounded-lg p-4">
                     <p className="text-sm text-green-700 mb-1">Terminées</p>
                     <p className="text-2xl font-bold text-green-900">
@@ -1317,10 +1335,16 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
                       {selectedClientReservations.filter(r => r.status === 'pending').length}
                     </p>
                   </div>
+                  <div className="bg-purple-50 rounded-lg p-4">
+                    <p className="text-sm text-purple-700 mb-1">Commandes</p>
+                    <p className="text-2xl font-bold text-purple-900">
+                      {selectedClientOrders.length}
+                    </p>
+                  </div>
                   <div className="bg-gray-50 rounded-lg p-4">
                     <p className="text-sm text-gray-700 mb-1">Total</p>
                     <p className="text-2xl font-bold text-gray-900">
-                      {selectedClientReservations.length}
+                      {selectedClientReservations.length + selectedClientOrders.length}
                     </p>
                   </div>
                 </div>
@@ -1375,14 +1399,86 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
                     ))}
                 </div>
 
+                {/* Liste des commandes */}
+                {selectedClientOrders.length > 0 && (
+                  <>
+                    <h4 className="font-semibold text-[#2c3e50] mt-6 mb-3">Commandes Produits & Formations</h4>
+                    <div className="space-y-3">
+                      {selectedClientOrders
+                        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                        .map(order => {
+                          let items = [];
+                          try {
+                            items = JSON.parse(order.items || '[]');
+                          } catch (e) {
+                            console.error('Erreur parsing items:', e);
+                          }
+
+                          return (
+                            <div
+                              key={order.id}
+                              className="border border-purple-200 rounded-lg p-4 hover:bg-purple-50 transition-colors"
+                            >
+                              <div className="flex justify-between items-start">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-3 mb-2">
+                                    <span className="font-mono font-semibold text-purple-600">
+                                      {order.orderNumber}
+                                    </span>
+                                    <span className="text-gray-600 text-sm">
+                                      {new Date(order.createdAt).toLocaleDateString('fr-FR', {
+                                        day: 'numeric',
+                                        month: 'long',
+                                        year: 'numeric'
+                                      })}
+                                    </span>
+                                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                      order.orderType === 'product'
+                                        ? 'bg-blue-100 text-blue-800'
+                                        : 'bg-green-100 text-green-800'
+                                    }`}>
+                                      {order.orderType === 'product' ? 'Produit' : 'Formation'}
+                                    </span>
+                                  </div>
+
+                                  <div className="text-sm text-gray-600 mb-2">
+                                    <strong>Articles:</strong> {items.map((item: any) => `${item.name} (x${item.quantity})`).join(', ') || 'N/A'}
+                                  </div>
+
+                                  <div className="flex items-center gap-4 text-sm">
+                                    <span className="text-purple-600 font-medium">
+                                      {order.totalAmount ? `${order.totalAmount.toFixed(2)}€` : 'Prix non défini'}
+                                    </span>
+                                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                      order.paymentStatus === 'paid'
+                                        ? 'bg-green-100 text-green-800'
+                                        : 'bg-orange-100 text-orange-800'
+                                    }`}>
+                                      {order.paymentStatus === 'paid' ? 'Payé' : 'En attente'}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </>
+                )}
+
                 {/* Résumé fidélité */}
                 <div className="mt-6 p-4 bg-[#d4b5a0]/10 rounded-lg">
                   <h4 className="font-semibold text-[#2c3e50] mb-2">Impact sur la fidélité</h4>
                   <p className="text-sm text-gray-700">
                     <strong>{selectedClientReservations.filter(r => r.status === 'completed').length}</strong> réservation(s) terminée(s) comptabilisée(s) pour le programme de fidélité
                   </p>
+                  {selectedClientOrders.filter(o => o.paymentStatus === 'paid').length > 0 && (
+                    <p className="text-sm text-gray-700 mt-1">
+                      <strong>{selectedClientOrders.filter(o => o.paymentStatus === 'paid').length}</strong> commande(s) payée(s) générant des points de fidélité
+                    </p>
+                  )}
                   <p className="text-xs text-gray-500 mt-1">
-                    Seules les réservations avec le statut "Terminé" sont prises en compte pour les réductions
+                    Seules les réservations terminées et les commandes payées comptent pour le programme de fidélité
                   </p>
                 </div>
               </div>
