@@ -321,7 +321,7 @@ export default function EmailingInterface() {
       )}
 
       {/* Vue ancienne Envoi Rapide - caché */}
-      {activeView === 'hidden_quick' && (
+      {false && (
         <div className="grid grid-cols-12 gap-6">
           {/* Templates */}
           <div className="col-span-5 space-y-4">
