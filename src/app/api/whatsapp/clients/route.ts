@@ -107,7 +107,7 @@ export async function GET(request: Request) {
           date: nextReservation.date,
           time: nextReservation.time
         } : null,
-        tags: []
+        tags: [] as { label: string; color: string }[]
       };
     });
 
