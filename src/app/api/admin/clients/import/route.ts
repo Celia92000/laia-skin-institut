@@ -44,17 +44,14 @@ export async function POST(request: NextRequest) {
             phone: client.phone || null,
             password: hashedPassword,
             role: 'client',
-            birthdate: client.birthDate ? new Date(client.birthDate) : null,
+            birthDate: client.birthDate ? new Date(client.birthDate) : null,
             skinType: client.skinType || null,
             allergies: client.allergies || null,
-            medicalConditions: client.medicalNotes || null,
+            medicalNotes: client.medicalNotes || null,
             preferences: client.preferences || null,
-            notes: client.adminNotes || null,
+            adminNotes: client.adminNotes || null,
             loyaltyPoints: client.loyaltyPoints || 0,
-            totalSpent: client.totalSpent || 0,
-            source: 'import',
-            createdAt: new Date(),
-            updatedAt: new Date()
+            totalSpent: client.totalSpent || 0
           }
         });
 

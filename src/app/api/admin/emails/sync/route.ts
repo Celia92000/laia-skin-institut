@@ -119,9 +119,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Statistiques des emails
-    const stats = await prisma.emailHistory.groupBy({
-      by: ['direction', 'status'],
-      _count: true
+    const stats = await prisma.emailHistory.findMany({
+      select: {
+        direction: true,
+        status: true
+      }
     });
 
     const total = await prisma.emailHistory.count();

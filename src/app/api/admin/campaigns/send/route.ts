@@ -44,6 +44,7 @@ export async function POST(request: NextRequest) {
         name: subject,
         subject,
         content,
+        recipients: JSON.stringify(recipients),
         recipientCount: recipients.length,
         status: 'sending',
         template

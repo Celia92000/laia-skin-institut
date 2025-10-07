@@ -239,6 +239,7 @@ function calculateMonthlyRevenue(reservations: any[], orders: any[]) {
 
 async function calculateServiceDistribution() {
   try {
+    const prisma = await getPrismaClient();
     const services = await prisma.service.findMany({
       where: { active: true }
     });

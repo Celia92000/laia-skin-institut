@@ -793,7 +793,7 @@ export default function ServiceDetailPage() {
       {/* Modal de paiement */}
       {showPaymentModal && service && (
         <ValidationPaymentModal
-          item={{
+          reservation={{
             id: service.id,
             name: service.name,
             price: service.price,
@@ -804,7 +804,7 @@ export default function ServiceDetailPage() {
           }}
           isOpen={showPaymentModal}
           onClose={() => setShowPaymentModal(false)}
-          onSuccess={(orderId) => {
+          onValidate={(orderId) => {
             console.log('Réservation créée:', orderId);
             setShowPaymentModal(false);
           }}

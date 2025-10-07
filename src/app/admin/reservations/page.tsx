@@ -93,8 +93,8 @@ export default function AdminReservations() {
 
   // Filtrer les réservations
   const filteredReservations = reservations.filter(res => {
-    const matchesSearch = res.client?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          res.service?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = (res as any).client?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (res as any).service?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           res.id.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || res.status === statusFilter;
     return matchesSearch && matchesStatus;
@@ -156,7 +156,7 @@ export default function AdminReservations() {
     confirmees: reservations.filter(r => r.status === 'confirmed').length,
     en_attente: reservations.filter(r => r.status === 'pending').length,
     revenue: reservations.filter(r => r.status === 'confirmed' || r.status === 'completed')
-                         .reduce((sum, r) => sum + r.prix, 0)
+                         .reduce((sum, r) => sum + r.totalPrice, 0)
   };
 
   if (loading) {
@@ -328,26 +328,26 @@ export default function AdminReservations() {
                     </td>
                     <td className="px-4 py-4">
                       <div>
-                        <div className="text-sm font-semibold text-[#2c3e50]">{reservation.client}</div>
+                        <div className="text-sm font-semibold text-[#2c3e50]">{(reservation as any).client}</div>
                         <div className="text-xs text-[#2c3e50]/60 flex items-center gap-2 mt-1">
                           <Phone className="w-3 h-3" />
-                          {reservation.telephone}
+                          {(reservation as any).telephone}
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-4">
-                      <div className="text-sm text-[#2c3e50]">{reservation.service}</div>
-                      <div className="text-xs text-[#2c3e50]/60">{reservation.duree} min</div>
+                      <div className="text-sm text-[#2c3e50]">{(reservation as any).service}</div>
+                      <div className="text-xs text-[#2c3e50]/60">{(reservation as any).duree} min</div>
                     </td>
                     <td className="px-4 py-4">
                       <div className="text-sm text-[#2c3e50]">{formatDate(reservation.date)}</div>
                       <div className="text-xs text-[#2c3e50]/60 flex items-center gap-1">
                         <Clock className="w-3 h-3" />
-                        {reservation.heure}
+                        {(reservation as any).heure}
                       </div>
                     </td>
                     <td className="px-4 py-4">
-                      <span className="text-sm font-semibold text-[#d4b5a0]">{reservation.prix}€</span>
+                      <span className="text-sm font-semibold text-[#d4b5a0]">{reservation.totalPrice}€</span>
                     </td>
                     <td className="px-4 py-4">
                       <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(reservation.status)}`}>

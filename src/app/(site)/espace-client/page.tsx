@@ -975,7 +975,7 @@ export default function EspaceClient() {
                     <div key={reservation.id} className="flex justify-between items-center py-3 border-b border-gray-100">
                       <div>
                         <p className="font-medium text-[#2c3e50]">
-                          {(reservation as any).formattedServices?.join(', ') || reservation.services?.join(', ') || 'Service inconnu'}
+                          {reservation.services?.join(', ') || 'Service inconnu'}
                         </p>
                         <p className="text-sm text-[#2c3e50]/60">
                           {new Date(reservation.date).toLocaleDateString('fr-FR')}
@@ -1382,7 +1382,7 @@ export default function EspaceClient() {
           <div className="p-6">
             <div className="mb-4">
               <p className="font-medium text-[#2c3e50]">
-                {selectedReservation.formattedServices?.join(', ') || selectedReservation.services?.join(', ') || 'Service inconnu'}
+                {selectedReservation.services?.join(', ') || 'Service inconnu'}
               </p>
               <p className="text-sm text-[#2c3e50]/60">
                 Effectué le {new Date(selectedReservation.date).toLocaleDateString('fr-FR')}
@@ -1570,7 +1570,7 @@ export default function EspaceClient() {
                       },
                       body: JSON.stringify({
                         reservationId: selectedReservation?.id,
-                        serviceName: selectedReservation?.formattedServices?.join(', ') || selectedReservation?.services?.join(', ') || 'Service inconnu',
+                        serviceName: selectedReservation?.services?.join(', ') || 'Service inconnu',
                         rating,
                         comment: reviewText,
                         satisfaction,

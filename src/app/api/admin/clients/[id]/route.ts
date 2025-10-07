@@ -60,15 +60,14 @@ export async function GET(
       name: client.name,
       email: client.email,
       phone: client.phone,
-      address: client.address,
       birthDate: client.birthDate,
       lastVisit,
       totalVisits: client._count.reservations,
       totalSpent,
       loyaltyPoints: client.loyaltyPoints,
-      tags: client.tags ? JSON.parse(client.tags) : [],
-      notes: client.notes,
-      vip: client.vip || false,
+      tags: (client as any).tags ? JSON.parse((client as any).tags) : [],
+      notes: (client as any).notes,
+      vip: (client as any).vip || false,
       createdAt: client.createdAt,
       reservations: client.reservations
     };

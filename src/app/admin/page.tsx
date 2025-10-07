@@ -1694,7 +1694,7 @@ export default function AdminDashboard() {
                                     return 'service-inconnu';
                                   })
                                 : [],
-                              serviceName: r.serviceName || (r.services && r.services.length > 0
+                              serviceName: (r.services && r.services.length > 0
                                 ? r.services.map((s: any) => {
                                     // Si s est un objet, extraire le nom
                                     if (typeof s === 'object' && s.name) {
@@ -1746,7 +1746,6 @@ export default function AdminDashboard() {
                     <QuickActionModal
                       date={quickActionDate}
                       onClose={() => setShowQuickActionModal(false)}
-                      services={dbServices}
                       onCreateReservation={async (data) => {
                         try {
                           // Créer la réservation
@@ -1929,7 +1928,7 @@ export default function AdminDashboard() {
                         </div>
 
                         {/* Badge abonnement si applicable */}
-                        {reservation.isSubscription && (
+                        {(reservation as any).isSubscription && (
                           <div className="mb-3 flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-purple-100 to-purple-50 border border-purple-200 rounded-lg">
                             <span className="text-purple-600">🔔</span>
                             <span className="text-sm font-medium text-purple-700">Abonnement mensuel</span>
@@ -3736,7 +3735,7 @@ export default function AdminDashboard() {
                             newServices = editingReservation.services.filter((s: string) => s !== key);
                           }
                           
-                          const newTotalPrice = calculateTotalPrice(newServices, true); // true pour tarif lancement
+                          const newTotalPrice = calculateTotalPrice(newServices);
                           
                           setEditingReservation({
                             ...editingReservation,
