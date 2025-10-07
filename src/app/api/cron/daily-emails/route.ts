@@ -6,7 +6,7 @@ import { headers } from 'next/headers';
 export async function GET(request: NextRequest) {
   try {
     // Vérifier l'authentification Vercel Cron
-    const headersList = headers();
+    const headersList = await headers();
     const authHeader = headersList.get('authorization');
 
     // En production, vérifier le secret
