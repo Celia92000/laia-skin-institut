@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Mail, Send, Search, Inbox, SentIcon, Clock, CheckCircle, AlertCircle, Reply, User, Calendar } from 'lucide-react';
+import { Mail, Send, Search, Inbox, Clock, CheckCircle, AlertCircle, Reply, User, Calendar } from 'lucide-react';
 
 interface Email {
   id: string;
