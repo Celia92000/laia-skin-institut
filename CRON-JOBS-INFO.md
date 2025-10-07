@@ -1,16 +1,21 @@
 # Configuration des Cron Jobs Vercel
 
 ## Limite actuelle
-Le plan gratuit de Vercel ne permet que **2 cron jobs**. Pour déployer le site, nous avons dû limiter les cron jobs actifs.
+Le plan gratuit de Vercel ne permet que **2 cron jobs**. Nous avons optimisé leur utilisation en regroupant les tâches.
 
-## Cron Jobs ACTIFS (2/2)
-1. **Rappels de rendez-vous** (`/api/cron/send-reminders`)
-   - Heure: 20h00 tous les jours
-   - Envoie les rappels par email et WhatsApp pour les RDV du lendemain
+## Cron Jobs ACTIFS (2/2) - Version Optimisée
 
-2. **Emails d'anniversaire** (`/api/cron/birthday-emails`)
-   - Heure: 9h00 tous les jours
-   - Envoie les emails de bon anniversaire aux clients
+### 1. **Emails quotidiens** (`/api/cron/daily-emails`)
+- **Heure**: 9h00 tous les jours
+- **Tâches groupées**:
+  - ✅ **Confirmations de RDV** (J-1) par email
+  - 🎂 **Emails d'anniversaire** avec code promo -20%
+
+### 2. **WhatsApp quotidien** (`/api/cron/daily-whatsapp`)
+- **Heure**: 18h00 tous les jours
+- **Tâches groupées**:
+  - 🔔 **Rappels de RDV** (J-1) par WhatsApp
+  - ⭐ **Demandes d'avis** (J+1) après la prestation
 
 ## Cron Jobs DÉSACTIVÉS (pour respecter la limite)
 Ces cron jobs ont été commentés dans `vercel.json` mais le code existe toujours:

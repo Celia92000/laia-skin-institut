@@ -6,19 +6,19 @@
   "outputDirectory": ".next",
   "crons": [
     {
-      "path": "/api/cron/send-reminders",
-      "schedule": "0 20 * * *"
+      "path": "/api/cron/daily-emails",
+      "schedule": "0 9 * * *"
     },
     {
-      "path": "/api/cron/birthday-emails",
-      "schedule": "0 9 * * *"
+      "path": "/api/cron/daily-whatsapp",
+      "schedule": "0 18 * * *"
     }
   ],
   "functions": {
-    "src/app/api/cron/send-reminders/route.ts": {
+    "src/app/api/cron/daily-emails/route.ts": {
       "maxDuration": 60
     },
-    "src/app/api/cron/birthday-emails/route.ts": {
+    "src/app/api/cron/daily-whatsapp/route.ts": {
       "maxDuration": 60
     }
   }
