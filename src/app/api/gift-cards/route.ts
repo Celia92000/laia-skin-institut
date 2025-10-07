@@ -199,16 +199,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Vérifier si la carte est expirée
-    if (giftCard.expiryDate && new Date(giftCard.expiryDate) < new Date()) {
-      return NextResponse.json({
-        valid: false,
-        error: 'Carte cadeau expirée',
-        expiryDate: giftCard.expiryDate
-      });
-    }
-
-    // Vérifier le statut
+    // Vérifier le statut (sauf si expirée, on laisse passer pour exception admin)
     if (giftCard.status !== 'active') {
       return NextResponse.json({
         valid: false,
@@ -217,12 +208,22 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    // Vérifier si la carte est expirée (mais permettre quand même l'utilisation avec avertissement)
+    const isExpired = giftCard.expiryDate && new Date(giftCard.expiryDate) < new Date();
+
     return NextResponse.json({
       valid: true,
-      code: giftCard.code,
+      expired: isExpired,
+      warning: isExpired ? 'Carte cadeau expirée - Utilisation possible en exception' : null,
+      giftCard: {
+        id: giftCard.id,
+        code: giftCard.code,
+        balance: giftCard.balance,
+        initialAmount: giftCard.initialAmount,
+        expiryDate: giftCard.expiryDate
+      },
       balance: giftCard.balance,
       initialAmount: giftCard.initialAmount,
-      expiryDate: giftCard.expiryDate,
       reservations: giftCard.reservations
     });
 

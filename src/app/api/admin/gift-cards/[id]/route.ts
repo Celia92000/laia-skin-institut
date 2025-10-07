@@ -31,17 +31,80 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { balance, status, notes } = body;
+    const {
+      initialAmount,
+      balance,
+      purchasedFor,
+      recipientEmail,
+      recipientPhone,
+      message,
+      expiryDate,
+      status,
+      notes,
+      purchaserName
+    } = body;
+
+    // Préparer les données de mise à jour
+    const updateData: any = {};
+
+    if (initialAmount !== undefined) updateData.initialAmount = initialAmount;
+    if (balance !== undefined) updateData.balance = balance;
+    if (purchasedFor !== undefined) updateData.purchasedFor = purchasedFor;
+    if (recipientEmail !== undefined) updateData.recipientEmail = recipientEmail;
+    if (recipientPhone !== undefined) updateData.recipientPhone = recipientPhone;
+    if (message !== undefined) updateData.message = message;
+    if (expiryDate !== undefined) updateData.expiryDate = expiryDate ? new Date(expiryDate) : null;
+    if (status !== undefined) {
+      updateData.status = status;
+      if (status === 'used') updateData.usedDate = new Date();
+    }
+    if (notes !== undefined) updateData.notes = notes;
+
+    // Gérer le nom de l'émetteur
+    if (purchaserName !== undefined) {
+      // Récupérer la carte actuelle pour voir si elle a déjà un purchaser
+      const currentCard = await prisma.giftCard.findUnique({
+        where: { id: params.id },
+        include: { purchaser: true }
+      });
+
+      if (currentCard?.purchaser) {
+        // Mettre à jour le nom de l'utilisateur existant
+        await prisma.user.update({
+          where: { id: currentCard.purchaser.id },
+          data: { name: purchaserName }
+        });
+      } else if (purchaserName) {
+        // Créer un nouvel utilisateur pour l'émetteur
+        const newPurchaser = await prisma.user.create({
+          data: {
+            name: purchaserName,
+            email: `gift_purchaser_${Date.now()}@temp.com`,
+            password: 'temp_password',
+            role: 'client'
+          }
+        });
+        updateData.purchasedBy = newPurchaser.id;
+      }
+    }
+
+    // Calculer usedAmount si balance et initialAmount sont disponibles
+    if (initialAmount !== undefined && balance !== undefined) {
+      updateData.usedAmount = initialAmount - balance;
+    } else if (balance !== undefined) {
+      // Si seulement le balance est fourni, récupérer initialAmount de la base
+      const currentCard = await prisma.giftCard.findUnique({
+        where: { id: params.id }
+      });
+      if (currentCard) {
+        updateData.usedAmount = currentCard.initialAmount - balance;
+      }
+    }
 
     // Mettre à jour la carte cadeau
     const giftCard = await prisma.giftCard.update({
       where: { id: params.id },
-      data: {
-        balance: balance !== undefined ? balance : undefined,
-        status: status || undefined,
-        notes: notes !== undefined ? notes : undefined,
-        usedDate: status === 'used' ? new Date() : undefined
-      },
+      data: updateData,
       include: {
         purchaser: {
           select: {

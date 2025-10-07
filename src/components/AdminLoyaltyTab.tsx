@@ -758,8 +758,8 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
         <div className="p-6 border-b border-gray-100">
           <h3 className="text-lg font-bold text-[#2c3e50]">Tous les profils de fidélité</h3>
         </div>
-        
-        <div className="overflow-x-auto">
+
+        <div className="overflow-x-auto overflow-y-auto max-h-[600px]">
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50 text-left">

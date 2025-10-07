@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Gift, Plus, Edit, Trash2, Eye, Search, Calendar, User, CreditCard } from 'lucide-react';
+import { Gift, Plus, Edit, Trash2, Eye, Search, Calendar, User, CreditCard, Mail, Download } from 'lucide-react';
 
 interface GiftCard {
   id: string;
@@ -35,13 +35,23 @@ export default function AdminGiftCardsTab() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedCard, setSelectedCard] = useState<GiftCard | null>(null);
+  const [showCardPreview, setShowCardPreview] = useState(false);
+  const [previewCard, setPreviewCard] = useState<GiftCard | null>(null);
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const getDefaultExpiryDate = () => {
+    const date = new Date();
+    date.setFullYear(date.getFullYear() + 1);
+    return date.toISOString().split('T')[0];
+  };
+
   const [newCard, setNewCard] = useState({
     amount: 50,
+    senderName: '',
     purchasedFor: '',
     recipientEmail: '',
     recipientPhone: '',
     message: '',
-    expiryDate: '',
+    expiryDate: getDefaultExpiryDate(),
     notes: ''
   });
 
@@ -99,15 +109,40 @@ export default function AdminGiftCardsTab() {
       });
 
       if (response.ok) {
-        alert('Carte cadeau créée avec succès !');
+        const createdCard = await response.json();
+
+        // Si un email est renseigné, envoyer automatiquement la carte
+        if (newCard.recipientEmail && createdCard.id) {
+          try {
+            const emailResponse = await fetch(`/api/admin/gift-cards/${createdCard.id}/send-email`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              }
+            });
+
+            if (emailResponse.ok) {
+              alert(`Carte cadeau créée et envoyée à ${newCard.recipientEmail} !`);
+            } else {
+              alert('Carte créée mais erreur lors de l\'envoi de l\'email. Vous pouvez le renvoyer manuellement.');
+            }
+          } catch (emailError) {
+            alert('Carte créée mais erreur lors de l\'envoi de l\'email. Vous pouvez le renvoyer manuellement.');
+          }
+        } else {
+          alert('Carte cadeau créée avec succès !');
+        }
+
         setShowCreateModal(false);
         setNewCard({
           amount: 50,
+          senderName: '',
           purchasedFor: '',
           recipientEmail: '',
           recipientPhone: '',
           message: '',
-          expiryDate: '',
+          expiryDate: getDefaultExpiryDate(),
           notes: ''
         });
         fetchGiftCards();
@@ -153,9 +188,16 @@ export default function AdminGiftCardsTab() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
+          initialAmount: selectedCard.initialAmount,
           balance: selectedCard.balance,
+          purchasedFor: selectedCard.purchasedFor,
+          recipientEmail: selectedCard.recipientEmail,
+          recipientPhone: selectedCard.recipientPhone,
+          message: selectedCard.message,
+          expiryDate: selectedCard.expiryDate,
           status: selectedCard.status,
-          notes: selectedCard.notes
+          notes: selectedCard.notes,
+          purchaserName: selectedCard.purchaser?.name
         })
       });
 
@@ -168,6 +210,39 @@ export default function AdminGiftCardsTab() {
     } catch (error) {
       console.error('Erreur mise à jour carte cadeau:', error);
       alert('Erreur lors de la mise à jour');
+    }
+  };
+
+  const handleSendEmail = async (card: GiftCard) => {
+    if (!card.recipientEmail) {
+      alert('Aucun email bénéficiaire renseigné');
+      return;
+    }
+
+    if (!confirm(`Envoyer la carte cadeau à ${card.recipientEmail} ?`)) return;
+
+    setSendingEmail(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/admin/gift-cards/${card.id}/send-email`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        alert(`Carte cadeau envoyée à ${card.recipientEmail} !`);
+      } else {
+        const error = await response.json();
+        alert(`Erreur: ${error.error || 'Erreur lors de l\'envoi'}`);
+      }
+    } catch (error) {
+      console.error('Erreur envoi email:', error);
+      alert('Erreur lors de l\'envoi de l\'email');
+    } finally {
+      setSendingEmail(false);
     }
   };
 
@@ -224,7 +299,7 @@ export default function AdminGiftCardsTab() {
       </div>
 
       {/* Cards List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[600px] overflow-y-auto pr-2">
         {filteredCards.map(card => (
           <div
             key={card.id}
@@ -248,6 +323,22 @@ export default function AdminGiftCardsTab() {
             </div>
 
             <div className="space-y-2 text-sm mb-3">
+              {/* Propriétaire en évidence */}
+              {card.purchasedFor && (
+                <div className="bg-pink-100 border border-pink-300 rounded-lg p-2 mb-2">
+                  <p className="text-pink-900 font-bold flex items-center gap-1">
+                    <User className="w-4 h-4" />
+                    {card.purchasedFor}
+                  </p>
+                  {card.recipientEmail && (
+                    <p className="text-pink-700 text-xs truncate">{card.recipientEmail}</p>
+                  )}
+                  {card.recipientPhone && (
+                    <p className="text-pink-700 text-xs">{card.recipientPhone}</p>
+                  )}
+                </div>
+              )}
+
               <p className="flex justify-between">
                 <span className="text-gray-600">Montant:</span>
                 <span className="font-bold text-pink-600">{card.amount}€</span>
@@ -258,43 +349,61 @@ export default function AdminGiftCardsTab() {
                   {card.balance}€
                 </span>
               </p>
-              {card.purchasedFor && (
-                <p className="text-gray-700">
-                  <strong>Pour:</strong> {card.purchasedFor}
-                </p>
-              )}
-              {card.recipientEmail && (
-                <p className="text-gray-600 text-xs truncate">
-                  {card.recipientEmail}
-                </p>
-              )}
-              <p className="text-gray-600">
+              <p className="text-gray-600 text-xs">
                 <strong>Créée le:</strong> {new Date(card.purchaseDate).toLocaleDateString('fr-FR')}
               </p>
+              {card.expiryDate && (
+                <p className="text-orange-600 text-xs">
+                  <strong>Expire le:</strong> {new Date(card.expiryDate).toLocaleDateString('fr-FR')}
+                </p>
+              )}
               {card.reservations && card.reservations.length > 0 && (
-                <p className="text-purple-600">
-                  <strong>{card.reservations.length}</strong> réservation{card.reservations.length > 1 ? 's' : ''}
+                <p className="text-purple-600 text-xs">
+                  <strong>{card.reservations.length}</strong> utilisation{card.reservations.length > 1 ? 's' : ''}
                 </p>
               )}
             </div>
 
-            <div className="flex gap-2">
+            <div className="space-y-2">
               <button
                 onClick={() => {
-                  setSelectedCard(card);
-                  setShowEditModal(true);
+                  setPreviewCard(card);
+                  setShowCardPreview(true);
                 }}
-                className="flex-1 px-3 py-1.5 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600 transition-colors flex items-center justify-center gap-1"
+                className="w-full px-3 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-lg text-sm hover:shadow-lg transition-all flex items-center justify-center gap-2 font-semibold"
               >
-                <Edit className="w-3 h-3" />
-                Modifier
+                <Eye className="w-4 h-4" />
+                Voir la carte
               </button>
-              <button
-                onClick={() => handleDeleteCard(card.id)}
-                className="px-3 py-1.5 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 transition-colors"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
+
+              <div className="flex gap-2">
+                {card.recipientEmail && (
+                  <button
+                    onClick={() => handleSendEmail(card)}
+                    disabled={sendingEmail}
+                    className="flex-1 px-3 py-1.5 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600 transition-colors flex items-center justify-center gap-1 disabled:bg-gray-300"
+                  >
+                    <Mail className="w-3 h-3" />
+                    Email
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    setSelectedCard(card);
+                    setShowEditModal(true);
+                  }}
+                  className="flex-1 px-3 py-1.5 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600 transition-colors flex items-center justify-center gap-1"
+                >
+                  <Edit className="w-3 h-3" />
+                  Modifier
+                </button>
+                <button
+                  onClick={() => handleDeleteCard(card.id)}
+                  className="px-3 py-1.5 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
         ))}
@@ -320,6 +429,17 @@ export default function AdminGiftCardsTab() {
                   type="number"
                   value={newCard.amount}
                   onChange={(e) => setNewCard({...newCard, amount: Number(e.target.value)})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[#2c3e50] mb-1">Émetteur (De la part de)</label>
+                <input
+                  type="text"
+                  value={newCard.senderName || ''}
+                  onChange={(e) => setNewCard({...newCard, senderName: e.target.value})}
+                  placeholder="Nom de l'émetteur"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500"
                 />
               </div>
@@ -369,7 +489,7 @@ export default function AdminGiftCardsTab() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[#2c3e50] mb-1">Date d'expiration (optionnel)</label>
+                <label className="block text-sm font-medium text-[#2c3e50] mb-1">Date d'expiration (1 an par défaut)</label>
                 <input
                   type="date"
                   value={newCard.expiryDate}
@@ -410,35 +530,121 @@ export default function AdminGiftCardsTab() {
 
       {/* Edit Modal */}
       {showEditModal && selectedCard && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl p-6 max-w-2xl w-full my-8">
             <h3 className="text-xl font-bold text-[#2c3e50] mb-4">Modifier carte cadeau</h3>
 
             <p className="font-mono font-bold text-pink-700 mb-4">{selectedCard.code}</p>
 
-            <div className="space-y-4">
+            <div className="space-y-4 max-h-[70vh] overflow-y-auto">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-[#2c3e50] mb-1">Montant initial (€)</label>
+                  <input
+                    type="number"
+                    value={selectedCard.initialAmount || selectedCard.amount}
+                    onChange={(e) => setSelectedCard({...selectedCard, initialAmount: Number(e.target.value)})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[#2c3e50] mb-1">Solde actuel (€)</label>
+                  <input
+                    type="number"
+                    value={selectedCard.balance}
+                    onChange={(e) => setSelectedCard({...selectedCard, balance: Number(e.target.value)})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500"
+                  />
+                </div>
+              </div>
+
               <div>
-                <label className="block text-sm font-medium text-[#2c3e50] mb-1">Solde (€)</label>
+                <label className="block text-sm font-medium text-[#2c3e50] mb-1">Émetteur (De la part de)</label>
                 <input
-                  type="number"
-                  value={selectedCard.balance}
-                  onChange={(e) => setSelectedCard({...selectedCard, balance: Number(e.target.value)})}
+                  type="text"
+                  value={selectedCard.purchaser?.name || ''}
+                  onChange={(e) => setSelectedCard({
+                    ...selectedCard,
+                    purchaser: selectedCard.purchaser
+                      ? {...selectedCard.purchaser, name: e.target.value}
+                      : {id: '', name: e.target.value, email: ''}
+                  })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500"
+                  placeholder="Nom de l'émetteur"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[#2c3e50] mb-1">Statut</label>
-                <select
-                  value={selectedCard.status}
-                  onChange={(e) => setSelectedCard({...selectedCard, status: e.target.value})}
+                <label className="block text-sm font-medium text-[#2c3e50] mb-1">Bénéficiaire</label>
+                <input
+                  type="text"
+                  value={selectedCard.purchasedFor || ''}
+                  onChange={(e) => setSelectedCard({...selectedCard, purchasedFor: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500"
-                >
-                  <option value="active">Active</option>
-                  <option value="used">Utilisée</option>
-                  <option value="expired">Expirée</option>
-                  <option value="cancelled">Annulée</option>
-                </select>
+                  placeholder="Nom du bénéficiaire"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-[#2c3e50] mb-1">Email bénéficiaire</label>
+                  <input
+                    type="email"
+                    value={selectedCard.recipientEmail || ''}
+                    onChange={(e) => setSelectedCard({...selectedCard, recipientEmail: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500"
+                    placeholder="email@exemple.com"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[#2c3e50] mb-1">Téléphone bénéficiaire</label>
+                  <input
+                    type="tel"
+                    value={selectedCard.recipientPhone || ''}
+                    onChange={(e) => setSelectedCard({...selectedCard, recipientPhone: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500"
+                    placeholder="06 12 34 56 78"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[#2c3e50] mb-1">Message personnalisé</label>
+                <textarea
+                  value={selectedCard.message || ''}
+                  onChange={(e) => setSelectedCard({...selectedCard, message: e.target.value})}
+                  rows={2}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500"
+                  placeholder="Message pour le bénéficiaire..."
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-[#2c3e50] mb-1">Date d'expiration</label>
+                  <input
+                    type="date"
+                    value={selectedCard.expiryDate ? new Date(selectedCard.expiryDate).toISOString().split('T')[0] : ''}
+                    onChange={(e) => setSelectedCard({...selectedCard, expiryDate: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[#2c3e50] mb-1">Statut</label>
+                  <select
+                    value={selectedCard.status}
+                    onChange={(e) => setSelectedCard({...selectedCard, status: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500"
+                  >
+                    <option value="active">Active</option>
+                    <option value="used">Utilisée</option>
+                    <option value="expired">Expirée</option>
+                    <option value="cancelled">Annulée</option>
+                  </select>
+                </div>
               </div>
 
               <div>
@@ -448,10 +654,34 @@ export default function AdminGiftCardsTab() {
                   onChange={(e) => setSelectedCard({...selectedCard, notes: e.target.value})}
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500"
+                  placeholder="Notes internes..."
                 />
               </div>
+            </div>
 
-              <div className="flex gap-2 mt-6">
+            <div className="space-y-3 mt-6">
+              {selectedCard.recipientEmail && (
+                <button
+                  onClick={async () => {
+                    await handleUpdateCard();
+                    if (selectedCard.recipientEmail) {
+                      const updatedCard = await fetch(`/api/admin/gift-cards`, {
+                        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                      }).then(r => r.json()).then(cards => cards.find((c: any) => c.id === selectedCard.id));
+                      if (updatedCard) {
+                        await handleSendEmail(updatedCard);
+                      }
+                    }
+                  }}
+                  disabled={sendingEmail}
+                  className="w-full px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:shadow-lg font-semibold flex items-center justify-center gap-2 disabled:bg-gray-400"
+                >
+                  <Mail className="w-5 h-5" />
+                  Enregistrer et envoyer par email
+                </button>
+              )}
+
+              <div className="flex gap-2">
                 <button
                   onClick={() => {
                     setShowEditModal(false);
@@ -468,6 +698,126 @@ export default function AdminGiftCardsTab() {
                   Enregistrer
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Preview Modal - Carte Cadeau Visuelle */}
+      {showCardPreview && previewCard && (
+        <div
+          className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+          onClick={() => {
+            setShowCardPreview(false);
+            setPreviewCard(null);
+          }}
+        >
+          <div
+            className="bg-white rounded-2xl p-6 max-w-2xl w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-[#2c3e50]">Carte Cadeau</h3>
+              <button
+                onClick={() => {
+                  setShowCardPreview(false);
+                  setPreviewCard(null);
+                }}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Template de carte cadeau */}
+            <div className="relative bg-gradient-to-br from-[#f8f6f0] via-[#fdfbf7] to-[#f5f0e8] rounded-2xl p-8 border-4 border-[#d4b5a0] shadow-2xl">
+              {/* Motifs décoratifs */}
+              <div className="absolute top-0 left-0 w-32 h-32 bg-[#d4b5a0]/20 rounded-full -translate-x-16 -translate-y-16"></div>
+              <div className="absolute bottom-0 right-0 w-40 h-40 bg-[#c9a084]/20 rounded-full translate-x-20 translate-y-20"></div>
+
+              {/* Logo/Nom institut */}
+              <div className="text-center mb-6 relative z-10">
+                <Gift className="w-16 h-16 mx-auto text-[#d4b5a0] mb-2" />
+                <h2 className="text-3xl font-serif font-bold text-[#2c3e50]">LAIA SKIN INSTITUT</h2>
+                <p className="text-[#c9a084] text-lg font-medium">Carte Cadeau</p>
+              </div>
+
+              {/* Montant */}
+              <div className="bg-white/90 backdrop-blur rounded-xl p-6 mb-6 text-center relative z-10 border-2 border-[#d4b5a0]/30">
+                <p className="text-[#c9a084] text-sm mb-2 font-medium">Valeur</p>
+                <p className="text-5xl font-bold text-[#d4b5a0]">{previewCard.amount}€</p>
+                {previewCard.balance < previewCard.amount && (
+                  <p className="text-sm text-gray-600 mt-2">
+                    Solde restant: <strong className="text-green-600">{previewCard.balance}€</strong>
+                  </p>
+                )}
+              </div>
+
+              {/* Infos bénéficiaire et émetteur */}
+              {(previewCard.purchasedFor || previewCard.purchaser) && (
+                <div className="bg-white/80 backdrop-blur rounded-xl p-4 mb-4 relative z-10 border-2 border-[#d4b5a0]/20">
+                  {previewCard.purchaser && (
+                    <div className="mb-3 pb-3 border-b border-[#d4b5a0]/20">
+                      <p className="text-[#c9a084] text-xs font-medium">De la part de</p>
+                      <p className="text-lg font-semibold text-[#2c3e50]">{previewCard.purchaser.name}</p>
+                    </div>
+                  )}
+                  {previewCard.purchasedFor && (
+                    <>
+                      <p className="text-[#c9a084] text-sm font-medium">Pour</p>
+                      <p className="text-2xl font-bold text-[#2c3e50]">{previewCard.purchasedFor}</p>
+                    </>
+                  )}
+                  {previewCard.message && (
+                    <p className="text-gray-600 italic mt-2 text-sm">"{previewCard.message}"</p>
+                  )}
+                </div>
+              )}
+
+              {/* Code */}
+              <div className="bg-white/90 backdrop-blur rounded-xl p-4 text-center relative z-10 mb-4 border-2 border-[#d4b5a0]/30">
+                <p className="text-[#c9a084] text-sm mb-1 font-medium">Code</p>
+                <p className="font-mono font-bold text-2xl text-[#2c3e50]">{previewCard.code}</p>
+              </div>
+
+              {/* Infos supplémentaires */}
+              <div className="text-center text-sm text-[#2c3e50]/70 relative z-10">
+                <p>Valable jusqu'au {new Date(previewCard.expiryDate || new Date(Date.now() + 365*24*60*60*1000)).toLocaleDateString('fr-FR')}</p>
+                <p className="mt-1">Utilisable sur tous nos soins et produits</p>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="mt-6 flex gap-3">
+              {previewCard.recipientEmail && (
+                <button
+                  onClick={() => {
+                    handleSendEmail(previewCard);
+                    setShowCardPreview(false);
+                  }}
+                  disabled={sendingEmail}
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:shadow-lg transition-all font-semibold flex items-center justify-center gap-2 disabled:bg-gray-300"
+                >
+                  <Mail className="w-5 h-5" />
+                  Envoyer par email
+                </button>
+              )}
+              <button
+                onClick={() => window.print()}
+                className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:shadow-lg transition-all font-semibold flex items-center justify-center gap-2"
+              >
+                <Download className="w-5 h-5" />
+                Imprimer
+              </button>
+              <button
+                onClick={() => {
+                  setShowCardPreview(false);
+                  setPreviewCard(null);
+                }}
+                className="px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all font-semibold"
+              >
+                Fermer
+              </button>
             </div>
           </div>
         </div>

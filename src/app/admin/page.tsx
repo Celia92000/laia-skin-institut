@@ -3529,6 +3529,11 @@ export default function AdminDashboard() {
                       <span className="text-sm font-medium text-green-800">✓ Carte valide</span>
                       <span className="text-sm font-bold text-green-600">{giftCardData.balance}€</span>
                     </div>
+                    {giftCardData.expired && (
+                      <div className="mb-2 p-2 bg-orange-100 border border-orange-300 rounded">
+                        <p className="text-xs text-orange-700 font-medium">⚠️ {giftCardData.warning}</p>
+                      </div>
+                    )}
                     <p className="text-xs text-green-600">
                       Expire le {new Date(giftCardData.giftCard.expiryDate).toLocaleDateString('fr-FR')}
                     </p>

@@ -9,7 +9,7 @@ export async function POST(request: Request) {
   try {
     const prisma = await getPrismaClient();
     const body = await request.json();
-    const { services, packages, date, time, notes, totalPrice, clientInfo, rescheduleId } = body;
+    const { services, packages, date, time, notes, totalPrice, clientInfo, rescheduleId, giftCardCode, giftCardUsedAmount } = body;
     
     // Validation : vérifier qu'il y a au moins un service
     if (!services || !Array.isArray(services) || services.length === 0) {
@@ -235,6 +235,28 @@ export async function POST(request: Request) {
       isSubscription = Object.values(packagesObj).includes('abonnement');
     }
     
+    // Gérer la carte cadeau si présente
+    let giftCard = null;
+    if (giftCardCode && giftCardUsedAmount && giftCardUsedAmount > 0) {
+      // Récupérer la carte cadeau
+      giftCard = await prisma.giftCard.findUnique({
+        where: { code: giftCardCode.toUpperCase() }
+      });
+
+      if (!giftCard) {
+        return NextResponse.json({
+          error: 'Carte cadeau introuvable'
+        }, { status: 400 });
+      }
+
+      // Vérifier que la carte a assez de solde
+      if (giftCard.balance < giftCardUsedAmount) {
+        return NextResponse.json({
+          error: 'Solde insuffisant sur la carte cadeau'
+        }, { status: 400 });
+      }
+    }
+
     // Créer la réservation avec statut 'pending' (en attente de validation admin)
     const reservation = await prisma.reservation.create({
       data: {
@@ -247,9 +269,27 @@ export async function POST(request: Request) {
         notes,
         totalPrice: finalPrice,
         status: 'pending', // Toujours en attente de validation admin
-        ...(rescheduleId && { rescheduledFrom: rescheduleId }) // Ajouter la référence si c'est une reprogrammation
+        ...(rescheduleId && { rescheduledFrom: rescheduleId }), // Ajouter la référence si c'est une reprogrammation
+        ...(giftCard && giftCardUsedAmount ? {
+          giftCardId: giftCard.id,
+          giftCardUsedAmount: giftCardUsedAmount,
+          paymentMethod: 'giftcard',
+          paymentStatus: giftCardUsedAmount >= finalPrice ? 'paid' : 'partial'
+        } : {})
       }
     });
+
+    // Mettre à jour le solde de la carte cadeau si utilisée
+    if (giftCard && giftCardUsedAmount) {
+      const newBalance = giftCard.balance - giftCardUsedAmount;
+      await prisma.giftCard.update({
+        where: { id: giftCard.id },
+        data: {
+          balance: newBalance,
+          status: newBalance <= 0 ? 'used' : 'active'
+        }
+      });
+    }
 
     // Si c'est une reprogrammation, annuler l'ancienne réservation et mettre à jour les références
     if (rescheduleId) {

@@ -86,6 +86,7 @@ export async function POST(request: NextRequest) {
     const {
       code,
       amount,
+      senderName,
       purchasedFor,
       recipientEmail,
       recipientPhone,
@@ -94,6 +95,30 @@ export async function POST(request: NextRequest) {
       notes
     } = body;
 
+    // Définir la date d'expiration (1 an par défaut si non spécifiée)
+    let finalExpiryDate: Date;
+    if (expiryDate) {
+      finalExpiryDate = new Date(expiryDate);
+    } else {
+      finalExpiryDate = new Date();
+      finalExpiryDate.setFullYear(finalExpiryDate.getFullYear() + 1);
+    }
+
+    // Gérer l'émetteur (purchaser) si senderName est fourni
+    let purchaserId = null;
+    if (senderName) {
+      // Créer un nouvel utilisateur pour l'émetteur
+      const purchaser = await prisma.user.create({
+        data: {
+          name: senderName,
+          email: `gift_sender_${Date.now()}@temp.com`,
+          password: 'temp_password',
+          role: 'client'
+        }
+      });
+      purchaserId = purchaser.id;
+    }
+
     // Créer la carte cadeau
     const giftCard = await prisma.giftCard.create({
       data: {
@@ -101,11 +126,12 @@ export async function POST(request: NextRequest) {
         amount,
         initialAmount: amount,
         balance: amount,
+        purchasedBy: purchaserId,
         purchasedFor,
         recipientEmail,
         recipientPhone,
         message,
-        expiryDate: expiryDate ? new Date(expiryDate) : null,
+        expiryDate: finalExpiryDate,
         notes,
         createdBy: decoded.userId,
         status: 'active'

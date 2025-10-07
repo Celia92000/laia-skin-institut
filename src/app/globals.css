@@ -11,7 +11,7 @@
   --font-lora: 'Lora', serif;
 }
 
-/* Hide scrollbar but keep functionality */
+/* Custom scrollbar styles */
 @layer utilities {
   .scrollbar-hide {
     -ms-overflow-style: none;  /* IE and Edge */
@@ -20,12 +20,35 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;  /* Chrome, Safari and Opera */
   }
-  
+
   /* Prevent vertical scrolling on tabs */
   .no-vertical-scroll {
     overflow-y: hidden !important;
     overflow-x: auto;
     touch-action: pan-x;
+  }
+
+  /* Custom thin scrollbar */
+  .scrollbar-custom {
+    scrollbar-width: thin;
+    scrollbar-color: #d4b5a0 transparent;
+  }
+
+  .scrollbar-custom::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .scrollbar-custom::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-custom::-webkit-scrollbar-thumb {
+    background-color: #d4b5a0;
+    border-radius: 20px;
+  }
+
+  .scrollbar-custom::-webkit-scrollbar-thumb:hover {
+    background-color: #c9a084;
   }
 }
 

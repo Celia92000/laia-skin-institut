@@ -488,16 +488,10 @@ export default function ValidationPaymentModal({
                               if (forfaitsCompletes === 1) {
                                 return (
                                   <>
-                                    <div className="font-semibold">📍 État actuel: 1 forfait complété</div>
-                                    <div>→ Cette séance fait partie du 2ème forfait (en cours)</div>
-                                    <div className="text-xs text-gray-600">
-                                      Note: Le 2ème forfait sera complété après 4 séances
-                                    </div>
-                                    <div className="text-orange-600 font-semibold mt-1">
-                                      ⏳ Après ce 2ème forfait, la prochaine séance donnera -40€
-                                    </div>
-                                    <div className="text-purple-700 text-xs">
-                                      💡 Dès la 1ère séance du 3ème forfait = réduction !
+                                    <div className="font-semibold">📍 1 forfait complété</div>
+                                    <div>→ 2ème forfait en cours</div>
+                                    <div className="text-orange-600 font-semibold">
+                                      ⏳ -40€ dès le 3ème forfait
                                     </div>
                                   </>
                                 );

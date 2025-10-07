@@ -32,14 +32,16 @@ export default function Header() {
 
   const [showProducts, setShowProducts] = useState(false);
   const [showFormations, setShowFormations] = useState(false);
+  const [showServices, setShowServices] = useState(false);
 
   useEffect(() => {
-    // Vérifier s'il y a des produits et formations actifs
+    // Vérifier s'il y a des produits, formations et prestations actifs
     const checkContent = async () => {
       try {
-        const [productsRes, formationsRes] = await Promise.all([
-          fetch('/api/admin/products').catch(() => null),
-          fetch('/api/admin/formations').catch(() => null)
+        const [productsRes, formationsRes, servicesRes] = await Promise.all([
+          fetch('/api/products').catch(() => null),
+          fetch('/api/formations').catch(() => null),
+          fetch('/api/services').catch(() => null)
         ]);
 
         if (productsRes && productsRes.ok) {
@@ -51,6 +53,11 @@ export default function Header() {
           const formations = await formationsRes.json();
           setShowFormations(formations.length > 0);
         }
+
+        if (servicesRes && servicesRes.ok) {
+          const services = await servicesRes.json();
+          setShowServices(services.length > 0);
+        }
       } catch (error) {
         console.log('Could not check content visibility');
       }
@@ -59,11 +66,11 @@ export default function Header() {
     checkContent();
   }, [pathname]);
 
-  const navItems = [
+  const allNavItems = [
     { href: "/", label: "Accueil" },
-    { href: "/prestations", label: "Mes Prestations" },
-    { href: "/produits", label: "Mes Produits" },
-    { href: "/formations", label: "Mes Formations" },
+    { href: "/prestations", label: "Mes Prestations", showCondition: showServices },
+    { href: "/produits", label: "Mes Produits", showCondition: showProducts },
+    { href: "/formations", label: "Mes Formations", showCondition: showFormations },
     { href: "/carte-cadeau", label: "Carte Cadeau" },
     { href: "/blog", label: "Blog" },
     { href: "/a-propos", label: "À Propos" },
@@ -72,12 +79,14 @@ export default function Header() {
     { href: "/espace-client", label: "Espace Client" },
   ];
 
+  const navItems = allNavItems.filter(item => !item.hasOwnProperty('showCondition') || item.showCondition);
+
   return (
     <header className="fixed top-0 w-full bg-white/95 backdrop-blur-xl border-b border-[#d4b5a0]/20 z-50 shadow-lg">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20 sm:h-24">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3 flex-shrink-0">
             <div className="w-16 h-16 sm:w-20 sm:h-20 relative">
               <Image
                 src="/logo-laia-skin.png"
@@ -91,57 +100,59 @@ export default function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <ul className="hidden lg:flex items-center gap-2">
-            {navItems.map((item) => (
-              <li key={item.href}>
-                <Link 
-                  href={item.href} 
-                  className={`font-inter inline-flex items-center justify-center min-w-[100px] text-center text-[#2c3e50] font-medium px-4 py-2 rounded-full transition-all duration-300 hover:bg-gradient-to-r hover:from-[#d4b5a0] hover:to-[#c9a084] hover:text-white hover:-translate-y-0.5 hover:shadow-lg text-sm tracking-normal whitespace-nowrap ${
-                    pathname === item.href ? "bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white" : ""
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-            
-            {/* Boutons spéciaux pour les utilisateurs connectés */}
-            {user && (
-              <>
-                {user.role === 'EMPLOYEE' && (
-                  <li>
-                    <Link 
-                      href="/admin" 
-                      className="flex items-center gap-2 text-white font-semibold px-5 py-2.5 rounded-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl text-sm bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
-                    >
-                      <Shield className="w-4 h-4" />
-                      Espace Employé
-                    </Link>
-                  </li>
-                )}
-                {user.role === 'COMPTABLE' && (
-                  <li>
-                    <Link 
-                      href="/comptable" 
-                      className="flex items-center gap-2 text-white font-semibold px-5 py-2.5 rounded-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl text-sm bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
-                    >
-                      <Calculator className="w-4 h-4" />
-                      Espace Comptable
-                    </Link>
-                  </li>
-                )}
-                <li>
-                  <button 
-                    onClick={logout}
-                    className="flex items-center gap-2 text-red-600 font-medium px-4 py-2 rounded-full transition-all duration-300 hover:bg-red-50 hover:-translate-y-0.5 text-sm"
+          <div className="hidden lg:block overflow-x-auto overflow-y-hidden flex-1 mx-4 scrollbar-custom">
+            <ul className="flex items-center gap-2 min-w-max pb-1">
+              {navItems.map((item) => (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className={`font-inter inline-flex items-center justify-center min-w-[100px] text-center text-[#2c3e50] font-medium px-4 py-2 rounded-full transition-all duration-300 hover:bg-gradient-to-r hover:from-[#d4b5a0] hover:to-[#c9a084] hover:text-white hover:-translate-y-0.5 hover:shadow-lg text-sm tracking-normal whitespace-nowrap ${
+                      pathname === item.href ? "bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white" : ""
+                    }`}
                   >
-                    <LogOut className="w-4 h-4" />
-                    Déconnexion
-                  </button>
+                    {item.label}
+                  </Link>
                 </li>
-              </>
-            )}
-          </ul>
+              ))}
+
+              {/* Boutons spéciaux pour les utilisateurs connectés */}
+              {user && (
+                <>
+                  {user.role === 'EMPLOYEE' && (
+                    <li>
+                      <Link
+                        href="/admin"
+                        className="flex items-center gap-2 text-white font-semibold px-5 py-2.5 rounded-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl text-sm bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+                      >
+                        <Shield className="w-4 h-4" />
+                        Espace Employé
+                      </Link>
+                    </li>
+                  )}
+                  {user.role === 'COMPTABLE' && (
+                    <li>
+                      <Link
+                        href="/comptable"
+                        className="flex items-center gap-2 text-white font-semibold px-5 py-2.5 rounded-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl text-sm bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
+                      >
+                        <Calculator className="w-4 h-4" />
+                        Espace Comptable
+                      </Link>
+                    </li>
+                  )}
+                  <li>
+                    <button
+                      onClick={logout}
+                      className="flex items-center gap-2 text-red-600 font-medium px-4 py-2 rounded-full transition-all duration-300 hover:bg-red-50 hover:-translate-y-0.5 text-sm"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Déconnexion
+                    </button>
+                  </li>
+                </>
+              )}
+            </ul>
+          </div>
 
           {/* Mobile Menu Button */}
           <button 

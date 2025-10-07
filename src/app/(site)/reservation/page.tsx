@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from 'next/navigation';
-import { Calendar, Clock, User, Phone, Mail, ChevronLeft, ChevronRight, Sparkles, CheckCircle, MapPin, Shield, AlertCircle, Lock, Eye, EyeOff } from "lucide-react";
+import { Calendar, Clock, User, Phone, Mail, ChevronLeft, ChevronRight, Sparkles, CheckCircle, MapPin, Shield, AlertCircle, Lock, Eye, EyeOff, Gift } from "lucide-react";
 import { getDisplayPrice, getForfaitDisplayPrice, hasPromotion, getDiscountPercentage } from '@/lib/price-utils';
 
 function ReservationContent() {
@@ -33,6 +33,41 @@ function ReservationContent() {
   const [services, setServices] = useState<any[]>([]);
   const hasChanges = useRef(false);
   const isSubmittingRef = useRef(false);
+
+  // États pour carte cadeau
+  const [giftCardCode, setGiftCardCode] = useState("");
+  const [giftCardData, setGiftCardData] = useState<any>(null);
+  const [isCheckingGiftCard, setIsCheckingGiftCard] = useState(false);
+  const [giftCardError, setGiftCardError] = useState("");
+
+  // Pré-remplir le code de la carte cadeau depuis l'URL
+  useEffect(() => {
+    const urlGiftCard = searchParams.get('giftCard');
+    if (urlGiftCard) {
+      setGiftCardCode(urlGiftCard.toUpperCase());
+      // Vérifier automatiquement la carte
+      setTimeout(() => {
+        const checkCard = async () => {
+          setIsCheckingGiftCard(true);
+          setGiftCardError("");
+          try {
+            const response = await fetch(`/api/gift-cards?code=${encodeURIComponent(urlGiftCard.toUpperCase())}`);
+            const data = await response.json();
+            if (response.ok && data.valid) {
+              setGiftCardData(data);
+            } else {
+              setGiftCardError(data.error || "Code invalide");
+            }
+          } catch (error) {
+            setGiftCardError("Erreur lors de la vérification du code");
+          } finally {
+            setIsCheckingGiftCard(false);
+          }
+        };
+        checkCard();
+      }, 500);
+    }
+  }, [searchParams]);
 
   // Charger les services depuis la base de données
   useEffect(() => {
@@ -420,6 +455,11 @@ function ReservationContent() {
         time: selectedTime,
         notes: formData.notes,
         totalPrice: calculateTotal(),
+        // Informations carte cadeau
+        ...(giftCardData ? {
+          giftCardCode: giftCardData.code,
+          giftCardUsedAmount: getGiftCardUsedAmount()
+        } : {}),
         // Ajouter les infos client si pas de token
         ...(!token ? {
           clientInfo: {
@@ -489,30 +529,60 @@ function ReservationContent() {
     }
   };
   
+  // Vérifier la carte cadeau
+  const checkGiftCard = async () => {
+    if (!giftCardCode.trim()) {
+      setGiftCardError("Veuillez entrer un code");
+      return;
+    }
+
+    setIsCheckingGiftCard(true);
+    setGiftCardError("");
+    setGiftCardData(null);
+
+    try {
+      const response = await fetch(`/api/gift-cards?code=${encodeURIComponent(giftCardCode.toUpperCase())}`);
+      const data = await response.json();
+
+      if (response.ok && data.valid) {
+        setGiftCardData(data);
+        setGiftCardError("");
+      } else {
+        setGiftCardError(data.error || "Code invalide");
+        setGiftCardData(null);
+      }
+    } catch (error) {
+      setGiftCardError("Erreur lors de la vérification du code");
+      setGiftCardData(null);
+    } finally {
+      setIsCheckingGiftCard(false);
+    }
+  };
+
   const calculateTotal = () => {
     let total = 0;
-    
+
     // Calculer le prix des services sélectionnés
     selectedServices.forEach(serviceId => {
       const service = services.find(s => s.id === serviceId);
       if (service) {
         const packageType = selectedPackages[serviceId] || 'single';
-        
+
         // Convertir tous les prix en nombres
         let priceToAdd = 0;
-        
+
         if (packageType === 'forfait') {
           priceToAdd = Number(service.forfaitDisplayPrice) || Number(service.forfaitPrice) || 0;
         } else {
           // Séance individuelle (single)
           priceToAdd = Number(service.displayPrice) || Number(service.price) || 0;
         }
-        
+
         console.log(`Service ${service.name} (${packageType}): ${priceToAdd}€`);
         total = total + priceToAdd;
       }
     });
-    
+
     // Ajouter le prix des options (50€ chacune)
     if (selectedOptions && selectedOptions.length > 0) {
       selectedOptions.forEach(optionId => {
@@ -521,8 +591,27 @@ function ReservationContent() {
         }
       });
     }
-    
+
     return Math.round(total);
+  };
+
+  // Calculer le montant restant après déduction de la carte cadeau
+  const calculateAmountToPay = () => {
+    const total = calculateTotal();
+    if (giftCardData && giftCardData.balance > 0) {
+      const amountAfterGiftCard = total - giftCardData.balance;
+      return amountAfterGiftCard > 0 ? amountAfterGiftCard : 0;
+    }
+    return total;
+  };
+
+  // Calculer le montant utilisé de la carte cadeau
+  const getGiftCardUsedAmount = () => {
+    const total = calculateTotal();
+    if (giftCardData && giftCardData.balance > 0) {
+      return Math.min(giftCardData.balance, total);
+    }
+    return 0;
   };
 
   return (
@@ -1186,6 +1275,58 @@ function ReservationContent() {
                   </div>
                 </div>
 
+                {/* Carte Cadeau */}
+                <div className="mt-6 p-5 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200">
+                  <h4 className="font-semibold text-[#2c3e50] mb-3 flex items-center gap-2">
+                    <Gift className="w-5 h-5 text-green-600" />
+                    Vous avez une carte cadeau ?
+                  </h4>
+                  <div className="flex gap-3 mb-3">
+                    <input
+                      type="text"
+                      value={giftCardCode}
+                      onChange={(e) => {
+                        setGiftCardCode(e.target.value.toUpperCase());
+                        setGiftCardError("");
+                        setGiftCardData(null);
+                      }}
+                      placeholder="GIFT-XXXX-XXXX"
+                      className="flex-1 p-3 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none uppercase"
+                      maxLength={14}
+                    />
+                    <button
+                      type="button"
+                      onClick={checkGiftCard}
+                      disabled={isCheckingGiftCard}
+                      className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-300"
+                    >
+                      {isCheckingGiftCard ? 'Vérification...' : 'Vérifier'}
+                    </button>
+                  </div>
+                  {giftCardError && (
+                    <p className="text-red-500 text-sm mb-2">{giftCardError}</p>
+                  )}
+                  {giftCardData && (
+                    <>
+                      {giftCardData.expired && (
+                        <div className="mb-3 p-3 bg-orange-100 border border-orange-300 rounded-lg">
+                          <p className="text-sm text-orange-700 font-medium">⚠️ {giftCardData.warning}</p>
+                        </div>
+                      )}
+                      <div className="bg-white rounded-lg p-4 mt-3">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-sm text-gray-600">Solde disponible:</span>
+                          <span className="text-lg font-bold text-green-600">{giftCardData.balance}€</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600">Montant utilisé:</span>
+                          <span className="text-lg font-bold text-[#d4b5a0]">{getGiftCardUsedAmount()}€</span>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+
                 {/* Payment Info */}
                 <div className="mt-6 p-4 bg-gradient-to-br from-[#fdfbf7] to-white rounded-xl border border-[#d4b5a0]/20">
                   <div className="flex items-center gap-3">
@@ -1250,6 +1391,19 @@ function ReservationContent() {
                       <span className="font-bold text-[#2c3e50]">Prix total :</span>
                       <span className="text-[#d4b5a0] font-bold text-2xl">{calculateTotal()}€</span>
                     </div>
+                    {giftCardData && giftCardData.balance > 0 && (
+                      <>
+                        <div className="flex justify-between items-center text-lg">
+                          <span className="font-medium text-green-600">Carte cadeau :</span>
+                          <span className="text-green-600 font-bold">-{getGiftCardUsedAmount()}€</span>
+                        </div>
+                        <hr className="border-[#d4b5a0]/30" />
+                        <div className="flex justify-between items-center text-xl bg-[#d4b5a0]/10 -mx-6 px-6 py-3 rounded-lg">
+                          <span className="font-bold text-[#2c3e50]">Montant à payer :</span>
+                          <span className="text-[#d4b5a0] font-bold text-2xl">{calculateAmountToPay()}€</span>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
 
