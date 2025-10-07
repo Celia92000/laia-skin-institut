@@ -17,7 +17,6 @@ export async function GET(request: NextRequest) {
     }
 
     const prisma = await getPrismaClient();
-    const whatsappService = new WhatsAppService();
     const now = new Date();
     const tomorrow = new Date(now);
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -42,9 +41,7 @@ export async function GET(request: NextRequest) {
           lt: dayAfterTomorrow
         },
         status: 'confirmed',
-        whatsappReminderSent: {
-          not: true
-        }
+        reminder24hSent: false
       },
       include: {
         user: true,
@@ -96,7 +93,7 @@ Pour toute modification : 📞 01 23 45 67 89
 *L'équipe Laia Skin Institut*`;
 
         // Envoyer le message WhatsApp
-        await whatsappService.sendMessage(
+        await WhatsAppService.sendMessage(
           reservation.user.phone,
           message
         );
@@ -104,7 +101,7 @@ Pour toute modification : 📞 01 23 45 67 89
         // Marquer comme envoyé
         await prisma.reservation.update({
           where: { id: reservation.id },
-          data: { whatsappReminderSent: true }
+          data: { reminder24hSent: true }
         });
 
         messagesSent.reminders++;
@@ -135,9 +132,7 @@ Pour toute modification : 📞 01 23 45 67 89
           lt: today
         },
         status: 'completed',
-        reviewRequestSent: {
-          not: true
-        }
+        reviewWhatsAppSent: false
       },
       include: {
         user: true,
@@ -178,7 +173,7 @@ Si vous avez été satisfait(e), n'hésitez pas à nous recommander à vos proch
 Merci pour votre confiance,
 *Laia* 💆‍♀️`;
 
-        await whatsappService.sendMessage(
+        await WhatsAppService.sendMessage(
           reservation.user.phone,
           message
         );
@@ -186,7 +181,7 @@ Merci pour votre confiance,
         // Marquer comme envoyé
         await prisma.reservation.update({
           where: { id: reservation.id },
-          data: { reviewRequestSent: true }
+          data: { reviewWhatsAppSent: true }
         });
 
         messagesSent.reviews++;
