@@ -6,24 +6,19 @@
   "outputDirectory": ".next",
   "crons": [
     {
-      "path": "/api/cron/appointment-reminders",
-      "schedule": "0 10 * * *"
-    },
-    {
       "path": "/api/cron/send-reminders",
       "schedule": "0 20 * * *"
     },
     {
       "path": "/api/cron/birthday-emails",
       "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/api/cron/send-review-requests",
-      "schedule": "0 18 * * *"
     }
   ],
   "functions": {
-    "src/app/api/cron/appointment-reminders/route.ts": {
+    "src/app/api/cron/send-reminders/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/cron/birthday-emails/route.ts": {
       "maxDuration": 60
     }
   }
