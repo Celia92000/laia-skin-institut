@@ -1,5 +1,5 @@
 // Script pour définir des mots de passe en clair pour les employés existants
-import prisma from './src/lib/prisma';
+import prisma from '../src/lib/prisma';
 import bcrypt from 'bcryptjs';
 
 async function updateEmployeePasswords() {

@@ -1,4 +1,4 @@
-import { sendPasswordResetEmail } from './src/lib/email-service';
+import { sendPasswordResetEmail } from '../src/lib/email-service';
 
 // Charger les variables d'environnement
 process.env.RESEND_API_KEY = 're_Mksui53X_CFrkxKtg8YuViZhHmeZNSbmR';

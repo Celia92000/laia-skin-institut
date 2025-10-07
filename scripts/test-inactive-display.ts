@@ -1,5 +1,5 @@
 // Test de l'affichage des comptes inactifs
-import prisma from './src/lib/prisma';
+import prisma from '../src/lib/prisma';
 
 async function testInactiveDisplay() {
   console.log('🔍 TEST AFFICHAGE DES COMPTES INACTIFS\n');

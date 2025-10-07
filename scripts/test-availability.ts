@@ -1,4 +1,4 @@
-import { getAvailableSlots } from './src/lib/availability-service';
+import { getAvailableSlots } from '../src/lib/availability-service';
 
 async function testAvailability() {
   // Tester pour lundi prochain

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getPrismaClient } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
-import { verificationCodes } from '../forgot-password/route';
+import { verificationCodes } from '@/lib/verification-codes';
 
 export async function POST(request: Request) {
   const prisma = await getPrismaClient();

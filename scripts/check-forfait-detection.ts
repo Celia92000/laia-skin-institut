@@ -1,4 +1,4 @@
-import { getPrismaClient } from './src/lib/prisma';
+import { getPrismaClient } from '../src/lib/prisma';
 
 async function checkForfaitDetection() {
   const prisma = await getPrismaClient();

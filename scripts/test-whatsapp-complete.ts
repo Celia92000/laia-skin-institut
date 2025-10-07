@@ -1,7 +1,7 @@
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
 
-import { sendWhatsAppMessage, whatsappTemplates } from './src/lib/whatsapp-meta';
+import { sendWhatsAppMessage, whatsappTemplates } from '../src/lib/whatsapp-meta';
 
 async function testAllWhatsAppFeatures() {
   console.log('🚀 Test complet des fonctionnalités WhatsApp...\n');

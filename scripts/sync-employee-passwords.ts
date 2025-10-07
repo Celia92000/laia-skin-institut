@@ -1,5 +1,5 @@
 // Script pour synchroniser les mots de passe des employés
-import prisma from './src/lib/prisma';
+import prisma from '../src/lib/prisma';
 
 async function syncEmployeePasswords() {
   console.log('🔐 Synchronisation des mots de passe des employés...\n');

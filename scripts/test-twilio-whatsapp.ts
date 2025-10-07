@@ -1,5 +1,5 @@
 // Test d'envoi WhatsApp avec Twilio
-import { sendWhatsAppMessage } from './src/lib/whatsapp';
+import { sendWhatsAppMessage } from '../src/lib/whatsapp';
 
 // IMPORTANT: Mettez votre Auth Token dans .env.local d'abord !
 process.env.TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID || "ACxxxxxxxxxxxxxxxxxxxxxxxxxx";

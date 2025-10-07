@@ -5,6 +5,7 @@ import { Calendar, Gift, Star, Heart, TrendingUp, Award, Clock, ChevronRight, Sp
 interface ClientDashboardProps {
   userData: {
     name: string;
+    loyaltyPoints?: number;
     totalSpent: number;
     nextAppointment?: any;
     lastVisit?: string;

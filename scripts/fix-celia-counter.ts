@@ -1,4 +1,4 @@
-import { getPrismaClient } from './src/lib/prisma';
+import { getPrismaClient } from '../src/lib/prisma';
 
 async function fixCeliaCounter() {
   const prisma = await getPrismaClient();

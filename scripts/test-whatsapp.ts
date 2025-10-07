@@ -1,5 +1,5 @@
 // Script de test WhatsApp en mode direct (génère des liens)
-import { sendWhatsAppMessage } from './src/lib/whatsapp';
+import { sendWhatsAppMessage } from '../src/lib/whatsapp';
 
 async function testWhatsApp() {
   console.log('🎯 Test du système WhatsApp\n');

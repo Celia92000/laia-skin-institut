@@ -675,12 +675,11 @@ export default function EspaceClient() {
                       <div className="mb-4">
                         <h4 className="font-medium text-[#2c3e50] mb-2">Soins réservés :</h4>
                         <div className="flex flex-wrap gap-2">
-                          {reservation.services?.map((serviceId: string, index: number) => {
-                            const serviceName = reservation.serviceNames?.[index] || serviceId;
-                            const packageType = reservation.packages?.[serviceId];
+                          {reservation.services?.map((serviceId: string) => {
+                            const packageType = (reservation.packages as any)?.[serviceId];
                             return (
                               <span key={serviceId} className="px-3 py-1 bg-[#d4b5a0]/10 rounded-full text-sm">
-                                {serviceName}
+                                {serviceId}
                                 {packageType === 'forfait' && ' (Forfait 4 séances)'}
                               </span>
                             );

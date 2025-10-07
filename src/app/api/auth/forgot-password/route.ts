@@ -1,13 +1,11 @@
 import { NextResponse } from 'next/server';
 import { getPrismaClient } from '@/lib/prisma';
+import { verificationCodes } from '@/lib/verification-codes';
 
 // Générer un code de vérification à 6 chiffres
 function generateVerificationCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
-
-// Stocker temporairement les codes (en production, utiliser Redis ou la BDD)
-const verificationCodes = new Map<string, { code: string; expiry: Date }>();
 
 export async function POST(request: Request) {
   const prisma = await getPrismaClient();
@@ -64,6 +62,3 @@ export async function POST(request: Request) {
     );
   }
 }
-
-// Export pour utilisation dans d'autres routes
-export { verificationCodes };

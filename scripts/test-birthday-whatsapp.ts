@@ -1,7 +1,7 @@
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
 
-import { sendWhatsAppMessage } from './src/lib/whatsapp-meta';
+import { sendWhatsAppMessage } from '../src/lib/whatsapp-meta';
 
 async function testBirthdayWhatsApp() {
   console.log('🎂 Test des messages d\'anniversaire WhatsApp...\n');

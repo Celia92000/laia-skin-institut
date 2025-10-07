@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import crypto from 'crypto';
-import { sendPasswordResetEmail } from './src/lib/email-service';
+import { sendPasswordResetEmail } from '../src/lib/email-service';
 
 const prisma = new PrismaClient();
 

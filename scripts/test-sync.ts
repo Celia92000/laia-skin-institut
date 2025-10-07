@@ -1,5 +1,5 @@
 // Test de synchronisation des données entre comptes
-import prisma from './src/lib/prisma';
+import prisma from '../src/lib/prisma';
 
 async function testDataSync() {
   console.log('🔄 TEST DE SYNCHRONISATION DES DONNÉES\n');
