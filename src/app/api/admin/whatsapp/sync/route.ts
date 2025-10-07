@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     await WhatsAppService.syncMessages(days);
 
     // Compter les messages synchronisés
-    const messageCount = await prisma.messageHistory.count({
+    const messageCount = await prisma.whatsAppHistory.count({
       where: {
         platform: 'whatsapp',
         createdAt: {
@@ -89,18 +89,16 @@ export async function GET(request: NextRequest) {
     }
 
     // Statistiques des messages WhatsApp
-    const stats = await prisma.messageHistory.groupBy({
-      where: { platform: 'whatsapp' },
-      by: ['direction', 'status'],
-      _count: true
+    const stats = await prisma.whatsAppHistory.findMany({
+      select: {
+        direction: true,
+        status: true
+      }
     });
 
-    const total = await prisma.messageHistory.count({
-      where: { platform: 'whatsapp' }
-    });
+    const total = await prisma.whatsAppHistory.count();
 
-    const lastSync = await prisma.messageHistory.findFirst({
-      where: { platform: 'whatsapp' },
+    const lastSync = await prisma.whatsAppHistory.findFirst({
       orderBy: { createdAt: 'desc' },
       select: { createdAt: true }
     });

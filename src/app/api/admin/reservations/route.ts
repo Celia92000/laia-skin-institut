@@ -140,20 +140,20 @@ export async function POST(request: NextRequest) {
         }, { status: 400 });
       }
 
-      const currentBalance = giftCard.initialAmount - giftCard.usedAmount;
-
-      if (currentBalance < giftCardUsedAmount) {
+      if (giftCard.balance < giftCardUsedAmount) {
         return NextResponse.json({
           error: 'Solde insuffisant sur la carte cadeau'
         }, { status: 400 });
       }
 
       // Mettre à jour le solde de la carte cadeau
+      const newBalance = giftCard.balance - giftCardUsedAmount;
       await prisma.giftCard.update({
         where: { id: giftCardId },
         data: {
-          usedAmount: { increment: giftCardUsedAmount },
-          status: (currentBalance - giftCardUsedAmount) <= 0 ? 'used' : 'active'
+          balance: newBalance,
+          status: newBalance <= 0 ? 'used' : 'active',
+          usedDate: newBalance <= 0 ? new Date() : null
         }
       });
     }

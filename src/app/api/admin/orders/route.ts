@@ -77,17 +77,36 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { userId, items, totalAmount, paymentMethod, paymentStatus } = body;
+    const { userId, items, totalAmount, paymentMethod, paymentStatus, orderType } = body;
 
     if (!userId || !items || !totalAmount) {
       return NextResponse.json({ error: 'Données manquantes' }, { status: 400 });
     }
 
+    // Récupérer les infos du client
+    const customer = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { name: true, email: true }
+    });
+
+    if (!customer) {
+      return NextResponse.json({ error: 'Client non trouvé' }, { status: 404 });
+    }
+
+    // Générer le numéro de commande
+    const orderCount = await prisma.order.count();
+    const orderNumber = `ORD-${new Date().getFullYear()}-${String(orderCount + 1).padStart(5, '0')}`;
+
     // Créer la commande
     const order = await prisma.order.create({
       data: {
+        orderNumber,
         userId,
+        customerName: customer.name,
+        customerEmail: customer.email,
+        orderType: orderType || 'product',
         items,
+        subtotal: totalAmount,
         totalAmount,
         paymentMethod: paymentMethod || 'cash',
         paymentStatus: paymentStatus || 'pending'
@@ -104,24 +123,7 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    // Si c'est un produit, décrémenter le stock
-    try {
-      const itemsArray = JSON.parse(items);
-      for (const item of itemsArray) {
-        if (item.type === 'product' && item.id) {
-          await prisma.product.update({
-            where: { id: item.id },
-            data: {
-              stock: {
-                decrement: item.quantity || 1
-              }
-            }
-          });
-        }
-      }
-    } catch (error) {
-      console.error('Erreur mise à jour stock:', error);
-    }
+    // Note: La gestion du stock se fait via la table Stock séparée
 
     return NextResponse.json(order, { status: 201 });
   } catch (error) {

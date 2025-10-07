@@ -98,6 +98,7 @@ export async function POST(
           data: {
             userId: currentReservation.userId,
             type: 'discount',
+            title: 'Réduction anniversaire',
             message: '🎂 Votre réduction anniversaire de 10€ a été appliquée !',
             read: false
           }
@@ -291,6 +292,7 @@ export async function POST(
                   data: {
                     userId: sponsorProfile.userId,
                     type: 'referral',
+                    title: 'Parrainage réussi',
                     message: `🎉 Félicitations ! ${reservation.user.name} vient de faire son premier soin. Vous avez gagné 15€ de réduction sur votre prochain soin !`,
                     read: false
                   }

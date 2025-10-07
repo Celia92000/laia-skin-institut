@@ -134,7 +134,6 @@ export async function POST(request: NextRequest) {
           title: product.name,
           subtitle: `${product.brand || 'Sans marque'} • ${product.price}€`,
           metadata: {
-            stock: product.stock,
             category: product.category || 'Général'
           }
         });
@@ -243,7 +242,6 @@ export async function POST(request: NextRequest) {
                 title: product.name,
                 subtitle: `${product.brand || 'Sans marque'} • ${product.price}€`,
                 metadata: {
-                  stock: product.stock,
                   category: product.category
                 }
               });
