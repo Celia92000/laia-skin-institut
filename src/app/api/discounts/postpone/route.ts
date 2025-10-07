@@ -63,6 +63,7 @@ export async function POST(request: NextRequest) {
       data: {
         userId: discount.userId,
         type: 'discount',
+        title: 'Réduction reportée',
         message: `Votre réduction de ${discount.amount}€ a été reportée au ${new Date(postponeTo).toLocaleDateString('fr-FR')}`,
         read: false
       }

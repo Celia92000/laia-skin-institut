@@ -21,10 +21,7 @@ export async function POST(
 
     // Récupérer la campagne
     const campaign = await prisma.whatsAppCampaign.findUnique({
-      where: { id },
-      include: {
-        template: true
-      }
+      where: { id }
     });
 
     if (!campaign) {
@@ -52,7 +49,10 @@ export async function POST(
     console.log(`📱 Envoi à ${campaign.recipientCount} destinataires`);
     
     // Si Twilio est configuré, envoyer réellement les messages
-    if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && campaign.template) {
+    if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && campaign.templateId) {
+      const template = await prisma.whatsAppTemplate.findUnique({
+        where: { id: campaign.templateId }
+      });
       const recipients = JSON.parse(campaign.recipients || '[]');
       let sentCount = 0;
       
@@ -65,7 +65,7 @@ export async function POST(
             await client.messages.create({
               from: process.env.TWILIO_WHATSAPP_FROM || 'whatsapp:+14155238886',
               to: phoneNumber.startsWith('whatsapp:') ? phoneNumber : `whatsapp:${phoneNumber}`,
-              body: campaign.template.content
+              body: template?.content || ''
             });
             sentCount++;
           } catch (error) {

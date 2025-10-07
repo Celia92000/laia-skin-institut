@@ -14,10 +14,7 @@ export async function GET(
     }
 
     const campaign = await prisma.whatsAppCampaign.findUnique({
-      where: { id },
-      include: {
-        template: true
-      }
+      where: { id }
     });
 
     if (!campaign) {
@@ -90,9 +87,6 @@ export async function PUT(
         recipientCount: recipients ? recipients.length : existingCampaign.recipientCount,
         scheduledAt: scheduledAt ? new Date(scheduledAt) : existingCampaign.scheduledAt,
         status: status || existingCampaign.status
-      },
-      include: {
-        template: true
       }
     });
 

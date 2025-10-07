@@ -180,6 +180,7 @@ export async function notifyLoyaltyMilestone(
       data: {
         userId: clientId,
         type: 'loyalty',
+        title: 'Programme de fidélité',
         message: subject,
         read: false
       }
@@ -250,6 +251,7 @@ export async function notifyBirthday(clientId: string) {
       data: {
         userId: clientId,
         type: 'birthday',
+        title: 'Joyeux anniversaire',
         message: `Joyeux anniversaire ! Code promo: ${birthdayCode}`,
         read: false
       }

@@ -59,10 +59,7 @@ export async function GET(
     }
 
     const automation = await prisma.whatsAppAutomation.findUnique({
-      where: { id },
-      include: {
-        template: true
-      }
+      where: { id }
     });
 
     if (!automation) {

@@ -3,7 +3,7 @@ import Stripe from 'stripe';
 
 // Initialiser Stripe (la clé sera dans .env)
 const stripe = process.env.STRIPE_SECRET_KEY
-  ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2024-12-18.acacia' })
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2025-09-30.clover' })
   : null;
 
 export async function POST(request: NextRequest) {

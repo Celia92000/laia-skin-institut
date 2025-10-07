@@ -113,6 +113,7 @@ export async function POST(request: NextRequest) {
       data: {
         userId: referrer.userId,
         type: 'referral',
+        title: 'Code de parrainage utilisé',
         message: `🎉 ${client.name} a utilisé votre code de parrainage ! Vous recevrez 15€ de réduction après son premier soin.`,
         read: false
       }

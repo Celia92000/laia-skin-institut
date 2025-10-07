@@ -92,6 +92,7 @@ export async function POST(request: NextRequest) {
           data: {
             userId: referrerProfile.userId,
             type: 'referral',
+            title: 'Nouveau filleul',
             message: `🎉 ${name} vient de s'inscrire avec votre code ! Vous recevrez 15€ après son premier soin.`,
             read: false
           }
