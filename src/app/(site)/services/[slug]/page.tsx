@@ -9,7 +9,7 @@ import {
   ChevronRight, Heart, Award, Users, Phone, ChevronDown,
   Gift, TrendingUp, Zap, Eye, Smile, RefreshCw
 } from 'lucide-react';
-import UniversalPaymentModal from '@/components/UniversalPaymentModal';
+import ValidationPaymentModal from '@/components/ValidationPaymentModal';
 
 interface Service {
   id: string;
@@ -792,7 +792,7 @@ export default function ServiceDetailPage() {
 
       {/* Modal de paiement */}
       {showPaymentModal && service && (
-        <UniversalPaymentModal
+        <ValidationPaymentModal
           item={{
             id: service.id,
             name: service.name,
