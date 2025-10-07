@@ -1170,7 +1170,7 @@ export default function EspaceClient() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-medium text-[#2c3e50]">
-                            {reservation.formattedServices?.join(', ') || reservation.services?.join(', ') || 'Service inconnu'}
+                            {reservation.services?.join(', ') || 'Service inconnu'}
                           </p>
                           <p className="text-sm text-[#2c3e50]/60">
                             Effectué le {new Date(reservation.date).toLocaleDateString('fr-FR')}
