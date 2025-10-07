@@ -172,10 +172,12 @@ export async function POST(
     `;
 
     // Envoyer l'email
-    // Utilise le domaine vérifié dans Resend ou le domaine par défaut de Resend
-    const fromEmail = process.env.VERIFIED_EMAIL_DOMAIN
-      ? `LAIA SKIN Institut <noreply@${process.env.VERIFIED_EMAIL_DOMAIN}>`
-      : 'LAIA SKIN Institut <onboarding@resend.dev>';
+    // Utilise l'adresse email configurée ou le domaine par défaut de Resend
+    const fromEmail = process.env.EMAIL_FROM
+      ? `LAIA SKIN Institut <${process.env.EMAIL_FROM}>`
+      : (process.env.VERIFIED_EMAIL_DOMAIN
+        ? `LAIA SKIN Institut <contact@${process.env.VERIFIED_EMAIL_DOMAIN}>`
+        : 'LAIA SKIN Institut <onboarding@resend.dev>');
 
     const { data, error } = await resend.emails.send({
       from: fromEmail,
