@@ -119,7 +119,7 @@ export default function AdvancedSearch({ onResultSelect, onClose }: AdvancedSear
   const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
   const [showSaved, setShowSaved] = useState(false);
   const [selectedType, setSelectedType] = useState<keyof typeof FILTER_TYPES>('clients');
-  const searchTimeout = useRef<NodeJS.Timeout>();
+  const searchTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
 
   useEffect(() => {
     // Charger les recherches sauvegardées
@@ -478,7 +478,7 @@ export default function AdvancedSearch({ onResultSelect, onClose }: AdvancedSear
                         <div className="flex gap-4 mt-2">
                           {Object.entries(result.metadata).slice(0, 3).map(([key, value]) => (
                             <span key={key} className="text-xs text-gray-500">
-                              {key}: {value}
+                              {key}: {String(value)}
                             </span>
                           ))}
                         </div>

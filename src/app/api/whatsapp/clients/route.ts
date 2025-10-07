@@ -94,6 +94,7 @@ export async function GET(request: Request) {
         allergies: client.allergies,
         preferences: client.preferences,
         adminNotes: client.adminNotes,
+        createdAt: client.createdAt,
         reservationCount: client.reservations.length,
         lastService: lastReservation && lastReservation.service ? {
           name: lastReservation.service.name,

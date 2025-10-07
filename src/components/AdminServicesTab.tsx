@@ -218,8 +218,8 @@ export default function AdminServicesTab() {
       formData.protocol ? (typeof formData.protocol === 'string' ? JSON.parse(formData.protocol) : formData.protocol) : []
     );
     const [gallery, setGallery] = useState<string[]>(parseJsonField(formData.gallery));
-    const [imageObjectFit, setImageObjectFit] = useState<'cover' | 'contain'>(
-      (formData.imageObjectFit as 'cover' | 'contain') || 'cover'
+    const [imageObjectFit, setImageObjectFit] = useState<'cover' | 'contain' | 'fill'>(
+      (formData.imageObjectFit as 'cover' | 'contain' | 'fill') || 'cover'
     );
     const [imagePosition, setImagePosition] = useState({
       x: formData.imagePositionX ?? 50,

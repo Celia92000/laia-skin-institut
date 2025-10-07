@@ -23,6 +23,10 @@ interface SiteConfig {
   primaryColor?: string;
   secondaryColor?: string;
   accentColor?: string;
+  fontFamily?: string;
+  headingFont?: string;
+  baseFontSize?: string;
+  headingSize?: string;
   logoUrl?: string;
   faviconUrl?: string;
   businessHours?: string;

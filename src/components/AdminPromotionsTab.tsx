@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
-  Tag, Plus, Edit2, Trash2, Calendar, Euro, Percent, Users, 
+import {
+  Tag, Plus, Edit2, Trash2, Calendar, Euro, Percent, Users,
   Gift, Star, TrendingUp, Clock, CheckCircle, XCircle, Copy,
-  AlertCircle, Download, Upload, Filter, Search, MoreVertical
+  AlertCircle, Download, Upload, Filter, Search, MoreVertical, X
 } from 'lucide-react';
 
 interface Promotion {
