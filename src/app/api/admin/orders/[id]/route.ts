@@ -6,11 +6,13 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const prisma = await getPrismaClient();
 
   try {
+    const { id } = await params;
+
     // Vérifier l'authentification
     const authHeader = request.headers.get('Authorization');
     if (!authHeader) {
@@ -34,7 +36,7 @@ export async function PATCH(
 
     // Mettre à jour la commande
     const order = await prisma.order.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         scheduledDate: scheduledDate ? new Date(scheduledDate) : undefined,
         scheduledTime,

@@ -5,7 +5,7 @@ import { verifyToken } from '@/lib/auth';
 // DELETE - Supprimer un lien service-stock
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; linkId: string } }
+  { params }: { params: Promise<{ id: string; linkId: string }> }
 ) {
   const prisma = await getPrismaClient();
   try {
@@ -19,7 +19,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Token invalide' }, { status: 401 });
     }
 
-    const { linkId } = params;
+    const { linkId } = await params;
 
     await prisma.serviceStock.delete({
       where: { id: linkId }
@@ -35,7 +35,7 @@ export async function DELETE(
 // PUT - Modifier la quantité consommée
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string; linkId: string } }
+  { params }: { params: Promise<{ id: string; linkId: string }> }
 ) {
   const prisma = await getPrismaClient();
   try {
@@ -49,7 +49,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Token invalide' }, { status: 401 });
     }
 
-    const { linkId } = params;
+    const { linkId } = await params;
     const body = await request.json();
 
     const link = await prisma.serviceStock.update({

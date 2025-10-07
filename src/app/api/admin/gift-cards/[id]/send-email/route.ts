@@ -8,9 +8,10 @@ const resend = new Resend(process.env.RESEND_API_KEY || 're_Mksui53X_CFrkxKtg8Yu
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const prisma = await getPrismaClient();
+  const { id } = await params;
 
   try {
     // Vérifier l'authentification
@@ -33,7 +34,7 @@ export async function POST(
 
     // Récupérer la carte cadeau avec les infos de l'émetteur
     const giftCard = await prisma.giftCard.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         purchaser: {
           select: {

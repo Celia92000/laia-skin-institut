@@ -7,9 +7,10 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 // PATCH - Mettre à jour une carte cadeau
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const prisma = await getPrismaClient();
+  const { id } = await params;
 
   try {
     // Vérifier l'authentification
@@ -64,7 +65,7 @@ export async function PATCH(
     if (purchaserName !== undefined) {
       // Récupérer la carte actuelle pour voir si elle a déjà un purchaser
       const currentCard = await prisma.giftCard.findUnique({
-        where: { id: params.id },
+        where: { id },
         include: { purchaser: true }
       });
 
@@ -94,7 +95,7 @@ export async function PATCH(
     } else if (balance !== undefined) {
       // Si seulement le balance est fourni, récupérer initialAmount de la base
       const currentCard = await prisma.giftCard.findUnique({
-        where: { id: params.id }
+        where: { id }
       });
       if (currentCard) {
         updateData.usedAmount = currentCard.initialAmount - balance;
@@ -103,7 +104,7 @@ export async function PATCH(
 
     // Mettre à jour la carte cadeau
     const giftCard = await prisma.giftCard.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData,
       include: {
         purchaser: {
@@ -126,9 +127,10 @@ export async function PATCH(
 // DELETE - Supprimer une carte cadeau
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const prisma = await getPrismaClient();
+  const { id } = await params;
 
   try {
     // Vérifier l'authentification
@@ -151,7 +153,7 @@ export async function DELETE(
 
     // Vérifier si la carte a des réservations
     const giftCard = await prisma.giftCard.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: { reservations: true }
     });
 
@@ -168,7 +170,7 @@ export async function DELETE(
 
     // Supprimer la carte cadeau
     await prisma.giftCard.delete({
-      where: { id: params.id }
+      where: { id }
     });
 
     return NextResponse.json({ message: 'Carte cadeau supprimée' });

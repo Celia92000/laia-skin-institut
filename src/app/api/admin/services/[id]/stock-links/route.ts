@@ -5,7 +5,7 @@ import { verifyToken } from '@/lib/auth';
 // GET - Récupérer tous les liens stock pour un service
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const prisma = await getPrismaClient();
   try {
@@ -19,7 +19,7 @@ export async function GET(
       return NextResponse.json({ error: 'Token invalide' }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     const links = await prisma.serviceStock.findMany({
       where: { serviceId: id },
@@ -55,7 +55,7 @@ export async function GET(
 // POST - Créer un lien entre service et stock
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const prisma = await getPrismaClient();
   try {
@@ -69,7 +69,7 @@ export async function POST(
       return NextResponse.json({ error: 'Token invalide' }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
 
     const link = await prisma.serviceStock.create({
