@@ -56,7 +56,7 @@ const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
 // Sauvegarder l'instance globale en développement pour éviter les multiples instances
 if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prisma = prisma;
+  globalForPrisma.prisma = prisma as any;
 }
 
 // Fonction pour obtenir le client Prisma (simplement retourner l'instance singleton)

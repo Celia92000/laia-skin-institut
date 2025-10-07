@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Calendar, Clock, CheckCircle, XCircle, Gift, Star, RefreshCw, User, Award, TrendingUp, LogOut, Share2, Heart, History, Check, Edit2, X, CalendarDays, MessageSquare, ThumbsUp, Send, Camera, Edit, Bell, AlertCircle } from "lucide-react";
@@ -37,7 +37,7 @@ interface UserData {
   };
 }
 
-export default function EspaceClient() {
+function EspaceClientContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -1638,5 +1638,13 @@ export default function EspaceClient() {
       )}
     </div>
     </ClientSpaceWrapper>
+  );
+}
+
+export default function EspaceClient() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Chargement...</div>}>
+      <EspaceClientContent />
+    </Suspense>
   );
 }

@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Star, Send, CheckCircle } from "lucide-react";
 
-export default function NewReviewPage() {
+function ReviewForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
   
@@ -193,5 +193,13 @@ export default function NewReviewPage() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function NewReviewPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Chargement...</div>}>
+      <ReviewForm />
+    </Suspense>
   );
 }

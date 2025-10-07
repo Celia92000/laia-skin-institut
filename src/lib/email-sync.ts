@@ -92,7 +92,7 @@ export class EmailSyncService {
 
           fetch.on('message', (msg) => {
             msg.on('body', (stream) => {
-              simpleParser(stream, async (err, parsed) => {
+              simpleParser(stream as any, async (err, parsed) => {
                 if (err) {
                   console.error('Erreur parsing email:', err);
                   return;
@@ -177,7 +177,7 @@ export class EmailSyncService {
           return;
         }
 
-        this.imap!.on('mail', (numNewMail) => {
+        this.imap!.on('mail', (numNewMail: number) => {
           console.log(`${numNewMail} nouveaux emails reçus`);
           
           // Récupérer les nouveaux emails
@@ -188,7 +188,7 @@ export class EmailSyncService {
 
           fetch.on('message', (msg) => {
             msg.on('body', (stream) => {
-              simpleParser(stream, (err, parsed) => {
+              simpleParser(stream as any, (err, parsed) => {
                 if (!err && parsed) {
                   callback(parsed);
                 }

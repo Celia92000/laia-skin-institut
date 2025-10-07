@@ -349,7 +349,7 @@ export default function UnifiedCRMTab({
     }));
     
     // Mettre à jour le client dans la liste immédiatement pour un feedback visuel
-    setClients(currentClients => currentClients.map(c => 
+    setClients(clients.map(c =>
       c.id === clientId ? { ...c, [field]: value } : c
     ));
     
@@ -388,7 +388,7 @@ export default function UnifiedCRMTab({
   };
 
   // Fonction pour gérer l'import de clients
-  const handleClientsImport = async (newClients: Client[]) => {
+  const handleClientsImport = async (newClients: any[]): Promise<void> => {
     try {
       const response = await fetch('/api/admin/clients/import', {
         method: 'POST',
@@ -397,14 +397,13 @@ export default function UnifiedCRMTab({
       });
 
       if (response.ok) {
-        const result = await response.json();
+        await response.json();
         // Recharger la liste des clients
         const refreshResponse = await fetch('/api/users');
         if (refreshResponse.ok) {
           const updatedClients = await refreshResponse.json();
           setClients(updatedClients);
         }
-        return result;
       } else {
         throw new Error('Erreur lors de l\'import');
       }
@@ -760,8 +759,7 @@ export default function UnifiedCRMTab({
                     if (response.ok) {
                       const result = await response.json();
                       alert(`✅ ${result.message}`);
-                      // Rafraîchir les données clients
-                      fetchClients();
+                      // Les données seront rafraîchies par le composant parent
                     }
                   } catch (error) {
                     console.error('Erreur sync:', error);
@@ -1050,18 +1048,18 @@ export default function UnifiedCRMTab({
                                   <div className="flex justify-between items-center mb-2">
                                     <span className="text-sm font-medium text-[#2c3e50]">Soins individuels</span>
                                     <span className="text-xs text-[#2c3e50]/60">
-                                      {client.loyaltyProfile?.individualServicesCount || 0} / 5
+                                      {client.individualServicesCount || 0} / 5
                                     </span>
                                   </div>
                                   <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                                     <div 
                                       className="bg-gradient-to-r from-blue-400 to-blue-600 h-full transition-all duration-500"
                                       style={{ 
-                                        width: `${Math.min(((client.loyaltyProfile?.individualServicesCount || 0) % 5) * 20, 100)}%` 
+                                        width: `${Math.min(((client.individualServicesCount || 0) % 5) * 20, 100)}%` 
                                       }}
                                     />
                                   </div>
-                                  {(client.loyaltyProfile?.individualServicesCount || 0) >= 5 && (
+                                  {(client.individualServicesCount || 0) >= 5 && (
                                     <p className="text-xs text-green-600 mt-1 font-medium animate-pulse">
                                       🎉 -20€ sur le prochain soin !
                                     </p>
@@ -1073,14 +1071,14 @@ export default function UnifiedCRMTab({
                                   <div className="flex justify-between items-center mb-2">
                                     <span className="text-sm font-medium text-[#2c3e50]">Forfaits (4 séances chacun)</span>
                                     <span className="text-xs text-[#2c3e50]/60">
-                                      {client.loyaltyProfile?.packagesCount || 0} / 3
+                                      {client.packagesCount || 0} / 3
                                     </span>
                                   </div>
                                   <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                                     <div 
                                       className="bg-gradient-to-r from-purple-400 to-purple-600 h-full transition-all duration-500"
                                       style={{ 
-                                        width: `${Math.min(((client.loyaltyProfile?.packagesCount || 0) % 3) * 33.33, 100)}%` 
+                                        width: `${Math.min(((client.packagesCount || 0) % 3) * 33.33, 100)}%` 
                                       }}
                                     />
                                   </div>
@@ -1088,7 +1086,7 @@ export default function UnifiedCRMTab({
                                   {/* Détail des forfaits et séances */}
                                   <div className="mt-2 text-xs space-y-1">
                                     {(() => {
-                                      const packagesCount = client.loyaltyProfile?.packagesCount || 0;
+                                      const packagesCount = client.packagesCount || 0;
                                       const seancesRealisees = packagesCount * 4;
                                       const positionCycle = packagesCount % 3;
                                       
@@ -1161,7 +1159,7 @@ export default function UnifiedCRMTab({
                                   <div className="flex justify-between items-center">
                                     <span className="text-sm text-[#2c3e50]/60">Total investi</span>
                                     <span className="text-lg font-bold text-[#d4b5a0]">
-                                      {(client.loyaltyProfile?.totalSpent || client.totalSpent || 0).toFixed(0)}€
+                                      {(client.totalSpent || 0).toFixed(0)}€
                                     </span>
                                   </div>
                                 </div>

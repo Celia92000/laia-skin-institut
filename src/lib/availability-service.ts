@@ -127,7 +127,7 @@ export async function getAvailableSlots(date: Date, duration?: number): Promise<
       }
     },
     include: {
-      services: true
+      service: true
     }
   }) : [];
 

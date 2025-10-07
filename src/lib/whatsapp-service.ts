@@ -50,16 +50,14 @@ export class WhatsAppService {
 
       // Enregistrer dans la base de données
       const prisma = await getPrismaClient();
-      await prisma.messageHistory.create({
+      await prisma.whatsAppHistory.create({
         data: {
-          platform: 'whatsapp',
           from: whatsappNumber.replace('whatsapp:', ''),
           to: to.replace('whatsapp:', ''),
-          content: message,
+          message: message,
           status: 'sent',
           direction: 'outgoing',
-          externalId: result.sid,
-          mediaUrls: mediaUrl ? JSON.stringify(mediaUrl) : null
+          mediaUrl: mediaUrl ? (Array.isArray(mediaUrl) ? mediaUrl[0] : mediaUrl) : null
         }
       });
 
@@ -80,9 +78,8 @@ export class WhatsAppService {
       // Normaliser le numéro
       const normalizedNumber = phoneNumber.replace('whatsapp:', '').replace(/\D/g, '');
       
-      const messages = await prisma.messageHistory.findMany({
+      const messages = await prisma.whatsAppHistory.findMany({
         where: {
-          platform: 'whatsapp',
           OR: [
             { from: { contains: normalizedNumber } },
             { to: { contains: normalizedNumber } }
@@ -95,12 +92,12 @@ export class WhatsAppService {
         id: msg.id,
         from: msg.from,
         to: msg.to,
-        body: msg.content,
-        mediaUrl: msg.mediaUrls ? JSON.parse(msg.mediaUrls) : undefined,
+        body: msg.message,
+        mediaUrl: msg.mediaUrl ? [msg.mediaUrl] : undefined,
         status: msg.status,
         direction: msg.direction as 'incoming' | 'outgoing',
         timestamp: msg.createdAt,
-        read: msg.read
+        read: msg.readAt !== null
       }));
     } catch (error) {
       console.error('Erreur récupération conversation WhatsApp:', error);
@@ -132,25 +129,27 @@ export class WhatsAppService {
       console.log(`${messages.length} messages WhatsApp à synchroniser`);
 
       for (const msg of messages) {
-        // Vérifier si le message existe déjà
-        const existing = await prisma.messageHistory.findFirst({
-          where: { externalId: msg.sid }
+        // Vérifier si le message existe déjà (by checking timestamp and from/to)
+        const existing = await prisma.whatsAppHistory.findFirst({
+          where: {
+            from: msg.from.replace('whatsapp:', ''),
+            to: msg.to.replace('whatsapp:', ''),
+            createdAt: msg.dateSent || msg.dateCreated
+          }
         });
 
         if (!existing) {
           // Déterminer la direction
           const isIncoming = msg.to === whatsappNumber;
           
-          await prisma.messageHistory.create({
+          await prisma.whatsAppHistory.create({
             data: {
-              platform: 'whatsapp',
               from: msg.from.replace('whatsapp:', ''),
               to: msg.to.replace('whatsapp:', ''),
-              content: msg.body,
+              message: msg.body,
               status: msg.status,
               direction: isIncoming ? 'incoming' : 'outgoing',
-              externalId: msg.sid,
-              mediaUrls: msg.mediaContentType ? JSON.stringify([msg.mediaUrl]) : null,
+              mediaUrl: null,
               createdAt: msg.dateSent || msg.dateCreated
             }
           });
@@ -171,14 +170,13 @@ export class WhatsAppService {
       const prisma = await getPrismaClient();
       const normalizedNumber = phoneNumber.replace('whatsapp:', '').replace(/\D/g, '');
       
-      await prisma.messageHistory.updateMany({
+      await prisma.whatsAppHistory.updateMany({
         where: {
-          platform: 'whatsapp',
           direction: 'incoming',
           from: { contains: normalizedNumber },
-          read: false
+          readAt: null
         },
-        data: { read: true }
+        data: { readAt: new Date() }
       });
     } catch (error) {
       console.error('Erreur marquage comme lu:', error);
@@ -193,8 +191,7 @@ export class WhatsAppService {
       const prisma = await getPrismaClient();
       
       // Récupérer tous les messages WhatsApp
-      const messages = await prisma.messageHistory.findMany({
-        where: { platform: 'whatsapp' },
+      const messages = await prisma.whatsAppHistory.findMany({
         orderBy: { createdAt: 'desc' }
       });
 
@@ -227,7 +224,7 @@ export class WhatsAppService {
           if (msg.createdAt > conv.lastMessage.createdAt) {
             conv.lastMessage = msg;
           }
-          if (!msg.read && msg.direction === 'incoming') {
+          if (!msg.readAt && msg.direction === 'incoming') {
             conv.unreadCount++;
           }
         }

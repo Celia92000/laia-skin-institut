@@ -1628,7 +1628,6 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
                               alert('Réservation supprimée avec succès');
                               setShowReservationDetail(false);
                               setSelectedReservation(null);
-                              fetchReservations(); // Rafraîchir les réservations
                               setRefreshKey(prev => prev + 1); // Forcer le rafraîchissement
                             } else {
                               const errorData = await response.json();
@@ -1831,7 +1830,6 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
                         setEditedReservation(null);
                         setShowReservationDetail(false);
                         setSelectedReservation(null);
-                        fetchReservations(); // Rafraîchir les réservations
                         setRefreshKey(prev => prev + 1); // Forcer le rafraîchissement
                       } else {
                         const errorData = await response.json();

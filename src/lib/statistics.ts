@@ -71,7 +71,7 @@ export async function getAdminStatistics() {
       .filter(r => r.paymentStatus === 'paid')
       .reduce((sum, r) => sum + (r.totalPrice || 0), 0);
 
-    const stats = {
+    const stats: any = {
       totalReservations: reservations.length,
       pendingReservations: reservations.filter(r => r.status === 'pending').length,
       confirmedReservations: reservations.filter(r => r.status === 'confirmed').length,
