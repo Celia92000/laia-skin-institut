@@ -975,7 +975,7 @@ export default function EspaceClient() {
                     <div key={reservation.id} className="flex justify-between items-center py-3 border-b border-gray-100">
                       <div>
                         <p className="font-medium text-[#2c3e50]">
-                          {reservation.formattedServices?.join(', ') || reservation.services?.join(', ') || 'Service inconnu'}
+                          {(reservation as any).formattedServices?.join(', ') || reservation.services?.join(', ') || 'Service inconnu'}
                         </p>
                         <p className="text-sm text-[#2c3e50]/60">
                           {new Date(reservation.date).toLocaleDateString('fr-FR')}
