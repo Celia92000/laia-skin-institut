@@ -188,11 +188,11 @@ export default function Header() {
             ))}
             
             {/* Boutons spéciaux dans le menu mobile */}
-            {user ? (
+            {user && (
               <>
                 {user.role === 'EMPLOYEE' && (
-                  <Link 
-                    href="/admin" 
+                  <Link
+                    href="/admin"
                     className="block text-white font-semibold px-6 py-3 rounded-full transition-all duration-300 bg-gradient-to-r from-blue-600 to-blue-700"
                     onClick={() => setMobileMenuOpen(false)}
                   >
@@ -200,7 +200,7 @@ export default function Header() {
                     Espace Employé
                   </Link>
                 )}
-                <button 
+                <button
                   onClick={() => {
                     logout();
                     setMobileMenuOpen(false);
@@ -211,18 +211,6 @@ export default function Header() {
                   Déconnexion
                 </button>
               </>
-            ) : (
-              <Link 
-                href="/login" 
-                className={`block text-[#2c3e50] font-medium px-6 py-3 rounded-full transition-all duration-300 ${
-                  pathname === '/login' 
-                    ? "bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white" 
-                    : "hover:bg-gradient-to-r hover:from-[#d4b5a0]/10 hover:to-[#c9a084]/10"
-                }`}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Connexion
-              </Link>
             )}
           </div>
         )}

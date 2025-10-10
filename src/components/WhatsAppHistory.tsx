@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { formatDateLocal } from '@/lib/date-utils';
 import { 
   MessageCircle, Search, Filter, Download, Eye,
   CheckCheck, Check, Clock, X, AlertCircle,
@@ -309,7 +310,7 @@ export default function WhatsAppHistory() {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `whatsapp-history-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `whatsapp-history-${formatDateLocal(new Date())}.csv`;
     a.click();
   };
 

@@ -11,8 +11,9 @@ export async function verifyPassword(password: string, hashedPassword: string): 
   return bcrypt.compare(password, hashedPassword);
 }
 
-export function generateToken(userId: string, role: string): string {
-  return jwt.sign({ userId, role }, JWT_SECRET, { expiresIn: '365d' }); // Token valide pour 1 an
+export function generateToken(userId: string, role: string, rememberMe: boolean = false): string {
+  const expiresIn = rememberMe ? '30d' : '7d'; // 30 jours si "Se souvenir", sinon 7 jours
+  return jwt.sign({ userId, role }, JWT_SECRET, { expiresIn });
 }
 
 export function verifyToken(token: string): any {

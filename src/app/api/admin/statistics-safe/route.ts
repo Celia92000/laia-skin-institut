@@ -13,8 +13,15 @@ export async function GET(request: NextRequest) {
     }
 
     const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as any;
-    
+
+    let decoded: any;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as any;
+    } catch (jwtError) {
+      console.error('JWT verification error:', jwtError);
+      return NextResponse.json({ error: 'Token invalide ou expiré' }, { status: 401 });
+    }
+
     if (decoded.role !== 'admin' && decoded.role !== 'ADMIN' && decoded.role !== 'EMPLOYEE') {
       return NextResponse.json({ error: 'Accès non autorisé' }, { status: 403 });
     }

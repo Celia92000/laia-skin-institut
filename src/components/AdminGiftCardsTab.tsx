@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Gift, Plus, Edit, Trash2, Eye, Search, Calendar, User, CreditCard, Mail, Download } from 'lucide-react';
+import { formatDateLocal } from '@/lib/date-utils';
 
 interface GiftCard {
   id: string;
@@ -41,7 +42,7 @@ export default function AdminGiftCardsTab() {
   const getDefaultExpiryDate = () => {
     const date = new Date();
     date.setFullYear(date.getFullYear() + 1);
-    return date.toISOString().split('T')[0];
+    return formatDateLocal(date);
   };
 
   const [newCard, setNewCard] = useState({
@@ -626,7 +627,7 @@ export default function AdminGiftCardsTab() {
                   <label className="block text-sm font-medium text-[#2c3e50] mb-1">Date d'expiration</label>
                   <input
                     type="date"
-                    value={selectedCard.expiryDate ? new Date(selectedCard.expiryDate).toISOString().split('T')[0] : ''}
+                    value={selectedCard.expiryDate ? formatDateLocal(new Date(selectedCard.expiryDate)) : ''}
                     onChange={(e) => setSelectedCard({...selectedCard, expiryDate: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500"
                   />

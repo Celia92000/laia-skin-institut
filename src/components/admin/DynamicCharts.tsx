@@ -10,6 +10,7 @@ import { Calendar, TrendingUp, Euro, Users, Clock, Download, FileText, FileSprea
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
+import { formatDateLocal } from '@/lib/date-utils';
 
 interface ChartData {
   dailyRevenue: Array<{ date: string; revenue: number; reservations: number }>;
@@ -47,8 +48,8 @@ export default function DynamicCharts() {
   });
   const [loading, setLoading] = useState(true);
   const [customDates, setCustomDates] = useState({
-    start: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0],
-    end: new Date().toISOString().split('T')[0]
+    start: formatDateLocal(new Date(new Date().setMonth(new Date().getMonth() - 1))),
+    end: formatDateLocal(new Date())
   });
   const [showCustomDialog, setShowCustomDialog] = useState(false);
 
@@ -171,8 +172,8 @@ export default function DynamicCharts() {
       theme: 'striped',
       headStyles: { fillColor: [139, 115, 85] }
     });
-    
-    doc.save(`laia-skin-rapport-${period}-${new Date().toISOString().split('T')[0]}.pdf`);
+
+    doc.save(`laia-skin-rapport-${period}-${formatDateLocal(new Date())}.pdf`);
   };
 
   const exportToExcel = () => {
@@ -205,7 +206,7 @@ export default function DynamicCharts() {
     const blob = new Blob([wbout], { type: 'application/octet-stream' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `laia-skin-${period}-${new Date().toISOString().split('T')[0]}.xlsx`;
+    link.download = `laia-skin-${period}-${formatDateLocal(new Date())}.xlsx`;
     link.click();
   };
 
@@ -493,8 +494,8 @@ export default function DynamicCharts() {
                       const start = new Date();
                       start.setDate(end.getDate() - 7);
                       setCustomDates({
-                        start: start.toISOString().split('T')[0],
-                        end: end.toISOString().split('T')[0]
+                        start: formatDateLocal(start),
+                        end: formatDateLocal(end)
                       });
                     }}
                     className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
@@ -507,8 +508,8 @@ export default function DynamicCharts() {
                       const start = new Date();
                       start.setDate(end.getDate() - 30);
                       setCustomDates({
-                        start: start.toISOString().split('T')[0],
-                        end: end.toISOString().split('T')[0]
+                        start: formatDateLocal(start),
+                        end: formatDateLocal(end)
                       });
                     }}
                     className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
@@ -521,8 +522,8 @@ export default function DynamicCharts() {
                       const start = new Date();
                       start.setMonth(end.getMonth() - 3);
                       setCustomDates({
-                        start: start.toISOString().split('T')[0],
-                        end: end.toISOString().split('T')[0]
+                        start: formatDateLocal(start),
+                        end: formatDateLocal(end)
                       });
                     }}
                     className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
@@ -535,8 +536,8 @@ export default function DynamicCharts() {
                       const start = new Date();
                       start.setMonth(end.getMonth() - 6);
                       setCustomDates({
-                        start: start.toISOString().split('T')[0],
-                        end: end.toISOString().split('T')[0]
+                        start: formatDateLocal(start),
+                        end: formatDateLocal(end)
                       });
                     }}
                     className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"

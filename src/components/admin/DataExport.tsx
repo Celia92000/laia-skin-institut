@@ -6,6 +6,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import { formatDateLocal } from '@/lib/date-utils';
 
 declare module 'jspdf' {
   interface jsPDF {
@@ -24,8 +25,8 @@ export default function DataExport() {
   const [loading, setLoading] = useState(false);
   const [exportType, setExportType] = useState<'reservations' | 'clients' | 'revenue' | 'all'>('reservations');
   const [dateRange, setDateRange] = useState({
-    start: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0],
-    end: new Date().toISOString().split('T')[0]
+    start: formatDateLocal(new Date(new Date().setMonth(new Date().getMonth() - 1))),
+    end: formatDateLocal(new Date())
   });
 
   const fetchData = async () => {
@@ -166,7 +167,7 @@ export default function DataExport() {
       doc.text('© LAIA SKIN Institut - Document confidentiel', 105, 295, { align: 'center' });
     }
     
-    doc.save(`laia-skin-rapport-${new Date().toISOString().split('T')[0]}.pdf`);
+    doc.save(`laia-skin-rapport-${formatDateLocal(new Date())}.pdf`);
   };
 
   const exportToExcel = async () => {
@@ -231,7 +232,7 @@ export default function DataExport() {
     // Générer le fichier Excel
     const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     const blob = new Blob([wbout], { type: 'application/octet-stream' });
-    saveAs(blob, `laia-skin-export-${new Date().toISOString().split('T')[0]}.xlsx`);
+    saveAs(blob, `laia-skin-export-${formatDateLocal(new Date())}.xlsx`);
   };
 
   return (

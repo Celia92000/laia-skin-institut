@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Upload, Download, FileSpreadsheet, AlertCircle, CheckCircle, X, FileText, Users } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { formatDateLocal } from '@/lib/date-utils';
 
 interface Client {
   id?: string;
@@ -68,7 +69,7 @@ export default function ClientImportExport({ clients, onImport, onClose }: Clien
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `clients_laia_skin_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `clients_laia_skin_${formatDateLocal(new Date())}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -99,7 +100,7 @@ export default function ClientImportExport({ clients, onImport, onClose }: Clien
     ];
     worksheet['!cols'] = columnWidths;
 
-    XLSX.writeFile(workbook, `clients_laia_skin_${new Date().toISOString().split('T')[0]}.xlsx`);
+    XLSX.writeFile(workbook, `clients_laia_skin_${formatDateLocal(new Date())}.xlsx`);
   };
 
   const parseFile = async (file: File): Promise<Client[]> => {

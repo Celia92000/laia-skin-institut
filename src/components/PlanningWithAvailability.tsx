@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { formatDateLocal } from '@/lib/date-utils';
 import { 
   Calendar, Clock, User, X, Plus, Ban, Lock, Unlock, 
   ChevronLeft, ChevronRight, AlertCircle, CheckCircle 
@@ -67,32 +68,32 @@ export default function PlanningWithAvailability({ reservations, onNewReservatio
   startOfWeek.setDate(selectedDate.getDate() - selectedDate.getDay() + 1);
 
   const isSlotBlocked = (date: Date, time: string) => {
-    const dateStr = date.toISOString().split('T')[0];
-    return blockedSlots.some(slot => 
+    const dateStr = formatDateLocal(date);
+    return blockedSlots.some(slot =>
       slot.date === dateStr && (slot.allDay || slot.time === time)
     );
   };
 
   const isSlotOccupied = (date: Date, time: string) => {
-    const dateStr = date.toISOString().split('T')[0];
-    return reservations.some(r => 
-      r.date.split('T')[0] === dateStr && 
-      r.time === time && 
+    const dateStr = formatDateLocal(date);
+    return reservations.some(r =>
+      formatDateLocal(r.date) === dateStr &&
+      r.time === time &&
       r.status !== 'cancelled'
     );
   };
 
   const getReservationForSlot = (date: Date, time: string) => {
-    const dateStr = date.toISOString().split('T')[0];
-    return reservations.find(r => 
-      r.date.split('T')[0] === dateStr && 
-      r.time === time && 
+    const dateStr = formatDateLocal(date);
+    return reservations.find(r =>
+      formatDateLocal(r.date) === dateStr &&
+      r.time === time &&
       r.status !== 'cancelled'
     );
   };
 
   const handleSlotClick = async (date: Date, time: string) => {
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = formatDateLocal(date);
     
     // Si le créneau a une réservation, ne rien faire
     if (isSlotOccupied(date, time)) {
@@ -131,7 +132,7 @@ export default function PlanningWithAvailability({ reservations, onNewReservatio
   };
 
   const handleDayBlock = async (date: Date) => {
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = formatDateLocal(date);
     
     // Si le jour est déjà entièrement bloqué, le débloquer
     const dayBlocked = blockedSlots.find(slot => 
@@ -255,8 +256,8 @@ export default function PlanningWithAvailability({ reservations, onNewReservatio
                 const currentDate = new Date(startOfWeek);
                 currentDate.setDate(startOfWeek.getDate() + i);
                 const isToday = currentDate.toDateString() === new Date().toDateString();
-                const dayBlocked = blockedSlots.some(slot => 
-                  slot.date === currentDate.toISOString().split('T')[0] && slot.allDay
+                const dayBlocked = blockedSlots.some(slot =>
+                  slot.date === formatDateLocal(currentDate) && slot.allDay
                 );
                 
                 return (

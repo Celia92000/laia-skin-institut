@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getPrismaClient } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
+import { formatDateLocal } from '@/lib/date-utils';
 
 export async function GET(request: Request) {
   try {
@@ -116,13 +117,13 @@ function calculateDailyRevenue(reservations: any[], orders: any[], period: strin
 
     switch (period) {
       case 'day':
-        key = date.toISOString().split('T')[0];
+        key = formatDateLocal(date);
         break;
       case 'week':
         // Grouper par semaine
         const weekStart = new Date(date);
         weekStart.setDate(date.getDate() - date.getDay());
-        key = `S${weekStart.toISOString().split('T')[0]}`;
+        key = `S${formatDateLocal(weekStart)}`;
         break;
       case 'month':
         key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
@@ -147,12 +148,12 @@ function calculateDailyRevenue(reservations: any[], orders: any[], period: strin
 
     switch (period) {
       case 'day':
-        key = date.toISOString().split('T')[0];
+        key = formatDateLocal(date);
         break;
       case 'week':
         const weekStart = new Date(date);
         weekStart.setDate(date.getDate() - date.getDay());
-        key = `S${weekStart.toISOString().split('T')[0]}`;
+        key = `S${formatDateLocal(weekStart)}`;
         break;
       case 'month':
         key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react';
-import { 
+import {
   MessageCircle, Send, Search, Phone, Video, MoreVertical, Paperclip, Smile,
   ChevronLeft, Settings, Users, Calendar, FileText, Download, Upload,
   Bell, Filter, ChevronDown, Plus, Edit2, Trash2, Clock, CheckCircle,
@@ -12,6 +12,7 @@ import {
   Heart, ThumbsUp, Hash, Link, Code, Bold, Italic, Underline, List, X,
   MousePointer, MoreHorizontal, Play, Pause
 } from 'lucide-react';
+import { formatDateLocal } from '@/lib/date-utils';
 
 export default function WhatsAppFunctional() {
   const [activeView, setActiveView] = useState<'chat' | 'campaigns' | 'templates' | 'automation' | 'analytics'>('chat');
@@ -763,7 +764,7 @@ export default function WhatsAppFunctional() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `stats_${automation.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `stats_${automation.name.replace(/\s+/g, '_')}_${formatDateLocal(new Date())}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();

@@ -11,6 +11,7 @@ import {
 import ClientDetailModal from "@/components/ClientDetailModal";
 import ClientImportExport from "@/components/ClientImportExport";
 import ClientPhotoEvolution from "@/components/ClientPhotoEvolution";
+import { formatDateLocal } from "@/lib/date-utils";
 
 export interface Client {
   id: string;
@@ -108,7 +109,7 @@ export default function UnifiedCRMTab({
   const saveTimeoutRef = useRef<{[key: string]: NodeJS.Timeout}>({});
   const [savingStatus, setSavingStatus] = useState<{[key: string]: 'saving' | 'saved' | null}>({});
   const [evolutionForm, setEvolutionForm] = useState({
-    sessionDate: new Date().toISOString().split('T')[0],
+    sessionDate: formatDateLocal(new Date()),
     sessionNumber: '',
     serviceName: '',
     beforePhoto: '',
@@ -383,7 +384,7 @@ export default function UnifiedCRMTab({
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `clients_${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `clients_${formatDateLocal(new Date())}.csv`;
     a.click();
   };
 
@@ -1544,7 +1545,7 @@ export default function UnifiedCRMTab({
                   </label>
                   <input
                     type="date"
-                    defaultValue={new Date().toISOString().split('T')[0]}
+                    defaultValue={formatDateLocal(new Date())}
                     className="w-full px-3 py-2 border border-[#d4b5a0]/20 rounded-lg focus:border-[#d4b5a0] focus:outline-none"
                   />
                 </div>
@@ -1820,7 +1821,7 @@ export default function UnifiedCRMTab({
 
                       // Réinitialiser le formulaire
                       setEvolutionForm({
-                        sessionDate: new Date().toISOString().split('T')[0],
+                        sessionDate: formatDateLocal(new Date()),
                         sessionNumber: '',
                         serviceName: '',
                         beforePhoto: '',

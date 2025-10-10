@@ -9,6 +9,7 @@ import {
   ChevronDown, ChevronRight, Check, X, Send,
   FileText, Copy, Edit, Eye
 } from 'lucide-react';
+import { formatDateLocal } from '@/lib/date-utils';
 
 interface ClientFilter {
   id: string;
@@ -248,99 +249,86 @@ export default function EmailCampaigns() {
 
   // Charger les données
   useEffect(() => {
-    // Charger les vrais clients de la base de données
-    const realClients: Client[] = [
-      {
-        id: '1',
-        name: 'Célia IVORRA',
-        email: 'celia.ivorra95@hotmail.fr',
-        phone: '0683717050',
-        dateJoined: new Date('2025-09-15'),
-        lastVisit: new Date('2025-09-15'),
-        totalSpent: 280,
-        visitCount: 1,
-        averageSpent: 280,
-        favoriteService: 'hydro-naissance',
-        birthday: new Date('1995-01-01'),
-        loyaltyPoints: 28,
-        tags: ['nouveau', 'vip-potentiel'],
-        isVip: false,
-        satisfaction: 5
-      },
-      {
-        id: '2',
-        name: 'Marie Dupont',
-        email: 'marie.dupont@email.com',
-        phone: '0612345678',
-        dateJoined: new Date('2025-09-14'),
-        lastVisit: new Date('2025-09-14'),
-        totalSpent: 450,
-        visitCount: 3,
-        averageSpent: 150,
-        favoriteService: 'renaissance',
-        birthday: new Date('1985-04-20'),
-        loyaltyPoints: 45,
-        tags: ['regular'],
-        isVip: false,
-        satisfaction: 5
-      },
-      {
-        id: '3',
-        name: 'Sophie Martin',
-        email: 'sophie.martin@email.com',
-        phone: '0654321098',
-        dateJoined: new Date('2025-08-10'),
-        lastVisit: new Date('2025-09-10'),
-        totalSpent: 850,
-        visitCount: 5,
-        averageSpent: 170,
-        favoriteService: 'bb-glow',
-        birthday: new Date('1990-12-15'),
-        loyaltyPoints: 85,
-        tags: ['fidèle', 'premium'],
-        isVip: true,
-        satisfaction: 5
-      },
-      {
-        id: '4',
-        name: 'Julie Bernard',
-        email: 'julie.bernard@email.com',
-        phone: '0698765432',
-        dateJoined: new Date('2025-07-01'),
-        lastVisit: new Date('2025-09-08'),
-        totalSpent: 320,
-        visitCount: 2,
-        averageSpent: 160,
-        favoriteService: 'led-therapie',
-        birthday: new Date('1992-06-10'),
-        loyaltyPoints: 32,
-        tags: ['nouveau'],
-        isVip: false,
-        satisfaction: 4
-      },
-      {
-        id: '5',
-        name: 'Emma Rousseau',
-        email: 'emma.rousseau@email.com',
-        phone: '0623456789',
-        dateJoined: new Date('2025-06-15'),
-        lastVisit: new Date('2025-09-05'),
-        totalSpent: 1200,
-        visitCount: 8,
-        averageSpent: 150,
-        favoriteService: 'hydro-naissance',
-        birthday: new Date('1988-03-25'),
-        loyaltyPoints: 120,
-        tags: ['vip', 'fidèle', 'premium'],
-        isVip: true,
-        satisfaction: 5
+    const fetchClients = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const response = await fetch('/api/admin/clients', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+
+          // Transformer les données de l'API au format du composant
+          const transformedClients: Client[] = data.map((c: any) => ({
+            id: c.id,
+            name: c.name,
+            email: c.email,
+            phone: c.phone || '',
+            dateJoined: new Date(c.createdAt),
+            lastVisit: c.lastVisit ? new Date(c.lastVisit) : undefined,
+            totalSpent: c.totalSpent || 0,
+            visitCount: c.reservations || 0,
+            averageSpent: c.reservations > 0 ? Math.round(c.totalSpent / c.reservations) : 0,
+            favoriteService: c.preferences || undefined,
+            birthday: undefined, // À ajouter dans la base si nécessaire
+            loyaltyPoints: c.loyaltyPoints || 0,
+            tags: determineClientTags(c),
+            isVip: (c.totalSpent || 0) > 500, // VIP si plus de 500€ dépensés
+            satisfaction: 5, // Par défaut, à calculer depuis les avis si disponible
+            notes: c.medicalNotes || undefined,
+            lastService: c.preferences || undefined,
+            nextAppointment: undefined // À calculer depuis les réservations futures
+          }));
+
+          setClients(transformedClients);
+          setFilteredClients(transformedClients);
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des clients:', error);
       }
-    ];
-    
-    setClients(realClients);
-    setFilteredClients(realClients);
+    };
+
+    fetchClients();
     setSegments(predefinedSegments);
   }, []);
+
+  // Fonction pour déterminer automatiquement les tags d'un client
+  const determineClientTags = (client: any): string[] => {
+    const tags: string[] = [];
+
+    // Nouveau client (moins de 30 jours)
+    const daysSinceJoined = (Date.now() - new Date(client.createdAt).getTime()) / (1000 * 60 * 60 * 24);
+    if (daysSinceJoined < 30) {
+      tags.push('nouveau');
+    }
+
+    // Client régulier (3+ réservations)
+    if (client.reservations >= 3) {
+      tags.push('regular');
+    }
+
+    // Client fidèle (5+ réservations)
+    if (client.reservations >= 5) {
+      tags.push('fidèle');
+    }
+
+    // Premium (plus de 500€ dépensés)
+    if (client.totalSpent > 500) {
+      tags.push('premium');
+    }
+
+    // VIP (plus de 1000€ dépensés)
+    if (client.totalSpent > 1000) {
+      tags.push('vip');
+    }
+
+    return tags;
+  };
 
   // Appliquer les filtres
   const applyFilters = () => {
@@ -498,7 +486,7 @@ export default function EmailCampaigns() {
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `clients_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `clients_${formatDateLocal(new Date())}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();

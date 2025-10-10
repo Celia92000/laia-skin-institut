@@ -4,11 +4,11 @@ import { verifyPassword, generateToken } from '@/lib/auth';
 
 export async function POST(request: Request) {
   try {
-    const { email, password } = await request.json();
+    const { email, password, rememberMe } = await request.json();
 
     // Utiliser getPrismaClient pour s'assurer que la connexion est active
     const prisma = await getPrismaClient();
-    
+
     const user = await prisma.user.findUnique({
       where: { email }
     });
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Email ou mot de passe incorrect' }, { status: 401 });
     }
 
-    const token = generateToken(user.id, user.role);
+    const token = generateToken(user.id, user.role, rememberMe);
 
     // Créer la réponse
     const response = NextResponse.json({
@@ -37,11 +37,13 @@ export async function POST(request: Request) {
     });
 
     // Ajouter le cookie HTTPOnly pour plus de sécurité
+    // Durée adaptée selon "Se souvenir de moi"
+    const maxAge = rememberMe ? 60 * 60 * 24 * 30 : 60 * 60 * 24 * 7; // 30 jours ou 7 jours
     response.cookies.set('auth-token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 365, // 1 an
+      maxAge,
       path: '/'
     });
 

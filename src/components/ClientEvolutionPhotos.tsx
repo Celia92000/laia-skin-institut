@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { formatDateLocal } from '@/lib/date-utils';
 import { Camera, Upload, X, Calendar, Trash2, Eye, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Evolution {
@@ -40,7 +41,7 @@ export default function ClientEvolutionPhotos({
   const [selectedService, setSelectedService] = useState<string>('all');
   const [newEvolution, setNewEvolution] = useState({
     serviceName: '',
-    sessionDate: new Date().toISOString().split('T')[0],
+    sessionDate: formatDateLocal(new Date()),
     beforePhoto: '',
     afterPhoto: '',
     adminNotes: '',
@@ -85,7 +86,7 @@ export default function ClientEvolutionPhotos({
     setShowAddForm(false);
     setNewEvolution({
       serviceName: '',
-      sessionDate: new Date().toISOString().split('T')[0],
+      sessionDate: formatDateLocal(new Date()),
       beforePhoto: '',
       afterPhoto: '',
       adminNotes: '',

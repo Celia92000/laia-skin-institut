@@ -7,6 +7,7 @@ import {
   ChevronRight, Euro, Package, Award, Camera
 } from 'lucide-react';
 import ClientEvolutionPhotos from './ClientEvolutionPhotos';
+import { formatDateLocal } from '@/lib/date-utils';
 
 interface ClientDetailModalProps {
   client: any;
@@ -592,7 +593,7 @@ export default function ClientDetailModal({
                     <label className="block text-xs font-medium text-[#2c3e50]/70 mb-1">Date de naissance</label>
                     <input
                       type="date"
-                      value={editedData.birthDate ? editedData.birthDate.split('T')[0] : ''}
+                      value={editedData.birthDate ? formatDateLocal(new Date(editedData.birthDate)) : ''}
                       onChange={(e) => setEditedData({...editedData, birthDate: e.target.value})}
                       disabled={!isEditing}
                       className="w-full px-3 py-2 border border-[#d4b5a0]/30 rounded-lg focus:ring-2 focus:ring-[#d4b5a0] disabled:bg-white/50"

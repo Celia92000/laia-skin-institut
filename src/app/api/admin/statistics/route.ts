@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getPrismaClient } from '@/lib/prisma';
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, subMonths, subYears, subDays, differenceInDays } from 'date-fns';
+import { formatDateLocal } from "@/lib/date-utils";
 
 export async function GET(request: Request) {
   const prisma = await getPrismaClient();
@@ -8,7 +9,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const viewMode = searchParams.get('viewMode') || 'month';
     const selectedDate = searchParams.get('selectedDate') || new Date().toISOString();
-    const selectedMonth = searchParams.get('selectedMonth') || new Date().toISOString().slice(0, 7);
+    const selectedMonth = searchParams.get('selectedMonth') || formatDateLocal(new Date()).slice(0, 7);
     const selectedYear = searchParams.get('selectedYear') || new Date().getFullYear().toString();
 
     const now = new Date();
@@ -332,7 +333,7 @@ export async function GET(request: Request) {
     // Revenus par jour (derniers 7 jours)
     const last7Days = Array.from({ length: 7 }, (_, i) => {
       const date = subDays(now, 6 - i);
-      const dateStr = date.toISOString().split('T')[0];
+      const dateStr = formatDateLocal(date);
       const dayRevenue = allReservationsWithServices
         .filter(r => 
           r.date >= startOfDay(date) && 

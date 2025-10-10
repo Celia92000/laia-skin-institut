@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Clock, User, Euro } from "lucide-react";
+import { formatDateLocal } from "@/lib/date-utils";
 
 interface Reservation {
   id: string;
@@ -51,7 +52,7 @@ export default function AdminCalendar({ reservations, onDateSelect }: AdminCalen
   // Fonctions pour obtenir les réservations d'un jour
   const getReservationsForDay = (date: Date | null) => {
     if (!date) return [];
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = formatDateLocal(date);
     return reservations.filter(r => r.date.startsWith(dateStr));
   };
 
@@ -63,7 +64,7 @@ export default function AdminCalendar({ reservations, onDateSelect }: AdminCalen
   const handleDateClick = (date: Date | null) => {
     if (date) {
       setSelectedDate(date);
-      onDateSelect(date.toISOString().split('T')[0]);
+      onDateSelect(formatDateLocal(date));
     }
   };
 
@@ -79,7 +80,7 @@ export default function AdminCalendar({ reservations, onDateSelect }: AdminCalen
     const today = new Date();
     setCurrentDate(today);
     setSelectedDate(today);
-    onDateSelect(today.toISOString().split('T')[0]);
+    onDateSelect(formatDateLocal(today));
   };
 
   const monthNames = [

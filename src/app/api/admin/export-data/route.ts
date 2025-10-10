@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 import { getPrismaClient } from '@/lib/prisma';
+import { formatDateLocal } from "@/lib/date-utils";
 
 function convertToCSV(data: any[], headers: string[]): string {
   // Créer l'en-tête CSV
@@ -76,7 +77,7 @@ export async function GET(request: NextRequest) {
     const endDate = searchParams.get('endDate');
 
     let csvData = '';
-    let filename = `laia-skin-export-${new Date().toISOString().split('T')[0]}`;
+    let filename = `laia-skin-export-${formatDateLocal(new Date())}`;
 
     // Construire les filtres de date si fournis
     const dateFilter = startDate && endDate ? {
@@ -136,7 +137,7 @@ export async function GET(request: NextRequest) {
         }));
 
         csvData = convertToCSV(reservationData, reservationHeaders);
-        filename = `reservations-${new Date().toISOString().split('T')[0]}`;
+        filename = `reservations-${formatDateLocal(new Date())}`;
         break;
 
       case 'clients':
@@ -184,7 +185,7 @@ export async function GET(request: NextRequest) {
         }));
 
         csvData = convertToCSV(clientData, clientHeaders);
-        filename = `clients-${new Date().toISOString().split('T')[0]}`;
+        filename = `clients-${formatDateLocal(new Date())}`;
         break;
 
       case 'services':
@@ -222,7 +223,7 @@ export async function GET(request: NextRequest) {
         }));
 
         csvData = convertToCSV(serviceData, serviceHeaders);
-        filename = `services-${new Date().toISOString().split('T')[0]}`;
+        filename = `services-${formatDateLocal(new Date())}`;
         break;
 
       case 'finances':
@@ -260,7 +261,7 @@ export async function GET(request: NextRequest) {
         }));
 
         csvData = convertToCSV(financeDataFormatted, financeHeaders);
-        filename = `finances-${new Date().toISOString().split('T')[0]}`;
+        filename = `finances-${formatDateLocal(new Date())}`;
         break;
 
       case 'all':
@@ -301,7 +302,7 @@ export async function GET(request: NextRequest) {
         ];
 
         csvData = convertToCSV(statsData, statsHeaders);
-        filename = `statistiques-${new Date().toISOString().split('T')[0]}`;
+        filename = `statistiques-${formatDateLocal(new Date())}`;
         break;
     }
 

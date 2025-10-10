@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { 
-  Calendar, Clock, Ban, Plus, Trash2, X, 
+import {
+  Calendar, Clock, Ban, Plus, Trash2, X,
   CalendarX, AlertCircle, Check
 } from "lucide-react";
+import { formatDateLocal } from "@/lib/date-utils";
 
 interface BlockedSlot {
   id: string;
@@ -141,13 +142,7 @@ export default function QuickBlockManager() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [blockType, setBlockType] = useState<'single' | 'range' | 'specific' | 'timeRange'>('single');
   
-  // Fonction pour formater une date en YYYY-MM-DD en heure locale
-  const formatDateLocal = (date: Date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
+  // Note: formatDateLocal est importé depuis @/lib/date-utils
   
   const [selectedDate, setSelectedDate] = useState(formatDateLocal(new Date()));
   const [selectedTime, setSelectedTime] = useState('');

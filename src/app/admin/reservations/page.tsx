@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { 
+import {
   Search,
   Filter,
   Download,
@@ -23,6 +23,7 @@ import {
   Mail
 } from "lucide-react";
 import { getReservationWithServiceNames } from '@/lib/service-utils';
+import { formatDateLocal } from "@/lib/date-utils";
 
 interface Reservation {
   id: string;
@@ -77,7 +78,7 @@ export default function AdminReservations() {
           telephone: reservation.phone,
           email: reservation.userEmail,
           service: reservation.serviceName,
-          date: reservation.date.split('T')[0],
+          date: formatDateLocal(reservation.date),
           heure: reservation.time,
           duree: 60, // Durée par défaut
           prix: reservation.totalPrice

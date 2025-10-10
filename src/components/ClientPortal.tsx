@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { formatDateLocal } from '@/lib/date-utils';
 import { 
   User, Calendar, Star, MessageSquare, Clock, Award, 
   Heart, TrendingUp, Gift, Bell, Settings, LogOut,
@@ -516,7 +517,7 @@ export default function ClientPortal() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Date de naissance</label>
                   <input
                     type="date"
-                    value={clientData.birthDate.toISOString().split('T')[0]}
+                    value={formatDateLocal(clientData.birthDate)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                     readOnly
                   />

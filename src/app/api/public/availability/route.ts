@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAvailableSlots, getBlockedDatesForMonth, getWorkingHours } from '@/lib/availability-service';
+import { formatDateLocal } from '@/lib/date-utils';
 
 // GET - Récupérer les disponibilités publiques
 export async function GET(request: NextRequest) {
@@ -30,8 +31,8 @@ export async function GET(request: NextRequest) {
       
       const blockedDates = await getBlockedDatesForMonth(year, month);
       
-      return NextResponse.json({ 
-        blockedDates: blockedDates.map(d => d.toISOString().split('T')[0]) 
+      return NextResponse.json({
+        blockedDates: blockedDates.map(d => formatDateLocal(d))
       });
     }
     else {

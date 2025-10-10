@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from 'next/navigation';
 import { Calendar, Clock, User, Phone, Mail, ChevronLeft, ChevronRight, Sparkles, CheckCircle, MapPin, Shield, AlertCircle, Lock, Eye, EyeOff, Gift } from "lucide-react";
 import { getDisplayPrice, getForfaitDisplayPrice, hasPromotion, getDiscountPercentage } from '@/lib/price-utils';
+import { formatDateLocal } from "@/lib/date-utils";
 
 function ReservationContent() {
   const searchParams = useSearchParams();
@@ -377,7 +378,8 @@ function ReservationContent() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               email: formData.email,
-              password: formData.password
+              password: formData.password,
+              rememberMe: rememberMe
             })
           });
           
@@ -1001,7 +1003,7 @@ function ReservationContent() {
                         alert("Cette date n'est pas disponible. Veuillez choisir une autre date.");
                       }
                     }}
-                    min={new Date().toISOString().split('T')[0]}
+                    min={formatDateLocal(new Date())}
                     className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-[#d4b5a0] focus:outline-none transition-colors text-lg"
                   />
                   {blockedDates.length > 0 && (

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Calendar, Gift, Clock, CheckCircle, XCircle, ArrowRight, History } from 'lucide-react';
+import { formatDateLocal } from '@/lib/date-utils';
 
 interface Discount {
   id: string;
@@ -54,7 +55,7 @@ export function DiscountHistory({ userId, isAdmin = false }: DiscountHistoryProp
     // Définir la date par défaut au mois suivant
     const nextMonth = new Date();
     nextMonth.setMonth(nextMonth.getMonth() + 1);
-    setPostponeDate(nextMonth.toISOString().split('T')[0]);
+    setPostponeDate(formatDateLocal(nextMonth));
   };
 
   const confirmPostpone = async () => {
@@ -241,7 +242,7 @@ export function DiscountHistory({ userId, isAdmin = false }: DiscountHistoryProp
                   type="date"
                   value={postponeDate}
                   onChange={(e) => setPostponeDate(e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
+                  min={formatDateLocal(new Date())}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4b5a0]"
                 />
               </div>

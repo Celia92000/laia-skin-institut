@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
+import { formatDateLocal } from "@/lib/date-utils";
 
 const prisma = new PrismaClient();
 
@@ -84,7 +85,7 @@ export async function PUT(
     const { services, date, time, totalPrice } = await request.json();
 
     // Vérifier la disponibilité du nouveau créneau (sauf si c'est le même)
-    if (date !== existingReservation.date.toISOString().split('T')[0] || time !== existingReservation.time) {
+    if (date !== formatDateLocal(existingReservation.date) || time !== existingReservation.time) {
       const conflictingReservation = await prisma.reservation.findFirst({
         where: {
           date: new Date(date),

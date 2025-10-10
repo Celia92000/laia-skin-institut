@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { 
-  Calendar, Euro, TrendingUp, TrendingDown, Download, 
+import {
+  Calendar, Euro, TrendingUp, TrendingDown, Download,
   CalendarDays, Clock, Filter, BarChart3, PieChart
 } from 'lucide-react';
+import { formatDateLocal } from '@/lib/date-utils';
 
 interface Reservation {
   id: string;
@@ -25,10 +26,10 @@ interface RevenueAnalyticsProps {
 
 export default function RevenueAnalytics({ reservations, services = {}, onStatClick }: RevenueAnalyticsProps) {
   const [viewMode, setViewMode] = useState<'day' | 'week' | 'month' | 'year' | 'custom'>('month');
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(formatDateLocal(new Date()));
   const [customRange, setCustomRange] = useState({
-    start: new Date().toISOString().split('T')[0],
-    end: new Date().toISOString().split('T')[0]
+    start: formatDateLocal(new Date()),
+    end: formatDateLocal(new Date())
   });
 
   // Calculer les revenus selon la période sélectionnée

@@ -8,6 +8,7 @@ import {
   Clock, Target, Activity, FileText, ExternalLink,
   UserX, UserCheck, Zap, MessageCircle, ArrowRight
 } from 'lucide-react';
+import { formatDateLocal } from '@/lib/date-utils';
 
 interface EmailRecipient {
   id: string;
@@ -56,6 +57,7 @@ interface CampaignHistory {
 }
 
 export default function EmailCampaignHistory() {
+  const [campaignHistory, setCampaignHistory] = useState<CampaignHistory[]>([]);
   const [selectedCampaign, setSelectedCampaign] = useState<CampaignHistory | null>(null);
   const [expandedCampaign, setExpandedCampaign] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<'all' | 'sent' | 'delivered' | 'opened' | 'clicked' | 'bounced'>('all');
@@ -95,15 +97,20 @@ export default function EmailCampaignHistory() {
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `campagnes_email_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `campagnes_email_${formatDateLocal(new Date())}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  // Données de test
-  const campaignHistory: CampaignHistory[] = [
+  // Charger l'historique des campagnes depuis l'API
+  useEffect(() => {
+    // NOTE: Pour l'instant, pas d'API pour les campagnes email
+    // Les données ci-dessous sont des données de démonstration
+    // TODO: Créer une API /api/admin/campaigns pour gérer l'historique réel
+
+    const demoData: CampaignHistory[] = [
     {
       id: '1',
       name: 'Newsletter Novembre - Conseils hiver',
@@ -236,6 +243,9 @@ export default function EmailCampaignHistory() {
       tags: ['promotion', 'black-friday', 'urgent']
     }
   ];
+
+    setCampaignHistory(demoData);
+  }, []);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -675,7 +685,7 @@ export default function EmailCampaignHistory() {
                   const blob = new Blob([jsonStr], { type: 'application/json' });
                   const link = document.createElement('a');
                   link.href = URL.createObjectURL(blob);
-                  link.download = `rapport_${selectedCampaign.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.json`;
+                  link.download = `rapport_${selectedCampaign.name.replace(/\s+/g, '_')}_${formatDateLocal(new Date())}.json`;
                   link.click();
                 }}
                 className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2"

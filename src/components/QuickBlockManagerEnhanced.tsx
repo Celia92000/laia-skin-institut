@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { 
-  Calendar, Clock, Ban, Plus, Trash2, X, 
+import {
+  Calendar, Clock, Ban, Plus, Trash2, X,
   CalendarX, AlertCircle, Check, ChevronLeft, ChevronRight
 } from "lucide-react";
+import { formatDateLocal } from "@/lib/date-utils";
 
 interface BlockedSlot {
   id: string;
@@ -287,13 +288,8 @@ export default function QuickBlockManagerEnhanced() {
   const [blockedSlots, setBlockedSlots] = useState<BlockedSlot[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [blockType, setBlockType] = useState<'single' | 'range' | 'timeRange'>('single');
-  
-  const formatDateLocal = (date: Date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
+
+  // Note: formatDateLocal est importé depuis @/lib/date-utils
   
   const [selectedDate, setSelectedDate] = useState(formatDateLocal(new Date()));
   const [selectedEndDate, setSelectedEndDate] = useState('');

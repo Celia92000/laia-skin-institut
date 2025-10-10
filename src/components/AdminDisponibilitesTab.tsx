@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Clock, Calendar, Plus, Trash2, Save, AlertCircle } from "lucide-react";
+import { formatDateLocal } from '@/lib/date-utils';
 
 interface TimeSlot {
   id: string;
@@ -336,7 +337,7 @@ export default function AdminDisponibilitesTab() {
             value={newBlockedDate.date}
             onChange={(e) => setNewBlockedDate({ ...newBlockedDate, date: e.target.value })}
             className="px-3 py-2 border border-gray-300 rounded-lg"
-            min={new Date().toISOString().split('T')[0]}
+            min={formatDateLocal(new Date())}
           />
           <input
             type="text"

@@ -1,6 +1,7 @@
 import Imap from 'imap';
 import { simpleParser } from 'mailparser';
 import { getPrismaClient } from './prisma';
+import { formatDateLocal } from './date-utils';
 
 interface EmailConfig {
   user: string;
@@ -69,7 +70,7 @@ export class EmailSyncService {
         // Récupérer les emails des X derniers jours
         const since = new Date();
         since.setDate(since.getDate() - days);
-        const sinceStr = since.toISOString().split('T')[0];
+        const sinceStr = formatDateLocal(since);
 
         this.imap!.search(['ALL', ['SINCE', sinceStr]], async (err, results) => {
           if (err) {

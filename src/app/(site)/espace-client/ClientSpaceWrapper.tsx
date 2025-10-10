@@ -15,6 +15,7 @@ export default function ClientSpaceWrapper({ children }: ClientSpaceWrapperProps
   const [isLoading, setIsLoading] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -26,8 +27,14 @@ export default function ClientSpaceWrapper({ children }: ClientSpaceWrapperProps
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem('token');
-      
+
       if (!token) {
+        // Charger l'email sauvegardé si disponible
+        const savedEmail = localStorage.getItem('rememberedEmail');
+        if (savedEmail) {
+          setFormData(prev => ({ ...prev, email: savedEmail }));
+          setRememberMe(true);
+        }
         setIsLoading(false);
         return;
       }
@@ -44,6 +51,12 @@ export default function ClientSpaceWrapper({ children }: ClientSpaceWrapperProps
         } else {
           localStorage.removeItem('token');
           localStorage.removeItem('user');
+          // Charger l'email sauvegardé si disponible
+          const savedEmail = localStorage.getItem('rememberedEmail');
+          if (savedEmail) {
+            setFormData(prev => ({ ...prev, email: savedEmail }));
+            setRememberMe(true);
+          }
         }
       } catch (error) {
         console.error('Erreur de vérification:', error);
@@ -58,19 +71,28 @@ export default function ClientSpaceWrapper({ children }: ClientSpaceWrapperProps
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    
+
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: formData.email,
-          password: formData.password
+          password: formData.password,
+          rememberMe: rememberMe
         })
       });
 
       if (response.ok) {
         const data = await response.json();
+
+        // Sauvegarder l'email si "Se souvenir de moi" est coché
+        if (rememberMe) {
+          localStorage.setItem('rememberedEmail', formData.email);
+        } else {
+          localStorage.removeItem('rememberedEmail');
+        }
+
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
         setIsAuthenticated(true);
@@ -226,7 +248,16 @@ export default function ClientSpaceWrapper({ children }: ClientSpaceWrapperProps
               </div>
 
               {!isRegistering && (
-                <div className="text-right">
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="w-4 h-4 text-[#d4b5a0] border-gray-300 rounded focus:ring-[#d4b5a0]"
+                    />
+                    <span className="ml-2 text-sm text-gray-600">Se souvenir de moi</span>
+                  </label>
                   <Link href="/mot-passe-oublie" className="text-sm text-[#d4b5a0] hover:underline">
                     Mot de passe oublié ?
                   </Link>

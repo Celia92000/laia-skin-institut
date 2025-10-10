@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Calendar, Clock, ChevronLeft, CheckCircle, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { formatDateLocal } from '@/lib/date-utils';
 
 export default function ModifierReservation() {
   const params = useParams();
@@ -46,7 +47,7 @@ export default function ModifierReservation() {
         const data = await response.json();
         setReservation(data);
         setSelectedServices(JSON.parse(data.services));
-        setSelectedDate(data.date.split('T')[0]);
+        setSelectedDate(formatDateLocal(data.date));
         setSelectedTime(data.time);
       } else {
         setError("Réservation introuvable");
@@ -91,7 +92,7 @@ export default function ModifierReservation() {
 
   const isSlotAvailable = (time: string) => {
     // Si c'est le même créneau que celui déjà réservé, il est disponible
-    if (time === reservation?.time && selectedDate === reservation?.date.split('T')[0]) {
+    if (time === reservation?.time && selectedDate === formatDateLocal(reservation?.date)) {
       return true;
     }
     const slot = availableSlots.find(s => s.time === time);
@@ -258,7 +259,7 @@ export default function ModifierReservation() {
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              min={new Date().toISOString().split('T')[0]}
+              min={formatDateLocal(new Date())}
               className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-[#d4b5a0] focus:outline-none"
               required
             />

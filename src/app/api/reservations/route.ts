@@ -117,7 +117,7 @@ export async function POST(request: Request) {
         date: normalizedDate,
         time: time,
         status: {
-          notIn: ['cancelled'] // Exclure seulement les réservations annulées
+          notIn: ['CANCELLED', 'cancelled'] // Exclure les réservations annulées (majuscules et minuscules)
         }
       }
     });
@@ -133,7 +133,7 @@ export async function POST(request: Request) {
       where: {
         date: normalizedDate,
         status: {
-          notIn: ['cancelled']
+          notIn: ['CANCELLED', 'cancelled']
         }
       }
     });

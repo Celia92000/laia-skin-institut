@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { formatDateLocal } from '@/lib/date-utils';
 import { 
   Clock, Calendar, Save, AlertCircle, CheckCircle,
   Sun, Moon, Coffee, Sunset, X, Plus, Trash2,
@@ -33,7 +34,7 @@ export default function AdminScheduleTab() {
   // État pour nouveau créneau bloqué
   const [showBlockForm, setShowBlockForm] = useState(false);
   const [newBlock, setNewBlock] = useState({
-    date: new Date().toISOString().split('T')[0],
+    date: formatDateLocal(new Date()),
     allDay: true,
     time: '09:00',
     reason: ''
@@ -140,7 +141,7 @@ export default function AdminScheduleTab() {
         await fetchScheduleData();
         setShowBlockForm(false);
         setNewBlock({
-          date: new Date().toISOString().split('T')[0],
+          date: formatDateLocal(new Date()),
           allDay: true,
           time: '09:00',
           reason: ''

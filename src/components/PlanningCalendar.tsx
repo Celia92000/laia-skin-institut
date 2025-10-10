@@ -7,6 +7,7 @@ import {
   X, Check, AlertCircle
 } from "lucide-react";
 import { isTimeSlotAvailable, getTotalDuration } from "@/lib/time-utils";
+import { formatDateLocal } from "@/lib/date-utils";
 
 interface Reservation {
   id: string;
@@ -150,8 +151,8 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
     const endMinutes = startMinutes + duration + 15; // +15 min de préparation
 
     // Vérifier les réservations existantes
-    const dayReservations = reservations.filter(r => 
-      r.date.split('T')[0] === dateStr && r.status === 'confirmed'
+    const dayReservations = reservations.filter(r =>
+      formatDateLocal(r.date) === dateStr && r.status === 'confirmed'
     );
 
     for (const reservation of dayReservations) {
@@ -237,8 +238,8 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
       !reservations.some(r => r.id === sr.id)
     )];
     
-    return allReservations.filter(r => 
-      r.date.split('T')[0] === dateStr && 
+    return allReservations.filter(r =>
+      formatDateLocal(r.date) === dateStr &&
       r.status === 'confirmed' // Seulement les réservations confirmées dans le calendrier
     );
   };
@@ -267,13 +268,7 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
     ).length;
   };
 
-  // Fonction pour formater une date en YYYY-MM-DD en heure locale
-  const formatDateLocal = (date: Date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
+  // Note: formatDateLocal est importé depuis @/lib/date-utils
 
   // Fonctions pour la sélection par glisser-déposer
   const handleMouseDown = (time: string, date: Date = currentDate) => {
@@ -1604,7 +1599,7 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
                       onClick={() => {
                         setIsEditMode(true);
                         setEditedReservation(selectedReservation);
-                        setEditDate(new Date(selectedReservation.date).toISOString().split('T')[0]);
+                        setEditDate(formatDateLocal(new Date(selectedReservation.date)));
                         setEditTime(selectedReservation.time);
                         setEditStatus(selectedReservation.status);
                       }}
@@ -2177,12 +2172,4 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
       )}
     </div>
   );
-}
-
-// Helper pour obtenir le format de date local
-function formatDateLocal(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
 }

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { 
-  Clock, Calendar, Plus, Trash2, Save, AlertCircle, 
+import { formatDateLocal } from '@/lib/date-utils';
+import {
+  Clock, Calendar, Plus, Trash2, Save, AlertCircle,
   Repeat, Ban, Check, X, Settings
 } from "lucide-react";
 
@@ -134,14 +135,14 @@ export default function AvailabilityManager() {
         if (shouldBlock) {
           if (block.allDay) {
             blocksToCreate.push({
-              date: current.toISOString().split('T')[0],
+              date: formatDateLocal(current),
               allDay: true,
               reason: block.reason || 'Récurrence automatique'
             });
           } else if (block.timeSlots) {
             block.timeSlots.forEach(time => {
               blocksToCreate.push({
-                date: current.toISOString().split('T')[0],
+                date: formatDateLocal(current),
                 time,
                 reason: block.reason || 'Récurrence automatique'
               });
@@ -152,7 +153,7 @@ export default function AvailabilityManager() {
             const end = timeSlots.indexOf(block.endTime);
             for (let i = start; i <= end; i++) {
               blocksToCreate.push({
-                date: current.toISOString().split('T')[0],
+                date: formatDateLocal(current),
                 time: timeSlots[i],
                 reason: block.reason || 'Récurrence automatique'
               });

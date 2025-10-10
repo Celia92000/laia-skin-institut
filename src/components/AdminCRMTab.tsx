@@ -1,14 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { 
-  Search, Mail, Phone, Calendar, Euro, Package, 
+import {
+  Search, Mail, Phone, Calendar, Euro, Package,
   UserPlus, Filter, Download, ChevronDown, ChevronUp,
   MessageSquare, AlertCircle, TrendingUp, Gift, X,
   Clock, Star, Users, Target, UserCheck, UserX,
   ArrowRight, Edit2, Save, User, MapPin, FileText,
   Heart, Activity, CreditCard, Sparkles
 } from "lucide-react";
+import { formatDateLocal } from '@/lib/date-utils';
 
 interface User {
   id: string;
@@ -780,7 +781,7 @@ export default function AdminCRMTab() {
                     {isEditingClient ? (
                       <input
                         type="date"
-                        value={editedClient?.birthDate ? editedClient.birthDate.split('T')[0] : ''}
+                        value={editedClient?.birthDate ? formatDateLocal(new Date(editedClient.birthDate)) : ''}
                         onChange={(e) => setEditedClient({...editedClient!, birthDate: e.target.value})}
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#d4b5a0]"
                       />

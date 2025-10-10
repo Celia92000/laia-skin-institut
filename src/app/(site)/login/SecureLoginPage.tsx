@@ -39,13 +39,15 @@ export default function SecureLoginPage() {
         setCurrentUser(JSON.parse(user));
       }
 
-      const savedEmail = localStorage.getItem('rememberedEmail');
+      // Vérifier les deux variantes pour compatibilité
+      const savedEmail = localStorage.getItem('rememberedEmail') || localStorage.getItem('rememberEmail');
       if (savedEmail) {
         setFormData(prev => ({ ...prev, email: savedEmail }));
         setRememberMe(true);
       }
       // Supprimer tout mot de passe potentiellement stocké
       localStorage.removeItem('rememberedPassword');
+      localStorage.removeItem('rememberPassword');
     }
   }, []);
 
@@ -98,7 +100,8 @@ export default function SecureLoginPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             email: formData.email,
-            password: formData.password
+            password: formData.password,
+            rememberMe: rememberMe
           })
         });
 

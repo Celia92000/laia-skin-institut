@@ -28,6 +28,7 @@ import RealTimeStats from "@/components/admin/RealTimeStats";
 import DynamicCharts from "@/components/admin/DynamicCharts";
 import DataExport from "@/components/admin/DataExport";
 import ObjectivesSettings from "@/components/ObjectivesSettings";
+import { formatDateLocal } from "@/lib/date-utils";
 import { checkAndCleanAuth, getAuthToken, clearAuthData } from '@/lib/auth-utils';
 import ReservationTableAdvanced from "@/components/ReservationTableAdvanced";
 import QuickBlockManagerEnhanced from "@/components/QuickBlockManagerEnhanced";
@@ -41,6 +42,7 @@ import AdvancedSearch from "@/components/AdvancedSearch";
 import FormationOrderSection from "@/components/FormationOrderSection";
 import AdminGiftCardsTab from "@/components/AdminGiftCardsTab";
 import AdminPendingOrdersTab from "@/components/AdminPendingOrdersTab";
+import SocialMediaCalendar from "@/components/admin/SocialMediaCalendar";
 
 interface Reservation {
   id: string;
@@ -78,7 +80,7 @@ export default function AdminDashboard() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [loyaltyProfiles, setLoyaltyProfiles] = useState<any[]>([]);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(formatDateLocal(new Date()));
   const [loading, setLoading] = useState(true);
   const [reviewStats, setReviewStats] = useState<any>(null);
   const [paymentFilter, setPaymentFilter] = useState("all");
@@ -106,14 +108,14 @@ export default function AdminDashboard() {
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [orderToSchedule, setOrderToSchedule] = useState<any>(null);
   const [scheduleData, setScheduleData] = useState({
-    date: new Date().toISOString().split('T')[0],
+    date: formatDateLocal(new Date()),
     time: '09:00'
   });
   const [newReservation, setNewReservation] = useState({
     client: '',
     email: '',
     phone: '',
-    date: new Date().toISOString().split('T')[0],
+    date: formatDateLocal(new Date()),
     time: '09:00',
     services: [] as string[],
     notes: ''
@@ -569,7 +571,7 @@ export default function AdminDashboard() {
       client: reservation.userName || '',
       email: reservation.userEmail || '',
       phone: reservation.phone || '',
-      date: typeof reservation.date === 'string' ? reservation.date.split('T')[0] : reservation.date.toISOString().split('T')[0],
+      date: typeof reservation.date === 'string' ? formatDateLocal(reservation.date) : formatDateLocal(reservation.date),
       time: reservation.time,
       services: reservation.services,
       notes: reservation.notes || '',
@@ -727,7 +729,7 @@ export default function AdminDashboard() {
           client: '',
           email: '',
           phone: '',
-          date: new Date().toISOString().split('T')[0],
+          date: formatDateLocal(new Date()),
           time: '09:00',
           services: [],
           notes: ''
@@ -768,7 +770,7 @@ export default function AdminDashboard() {
         alert('Commande planifiée avec succès !');
         setShowScheduleModal(false);
         setOrderToSchedule(null);
-        setScheduleData({ date: new Date().toISOString().split('T')[0], time: '09:00' });
+        setScheduleData({ date: formatDateLocal(new Date()), time: '09:00' });
         fetchOrders();
       } else {
         const error = await response.json();
@@ -933,7 +935,7 @@ export default function AdminDashboard() {
       link.href = URL.createObjectURL(blob);
       const dateRange = paymentDateStart && paymentDateEnd 
         ? `${paymentDateStart}_${paymentDateEnd}`
-        : new Date().toISOString().split('T')[0];
+        : formatDateLocal(new Date());
       link.download = `livre_recettes_${dateRange}.csv`;
       link.click();
       
@@ -960,7 +962,7 @@ export default function AdminDashboard() {
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = `paiements_${new Date().toISOString().split('T')[0]}.csv`;
+      link.download = `paiements_${formatDateLocal(new Date())}.csv`;
       link.click();
     }
   };
@@ -979,16 +981,16 @@ export default function AdminDashboard() {
   };
 
   // Filtrer les réservations par date pour le planning
-  const todayReservations = reservations.filter(r => 
-    (typeof r.date === 'string' ? r.date.split('T')[0] : r.date.toISOString().split('T')[0]) === selectedDate
+  const todayReservations = reservations.filter(r =>
+    (typeof r.date === 'string' ? formatDateLocal(r.date) : formatDateLocal(r.date)) === selectedDate
   ).sort((a, b) => a.time.localeCompare(b.time));
 
   // Statistiques pour le dashboard
   const stats = {
     totalReservations: reservations.length,
     pendingReservations: reservations.filter(r => r.status === 'pending').length,
-    completedToday: reservations.filter(r => 
-      r.status === 'completed' && (typeof r.date === 'string' ? r.date.split('T')[0] : r.date.toISOString().split('T')[0]) === new Date().toISOString().split('T')[0]
+    completedToday: reservations.filter(r =>
+      r.status === 'completed' && (typeof r.date === 'string' ? formatDateLocal(r.date) : formatDateLocal(r.date)) === formatDateLocal(new Date())
     ).length,
     totalRevenue: Math.round(reservations.filter(r => r.status === 'completed')
       .reduce((sum, r) => sum + r.totalPrice, 0))
@@ -1342,6 +1344,19 @@ export default function AdminDashboard() {
             <Star className="w-4 h-4 inline mr-2" />
             Avis & Photos
           </button>
+          {(userRole === 'ADMIN' || userRole === 'admin') && (
+            <button
+              onClick={() => setActiveTab("social-media")}
+              className={`px-3 sm:px-6 py-2 sm:py-3 rounded-full font-medium transition-all whitespace-nowrap flex-shrink-0 text-sm sm:text-base ${
+                activeTab === "social-media"
+                  ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg"
+                  : "bg-white text-[#2c3e50] hover:shadow-md"
+              }`}
+            >
+              <Calendar className="w-4 h-4 inline mr-2" />
+              Réseaux Sociaux
+            </button>
+          )}
           </div>
         </div>
 
@@ -1362,8 +1377,8 @@ export default function AdminDashboard() {
                       <p className="text-sm text-[#2c3e50]/60 mb-2">Réservations du jour</p>
                       <p className="text-3xl font-bold text-[#2c3e50]">
                         {reservations.filter(r => {
-                          const date = typeof r.date === 'string' ? r.date : r.date.toISOString();
-                          return date.split('T')[0] === new Date().toISOString().split('T')[0];
+                          const date = typeof r.date === 'string' ? r.date : r.date;
+                          return formatDateLocal(date) === formatDateLocal(new Date());
                         }).length}
                       </p>
                     </div>
@@ -1661,7 +1676,7 @@ export default function AdminDashboard() {
                           const orderType = items[0]?.type || 'commande';
                           return {
                             id: o.id,
-                            date: new Date(o.scheduledDate).toISOString().split('T')[0],
+                            date: formatDateLocal(new Date(o.scheduledDate)),
                             time: o.scheduledTime || '09:00',
                             userName: o.user?.name || 'Client',
                             userEmail: o.user?.email || '',
@@ -2439,33 +2454,33 @@ export default function AdminDashboard() {
                       
                       switch(value) {
                         case 'today':
-                          setPaymentDateStart(today.toISOString().split('T')[0]);
-                          setPaymentDateEnd(today.toISOString().split('T')[0]);
+                          setPaymentDateStart(formatDateLocal(today));
+                          setPaymentDateEnd(formatDateLocal(today));
                           break;
                         case 'yesterday':
                           start.setDate(today.getDate() - 1);
-                          setPaymentDateStart(start.toISOString().split('T')[0]);
-                          setPaymentDateEnd(start.toISOString().split('T')[0]);
+                          setPaymentDateStart(formatDateLocal(start));
+                          setPaymentDateEnd(formatDateLocal(start));
                           break;
                         case 'week':
                           start.setDate(today.getDate() - 7);
-                          setPaymentDateStart(start.toISOString().split('T')[0]);
-                          setPaymentDateEnd(today.toISOString().split('T')[0]);
+                          setPaymentDateStart(formatDateLocal(start));
+                          setPaymentDateEnd(formatDateLocal(today));
                           break;
                         case 'month':
                           start.setMonth(today.getMonth() - 1);
-                          setPaymentDateStart(start.toISOString().split('T')[0]);
-                          setPaymentDateEnd(today.toISOString().split('T')[0]);
+                          setPaymentDateStart(formatDateLocal(start));
+                          setPaymentDateEnd(formatDateLocal(today));
                           break;
                         case 'quarter':
                           start.setMonth(today.getMonth() - 3);
-                          setPaymentDateStart(start.toISOString().split('T')[0]);
-                          setPaymentDateEnd(today.toISOString().split('T')[0]);
+                          setPaymentDateStart(formatDateLocal(start));
+                          setPaymentDateEnd(formatDateLocal(today));
                           break;
                         case 'year':
                           start.setFullYear(today.getFullYear() - 1);
-                          setPaymentDateStart(start.toISOString().split('T')[0]);
-                          setPaymentDateEnd(today.toISOString().split('T')[0]);
+                          setPaymentDateStart(formatDateLocal(start));
+                          setPaymentDateEnd(formatDateLocal(today));
                           break;
                       }
                     }}
@@ -3332,8 +3347,16 @@ export default function AdminDashboard() {
           {activeTab === "pending" && <AdminPendingOrdersTab />}
 
           {activeTab === "whatsapp" && <WhatsAppFunctional />}
-          
+
           {activeTab === "reviews" && <AdminReviewsManager />}
+
+          {activeTab === "social-media" && (
+            <div>
+              <h2 className="text-2xl font-serif font-bold text-[#2c3e50] mb-6">Calendrier de Publication</h2>
+              <p className="text-gray-600 mb-6">Planifiez et organisez vos publications sur les réseaux sociaux</p>
+              <SocialMediaCalendar />
+            </div>
+          )}
         </div>
 
       {/* Modal Nouvelle Réservation */}
@@ -3358,7 +3381,7 @@ export default function AdminDashboard() {
                     client: '',
                     email: '',
                     phone: '',
-                    date: new Date().toISOString().split('T')[0],
+                    date: formatDateLocal(new Date()),
                     time: '09:00',
                     services: [],
                     notes: ''
@@ -4288,7 +4311,7 @@ export default function AdminDashboard() {
                   onClick={() => {
                     setShowScheduleModal(false);
                     setOrderToSchedule(null);
-                    setScheduleData({ date: new Date().toISOString().split('T')[0], time: '09:00' });
+                    setScheduleData({ date: formatDateLocal(new Date()), time: '09:00' });
                   }}
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                 >

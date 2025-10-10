@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  Calendar, Clock, Users, CheckCircle, XCircle, 
+import {
+  Calendar, Clock, Users, CheckCircle, XCircle,
   Phone, Mail, User, LogOut, Filter, Search,
   TrendingUp, Award, Euro, CalendarDays, MessageCircle,
   AlertCircle, ChevronRight, RefreshCw, Check, X, Settings
 } from 'lucide-react';
+import { formatDateLocal } from '@/lib/date-utils';
 
 interface Reservation {
   id: string;
@@ -29,7 +30,7 @@ export default function EmployeeDashboard() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(formatDateLocal(new Date()));
   const [stats, setStats] = useState({
     todayReservations: 0,
     weekReservations: 0,
@@ -67,7 +68,7 @@ export default function EmployeeDashboard() {
   };
 
   const calculateStats = (reservations: Reservation[]) => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = formatDateLocal(new Date());
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const monthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 

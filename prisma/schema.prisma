@@ -41,6 +41,10 @@ model User {
   orders         Order[]
   stockMovements StockMovement[]
   giftCards      GiftCard[]        @relation("GiftCardPurchaser")
+
+  @@index([email])
+  @@index([role])
+  @@index([createdAt])
 }
 
 model Reservation {
@@ -79,6 +83,11 @@ model Reservation {
   giftCard        GiftCard? @relation("GiftCardReservations", fields: [giftCardId], references: [id])
   review          Review?
   stockMovements  StockMovement[]
+
+  @@index([userId])
+  @@index([date])
+  @@index([status])
+  @@index([createdAt])
 }
 
 model Service {
@@ -791,5 +800,41 @@ model GiftCard {
   @@index([code])
   @@index([purchasedBy])
   @@index([status])
+}
+
+model SocialMediaPost {
+  id              String    @id @default(cuid())
+  title           String    // Titre/sujet de la publication
+  content         String    @db.Text // Texte de la publication
+  platform        String?   // Instagram, Facebook, TikTok, etc.
+  scheduledDate   DateTime  // Date de publication prévue
+  status          String    @default("draft") // draft, scheduled, published, cancelled
+  notes           String?   @db.Text // Notes et idées supplémentaires
+  links           String?   @db.Text // JSON array de liens utiles
+  hashtags        String?   // Hashtags à utiliser
+  mediaUrls       String?   @db.Text // JSON array d'URLs des médias (images/vidéos)
+  publishedAt     DateTime? // Date de publication effective
+  apiPostId       String?   // ID de la publication sur la plateforme
+  errorMessage    String?   @db.Text // Message d'erreur en cas d'échec
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([scheduledDate])
+  @@index([status])
+}
+
+model SocialMediaConfig {
+  id                    String    @id @default(cuid())
+  platform              String    @unique // instagram, facebook, tiktok, youtube
+  accessToken           String?   @db.Text // Token d'accès
+  refreshToken          String?   @db.Text // Token de rafraîchissement
+  pageId                String?   // ID de la page/compte
+  expiresAt             DateTime? // Date d'expiration du token
+  enabled               Boolean   @default(false)
+  autoPublish           Boolean   @default(false) // Publication automatique activée
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([platform])
 }
 

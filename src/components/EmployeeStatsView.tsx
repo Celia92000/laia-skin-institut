@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { 
-  TrendingUp, Clock, Users, Euro, Calendar, Target, 
+import {
+  TrendingUp, Clock, Users, Euro, Calendar, Target,
   Award, Star, MessageCircle, CheckCircle, AlertCircle,
   BarChart3, Activity, Zap, Trophy, Coffee
 } from "lucide-react";
+import { formatDateLocal } from '@/lib/date-utils';
 
 interface EmployeeStatsViewProps {
   reservations: any[];
@@ -59,11 +60,11 @@ export default function EmployeeStatsView({
 
   const calculateEmployeeStats = () => {
     const now = new Date();
-    const today = now.toISOString().split('T')[0];
-    
+    const today = formatDateLocal(now);
+
     // Réservations du jour
-    const todayReservations = reservations.filter(r => 
-      new Date(r.date).toISOString().split('T')[0] === today
+    const todayReservations = reservations.filter(r =>
+      formatDateLocal(new Date(r.date)) === today
     );
 
     // CA du jour

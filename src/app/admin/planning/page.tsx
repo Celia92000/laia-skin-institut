@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { 
+import {
   Calendar as CalendarIcon,
   Clock,
   User,
@@ -16,58 +16,7 @@ import {
   Check,
   AlertCircle
 } from "lucide-react";
-
-// Mock data pour les réservations
-const mockReservations = [
-  {
-    id: "1",
-    client: "Sophie Martin",
-    service: "LAIA Hydro'Cleaning",
-    date: "2024-02-15",
-    heure: "10:00",
-    duree: 60,
-    prix: 90,
-    status: "confirmee",
-    telephone: "06 12 34 56 78",
-    email: "sophie.martin@email.com"
-  },
-  {
-    id: "2",
-    client: "Marie Dubois",
-    service: "BB Glow",
-    date: "2024-02-15",
-    heure: "14:30",
-    duree: 90,
-    prix: 150,
-    status: "confirmee",
-    telephone: "06 98 76 54 32",
-    email: "marie.dubois@email.com"
-  },
-  {
-    id: "3",
-    client: "Julie Moreau",
-    service: "LED Thérapie",
-    date: "2024-02-16",
-    heure: "11:00",
-    duree: 45,
-    prix: 70,
-    status: "confirmee",
-    telephone: "06 45 67 89 01",
-    email: "julie.moreau@email.com"
-  },
-  {
-    id: "4",
-    client: "Emma Laurent",
-    service: "LAIA Renaissance",
-    date: "2024-02-17",
-    heure: "15:00",
-    duree: 75,
-    prix: 120,
-    status: "confirmee",
-    telephone: "06 23 45 67 89",
-    email: "emma.laurent@email.com"
-  }
-];
+import { formatDateLocal } from "@/lib/date-utils";
 
 // Heures d'ouverture
 const businessHours = {
@@ -81,6 +30,45 @@ export default function AdminPlanning() {
   const [viewMode, setViewMode] = useState<'day' | 'week' | 'month'>('week');
   const [selectedReservation, setSelectedReservation] = useState<any>(null);
   const [showNewReservation, setShowNewReservation] = useState(false);
+  const [reservations, setReservations] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Charger les réservations depuis l'API
+  useEffect(() => {
+    const fetchReservations = async () => {
+      try {
+        const response = await fetch('/api/admin/reservations', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          // Transformer les données pour le format du calendrier
+          const formattedReservations = data.map((r: any) => ({
+            id: r.id,
+            client: r.user?.name || 'Client inconnu',
+            service: r.service?.name || 'Service inconnu',
+            date: formatDateLocal(r.date), // Conversion UTC vers date locale
+            heure: r.time,
+            duree: r.service?.duration || 60,
+            prix: r.service?.price || 0,
+            status: r.status,
+            telephone: r.user?.phone || '',
+            email: r.user?.email || ''
+          }));
+          setReservations(formattedReservations);
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des réservations:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchReservations();
+  }, []);
 
   // Générer les créneaux horaires
   const generateTimeSlots = () => {
@@ -124,7 +112,7 @@ export default function AdminPlanning() {
 
   // Vérifier si un créneau est occupé
   const isSlotOccupied = (date: string, time: string) => {
-    return mockReservations.some(r => {
+    return reservations.some(r => {
       if (r.date !== date) return false;
       const [resHour, resMin] = r.heure.split(':').map(Number);
       const [slotHour, slotMin] = time.split(':').map(Number);
@@ -137,7 +125,7 @@ export default function AdminPlanning() {
 
   // Obtenir la réservation pour un créneau
   const getReservationForSlot = (date: string, time: string) => {
-    return mockReservations.find(r => r.date === date && r.heure === time);
+    return reservations.find(r => r.date === date && r.heure === time);
   };
 
   return (
@@ -250,7 +238,16 @@ export default function AdminPlanning() {
           </div>
         </div>
 
+        {/* Loading State */}
+        {isLoading && (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#d4b5a0] mx-auto mb-4"></div>
+            <p className="text-[#2c3e50]/60">Chargement du planning...</p>
+          </div>
+        )}
+
         {/* Calendar Grid */}
+        {!isLoading && (
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           <div className="grid grid-cols-8 border-b border-gray-200">
             <div className="p-4 bg-[#fdfbf7]">
@@ -275,7 +272,7 @@ export default function AdminPlanning() {
                   {time}
                 </div>
                 {weekDays.map((day, index) => {
-                  const dateStr = day.toISOString().split('T')[0];
+                  const dateStr = formatDateLocal(day);
                   const reservation = getReservationForSlot(dateStr, time);
                   const isOccupied = isSlotOccupied(dateStr, time);
                   
@@ -309,6 +306,7 @@ export default function AdminPlanning() {
             ))}
           </div>
         </div>
+        )}
 
         {/* Legend */}
         <div className="mt-6 bg-white rounded-xl shadow-lg p-4">

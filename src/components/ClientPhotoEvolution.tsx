@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { 
-  Camera, Calendar, X, ChevronLeft, ChevronRight, Download, 
+import {
+  Camera, Calendar, X, ChevronLeft, ChevronRight, Download,
   Upload, Trash2, Eye, Grid3x3, List, Plus, Image, Play,
   Maximize2, ZoomIn, Package, Star
 } from 'lucide-react';
+import { formatDateLocal } from '@/lib/date-utils';
 
 interface PhotoSession {
   id: string;
@@ -44,7 +45,7 @@ export default function ClientPhotoEvolution({ clientId, clientName, onClose }: 
   const [currentSessionIndex, setCurrentSessionIndex] = useState(0);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const [newSession, setNewSession] = useState<Partial<PhotoSession>>({
-    date: new Date().toISOString().split('T')[0],
+    date: formatDateLocal(new Date()),
     serviceType: 'individual',
     additionalPhotos: [],
     photoLabels: [],
@@ -86,7 +87,7 @@ export default function ClientPhotoEvolution({ clientId, clientName, onClose }: 
       ...newSession,
       id: Date.now().toString(),
       sessionNumber: sessions.length + 1,
-      date: newSession.date || new Date().toISOString().split('T')[0]
+      date: newSession.date || formatDateLocal(new Date())
     } as PhotoSession;
 
     const updatedSessions = [...sessions, sessionToSave];
@@ -113,7 +114,7 @@ export default function ClientPhotoEvolution({ clientId, clientName, onClose }: 
 
     setShowUploadModal(false);
     setNewSession({
-      date: new Date().toISOString().split('T')[0],
+      date: formatDateLocal(new Date()),
       serviceType: 'individual'
     });
   };
@@ -796,7 +797,7 @@ export default function ClientPhotoEvolution({ clientId, clientName, onClose }: 
                   onClick={() => {
                     setShowUploadModal(false);
                     setNewSession({
-                      date: new Date().toISOString().split('T')[0],
+                      date: formatDateLocal(new Date()),
                       serviceType: 'individual'
                     });
                   }}

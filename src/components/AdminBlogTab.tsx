@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { formatDateLocal } from '@/lib/date-utils';
 import { 
   Plus, Edit2, Save, X, Eye, EyeOff, 
   Clock, Calendar, Tag, Search, ChevronUp, ChevronDown,
@@ -306,7 +307,7 @@ export default function AdminBlogTab() {
                     </label>
                     <input
                       type="date"
-                      value={formData.publishedAt ? formData.publishedAt.split('T')[0] : ''}
+                      value={formData.publishedAt ? formatDateLocal(formData.publishedAt) : ''}
                       onChange={(e) => setFormData({...formData, publishedAt: new Date(e.target.value).toISOString()})}
                       className="w-full px-4 py-2 border border-[#d4b5a0]/20 rounded-lg focus:ring-2 focus:ring-[#d4b5a0] focus:border-transparent"
                     />

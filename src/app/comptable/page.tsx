@@ -2,15 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  Euro, Download, Calendar, TrendingUp, FileText, 
+import {
+  Euro, Download, Calendar, TrendingUp, FileText,
   LogOut, Calculator, PieChart, BarChart3, DollarSign,
-  ArrowUpRight, ArrowDownRight, Filter, FileDown, 
+  ArrowUpRight, ArrowDownRight, Filter, FileDown,
   Receipt, BookOpen, AlertCircle, CheckCircle, Clock,
   Package, Users, Briefcase, ChevronDown, ChevronUp,
   Printer, Mail, Search, X
 } from 'lucide-react';
 import { generateInvoiceNumber, calculateInvoiceTotals, formatInvoiceHTML, generateCSVExport, downloadFile } from '@/lib/invoice-generator';
+import { formatDateLocal } from '@/lib/date-utils';
 
 interface Reservation {
   id: string;
@@ -197,7 +198,7 @@ export default function ComptableDashboard() {
     }));
     
     const csv = generateCSVExport(rows, headers);
-    downloadFile(csv, `comptabilite_laia_${new Date().toISOString().split('T')[0]}.csv`, 'text/csv;charset=utf-8;');
+    downloadFile(csv, `comptabilite_laia_${formatDateLocal(new Date())}.csv`, 'text/csv;charset=utf-8;');
   };
 
   const exportLivreRecettes = () => {
@@ -245,7 +246,7 @@ export default function ComptableDashboard() {
       });
     
     const csv = generateCSVExport(rows, headers);
-    downloadFile(csv, `livre_recettes_laia_${new Date().toISOString().split('T')[0]}.csv`, 'text/csv;charset=utf-8;');
+    downloadFile(csv, `livre_recettes_laia_${formatDateLocal(new Date())}.csv`, 'text/csv;charset=utf-8;');
   };
 
   const generateInvoice = (reservation: Reservation) => {

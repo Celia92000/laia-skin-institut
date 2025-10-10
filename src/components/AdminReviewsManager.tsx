@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Star, MessageSquare, Calendar, User, Mail, Phone, Check, X, Eye, ThumbsUp, MessageCircle, Camera, Grid, List, Filter, Search, Download, TrendingUp, Award, Package } from "lucide-react";
+import { formatDateLocal } from '@/lib/date-utils';
 
 interface Review {
   id: string;
@@ -648,7 +649,7 @@ export default function AdminReviewsManager() {
                     const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
                     const link = document.createElement('a');
                     link.setAttribute('href', dataUri);
-                    link.setAttribute('download', `export_photos_avis_${new Date().toISOString().split('T')[0]}.json`);
+                    link.setAttribute('download', `export_photos_avis_${formatDateLocal(new Date())}.json`);
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
@@ -705,7 +706,7 @@ export default function AdminReviewsManager() {
                     const link = document.createElement('a');
                     const url = URL.createObjectURL(blob);
                     link.setAttribute('href', url);
-                    link.setAttribute('download', `export_avis_photos_${new Date().toISOString().split('T')[0]}.csv`);
+                    link.setAttribute('download', `export_avis_photos_${formatDateLocal(new Date())}.csv`);
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);

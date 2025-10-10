@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { formatDateLocal } from '@/lib/date-utils';
 import { Mail, Send, Inbox, Clock, CheckCircle, XCircle, Search, Filter, Calendar, Eye, RefreshCw } from 'lucide-react';
 
 interface EmailRecord {
@@ -111,7 +112,7 @@ export default function EmailHistory() {
 
     // Filtre par date
     if (dateFilter) {
-      const emailDate = new Date(email.createdAt).toISOString().split('T')[0];
+      const emailDate = formatDateLocal(new Date(email.createdAt));
       if (emailDate !== dateFilter) return false;
     }
 

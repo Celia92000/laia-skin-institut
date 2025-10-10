@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { formatDateLocal } from "@/lib/date-utils";
 
 const prisma = new PrismaClient();
 
@@ -78,7 +79,7 @@ export async function GET(request: NextRequest) {
     });
 
     const dailyStatsMap = recentReservations.reduce((acc, res) => {
-      const date = res.date.toISOString().split('T')[0]; // Utiliser la date de réservation
+      const date = formatDateLocal(res.date); // Utiliser la date de réservation
       if (!acc[date]) {
         acc[date] = { count: 0, revenue: 0 };
       }

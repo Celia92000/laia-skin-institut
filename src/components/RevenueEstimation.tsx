@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { 
-  TrendingUp, Calendar, Euro, BarChart3, 
+import {
+  TrendingUp, Calendar, Euro, BarChart3,
   CalendarDays, Clock, Filter, PieChart,
   Target, Activity, DollarSign, AlertCircle
 } from 'lucide-react';
+import { formatDateLocal } from '@/lib/date-utils';
 
 interface Reservation {
   id: string;
@@ -25,8 +26,8 @@ interface RevenueEstimationProps {
 export default function RevenueEstimation({ reservations }: RevenueEstimationProps) {
   const [viewMode, setViewMode] = useState<'week' | 'month' | 'year' | 'custom'>('month');
   const [customRange, setCustomRange] = useState({
-    start: new Date().toISOString().split('T')[0],
-    end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    start: formatDateLocal(new Date()),
+    end: formatDateLocal(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))
   });
 
   const estimationData = useMemo(() => {

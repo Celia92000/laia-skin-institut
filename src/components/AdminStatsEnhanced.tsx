@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { formatDateLocal } from '@/lib/date-utils';
 import { 
   TrendingUp, TrendingDown, Users, Calendar, Euro, Award, Star, Heart, 
   ThumbsUp, MessageCircle, BarChart3, PieChart, Activity, Clock, Target, 
@@ -115,13 +116,13 @@ interface Stats {
 export default function AdminStatsEnhanced() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(formatDateLocal(new Date()));
   const [selectedMonth, setSelectedMonth] = useState(`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   const [viewMode, setViewMode] = useState<'day' | 'week' | 'month' | 'year' | 'custom'>('month');
-  const [customDateRange, setCustomDateRange] = useState<{ start: string; end: string }>({ 
-    start: new Date().toISOString().split('T')[0],
-    end: new Date().toISOString().split('T')[0]
+  const [customDateRange, setCustomDateRange] = useState<{ start: string; end: string }>({
+    start: formatDateLocal(new Date()),
+    end: formatDateLocal(new Date())
   });
   const [showCustomDateModal, setShowCustomDateModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState<string | null>(null);
@@ -199,8 +200,8 @@ export default function AdminStatsEnhanced() {
         const weekEnd = new Date(weekStart);
         weekEnd.setDate(weekStart.getDate() + 6);
         
-        params.append('weekStart', weekStart.toISOString().split('T')[0]);
-        params.append('weekEnd', weekEnd.toISOString().split('T')[0]);
+        params.append('weekStart', formatDateLocal(weekStart));
+        params.append('weekEnd', formatDateLocal(weekEnd));
       }
       
       const token = localStorage.getItem('token');
@@ -632,7 +633,7 @@ export default function AdminStatsEnhanced() {
                   const weekValue = e.target.value;
                   const [year, week] = weekValue.split('-W');
                   const date = new Date(parseInt(year), 0, 1 + (parseInt(week) - 1) * 7);
-                  setSelectedDate(date.toISOString().split('T')[0]);
+                  setSelectedDate(formatDateLocal(date));
                 }}
                 className="px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />

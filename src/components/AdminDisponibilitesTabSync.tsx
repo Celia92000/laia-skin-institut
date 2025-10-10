@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { formatDateLocal } from '@/lib/date-utils';
 import { Clock, Calendar, Plus, Trash2, Save, AlertCircle, Check } from "lucide-react";
 
 interface WorkingHours {
@@ -43,7 +44,7 @@ export default function AdminDisponibilitesTabSync() {
         // Formater les dates bloquées
         const formattedBlockedDates = data.blockedSlots.map((slot: any) => ({
           id: slot.id,
-          date: new Date(slot.date).toISOString().split('T')[0],
+          date: formatDateLocal(new Date(slot.date)),
           time: slot.time,
           allDay: slot.allDay,
           reason: slot.reason
@@ -132,7 +133,7 @@ export default function AdminDisponibilitesTabSync() {
         const data = await response.json();
         setBlockedDates([...blockedDates, {
           id: data.id,
-          date: new Date(data.date).toISOString().split('T')[0],
+          date: formatDateLocal(new Date(data.date)),
           time: data.time,
           allDay: data.allDay,
           reason: data.reason
@@ -262,7 +263,7 @@ export default function AdminDisponibilitesTabSync() {
             value={newBlockedDate.date}
             onChange={(e) => setNewBlockedDate({ ...newBlockedDate, date: e.target.value })}
             className="px-3 py-2 border border-gray-300 rounded-lg"
-            min={new Date().toISOString().split('T')[0]}
+            min={formatDateLocal(new Date())}
           />
           <input
             type="text"

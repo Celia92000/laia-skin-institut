@@ -10,6 +10,7 @@ import {
   Printer, Mail, Search, X, RefreshCw, Eye
 } from 'lucide-react';
 import { generateInvoiceNumber, calculateInvoiceTotals, formatInvoiceHTML, generateCSVExport, downloadFile } from '@/lib/invoice-generator';
+import { formatDateLocal } from '@/lib/date-utils';
 
 interface AdminComptabiliteTabProps {
   reservations: any[];
@@ -306,7 +307,7 @@ export default function AdminComptabiliteTab({ reservations, fetchReservations, 
     });
     
     const csv = generateCSVExport(rows, headers);
-    downloadFile(csv, `comptabilite_laia_${new Date().toISOString().split('T')[0]}.csv`, 'text/csv;charset=utf-8;');
+    downloadFile(csv, `comptabilite_laia_${formatDateLocal(new Date())}.csv`, 'text/csv;charset=utf-8;');
   };
 
   const exportLivreRecettes = () => {
@@ -359,7 +360,7 @@ export default function AdminComptabiliteTab({ reservations, fetchReservations, 
       });
     
     const csv = generateCSVExport(rows, headers);
-    downloadFile(csv, `livre_recettes_laia_${new Date().toISOString().split('T')[0]}.csv`, 'text/csv;charset=utf-8;');
+    downloadFile(csv, `livre_recettes_laia_${formatDateLocal(new Date())}.csv`, 'text/csv;charset=utf-8;');
   };
 
   const exportDeclarationTVA = () => {
@@ -391,7 +392,7 @@ Régime: TVA sur les encaissements
 SIRET: 123 456 789 00000
 N° TVA Intracommunautaire: FR12 345678900`;
     
-    downloadFile(content, `declaration_tva_${new Date().toISOString().split('T')[0]}.txt`, 'text/plain');
+    downloadFile(content, `declaration_tva_${formatDateLocal(new Date())}.txt`, 'text/plain');
   };
 
   const generateBilanSimple = () => {
@@ -499,7 +500,7 @@ Document généré automatiquement le ${new Date().toLocaleDateString('fr-FR')} 
 LAIA SKIN INSTITUT - Institut de beauté
 Pour toute question: contact@laia-skin-institut.com`;
 
-    downloadFile(content, `bilan_simplifie_${period}_${new Date().toISOString().split('T')[0]}.txt`, 'text/plain;charset=utf-8;');
+    downloadFile(content, `bilan_simplifie_${period}_${formatDateLocal(new Date())}.txt`, 'text/plain;charset=utf-8;');
   };
 
   const generateInvoice = (reservation: any) => {

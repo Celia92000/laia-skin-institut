@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { 
+import {
   Calendar, Clock, User, Euro, Filter, Download, ChevronUp, ChevronDown,
   Search, Phone, Instagram, Globe, MessageCircle, Users, MapPin, MoreHorizontal,
   FileText, Eye
 } from 'lucide-react';
+import { formatDateLocal } from '@/lib/date-utils';
 
 interface Reservation {
   id: string;
@@ -201,7 +202,7 @@ export default function ReservationTableAdvanced({
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `reservations_${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = `reservations_${formatDateLocal(new Date())}.csv`;
     link.click();
   };
 

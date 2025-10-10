@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { 
-  Calendar, Euro, TrendingUp, TrendingDown, Download, 
+import {
+  Calendar, Euro, TrendingUp, TrendingDown, Download,
   CalendarDays, Clock, Filter, BarChart3, PieChart,
   Target, Activity, DollarSign, AlertCircle, Star
 } from 'lucide-react';
+import { formatDateLocal } from '@/lib/date-utils';
 
 interface Reservation {
   id: string;
@@ -26,10 +27,10 @@ interface RevenueManagementProps {
 
 export default function RevenueManagement({ reservations, services = {} }: RevenueManagementProps) {
   const [viewMode, setViewMode] = useState<'day' | 'week' | 'month' | 'year' | 'custom'>('month');
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(formatDateLocal(new Date()));
   const [customRange, setCustomRange] = useState({
-    start: new Date().toISOString().split('T')[0],
-    end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    start: formatDateLocal(new Date()),
+    end: formatDateLocal(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))
   });
 
   // Fonction pour déterminer les dates selon le mode

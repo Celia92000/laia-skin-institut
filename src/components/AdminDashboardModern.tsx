@@ -10,6 +10,7 @@ import {
   Sparkles, Bell, Search, Filter, Download, Upload,
   Shield, Zap, Target, Award, Coffee, Sun, Moon, Plus
 } from 'lucide-react';
+import { formatDateLocal } from '@/lib/date-utils';
 
 interface DashboardStats {
   todayReservations: number;
@@ -274,7 +275,7 @@ export default function AdminDashboardModern() {
                           const url = window.URL.createObjectURL(blob);
                           const a = document.createElement('a');
                           a.href = url;
-                          a.download = `${item.type}-${new Date().toISOString().split('T')[0]}.csv`;
+                          a.download = `${item.type}-${formatDateLocal(new Date())}.csv`;
                           a.click();
                           window.URL.revokeObjectURL(url);
                         }

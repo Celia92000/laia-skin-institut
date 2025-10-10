@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Calendar, Clock, ChevronLeft, CheckCircle, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { formatDateLocal } from '@/lib/date-utils';
 
 export default function ModifierDate() {
   const params = useParams();
@@ -41,7 +42,7 @@ export default function ModifierDate() {
       if (response.ok) {
         const data = await response.json();
         setReservation(data);
-        setSelectedDate(data.date.split('T')[0]);
+        setSelectedDate(formatDateLocal(data.date));
         setSelectedTime(data.time);
       }
     } catch (error) {
@@ -71,7 +72,7 @@ export default function ModifierDate() {
 
   const isSlotAvailable = (time: string) => {
     // Si c'est le même créneau que l'actuel, il est disponible
-    if (time === reservation?.time && selectedDate === reservation?.date.split('T')[0]) {
+    if (time === reservation?.time && selectedDate === formatDateLocal(reservation?.date)) {
       return true;
     }
     const slot = availableSlots.find(s => s.time === time);
@@ -203,14 +204,14 @@ export default function ModifierDate() {
                 setSelectedDate(e.target.value);
                 setSelectedTime(""); // Réinitialiser l'heure lors du changement de date
               }}
-              min={new Date().toISOString().split('T')[0]}
+              min={formatDateLocal(new Date())}
               className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-[#d4b5a0] focus:outline-none text-lg"
               required
             />
             {selectedDate && (
               <p className="mt-2 text-sm text-[#2c3e50]/60">
-                {selectedDate === reservation?.date.split('T')[0] 
-                  ? "📅 Date actuelle de votre rendez-vous" 
+                {selectedDate === formatDateLocal(reservation?.date)
+                  ? "📅 Date actuelle de votre rendez-vous"
                   : "📅 Nouvelle date sélectionnée"}
               </p>
             )}
@@ -236,7 +237,7 @@ export default function ModifierDate() {
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
                 {timeSlots.map((time) => {
                   const available = isSlotAvailable(time);
-                  const isCurrentTime = time === reservation?.time && selectedDate === reservation?.date.split('T')[0];
+                  const isCurrentTime = time === reservation?.time && selectedDate === formatDateLocal(reservation?.date);
                   
                   return (
                     <button
@@ -315,7 +316,7 @@ export default function ModifierDate() {
               </Link>
               <button
                 type="submit"
-                disabled={saving || !selectedDate || !selectedTime || (selectedDate === reservation?.date.split('T')[0] && selectedTime === reservation?.time)}
+                disabled={saving || !selectedDate || !selectedTime || (selectedDate === formatDateLocal(reservation?.date) && selectedTime === reservation?.time)}
                 className="flex-1 py-3 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
               >
                 {saving ? 'Modification...' : 'Confirmer la nouvelle date'}

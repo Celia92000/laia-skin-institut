@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { formatDateLocal } from '@/lib/date-utils';
 import { ChevronLeft, ChevronRight, Clock, User, Euro, Calendar, Grid3x3, List, CalendarDays, Mail, Phone } from "lucide-react";
 // import { servicePricing, formatPriceDetails } from "@/lib/pricing";
 
@@ -52,7 +53,7 @@ export default function AdminCalendarEnhanced({ reservations, onDateSelect }: Ad
   // Fonctions pour obtenir les réservations
   const getReservationsForDay = (date: Date | null) => {
     if (!date) return [];
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = formatDateLocal(date);
     return reservations.filter(r => r.date.startsWith(dateStr));
   };
 
@@ -87,7 +88,7 @@ export default function AdminCalendarEnhanced({ reservations, onDateSelect }: Ad
     const today = new Date();
     setCurrentDate(today);
     setSelectedDate(today);
-    onDateSelect(today.toISOString().split('T')[0]);
+    onDateSelect(formatDateLocal(today));
   };
 
   // Obtenir les jours de la semaine actuelle
@@ -141,7 +142,7 @@ export default function AdminCalendarEnhanced({ reservations, onDateSelect }: Ad
   const handleDateClick = (date: Date | null) => {
     if (date) {
       setSelectedDate(date);
-      onDateSelect(date.toISOString().split('T')[0]);
+      onDateSelect(formatDateLocal(date));
     }
   };
 
