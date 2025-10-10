@@ -26,7 +26,7 @@ export async function PUT(
       select: { role: true }
     });
 
-    if (!user || (user.role !== 'admin' && user.role !== 'ADMIN' && user.role !== 'EMPLOYEE') && user.role !== 'ADMIN' && user.role !== 'EMPLOYEE') {
+    if (!user || (user.role !== 'admin' && user.role !== 'ADMIN' && user.role !== 'EMPLOYEE')) {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
 
@@ -73,7 +73,7 @@ export async function DELETE(
       select: { role: true }
     });
 
-    if (!user || (user.role !== 'admin' && user.role !== 'ADMIN' && user.role !== 'EMPLOYEE') && user.role !== 'ADMIN' && user.role !== 'EMPLOYEE') {
+    if (!user || (user.role !== 'admin' && user.role !== 'ADMIN' && user.role !== 'EMPLOYEE')) {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
 

@@ -33,6 +33,7 @@ export async function getAdminStatistics() {
         items: true,
         status: true,
         paymentStatus: true,
+        createdAt: true,
         user: {
           select: {
             name: true,

@@ -28,9 +28,6 @@ export async function GET(
       where: { id },
       include: {
         reservations: {
-          include: {
-            service: true
-          },
           orderBy: {
             date: 'desc'
           }
@@ -49,7 +46,7 @@ export async function GET(
 
     // Calculer les statistiques
     const totalSpent = client.reservations.reduce((sum, res) => {
-      return sum + (res.service?.price || 0);
+      return sum + (res.totalPrice || 0);
     }, 0);
 
     const lastVisit = client.reservations[0]?.date;

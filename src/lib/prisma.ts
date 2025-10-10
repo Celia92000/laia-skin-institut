@@ -16,7 +16,6 @@ const createPrismaClient = () => {
     },
     // Désactiver les prepared statements pour PgBouncer en mode transaction
     // Cela évite l'erreur "prepared statement does not exist"
-    adapter: undefined,
   }).$extends({
     query: {
       async $allOperations({ operation, model, args, query }) {
