@@ -3,16 +3,10 @@
 import React, { useState } from 'react';
 import { Download, FileText, FileSpreadsheet, Calendar, Users, Euro, Package } from 'lucide-react';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { formatDateLocal } from '@/lib/date-utils';
-
-declare module 'jspdf' {
-  interface jsPDF {
-    autoTable: (options: any) => jsPDF;
-  }
-}
 
 interface ExportData {
   reservations?: any[];
@@ -91,7 +85,7 @@ export default function DataExport() {
         r.status === 'completed' ? 'Terminé' : r.status === 'confirmed' ? 'Confirmé' : 'En attente'
       ]);
       
-      doc.autoTable({
+      autoTable(doc, {
         head: [['Date', 'Heure', 'Client', 'Service', 'Montant', 'Statut']],
         body: reservationData,
         startY: yPosition,
@@ -117,7 +111,7 @@ export default function DataExport() {
         new Date(c.createdAt).toLocaleDateString('fr-FR')
       ]);
       
-      doc.autoTable({
+      autoTable(doc, {
         head: [['Nom', 'Email', 'Téléphone', 'Réservations', 'Inscrit le']],
         body: clientData,
         startY: yPosition,
@@ -147,7 +141,7 @@ export default function DataExport() {
         ['Réservations terminées', stats.completedReservations || 0]
       ];
       
-      doc.autoTable({
+      autoTable(doc, {
         head: [['Indicateur', 'Valeur']],
         body: statsData,
         startY: 30,
