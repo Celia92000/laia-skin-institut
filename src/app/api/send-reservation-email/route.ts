@@ -8,9 +8,40 @@ export async function POST(request: NextRequest) {
     const { to, reservation } = await request.json();
 
     // Extraire les données de la réservation
-    const services = JSON.parse(reservation.services || '[]');
-    const packages = JSON.parse(reservation.packages || '{}');
-    const options = JSON.parse(reservation.options || '[]');
+    // Si reservation.services est déjà un string simple (slug), on le met dans un array
+    let services = [];
+    try {
+      if (typeof reservation.services === 'string') {
+        // Si c'est un JSON array valide
+        if (reservation.services.startsWith('[')) {
+          services = JSON.parse(reservation.services);
+        } else {
+          // Si c'est juste un slug de service
+          services = [reservation.services];
+        }
+      } else if (Array.isArray(reservation.services)) {
+        services = reservation.services;
+      }
+    } catch (e) {
+      console.error('Erreur lors du parsing des services, utilisation du string directement', e);
+      services = [reservation.services];
+    }
+
+    let packages = {};
+    try {
+      packages = typeof reservation.packages === 'string' ? JSON.parse(reservation.packages || '{}') : (reservation.packages || {});
+    } catch (e) {
+      console.error('Erreur lors du parsing des packages', e);
+      packages = {};
+    }
+
+    let options = [];
+    try {
+      options = typeof reservation.options === 'string' ? JSON.parse(reservation.options || '[]') : (reservation.options || []);
+    } catch (e) {
+      console.error('Erreur lors du parsing des options', e);
+      options = [];
+    }
     
     // Formater la date
     const date = new Date(reservation.date).toLocaleDateString('fr-FR', {
