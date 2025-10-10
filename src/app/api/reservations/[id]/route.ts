@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 import { formatDateLocal } from "@/lib/date-utils";
-
-const prisma = new PrismaClient();
+import { getPrismaClient } from '@/lib/prisma';
 
 export async function GET(
   request: NextRequest,
@@ -11,8 +9,9 @@ export async function GET(
 ) {
   const { id } = await params;
   try {
+    const prisma = await getPrismaClient();
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
-    
+
     if (!token) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
@@ -59,8 +58,9 @@ export async function PUT(
 ) {
   const { id } = await params;
   try {
+    const prisma = await getPrismaClient();
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
-    
+
     if (!token) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
@@ -155,8 +155,9 @@ export async function DELETE(
 ) {
   const { id } = await params;
   try {
+    const prisma = await getPrismaClient();
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
-    
+
     if (!token) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
