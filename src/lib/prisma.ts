@@ -29,13 +29,21 @@ const createPrismaClient = () => {
             return await query(args);
           } catch (error: any) {
             lastError = error;
-            // Si le moteur n'est pas connecté ou la réponse est vide, réessayer
-            if (error.message?.includes('Engine is not yet connected') ||
-                error.message?.includes('Response from the Engine was empty')) {
+            // Si le moteur n'est pas connecté, la réponse est vide, ou erreur de connexion DB
+            const isRetriableError =
+              error.message?.includes('Engine is not yet connected') ||
+              error.message?.includes('Response from the Engine was empty') ||
+              error.message?.includes('Can\'t reach database server') ||
+              error.code === 'P1001' || // Prisma connection error
+              error.code === 'P1008' || // Timeout
+              error.code === 'P1017';   // Server closed connection
+
+            if (isRetriableError) {
               retries--;
               if (retries > 0) {
                 // Attendre un peu avant de réessayer (backoff exponentiel)
-                await new Promise(resolve => setTimeout(resolve, (4 - retries) * 100));
+                const delay = (4 - retries) * 500; // 500ms, 1s, 1.5s
+                await new Promise(resolve => setTimeout(resolve, delay));
                 continue;
               }
             }

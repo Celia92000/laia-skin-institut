@@ -8,9 +8,15 @@ export async function getAdminStatistics() {
     tomorrow.setDate(tomorrow.getDate() + 1);
     
     // Récupérer toutes les réservations et commandes
+    // Optimisation : Ne pas inclure les relations si pas nécessaire pour les stats
     const prisma = await getPrismaClient();
     const reservations = await prisma.reservation.findMany({
-      include: {
+      select: {
+        id: true,
+        date: true,
+        totalPrice: true,
+        status: true,
+        paymentStatus: true,
         user: {
           select: {
             name: true,
@@ -21,7 +27,12 @@ export async function getAdminStatistics() {
     });
 
     const orders = await prisma.order.findMany({
-      include: {
+      select: {
+        id: true,
+        totalAmount: true,
+        items: true,
+        status: true,
+        paymentStatus: true,
         user: {
           select: {
             name: true,

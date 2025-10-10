@@ -16,9 +16,14 @@ export async function GET(request: NextRequest) {
 
     let decoded: any;
     try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as any;
-    } catch (jwtError) {
-      console.error('JWT verification error:', jwtError);
+      decoded = jwt.verify(token, process.env.JWT_SECRET || 'laia-skin-secret-key-2024') as any;
+    } catch (jwtError: any) {
+      // Log moins verbeux pour les tokens mal formés (ne pas polluer les logs)
+      if (jwtError.name === 'JsonWebTokenError' && jwtError.message === 'jwt malformed') {
+        // Token mal formé, probablement ancien token après déploiement
+        return NextResponse.json({ error: 'Session expirée, veuillez vous reconnecter' }, { status: 401 });
+      }
+      console.error('JWT verification error:', jwtError.name, jwtError.message);
       return NextResponse.json({ error: 'Token invalide ou expiré' }, { status: 401 });
     }
 
