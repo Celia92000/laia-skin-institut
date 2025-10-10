@@ -77,20 +77,25 @@ export async function PUT(
     }
 
     // Vérifier que l'utilisateur a le droit de modifier
-    if (existingReservation.userId !== decoded.userId && decoded.role !== 'admin') {
+    // Les admins peuvent modifier toutes les réservations
+    const isAdmin = decoded.role === 'admin' || decoded.role === 'ADMIN';
+    const isOwner = existingReservation.userId === decoded.userId;
+
+    if (!isAdmin && !isOwner) {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
 
     // Récupérer les nouvelles données
-    const { services, date, time, totalPrice } = await request.json();
+    const body = await request.json();
+    const { services, date, time, totalPrice, status, paymentStatus, notes } = body;
 
     // Vérifier la disponibilité du nouveau créneau (sauf si c'est le même)
-    if (date !== formatDateLocal(existingReservation.date) || time !== existingReservation.time) {
+    if (date && time && (date !== formatDateLocal(existingReservation.date) || time !== existingReservation.time)) {
       const conflictingReservation = await prisma.reservation.findFirst({
         where: {
           date: new Date(date),
           time: time,
-          status: { in: ['CONFIRMED', 'PENDING'] },
+          status: { in: ['confirmed', 'pending'] },
           id: { not: id }
         }
       });
@@ -103,15 +108,21 @@ export async function PUT(
       }
     }
 
+    // Préparer les données à mettre à jour (seulement les champs fournis)
+    const updateData: any = {};
+
+    if (services) updateData.services = JSON.stringify(services);
+    if (date) updateData.date = new Date(date);
+    if (time) updateData.time = time;
+    if (totalPrice !== undefined) updateData.totalPrice = totalPrice;
+    if (status) updateData.status = status;
+    if (paymentStatus) updateData.paymentStatus = paymentStatus;
+    if (notes !== undefined) updateData.notes = notes;
+
     // Mettre à jour la réservation
     const updatedReservation = await prisma.reservation.update({
       where: { id },
-      data: {
-        services: JSON.stringify(services),
-        date: new Date(date),
-        time,
-        totalPrice
-      },
+      data: updateData,
       include: {
         user: {
           select: {
