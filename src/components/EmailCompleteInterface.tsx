@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Mail, Send, Search, Inbox, Users, Filter, CheckSquare, Calendar, Euro, Tag, Star, Globe, ChevronRight, Eye, X, Bold, Italic, Underline, List, ListOrdered, Link2, Image, Type, Palette, AlignLeft, AlignCenter, AlignRight, Strikethrough, AlignJustify, Paintbrush } from 'lucide-react';
+import { Mail, Send, Search, Inbox, Users, Filter, CheckSquare, Calendar, Euro, Tag, Star, Globe, ChevronRight, Eye, X, Bold, Italic, Underline, List, ListOrdered, Link2, Image, Type, Palette, AlignLeft, AlignCenter, AlignRight, Strikethrough, AlignJustify, Paintbrush, FileText, BarChart3 } from 'lucide-react';
 import EmailConversationTab from './EmailConversationTab';
 
 interface Client {
@@ -31,9 +31,11 @@ interface EmailTemplate {
 
 import EmailSettings from './EmailSettings';
 import EmailAutomations from './EmailAutomations';
+import EmailTemplateManager from './EmailTemplateManager';
+import EmailCampaignHistory from './EmailCampaignHistory';
 
 export default function EmailCompleteInterface() {
-  const [activeTab, setActiveTab] = useState<'conversations' | 'campaigns' | 'automations' | 'settings'>('conversations');
+  const [activeTab, setActiveTab] = useState<'conversations' | 'campaigns' | 'automations' | 'settings' | 'templates' | 'history'>('conversations');
   const [clients, setClients] = useState<Client[]>([]);
   const [filteredClients, setFilteredClients] = useState<Client[]>([]);
   const [selectedClients, setSelectedClients] = useState<string[]>([]);
@@ -164,8 +166,27 @@ export default function EmailCompleteInterface() {
   const loadClients = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/clients');
+      const token = localStorage.getItem('token');
+      console.log('📧 Chargement des clients avec token:', token ? 'présent' : 'absent');
+
+      const response = await fetch('/api/admin/clients', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      console.log('📧 Réponse API clients:', response.status, response.ok);
+
+      if (!response.ok) {
+        console.error('📧 Erreur API clients:', response.status, await response.text());
+        setClients([]);
+        setLoading(false);
+        return;
+      }
+
       const data = await response.json();
+      console.log('📧 Données reçues:', data);
+
       if (Array.isArray(data)) {
         const enrichedClients = await Promise.all(data.map(async (c: any) => {
           // Calculer la dernière visite à partir des réservations
@@ -231,7 +252,9 @@ export default function EmailCompleteInterface() {
             tier: c.loyaltyProfile?.tier || 'BRONZE'
           };
         }));
-        
+
+        console.log('📧 Clients chargés pour campagne:', enrichedClients.length);
+        console.log('📧 Premier client exemple:', enrichedClients[0]);
         setClients(enrichedClients);
       }
     } catch (error) {
@@ -243,6 +266,8 @@ export default function EmailCompleteInterface() {
 
   const applyFilters = () => {
     let filtered = [...clients];
+    console.log('📧 Application des filtres. Total clients:', clients.length);
+    console.log('📧 Filtres actifs:', filters);
 
     // Recherche (nom, prénom, email)
     if (filters.search) {
@@ -302,6 +327,10 @@ export default function EmailCompleteInterface() {
       });
     }
 
+    console.log('📧 Clients après filtrage:', filtered.length);
+    if (filtered.length > 0) {
+      console.log('📧 Premier client filtré:', filtered[0]);
+    }
     setFilteredClients(filtered);
   };
 
@@ -341,6 +370,8 @@ export default function EmailCompleteInterface() {
 
     setSending(true);
     try {
+      const token = localStorage.getItem('token');
+
       // Récupérer les emails des clients sélectionnés
       const recipients = clients
         .filter(c => selectedClients.includes(c.id))
@@ -349,7 +380,10 @@ export default function EmailCompleteInterface() {
       // Envoyer la campagne
       const response = await fetch('/api/admin/campaigns/send', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({
           subject: emailData.subject,
           content: emailData.content,
@@ -358,12 +392,14 @@ export default function EmailCompleteInterface() {
         })
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        alert(`Campagne envoyée à ${recipients.length} destinataires !`);
+        alert(data.message || `Campagne envoyée à ${recipients.length} destinataires !`);
         setEmailData({ subject: '', content: '', template: '' });
         setSelectedClients([]);
       } else {
-        alert('Erreur lors de l\'envoi de la campagne');
+        alert(data.error || 'Erreur lors de l\'envoi de la campagne');
       }
     } catch (error) {
       console.error('Erreur:', error);
@@ -384,9 +420,11 @@ export default function EmailCompleteInterface() {
 
   const confirmSendTest = async () => {
     if (!testEmail || !emailData.subject || !emailData.content) return;
-    
+
     setSendingTest(true);
     try {
+      const token = localStorage.getItem('token');
+
       // Personnaliser avec des données de test
       const testContent = emailData.content
         .replace(/{name}/g, 'Test Client')
@@ -395,7 +433,10 @@ export default function EmailCompleteInterface() {
 
       const response = await fetch('/api/admin/campaigns/send', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({
           subject: `[TEST] ${emailData.subject}`,
           content: testContent,
@@ -404,11 +445,13 @@ export default function EmailCompleteInterface() {
         })
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        alert(`Email de test envoyé à ${testEmail} !`);
+        alert(data.message || `Email de test envoyé à ${testEmail} !`);
         setShowTestModal(false);
       } else {
-        alert('Erreur lors de l\'envoi du test');
+        alert(data.error || 'Erreur lors de l\'envoi du test');
       }
     } catch (error) {
       console.error('Erreur:', error);
@@ -492,13 +535,35 @@ export default function EmailCompleteInterface() {
           <button
             onClick={() => setActiveTab('settings')}
             className={`flex items-center justify-center px-4 py-2 rounded-lg transition-colors ${
-              activeTab === 'settings' 
-                ? 'bg-purple-100 text-purple-700 font-medium' 
+              activeTab === 'settings'
+                ? 'bg-purple-100 text-purple-700 font-medium'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
             <Mail className="h-4 w-4 mr-2" />
             Synchronisation
+          </button>
+          <button
+            onClick={() => setActiveTab('templates')}
+            className={`flex items-center justify-center px-4 py-2 rounded-lg transition-colors ${
+              activeTab === 'templates'
+                ? 'bg-purple-100 text-purple-700 font-medium'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            Templates
+          </button>
+          <button
+            onClick={() => setActiveTab('history')}
+            className={`flex items-center justify-center px-4 py-2 rounded-lg transition-colors ${
+              activeTab === 'history'
+                ? 'bg-purple-100 text-purple-700 font-medium'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <BarChart3 className="h-4 w-4 mr-2" />
+            Historique & Rapports
           </button>
         </div>
       </div>
@@ -511,6 +576,12 @@ export default function EmailCompleteInterface() {
           <EmailAutomations />
         ) : activeTab === 'settings' ? (
           <EmailSettings />
+        ) : activeTab === 'templates' ? (
+          <div className="p-6">
+            <EmailTemplateManager />
+          </div>
+        ) : activeTab === 'history' ? (
+          <EmailCampaignHistory />
         ) : (
           <div className="h-full flex">
             {/* Sidebar - Sélection des clients */}
@@ -638,14 +709,23 @@ export default function EmailCompleteInterface() {
                     <span className="text-gray-600">{filteredClients.length} contacts filtrés</span>
                     <span className="font-medium text-purple-600">{selectedClients.length} sélectionnés</span>
                   </div>
-                  {filteredClients.length > 0 ? (
+                  {selectedClients.length > 0 && (
+                    <div className="mb-2 p-2 bg-purple-50 border border-purple-200 rounded text-xs text-purple-700">
+                      ✓ {selectedClients.length} contact{selectedClients.length > 1 ? 's' : ''} prêt{selectedClients.length > 1 ? 's' : ''} pour l'envoi
+                    </div>
+                  )}
+                  <p className="text-xs text-gray-500 mb-2 italic">
+                    💡 Cliquez sur un contact pour le sélectionner/désélectionner
+                  </p>
+                  {filteredClients.length > 0 && (
                     <button
                       onClick={selectFiltered}
-                      className="w-full px-3 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg text-sm font-medium hover:shadow-lg transition-all"
+                      className="w-full px-3 py-2 border border-purple-300 text-purple-700 bg-white rounded-lg text-sm font-medium hover:bg-purple-50 transition-all"
                     >
-                      ✓ Sélectionner ces {filteredClients.length} contacts
+                      Tout sélectionner ({filteredClients.length})
                     </button>
-                  ) : (
+                  )}
+                  {filteredClients.length === 0 && (
                     <div className="text-xs text-center text-gray-500 py-2">
                       Aucun contact ne correspond aux filtres
                     </div>
@@ -658,20 +738,16 @@ export default function EmailCompleteInterface() {
               </div>
 
               {/* Actions de sélection */}
-              <div className="p-3 border-b bg-white flex justify-between">
-                <button
-                  onClick={selectAll}
-                  className="text-xs text-purple-600 hover:underline font-medium"
-                >
-                  Sélectionner tous les filtrés ({filteredClients.length})
-                </button>
-                <button
-                  onClick={deselectAll}
-                  className="text-xs text-gray-600 hover:underline"
-                >
-                  Tout désélectionner
-                </button>
-              </div>
+              {selectedClients.length > 0 && (
+                <div className="p-2 border-b bg-gray-50 flex justify-end">
+                  <button
+                    onClick={deselectAll}
+                    className="text-xs text-gray-600 hover:text-gray-800 hover:underline"
+                  >
+                    ✕ Tout désélectionner
+                  </button>
+                </div>
+              )}
 
               {/* Liste des clients */}
               <div className="flex-1 overflow-y-auto">
@@ -682,16 +758,22 @@ export default function EmailCompleteInterface() {
                     <div
                       key={client.id}
                       onClick={() => toggleClientSelection(client.id)}
-                      className={`p-3 border-b cursor-pointer hover:bg-white transition-colors ${
-                        selectedClients.includes(client.id) ? 'bg-purple-50' : ''
+                      className={`p-3 border-b cursor-pointer hover:bg-purple-50 transition-all ${
+                        selectedClients.includes(client.id)
+                          ? 'bg-purple-100 border-l-4 border-l-purple-500 shadow-sm'
+                          : 'hover:border-l-4 hover:border-l-purple-200'
                       }`}
                     >
                       <div className="flex items-center">
-                        <CheckSquare 
-                          className={`h-4 w-4 mr-3 ${
-                            selectedClients.includes(client.id) ? 'text-purple-600' : 'text-gray-300'
-                          }`}
-                        />
+                        <div className={`h-5 w-5 mr-3 rounded border-2 flex items-center justify-center ${
+                          selectedClients.includes(client.id)
+                            ? 'bg-purple-600 border-purple-600'
+                            : 'border-gray-300'
+                        }`}>
+                          {selectedClients.includes(client.id) && (
+                            <CheckSquare className="h-3 w-3 text-white fill-current" />
+                          )}
+                        </div>
                         <div className="flex-1">
                           <p className="text-sm font-medium">{client.name}</p>
                           <p className="text-xs text-gray-600">{client.email}</p>
@@ -1098,16 +1180,25 @@ export default function EmailCompleteInterface() {
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
                 />
               </div>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                <p className="text-sm text-blue-800">
-                  <strong>Aperçu du test :</strong>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 max-h-60 overflow-y-auto">
+                <p className="text-sm text-blue-800 font-semibold mb-2">
+                  Aperçu du test :
                 </p>
-                <p className="text-xs text-blue-700 mt-1">
+                <p className="text-xs text-blue-700 font-medium mb-2">
                   Objet : [TEST] {emailData.subject}
                 </p>
-                <p className="text-xs text-blue-600 mt-1">
-                  Les variables seront remplacées par des données de test
-                </p>
+                <div className="bg-white border border-blue-200 rounded p-2 mt-2">
+                  <p className="text-xs font-medium text-gray-700 mb-1">Contenu :</p>
+                  <div
+                    className="text-xs text-gray-800"
+                    dangerouslySetInnerHTML={{
+                      __html: emailData.content
+                        .replace(/{name}/g, '<strong>Test Client</strong>')
+                        .replace(/{date}/g, `<strong>${new Date().toLocaleDateString('fr-FR')}</strong>`)
+                        .replace(/{points}/g, '<strong>100</strong>')
+                    }}
+                  />
+                </div>
               </div>
               <div className="flex gap-3">
                 <button

@@ -67,24 +67,40 @@ export async function POST(request: NextRequest) {
       case 'email.opened':
         // Email ouvert
         if (data.data.email_id) {
-          await prisma.emailHistory.updateMany({
-            where: { resendId: data.data.email_id },
-            data: { 
-              openedAt: new Date(data.data.opened_at || Date.now())
-            }
+          const email = await prisma.emailHistory.findFirst({
+            where: { resendId: data.data.email_id }
           });
+
+          if (email) {
+            await prisma.emailHistory.update({
+              where: { id: email.id },
+              data: {
+                status: 'opened',
+                openedAt: email.openedAt || new Date(data.data.opened_at || Date.now()),
+                openCount: (email.openCount || 0) + 1
+              }
+            });
+          }
         }
         break;
-        
+
       case 'email.clicked':
         // Lien cliqué
         if (data.data.email_id) {
-          await prisma.emailHistory.updateMany({
-            where: { resendId: data.data.email_id },
-            data: { 
-              clickedAt: new Date(data.data.clicked_at || Date.now())
-            }
+          const email = await prisma.emailHistory.findFirst({
+            where: { resendId: data.data.email_id }
           });
+
+          if (email) {
+            await prisma.emailHistory.update({
+              where: { id: email.id },
+              data: {
+                status: 'clicked',
+                clickedAt: email.clickedAt || new Date(data.data.clicked_at || Date.now()),
+                clickCount: (email.clickCount || 0) + 1
+              }
+            });
+          }
         }
         break;
         
@@ -94,8 +110,8 @@ export async function POST(request: NextRequest) {
         if (data.data.email_id) {
           await prisma.emailHistory.updateMany({
             where: { resendId: data.data.email_id },
-            data: { 
-              status: 'failed',
+            data: {
+              status: 'bounced',
               errorMessage: data.data.bounce_type || 'Email bounced'
             }
           });

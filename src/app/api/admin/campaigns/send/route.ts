@@ -53,8 +53,27 @@ export async function POST(request: NextRequest) {
     let failedCount = 0;
     const errors: string[] = [];
 
+    // Filtrer les destinataires désinscrits
+    const unsubscribedEmails = await prisma.newsletterSubscriber.findMany({
+      where: {
+        isActive: false
+      },
+      select: { email: true }
+    });
+
+    const unsubscribedSet = new Set(unsubscribedEmails.map(s => s.email));
+    const filteredRecipients = recipients.filter(r => !unsubscribedSet.has(r.email));
+
+    if (filteredRecipients.length < recipients.length) {
+      console.log(`⚠️ ${recipients.length - filteredRecipients.length} destinataire(s) filtré(s) (désinscrits)`);
+    }
+
+    // Fonction pour ajouter un délai (600ms = respecte la limite de 2 emails/seconde)
+    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
     // Envoyer les emails
-    for (const recipient of recipients) {
+    for (let i = 0; i < filteredRecipients.length; i++) {
+      const recipient = filteredRecipients[i];
       try {
         // Personnaliser le contenu
         const personalizedContent = content
@@ -95,7 +114,12 @@ export async function POST(request: NextRequest) {
                 </div>
                 <div class="footer">
                   <p>LAIA SKIN Institut - Votre beauté, notre passion</p>
-                  <p>Pour vous désinscrire, <a href="#">cliquez ici</a></p>
+                  <p style="margin-top: 10px;">
+                    <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3001'}/unsubscribe?email=${encodeURIComponent(recipient.email)}"
+                       style="color: #666; text-decoration: underline;">
+                      Se désinscrire de la newsletter
+                    </a>
+                  </p>
                 </div>
               </div>
             </body>
@@ -123,7 +147,7 @@ export async function POST(request: NextRequest) {
           });
         } else {
           sentCount++;
-          
+
           // Enregistrer le succès dans l'historique
           await prisma.emailHistory.create({
             data: {
@@ -132,11 +156,17 @@ export async function POST(request: NextRequest) {
               subject: personalizedSubject,
               content: personalizedContent,
               status: 'sent',
+              resendId: data?.id || null, // Stocker l'ID Resend pour le tracking
               campaignId: campaign.id,
               template,
               direction: 'outgoing'
             }
           });
+        }
+
+        // Ajouter un délai après chaque envoi (sauf le dernier) pour respecter la limite de 2 emails/seconde
+        if (i < filteredRecipients.length - 1) {
+          await delay(600);
         }
       } catch (err: any) {
         failedCount++;
@@ -149,18 +179,20 @@ export async function POST(request: NextRequest) {
       where: { id: campaign.id },
       data: {
         status: 'sent',
-        sentCount,
         sentAt: new Date()
       }
     });
+
+    const skippedCount = recipients.length - filteredRecipients.length;
 
     return NextResponse.json({
       success: true,
       campaignId: campaign.id,
       sent: sentCount,
       failed: failedCount,
+      skipped: skippedCount,
       errors: errors.length > 0 ? errors : undefined,
-      message: `Campagne envoyée : ${sentCount} succès, ${failedCount} échecs`
+      message: `Campagne envoyée : ${sentCount} succès, ${failedCount} échecs${skippedCount > 0 ? `, ${skippedCount} désinscrits ignorés` : ''}`
     });
 
   } catch (error) {

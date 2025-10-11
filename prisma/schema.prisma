@@ -387,13 +387,15 @@ model EmailHistory {
   subject      String
   content      String   @db.Text // Contenu du message
   template     String?  // Template utilisé
-  status       String   @default("sent") // sent, failed, pending, delivered, received
+  status       String   @default("sent") // sent, failed, pending, delivered, received, opened, clicked, bounced
   direction    String   @default("outgoing") // outgoing, incoming
   campaignId   String?
   userId       String?  // Client associé
   errorMessage String?
   openedAt     DateTime?
   clickedAt    DateTime?
+  openCount    Int      @default(0) // Nombre d'ouvertures
+  clickCount   Int      @default(0) // Nombre de clics
   resendId     String?  // ID Resend pour le tracking
   messageId    String?  // Message-ID de l'email
   archived     Boolean  @default(false) // Pour archiver les conversations

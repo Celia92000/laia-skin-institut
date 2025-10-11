@@ -29,13 +29,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
 
-    // Récupérer toutes les campagnes
+    // Récupérer les dernières campagnes (limitées pour la performance)
+    const limit = parseInt(request.nextUrl.searchParams.get('limit') || '20');
+
     const campaigns = await prisma.emailCampaign.findMany({
+      take: limit,
       orderBy: {
         createdAt: 'desc'
       },
       include: {
-        emailHistory: {
+        emails: {
           select: {
             id: true,
             to: true,
@@ -43,12 +46,8 @@ export async function GET(request: NextRequest) {
             status: true,
             createdAt: true,
             userId: true,
-            user: {
-              select: {
-                name: true,
-                email: true
-              }
-            }
+            openCount: true,
+            clickCount: true
           }
         }
       }
@@ -56,18 +55,19 @@ export async function GET(request: NextRequest) {
 
     // Formater les données pour le frontend
     const formattedCampaigns = campaigns.map(campaign => {
-      const recipients = campaign.emailHistory.map(email => ({
+      const recipients = campaign.emails.map(email => ({
         id: email.id,
-        email: email.to || email.user?.email || '',
-        name: email.user?.name || 'Unknown',
+        email: email.to || '',
+        name: 'Client',
         status: email.status === 'sent' ? 'sent' :
                 email.status === 'delivered' ? 'delivered' :
                 email.status === 'opened' ? 'opened' :
                 email.status === 'clicked' ? 'clicked' :
-                email.status === 'bounced' ? 'bounced' : 'sent',
+                email.status === 'bounced' ? 'bounced' :
+                email.status === 'failed' ? 'failed' : 'sent',
         sentAt: email.createdAt,
-        openCount: 0, // TODO: Implémenter le tracking des ouvertures
-        clickCount: 0, // TODO: Implémenter le tracking des clics
+        openCount: email.openCount || 0,
+        clickCount: email.clickCount || 0
       }));
 
       const total = recipients.length;
@@ -76,6 +76,7 @@ export async function GET(request: NextRequest) {
       const opened = recipients.filter(r => r.status === 'opened' || r.status === 'clicked').length;
       const clicked = recipients.filter(r => r.status === 'clicked').length;
       const bounced = recipients.filter(r => r.status === 'bounced').length;
+      const failed = recipients.filter(r => r.status === 'failed').length;
       const unsubscribed = 0; // TODO: Implémenter les désabonnements
 
       const deliveryRate = total > 0 ? (delivered / total) * 100 : 0;
@@ -105,6 +106,7 @@ export async function GET(request: NextRequest) {
           opened,
           clicked,
           bounced,
+          failed,
           unsubscribed,
           pending: 0
         },

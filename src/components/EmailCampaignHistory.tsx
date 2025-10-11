@@ -41,6 +41,7 @@ interface CampaignHistory {
     opened: number;
     clicked: number;
     bounced: number;
+    failed?: number;
     unsubscribed: number;
     pending: number;
   };
@@ -58,11 +59,17 @@ interface CampaignHistory {
 
 export default function EmailCampaignHistory() {
   const [campaignHistory, setCampaignHistory] = useState<CampaignHistory[]>([]);
+  const [filteredCampaigns, setFilteredCampaigns] = useState<CampaignHistory[]>([]);
   const [selectedCampaign, setSelectedCampaign] = useState<CampaignHistory | null>(null);
   const [expandedCampaign, setExpandedCampaign] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<'all' | 'sent' | 'delivered' | 'opened' | 'clicked' | 'bounced'>('all');
   const [searchRecipient, setSearchRecipient] = useState('');
   const [showDetailModal, setShowDetailModal] = useState(false);
+
+  // Filtres globaux pour les campagnes
+  const [filterType, setFilterType] = useState<'all' | 'campaign' | 'automation' | 'individual'>('all');
+  const [filterDateRange, setFilterDateRange] = useState<'all' | 'today' | 'week' | 'month'>('all');
+  const [searchCampaign, setSearchCampaign] = useState('');
   
   const exportToCSV = () => {
     // Préparer les données pour l'export
@@ -76,7 +83,7 @@ export default function EmailCampaignHistory() {
       'Taux d\'ouverture (%)': campaign.performance.openRate.toFixed(1),
       'Cliqués': campaign.stats.clicked,
       'Taux de clic (%)': campaign.performance.clickRate.toFixed(1),
-      'Non distribués': campaign.stats.bounced,
+      'Échecs': (campaign.stats.bounced || 0) + (campaign.stats.failed || 0),
       'Désabonnés': campaign.stats.unsubscribed,
       'Score engagement': campaign.performance.engagementScore
     }));
@@ -109,19 +116,68 @@ export default function EmailCampaignHistory() {
     loadCampaigns();
   }, []);
 
+  // Appliquer les filtres
+  useEffect(() => {
+    let filtered = [...campaignHistory];
+
+    // Filtre par type
+    if (filterType !== 'all') {
+      filtered = filtered.filter(c => c.type === filterType);
+    }
+
+    // Filtre par date
+    if (filterDateRange !== 'all') {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+      filtered = filtered.filter(c => {
+        const campaignDate = new Date(c.sentAt);
+
+        if (filterDateRange === 'today') {
+          return campaignDate >= today;
+        } else if (filterDateRange === 'week') {
+          const weekAgo = new Date(today);
+          weekAgo.setDate(weekAgo.getDate() - 7);
+          return campaignDate >= weekAgo;
+        } else if (filterDateRange === 'month') {
+          const monthAgo = new Date(today);
+          monthAgo.setMonth(monthAgo.getMonth() - 1);
+          return campaignDate >= monthAgo;
+        }
+        return true;
+      });
+    }
+
+    // Filtre par recherche
+    if (searchCampaign) {
+      filtered = filtered.filter(c =>
+        c.name.toLowerCase().includes(searchCampaign.toLowerCase()) ||
+        c.subject.toLowerCase().includes(searchCampaign.toLowerCase())
+      );
+    }
+
+    setFilteredCampaigns(filtered);
+  }, [campaignHistory, filterType, filterDateRange, searchCampaign]);
+
   const loadCampaigns = async () => {
     try {
       const token = localStorage.getItem('token');
+      console.log('📧 Chargement des campagnes...');
       const response = await fetch('/api/admin/campaigns', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
 
+      console.log('📧 Réponse API campaigns:', response.status);
+
       if (response.ok) {
         const data = await response.json();
+        console.log('📧 Campagnes reçues:', data.length, data);
         setCampaignHistory(data);
         return;
+      } else {
+        console.error('📧 Erreur API:', response.status, await response.text());
       }
     } catch (error) {
       console.error('Erreur chargement campagnes:', error);
@@ -271,6 +327,7 @@ export default function EmailCampaignHistory() {
       case 'opened': return <Eye className="w-4 h-4 text-green-500" />;
       case 'delivered': return <CheckCircle className="w-4 h-4 text-gray-500" />;
       case 'bounced': return <XCircle className="w-4 h-4 text-red-500" />;
+      case 'failed': return <XCircle className="w-4 h-4 text-red-600" />;
       case 'unsubscribed': return <UserX className="w-4 h-4 text-orange-500" />;
       default: return <Send className="w-4 h-4 text-gray-400" />;
     }
@@ -282,6 +339,7 @@ export default function EmailCampaignHistory() {
       case 'opened': return 'Ouvert';
       case 'delivered': return 'Délivré';
       case 'bounced': return 'Non distribué';
+      case 'failed': return 'Échec';
       case 'unsubscribed': return 'Désabonné';
       default: return 'Envoyé';
     }
@@ -293,6 +351,7 @@ export default function EmailCampaignHistory() {
       case 'opened': return 'bg-green-100 text-green-700';
       case 'delivered': return 'bg-gray-100 text-gray-700';
       case 'bounced': return 'bg-red-100 text-red-700';
+      case 'failed': return 'bg-red-100 text-red-800';
       case 'unsubscribed': return 'bg-orange-100 text-orange-700';
       default: return 'bg-gray-100 text-gray-600';
     }
@@ -327,13 +386,79 @@ export default function EmailCampaignHistory() {
         </button>
       </div>
 
+      {/* Filtres globaux */}
+      <div className="bg-gray-50 rounded-lg p-4 mb-6">
+        <div className="flex items-center gap-2 mb-3">
+          <Filter className="w-4 h-4 text-gray-600" />
+          <h3 className="font-medium text-gray-900">Filtrer les campagnes</h3>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div>
+            <label className="block text-xs text-gray-600 mb-1">Rechercher</label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Nom ou objet..."
+                value={searchCampaign}
+                onChange={(e) => setSearchCampaign(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-600 mb-1">Type de campagne</label>
+            <select
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value as any)}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">Tous les types</option>
+              <option value="campaign">Campagnes</option>
+              <option value="automation">Automatisations</option>
+              <option value="individual">Emails individuels</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-600 mb-1">Période</label>
+            <select
+              value={filterDateRange}
+              onChange={(e) => setFilterDateRange(e.target.value as any)}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">Toutes les périodes</option>
+              <option value="today">Aujourd'hui</option>
+              <option value="week">7 derniers jours</option>
+              <option value="month">30 derniers jours</option>
+            </select>
+          </div>
+        </div>
+        {(filterType !== 'all' || filterDateRange !== 'all' || searchCampaign) && (
+          <div className="mt-3 flex items-center justify-between text-sm">
+            <p className="text-gray-600">
+              {filteredCampaigns.length} campagne{filteredCampaigns.length > 1 ? 's' : ''} {filteredCampaigns.length !== campaignHistory.length && `sur ${campaignHistory.length}`}
+            </p>
+            <button
+              onClick={() => {
+                setFilterType('all');
+                setFilterDateRange('all');
+                setSearchCampaign('');
+              }}
+              className="text-blue-600 hover:text-blue-700 font-medium"
+            >
+              Réinitialiser les filtres
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* Stats globales */}
       <div className="grid grid-cols-5 gap-4 mb-6">
         <div className="bg-blue-50 rounded-lg p-4">
           <div className="flex items-center justify-between mb-2">
             <Send className="w-5 h-5 text-blue-500" />
             <span className="text-2xl font-bold text-blue-900">
-              {campaignHistory.reduce((sum, c) => sum + c.stats.sent, 0)}
+              {filteredCampaigns.reduce((sum, c) => sum + c.stats.sent, 0)}
             </span>
           </div>
           <p className="text-sm text-blue-700">Total envoyés</p>
@@ -342,7 +467,7 @@ export default function EmailCampaignHistory() {
           <div className="flex items-center justify-between mb-2">
             <Eye className="w-5 h-5 text-green-500" />
             <span className="text-2xl font-bold text-green-900">
-              {Math.round(campaignHistory.reduce((sum, c) => sum + c.performance.openRate, 0) / campaignHistory.length)}%
+              {filteredCampaigns.length > 0 ? Math.round(filteredCampaigns.reduce((sum, c) => sum + c.performance.openRate, 0) / filteredCampaigns.length) : 0}%
             </span>
           </div>
           <p className="text-sm text-green-700">Taux d'ouverture</p>
@@ -351,7 +476,7 @@ export default function EmailCampaignHistory() {
           <div className="flex items-center justify-between mb-2">
             <MousePointer className="w-5 h-5 text-purple-500" />
             <span className="text-2xl font-bold text-purple-900">
-              {Math.round(campaignHistory.reduce((sum, c) => sum + c.performance.clickRate, 0) / campaignHistory.length)}%
+              {filteredCampaigns.length > 0 ? Math.round(filteredCampaigns.reduce((sum, c) => sum + c.performance.clickRate, 0) / filteredCampaigns.length) : 0}%
             </span>
           </div>
           <p className="text-sm text-purple-700">Taux de clic</p>
@@ -360,16 +485,16 @@ export default function EmailCampaignHistory() {
           <div className="flex items-center justify-between mb-2">
             <XCircle className="w-5 h-5 text-red-500" />
             <span className="text-2xl font-bold text-red-900">
-              {campaignHistory.reduce((sum, c) => sum + c.stats.bounced, 0)}
+              {filteredCampaigns.reduce((sum, c) => sum + (c.stats.bounced || 0) + (c.stats.failed || 0), 0)}
             </span>
           </div>
-          <p className="text-sm text-red-700">Non distribués</p>
+          <p className="text-sm text-red-700">Échecs</p>
         </div>
         <div className="bg-orange-50 rounded-lg p-4">
           <div className="flex items-center justify-between mb-2">
             <Activity className="w-5 h-5 text-orange-500" />
             <span className="text-2xl font-bold text-orange-900">
-              {Math.round(campaignHistory.reduce((sum, c) => sum + c.performance.engagementScore, 0) / campaignHistory.length)}
+              {filteredCampaigns.length > 0 ? Math.round(filteredCampaigns.reduce((sum, c) => sum + c.performance.engagementScore, 0) / filteredCampaigns.length) : 0}
             </span>
           </div>
           <p className="text-sm text-orange-700">Score engagement</p>
@@ -378,7 +503,14 @@ export default function EmailCampaignHistory() {
 
       {/* Liste des campagnes */}
       <div className="space-y-4">
-        {campaignHistory.map(campaign => {
+        {filteredCampaigns.length === 0 ? (
+          <div className="text-center py-12 bg-gray-50 rounded-lg">
+            <Filter className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+            <p className="text-gray-600 font-medium">Aucune campagne ne correspond aux filtres</p>
+            <p className="text-gray-500 text-sm mt-1">Essayez de modifier vos critères de recherche</p>
+          </div>
+        ) : (
+          filteredCampaigns.map(campaign => {
           const isExpanded = expandedCampaign === campaign.id;
           
           return (
@@ -439,9 +571,9 @@ export default function EmailCampaignHistory() {
                       </div>
                       <div className="text-center">
                         <p className="text-2xl font-bold text-red-600">
-                          {campaign.stats.bounced}
+                          {(campaign.stats.bounced || 0) + (campaign.stats.failed || 0)}
                         </p>
-                        <p className="text-xs text-gray-500">Non distribués</p>
+                        <p className="text-xs text-gray-500">Échecs</p>
                         <p className="text-xs text-red-600 font-medium">
                           {campaign.performance.bounceRate.toFixed(1)}%
                         </p>
@@ -491,10 +623,10 @@ export default function EmailCampaignHistory() {
                       {campaign.segments.join(', ')}
                     </span>
                   )}
-                  {campaign.completedAt && (
+                  {campaign.completedAt && campaign.sentAt && (
                     <span className="flex items-center gap-1">
                       <Clock className="w-3 h-3" />
-                      Durée: {Math.round((campaign.completedAt.getTime() - campaign.sentAt.getTime()) / 60000)} min
+                      Durée: {Math.round((new Date(campaign.completedAt).getTime() - new Date(campaign.sentAt).getTime()) / 60000)} min
                     </span>
                   )}
                 </div>
@@ -526,6 +658,7 @@ export default function EmailCampaignHistory() {
                         <option value="opened">Ouverts</option>
                         <option value="delivered">Délivrés</option>
                         <option value="bounced">Non distribués</option>
+                        <option value="failed">Échecs</option>
                       </select>
                     </div>
                   </div>
@@ -578,7 +711,8 @@ export default function EmailCampaignHistory() {
               )}
             </div>
           );
-        })}
+        })
+        )}
       </div>
 
       {/* Modal de détails */}
