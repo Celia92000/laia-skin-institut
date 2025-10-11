@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       services = reservation.services ? [reservation.services] : [];
     }
 
-    let packages = {};
+    let packages: Record<string, any> = {};
     try {
       packages = typeof reservation.packages === 'string' ? JSON.parse(reservation.packages || '{}') : (reservation.packages || {});
     } catch (e) {
