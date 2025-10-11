@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { getPrismaClient } from '@/lib/prisma';
 import { formatDateLocal } from "@/lib/date-utils";
 
-const prisma = new PrismaClient();
-
 export async function GET(request: NextRequest) {
+  const prisma = await getPrismaClient();
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);

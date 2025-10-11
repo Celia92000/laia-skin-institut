@@ -30,7 +30,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
 
-    const { emailId, replyContent, to, subject } = await request.json();
+    const { emailId, replyContent, to, subject, message } = await request.json();
+
+    // Validation
+    if (!replyContent && !message) {
+      return NextResponse.json({
+        error: 'Le contenu de la réponse est requis (replyContent ou message)'
+      }, { status: 400 });
+    }
+
+    const finalContent = replyContent || message;
 
     let originalEmail = null;
     let replySubject = subject;
@@ -50,6 +59,13 @@ export async function POST(request: NextRequest) {
       replySubject = replySubject || `Re: ${originalEmail.subject}`;
       replyTo = replyTo || originalEmail.to;
       originalUserId = originalEmail.userId;
+    } else {
+      // Si pas de emailId, to et subject sont obligatoires
+      if (!to || !subject) {
+        return NextResponse.json({
+          error: 'Les champs to et subject sont requis si emailId n\'est pas fourni'
+        }, { status: 400 });
+      }
     }
 
     // Envoyer l'email de réponse
@@ -63,7 +79,7 @@ export async function POST(request: NextRequest) {
             <h2 style="color: white; margin: 0;">LAIA SKIN Institut</h2>
           </div>
           <div style="padding: 20px; background: #f9f9f9;">
-            ${replyContent}
+            ${finalContent}
           </div>
           ${originalEmail ? `
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 0.9em;">
@@ -85,7 +101,7 @@ export async function POST(request: NextRequest) {
           to: replyTo,
           from: 'contact@laiaskininstitut.fr',
           subject: replySubject,
-          content: replyContent,
+          content: finalContent,
           template: 'reply',
           status: 'failed',
           errorMessage: error.message,
@@ -103,7 +119,7 @@ export async function POST(request: NextRequest) {
         to: replyTo,
         from: 'contact@laiaskininstitut.fr',
         subject: replySubject,
-        content: replyContent,
+        content: finalContent,
         template: 'reply',
         status: 'sent',
         userId: originalUserId,
@@ -111,10 +127,10 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       resendId: data?.id,
-      message: 'Email envoyé avec succès' 
+      message: 'Email envoyé avec succès'
     });
 
   } catch (error) {
