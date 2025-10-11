@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
             from: 'contact@laia.skininstitut.fr',
             to: to,
             subject: subject,
-            content: message,
+            content: message || '',
             template: 'custom',
             status: 'sent',
             direction: 'outgoing'
@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
             from: 'contact@laia.skininstitut.fr',
             to: to,
             subject: subject,
-            content: message,
+            content: message || '',
             template: 'custom',
             status: 'failed',
             direction: 'outgoing',
