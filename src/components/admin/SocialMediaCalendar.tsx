@@ -40,7 +40,7 @@ export default function SocialMediaCalendar() {
     platform: '',
     scheduledDate: '',
     scheduledTime: '09:00',
-    status: 'draft' as const,
+    status: 'draft' as 'draft' | 'scheduled' | 'published' | 'cancelled',
     notes: '',
     links: '',
     hashtags: '',
