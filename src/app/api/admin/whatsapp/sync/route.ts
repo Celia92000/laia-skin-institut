@@ -112,7 +112,7 @@ export async function GET(request: NextRequest) {
         orderBy: { createdAt: 'desc' },
         select: { createdAt: true }
       });
-      lastSync = lastSyncRecord?.createdAt;
+      lastSync = lastSyncRecord?.createdAt || null;
     } catch (e) {
       console.log('Table whatsAppHistory non disponible');
     }
