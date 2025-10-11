@@ -10,6 +10,15 @@
     },
     "src/app/api/cron/daily-whatsapp/route.ts": {
       "maxDuration": 60
+    },
+    "src/app/api/cron/sync-emails/route.ts": {
+      "maxDuration": 60
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/sync-emails?secret=$CRON_SECRET",
+      "schedule": "*/10 * * * *"
+    }
+  ]
 }
