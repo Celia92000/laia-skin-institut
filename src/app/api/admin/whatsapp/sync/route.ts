@@ -30,21 +30,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
 
-    const body = await request.json();
+    const body = await request.json().catch(() => ({}));
     const { days = 7 } = body; // Par défaut, synchroniser les 7 derniers jours
 
     // Synchroniser les messages WhatsApp
     await WhatsAppService.syncMessages(days);
 
-    // Compter les messages synchronisés
-    const messageCount = await prisma.whatsAppHistory.count({
-      where: {
-        platform: 'whatsapp',
-        createdAt: {
-          gte: new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+    // Compter les messages synchronisés (avec gestion d'erreur si table n'existe pas)
+    let messageCount = 0;
+    try {
+      messageCount = await prisma.whatsAppHistory.count({
+        where: {
+          platform: 'whatsapp',
+          createdAt: {
+            gte: new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+          }
         }
-      }
-    });
+      });
+    } catch (e) {
+      console.log('Table whatsAppHistory non disponible');
+    }
 
     return NextResponse.json({
       success: true,
@@ -88,20 +93,29 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Token invalide' }, { status: 401 });
     }
 
-    // Statistiques des messages WhatsApp
-    const stats = await prisma.whatsAppHistory.findMany({
-      select: {
-        direction: true,
-        status: true
-      }
-    });
+    // Statistiques des messages WhatsApp (avec gestion d'erreur si table n'existe pas)
+    let stats = [];
+    let total = 0;
+    let lastSync = null;
 
-    const total = await prisma.whatsAppHistory.count();
+    try {
+      stats = await prisma.whatsAppHistory.findMany({
+        select: {
+          direction: true,
+          status: true
+        }
+      });
 
-    const lastSync = await prisma.whatsAppHistory.findFirst({
-      orderBy: { createdAt: 'desc' },
-      select: { createdAt: true }
-    });
+      total = await prisma.whatsAppHistory.count();
+
+      const lastSyncRecord = await prisma.whatsAppHistory.findFirst({
+        orderBy: { createdAt: 'desc' },
+        select: { createdAt: true }
+      });
+      lastSync = lastSyncRecord?.createdAt;
+    } catch (e) {
+      console.log('Table whatsAppHistory non disponible');
+    }
 
     const configured = !!(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN);
 
@@ -109,7 +123,7 @@ export async function GET(request: NextRequest) {
       configured,
       stats,
       total,
-      lastSync: lastSync?.createdAt
+      lastSync
     });
 
   } catch (error) {

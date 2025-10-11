@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { getPrismaClient } from '@/lib/prisma';
 
 interface SearchFilter {
   type: string;
@@ -11,6 +9,7 @@ interface SearchFilter {
 }
 
 export async function GET(request: NextRequest) {
+  const prisma = await getPrismaClient();
   try {
     // Récupérer les paramètres de la requête
     const { searchParams } = new URL(request.url);
@@ -283,12 +282,11 @@ export async function GET(request: NextRequest) {
       { error: 'Erreur lors de la recherche' },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
 export async function POST(request: NextRequest) {
+  const prisma = await getPrismaClient();
   try {
     const { query, filters } = await request.json();
     const results: any[] = [];
@@ -550,8 +548,6 @@ export async function POST(request: NextRequest) {
       { error: 'Erreur lors de la recherche' },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 

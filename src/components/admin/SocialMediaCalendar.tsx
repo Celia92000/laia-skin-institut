@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { FaPlus, FaEdit, FaTrash, FaInstagram, FaFacebook, FaTiktok, FaYoutube, FaCheck, FaTimes } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaInstagram, FaFacebook, FaTiktok, FaSnapchat, FaLinkedin, FaTwitter, FaCheck, FaTimes } from 'react-icons/fa';
 import { formatDateLocal } from '@/lib/date-utils';
 
 interface SocialMediaPost {
@@ -44,7 +44,9 @@ export default function SocialMediaCalendar() {
     notes: '',
     links: '',
     hashtags: '',
+    mediaUrl: '',
   });
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     fetchPosts();
@@ -148,6 +150,7 @@ export default function SocialMediaCalendar() {
       notes: '',
       links: '',
       hashtags: '',
+      mediaUrl: '',
     });
     setShowModal(true);
   };
@@ -169,6 +172,7 @@ export default function SocialMediaCalendar() {
       notes: post.notes || '',
       links: post.links ? post.links.join('\n') : '',
       hashtags: post.hashtags || '',
+      mediaUrl: post.mediaUrls && post.mediaUrls.length > 0 ? post.mediaUrls[0] : '',
     });
     setShowModal(true);
   };
@@ -194,6 +198,40 @@ export default function SocialMediaCalendar() {
       content += '\n\n' + post.links.join('\n');
     }
     return content;
+  };
+
+  const publishNow = async (post: SocialMediaPost) => {
+    if (!post.platform) {
+      alert('Veuillez sélectionner une plateforme avant de publier');
+      return;
+    }
+
+    if (!confirm(`Publier maintenant sur ${post.platform} ?`)) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/admin/social-media/publish', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ postId: post.id })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert(`✅ Publication réussie sur ${post.platform}!`);
+        setShowViewModal(false);
+        fetchPosts();
+      } else {
+        alert(`❌ Erreur: ${data.error}`);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la publication:', error);
+      alert('❌ Erreur lors de la publication');
+    }
   };
 
   const markAsPublished = async (post: SocialMediaPost) => {
@@ -242,6 +280,39 @@ export default function SocialMediaCalendar() {
     }
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploading(true);
+      const token = localStorage.getItem('token');
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', file);
+
+      const response = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: uploadFormData
+      });
+
+      const data = await response.json();
+
+      if (data.url) {
+        setFormData({ ...formData, mediaUrl: data.url });
+      } else {
+        alert('Erreur lors de l\'upload du fichier');
+      }
+    } catch (error) {
+      console.error('Erreur upload:', error);
+      alert('Erreur lors de l\'upload');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -258,6 +329,7 @@ export default function SocialMediaCalendar() {
         notes: formData.notes || null,
         links: formData.links ? formData.links.split('\n').filter(l => l.trim()) : null,
         hashtags: formData.hashtags || null,
+        mediaUrls: formData.mediaUrl ? [formData.mediaUrl] : null,
       };
 
       let response;
@@ -296,10 +368,16 @@ export default function SocialMediaCalendar() {
         return <FaInstagram className="text-pink-600" />;
       case 'facebook':
         return <FaFacebook className="text-blue-600" />;
+      case 'snapchat':
+      case 'snap':
+        return <FaSnapchat className="text-yellow-400" />;
       case 'tiktok':
         return <FaTiktok className="text-black" />;
-      case 'youtube':
-        return <FaYoutube className="text-red-600" />;
+      case 'linkedin':
+        return <FaLinkedin className="text-blue-700" />;
+      case 'twitter':
+      case 'x':
+        return <FaTwitter className="text-blue-400" />;
       default:
         return null;
     }
@@ -468,9 +546,10 @@ export default function SocialMediaCalendar() {
                       <option value="">Sélectionner...</option>
                       <option value="Instagram">Instagram</option>
                       <option value="Facebook">Facebook</option>
+                      <option value="Snapchat">Snapchat</option>
                       <option value="TikTok">TikTok</option>
-                      <option value="YouTube">YouTube</option>
                       <option value="LinkedIn">LinkedIn</option>
+                      <option value="Twitter">Twitter</option>
                     </select>
                   </div>
 
@@ -522,6 +601,41 @@ export default function SocialMediaCalendar() {
                     className="w-full p-2 border rounded"
                     placeholder="#beauté #skincare"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Image/Vidéo {(formData.platform === 'TikTok' || formData.platform === 'Snapchat') && '(Média requis pour ' + formData.platform + ')'}
+                  </label>
+                  <div className="space-y-2">
+                    <input
+                      type="file"
+                      accept="image/*,video/*"
+                      onChange={handleFileUpload}
+                      className="w-full p-2 border rounded"
+                      disabled={uploading}
+                    />
+                    {uploading && <p className="text-sm text-gray-500">Upload en cours...</p>}
+                    {formData.mediaUrl && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-green-600">✓ Fichier uploadé</span>
+                        <button
+                          type="button"
+                          onClick={() => setFormData({ ...formData, mediaUrl: '' })}
+                          className="text-sm text-red-500 hover:underline"
+                        >
+                          Supprimer
+                        </button>
+                      </div>
+                    )}
+                    {formData.mediaUrl && formData.mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) && (
+                      <img
+                        src={formData.mediaUrl}
+                        alt="Aperçu"
+                        className="w-32 h-32 object-cover rounded border"
+                      />
+                    )}
+                  </div>
                 </div>
 
                 <div>
@@ -691,12 +805,21 @@ export default function SocialMediaCalendar() {
                     <FaEdit /> Modifier
                   </button>
 
+                  {viewingPost.status !== 'published' && viewingPost.platform && (
+                    <button
+                      onClick={() => publishNow(viewingPost)}
+                      className="flex-1 px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 flex items-center justify-center gap-2"
+                    >
+                      🚀 Publier maintenant
+                    </button>
+                  )}
+
                   {viewingPost.status !== 'published' && (
                     <button
                       onClick={() => markAsPublished(viewingPost)}
                       className="flex-1 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 flex items-center justify-center gap-2"
                     >
-                      <FaCheck /> Marquer comme publié
+                      <FaCheck /> Marquer publié
                     </button>
                   )}
 

@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     }
 
     const token = authHeader.substring(7);
-    const decoded = await verifyToken(token);
+    const decoded = verifyToken(token);
 
     if (!decoded || !decoded.userId) {
       return NextResponse.json({ error: 'Token invalide' }, { status: 401 });
@@ -225,8 +225,8 @@ export async function GET(request: Request) {
     }
 
     const token = authHeader.substring(7);
-    const decoded = await verifyToken(token);
-    
+    const decoded = verifyToken(token);
+
     if (!decoded || !decoded.userId) {
       return NextResponse.json({ error: 'Token invalide' }, { status: 401 });
     }

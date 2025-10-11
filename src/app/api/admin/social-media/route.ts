@@ -29,6 +29,9 @@ export async function GET(request: Request) {
     const posts = await prisma.socialMediaPost.findMany({
       where: whereClause,
       orderBy: { scheduledDate: 'asc' }
+    }).catch((err) => {
+      console.log('⚠️  Table socialMediaPost non disponible:', err.message);
+      return [];
     });
 
     return NextResponse.json(posts);
