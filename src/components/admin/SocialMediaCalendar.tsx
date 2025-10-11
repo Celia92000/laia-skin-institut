@@ -237,6 +237,7 @@ export default function SocialMediaCalendar() {
   const markAsPublished = async (post: SocialMediaPost) => {
     try {
       const token = localStorage.getItem('token');
+      const { id, ...postData } = post;
       const response = await fetch('/api/admin/social-media', {
         method: 'PUT',
         headers: {
@@ -244,8 +245,8 @@ export default function SocialMediaCalendar() {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          id: post.id,
-          ...post,
+          id,
+          ...postData,
           status: 'published',
           publishedAt: new Date().toISOString()
         })
