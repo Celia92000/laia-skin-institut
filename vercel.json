@@ -4,16 +4,6 @@
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "outputDirectory": ".next",
-  "crons": [
-    {
-      "path": "/api/cron/daily-emails",
-      "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/api/cron/daily-whatsapp",
-      "schedule": "0 18 * * *"
-    }
-  ],
   "functions": {
     "src/app/api/cron/daily-emails/route.ts": {
       "maxDuration": 60
