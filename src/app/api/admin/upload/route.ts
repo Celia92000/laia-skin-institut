@@ -17,6 +17,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Token invalide' }, { status: 401 });
     }
 
+    // Vérifier le Content-Type
+    const contentType = request.headers.get('content-type');
+    if (!contentType || !contentType.includes('multipart/form-data')) {
+      return NextResponse.json({
+        error: 'Content-Type doit être multipart/form-data pour l\'upload de fichier'
+      }, { status: 400 });
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
 

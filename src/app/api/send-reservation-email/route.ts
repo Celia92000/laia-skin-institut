@@ -7,11 +7,21 @@ export async function POST(request: NextRequest) {
   try {
     const { to, reservation } = await request.json();
 
+    // Validation
+    if (!to || !reservation) {
+      return NextResponse.json({
+        success: false,
+        error: 'Champs obligatoires manquants: to, reservation'
+      }, { status: 400 });
+    }
+
     // Extraire les données de la réservation
     // Si reservation.services est déjà un string simple (slug), on le met dans un array
     let services = [];
     try {
-      if (typeof reservation.services === 'string') {
+      if (!reservation.services) {
+        services = [];
+      } else if (typeof reservation.services === 'string') {
         // Si c'est un JSON array valide
         if (reservation.services.startsWith('[')) {
           services = JSON.parse(reservation.services);
@@ -24,7 +34,7 @@ export async function POST(request: NextRequest) {
       }
     } catch (e) {
       console.error('Erreur lors du parsing des services, utilisation du string directement', e);
-      services = [reservation.services];
+      services = reservation.services ? [reservation.services] : [];
     }
 
     let packages = {};

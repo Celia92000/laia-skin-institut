@@ -4,6 +4,38 @@ import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'laia-skin-secret-key-2024';
 
+// GET - Récupérer un article spécifique
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const prisma = await getPrismaClient();
+  try {
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+    }
+
+    const token = authHeader.substring(7);
+    jwt.verify(token, JWT_SECRET);
+
+    const { id } = await params;
+
+    const post = await prisma.blogPost.findUnique({
+      where: { id }
+    });
+
+    if (!post) {
+      return NextResponse.json({ error: 'Article non trouvé' }, { status: 404 });
+    }
+
+    return NextResponse.json(post);
+  } catch (error) {
+    console.error('Erreur lors de la récupération de l\'article:', error);
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
+  }
+}
+
 // PUT - Mettre à jour un article
 export async function PUT(
   request: Request,

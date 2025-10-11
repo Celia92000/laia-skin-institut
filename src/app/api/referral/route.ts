@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
 
 // Générer un code de parrainage unique
@@ -11,6 +11,7 @@ function generateReferralCode(name: string): string {
 
 // GET - Obtenir les informations de parrainage d'un utilisateur
 export async function GET(request: Request) {
+  const prisma = await getPrismaClient();
   try {
     const authHeader = request.headers.get('authorization');
     if (!authHeader?.startsWith('Bearer ')) {
@@ -79,6 +80,7 @@ export async function GET(request: Request) {
 
 // POST - Créer un nouveau parrainage
 export async function POST(request: Request) {
+  const prisma = await getPrismaClient();
   try {
     const authHeader = request.headers.get('authorization');
     if (!authHeader?.startsWith('Bearer ')) {
@@ -159,7 +161,8 @@ export async function POST(request: Request) {
 
 // PUT - Utiliser une récompense de parrainage
 export async function PUT(request: Request) {
-  try {
+  const prisma = await getPrismaClient();
+  try{
     const authHeader = request.headers.get('authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });

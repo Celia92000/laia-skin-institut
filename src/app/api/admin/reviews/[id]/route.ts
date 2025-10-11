@@ -4,6 +4,73 @@ import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'laia-skin-secret-key-2024';
 
+// GET - Récupérer un avis spécifique par ID
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const prisma = await getPrismaClient();
+  try {
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+    }
+
+    const token = authHeader.substring(7);
+    jwt.verify(token, JWT_SECRET);
+
+    const { id } = await params;
+
+    // Vérifier si c'est un avis Google ou normal
+    const isGoogleReview = id.startsWith('google_');
+
+    if (isGoogleReview) {
+      const review = await prisma.googleReview.findUnique({
+        where: { id: id.replace('google_', '') }
+      });
+
+      if (!review) {
+        return NextResponse.json({ error: 'Avis non trouvé' }, { status: 404 });
+      }
+
+      return NextResponse.json({
+        id: `google_${review.id}`,
+        ...review,
+        isGoogleReview: true
+      });
+    } else {
+      const review = await prisma.review.findUnique({
+        where: { id },
+        include: {
+          user: {
+            select: {
+              name: true,
+              email: true
+            }
+          }
+        }
+      });
+
+      if (!review) {
+        return NextResponse.json({ error: 'Avis non trouvé' }, { status: 404 });
+      }
+
+      return NextResponse.json({
+        ...review,
+        userName: review.user?.name,
+        userEmail: review.user?.email,
+        photos: typeof review.photos === 'string'
+          ? (review.photos ? JSON.parse(review.photos) : [])
+          : review.photos,
+        isGoogleReview: false
+      });
+    }
+  } catch (error) {
+    console.error('Erreur lors de la récupération de l\'avis:', error);
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
+  }
+}
+
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }

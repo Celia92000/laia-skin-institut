@@ -29,6 +29,78 @@ async function generateInvoiceNumber(): Promise<string> {
   return `FAC-${year}${month}-${nextNumber}`;
 }
 
+// GET - Récupérer les informations de paiement d'une réservation
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const token = request.headers.get('authorization')?.replace('Bearer ', '');
+
+    if (!token) {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'laia-skin-secret-key-2024') as any;
+
+    const prisma = await getPrismaClient();
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId }
+    });
+
+    if (!user || (user.role !== 'admin' && user.role !== 'ADMIN' && user.role !== 'EMPLOYEE')) {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+    }
+
+    // Récupérer la réservation avec les informations de paiement
+    const reservation = await prisma.reservation.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        totalPrice: true,
+        paymentStatus: true,
+        paymentAmount: true,
+        paymentMethod: true,
+        paymentDate: true,
+        paymentNotes: true,
+        invoiceNumber: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
+      }
+    });
+
+    if (!reservation) {
+      return NextResponse.json({ error: 'Réservation non trouvée' }, { status: 404 });
+    }
+
+    return NextResponse.json({
+      id: reservation.id,
+      userId: reservation.user.id,
+      userName: reservation.user.name,
+      userEmail: reservation.user.email,
+      totalPrice: reservation.totalPrice,
+      paymentStatus: reservation.paymentStatus,
+      paymentAmount: reservation.paymentAmount,
+      paymentMethod: reservation.paymentMethod,
+      paymentDate: reservation.paymentDate?.toISOString(),
+      paymentNotes: reservation.paymentNotes,
+      invoiceNumber: reservation.invoiceNumber
+    });
+  } catch (error) {
+    console.error('Erreur lors de la récupération des informations de paiement:', error);
+    return NextResponse.json(
+      { error: 'Erreur lors de la récupération des informations de paiement' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

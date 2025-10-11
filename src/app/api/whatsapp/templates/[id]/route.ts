@@ -2,6 +2,51 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
 
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  try {
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+    }
+
+    const token = authHeader.substring(7);
+    const decoded = verifyToken(token);
+    if (!decoded || decoded.role !== 'admin') {
+      return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
+    }
+
+    const template = await prisma.whatsAppTemplate.findUnique({
+      where: { id },
+      include: {
+        _count: {
+          select: {
+            campaigns: true
+          }
+        }
+      }
+    });
+
+    if (!template) {
+      return NextResponse.json({ error: 'Template non trouvé' }, { status: 404 });
+    }
+
+    return NextResponse.json({
+      ...template,
+      campaignsCount: template._count.campaigns
+    });
+  } catch (error) {
+    console.error('Erreur récupération template:', error);
+    return NextResponse.json({
+      error: 'Erreur serveur',
+      details: error instanceof Error ? error.message : 'Erreur inconnue'
+    }, { status: 500 });
+  }
+}
+
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }

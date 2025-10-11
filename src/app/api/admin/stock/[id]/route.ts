@@ -1,6 +1,50 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrismaClient } from '@/lib/prisma';
 
+// GET - Récupérer un élément de stock spécifique par ID
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const prisma = await getPrismaClient();
+  try {
+    const { id } = await params;
+
+    // Récupérer l'élément de stock avec ses relations
+    const stock = await prisma.stock.findUnique({
+      where: { id },
+      include: {
+        serviceLinks: {
+          include: {
+            service: {
+              select: {
+                id: true,
+                name: true,
+                category: true
+              }
+            }
+          }
+        },
+        movements: {
+          orderBy: {
+            createdAt: 'desc'
+          },
+          take: 10
+        }
+      }
+    });
+
+    if (!stock) {
+      return NextResponse.json({ error: 'Élément de stock non trouvé' }, { status: 404 });
+    }
+
+    return NextResponse.json(stock);
+  } catch (error) {
+    console.error('Erreur lors de la récupération du stock:', error);
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
+  }
+}
+
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

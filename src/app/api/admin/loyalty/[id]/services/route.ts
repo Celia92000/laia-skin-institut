@@ -2,6 +2,64 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getPrismaClient } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
 
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const prisma = await getPrismaClient();
+  try {
+    const { id } = await params;
+    const token = req.headers.get('authorization')?.replace('Bearer ', '');
+
+    if (!token) {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+    if (decoded.role?.toLowerCase() !== 'admin') {
+      return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
+    }
+
+    // Récupérer le profil de fidélité avec les informations de soins
+    const profile = await prisma.loyaltyProfile.findUnique({
+      where: { id },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
+      }
+    });
+
+    if (!profile) {
+      return NextResponse.json({ error: 'Profil non trouvé' }, { status: 404 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      servicesCount: profile.individualServicesCount,
+      profile: {
+        id: profile.id,
+        userId: profile.userId,
+        user: profile.user,
+        individualServicesCount: profile.individualServicesCount,
+        points: profile.points,
+        tier: profile.tier
+      }
+    });
+
+  } catch (error) {
+    console.error('Erreur récupération soins:', error);
+    return NextResponse.json(
+      { error: 'Erreur lors de la récupération' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }

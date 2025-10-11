@@ -29,6 +29,82 @@ async function verifyAdmin(request: NextRequest) {
   }
 }
 
+// GET - Récupérer une réservation spécifique par ID
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  const admin = await verifyAdmin(request);
+  if (!admin) {
+    return NextResponse.json(
+      { error: 'Non autorisé' },
+      { status: 401 }
+    );
+  }
+
+  try {
+    const prisma = await getPrismaClient();
+    const reservation = await prisma.reservation.findUnique({
+      where: { id },
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true,
+            phone: true
+          }
+        }
+      }
+    });
+
+    if (!reservation) {
+      return NextResponse.json(
+        { error: 'Réservation non trouvée' },
+        { status: 404 }
+      );
+    }
+
+    // Formatter la réponse
+    return NextResponse.json({
+      id: reservation.id,
+      userId: reservation.userId,
+      userName: reservation.user.name,
+      userEmail: reservation.user.email,
+      phone: reservation.user.phone,
+      services: typeof reservation.services === 'string'
+        ? (reservation.services.startsWith('[') || reservation.services.startsWith('{')
+            ? JSON.parse(reservation.services)
+            : [reservation.services])
+        : reservation.services,
+      packages: typeof reservation.packages === 'string'
+        ? (reservation.packages.startsWith('{')
+            ? JSON.parse(reservation.packages)
+            : {})
+        : reservation.packages || {},
+      date: reservation.date.toISOString(),
+      time: reservation.time,
+      totalPrice: reservation.totalPrice,
+      status: reservation.status,
+      paymentStatus: reservation.paymentStatus,
+      paymentAmount: reservation.paymentAmount,
+      paymentMethod: reservation.paymentMethod,
+      paymentDate: reservation.paymentDate?.toISOString(),
+      paymentNotes: reservation.paymentNotes,
+      invoiceNumber: reservation.invoiceNumber,
+      notes: reservation.notes,
+      createdAt: reservation.createdAt.toISOString(),
+      updatedAt: reservation.updatedAt.toISOString()
+    });
+  } catch (error) {
+    console.error('Erreur lors de la récupération de la réservation:', error);
+    return NextResponse.json(
+      { error: 'Erreur lors de la récupération' },
+      { status: 500 }
+    );
+  }
+}
+
 // PATCH - Mettre à jour le statut d'une réservation
 export async function PATCH(
   request: NextRequest,

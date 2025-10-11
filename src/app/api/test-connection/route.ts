@@ -1,46 +1,29 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { getPrismaClient } from '@/lib/prisma';
 
 export async function GET() {
-  const directUrl = process.env.DATABASE_URL?.replace(
-    'aws-1-eu-west-3.pooler.supabase.com:5432',
-    'db.zsxweurvtsrdgehtadwa.supabase.co:5432'
-  );
-  
-  const prisma = new PrismaClient({
-    datasources: {
-      db: {
-        url: directUrl || process.env.DATABASE_URL
-      }
-    }
-  });
-
   try {
+    const prisma = await getPrismaClient();
+
     const services = await prisma.service.findMany({
       where: { active: true },
       select: { name: true, slug: true }
     });
-    
-    await prisma.$disconnect();
-    
+
     return NextResponse.json({
       success: true,
       count: services.length,
       services,
       connection: {
-        original: process.env.DATABASE_URL?.includes('pooler') ? 'pooler' : 'direct',
-        used: 'direct override'
+        type: 'getPrismaClient with connection pooling',
+        database: process.env.DATABASE_URL?.includes('pooler') ? 'pooler' : 'direct'
       }
     });
   } catch (error: any) {
-    await prisma.$disconnect();
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: false,
       error: error.message,
-      connection: {
-        original: process.env.DATABASE_URL?.includes('pooler') ? 'pooler' : 'direct',
-        attempted: 'direct override'
-      }
+      details: error.stack
     }, { status: 500 });
   }
 }

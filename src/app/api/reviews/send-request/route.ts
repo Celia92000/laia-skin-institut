@@ -1,12 +1,15 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { getPrismaClient } from '@/lib/prisma';
 
 // Fonction pour envoyer automatiquement une demande d'avis après un soin
 export async function POST(request: Request) {
+  const prisma = await getPrismaClient();
   try {
     const { reservationId } = await request.json();
+
+    if (!reservationId) {
+      return NextResponse.json({ error: 'reservationId est requis' }, { status: 400 });
+    }
 
     // Récupérer la réservation
     const reservation = await prisma.reservation.findUnique({
@@ -79,13 +82,12 @@ export async function POST(request: Request) {
       { error: 'Erreur lors de l\'envoi de la demande d\'avis' },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
 // Fonction pour envoyer automatiquement les emails 24h après le soin
 export async function GET() {
+  const prisma = await getPrismaClient();
   try {
     // Trouver les réservations terminées d'hier qui n'ont pas reçu d'email d'avis
     const yesterday = new Date();
@@ -139,7 +141,5 @@ export async function GET() {
       { error: 'Erreur lors de l\'envoi automatique' },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
