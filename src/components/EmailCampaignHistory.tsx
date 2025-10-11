@@ -106,10 +106,28 @@ export default function EmailCampaignHistory() {
 
   // Charger l'historique des campagnes depuis l'API
   useEffect(() => {
-    // NOTE: Pour l'instant, pas d'API pour les campagnes email
-    // Les données ci-dessous sont des données de démonstration
-    // TODO: Créer une API /api/admin/campaigns pour gérer l'historique réel
+    loadCampaigns();
+  }, []);
 
+  const loadCampaigns = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/admin/campaigns', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setCampaignHistory(data);
+        return;
+      }
+    } catch (error) {
+      console.error('Erreur chargement campagnes:', error);
+    }
+
+    // En cas d'erreur, utiliser les données de démo
     const demoData: CampaignHistory[] = [
     {
       id: '1',
@@ -245,7 +263,7 @@ export default function EmailCampaignHistory() {
   ];
 
     setCampaignHistory(demoData);
-  }, []);
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -612,9 +630,16 @@ export default function EmailCampaignHistory() {
               {/* Aperçu du contenu */}
               <div>
                 <h4 className="font-semibold text-gray-900 mb-3">Aperçu du message</h4>
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <p className="font-medium text-gray-900 mb-2">{selectedCampaign.subject}</p>
-                  <p className="text-sm text-gray-600 whitespace-pre-wrap">{selectedCampaign.content}</p>
+                <div className="border border-gray-200 rounded-lg p-4 bg-white">
+                  <div className="mb-3 pb-3 border-b border-gray-200">
+                    <p className="text-xs text-gray-500 mb-1">Objet :</p>
+                    <p className="font-medium text-gray-900">{selectedCampaign.subject}</p>
+                  </div>
+                  <div className="text-xs text-gray-500 mb-2">Contenu :</div>
+                  <div
+                    className="prose prose-sm max-w-none text-gray-700"
+                    dangerouslySetInnerHTML={{ __html: selectedCampaign.content }}
+                  />
                 </div>
               </div>
 

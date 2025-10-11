@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Mail, Send, Search, Inbox, Clock, CheckCircle, AlertCircle, Reply, User, Calendar } from 'lucide-react';
+import { Mail, Send, Search, Inbox, Clock, CheckCircle, AlertCircle, Reply, User, Calendar, FileText, ChevronDown, RefreshCw, Download } from 'lucide-react';
 
 interface Email {
   id: string;
@@ -29,6 +29,52 @@ interface Conversation {
   unread: boolean;
 }
 
+interface EmailTemplate {
+  id: string;
+  name: string;
+  subject: string;
+  content: string;
+  category: string;
+}
+
+const EMAIL_TEMPLATES: EmailTemplate[] = [
+  {
+    id: 'welcome',
+    name: 'Bienvenue',
+    subject: 'Bienvenue chez LAIA SKIN Institut',
+    content: '<p>Bonjour {name},</p><p>Bienvenue chez LAIA SKIN Institut ! Nous sommes ravis de vous accueillir parmi nos clients.</p><p>Notre équipe est à votre disposition pour prendre soin de votre peau avec des soins personnalisés et de haute qualité.</p><p>À très bientôt,<br>L\'équipe LAIA SKIN</p>',
+    category: 'general'
+  },
+  {
+    id: 'appointment-reminder',
+    name: 'Rappel RDV',
+    subject: 'Rappel : Votre rendez-vous chez LAIA SKIN',
+    content: '<p>Bonjour {name},</p><p>Nous vous rappelons votre rendez-vous prévu le {date}.</p><p>Nous avons hâte de vous accueillir !</p><p>Si vous avez un empêchement, n\'hésitez pas à nous contacter.</p><p>À bientôt,<br>L\'équipe LAIA SKIN</p>',
+    category: 'appointment'
+  },
+  {
+    id: 'thank-you',
+    name: 'Remerciement',
+    subject: 'Merci pour votre visite',
+    content: '<p>Bonjour {name},</p><p>Merci d\'avoir choisi LAIA SKIN Institut pour votre soin.</p><p>Nous espérons que vous avez passé un moment agréable et que les résultats répondent à vos attentes.</p><p>N\'hésitez pas à nous faire part de vos retours ou à prendre rendez-vous pour votre prochain soin.</p><p>À très bientôt,<br>L\'équipe LAIA SKIN</p>',
+    category: 'followup'
+  },
+  {
+    id: 'promo',
+    name: 'Offre promotionnelle',
+    subject: '🎁 Offre spéciale pour vous',
+    content: '<p>Bonjour {name},</p><p>Profitez de notre offre exclusive : <strong>-20% sur votre prochain soin</strong> !</p><p>Cette offre est valable jusqu\'au [DATE]. Réservez vite votre rendez-vous.</p><p>À très bientôt,<br>L\'équipe LAIA SKIN</p>',
+    category: 'promotion'
+  },
+  {
+    id: 'birthday',
+    name: 'Anniversaire',
+    subject: '🎂 Joyeux anniversaire {name} !',
+    content: '<p>Joyeux anniversaire {name} ! 🎉</p><p>Pour célébrer votre jour spécial, nous vous offrons <strong>-15% sur tous nos soins</strong> pendant tout le mois de votre anniversaire.</p><p>Venez vous faire chouchouter !</p><p>L\'équipe LAIA SKIN vous souhaite une merveilleuse journée. 🎂</p>',
+    category: 'special'
+  }
+];
+
 export default function EmailConversationTab() {
   const [emails, setEmails] = useState<Email[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -40,6 +86,11 @@ export default function EmailConversationTab() {
   const [sending, setSending] = useState(false);
   const [showCompose, setShowCompose] = useState(false);
   const [newEmail, setNewEmail] = useState({ to: '', subject: '', content: '' });
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [showNewEmailTemplates, setShowNewEmailTemplates] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<{success: boolean; message: string} | null>(null);
+  const [selectedConvId, setSelectedConvId] = useState<string | null>(null);
 
   useEffect(() => {
     loadEmails();
@@ -49,15 +100,15 @@ export default function EmailConversationTab() {
     // Grouper les emails en conversations
     if (emails.length > 0) {
       const convMap = new Map<string, Conversation>();
-      
+
       emails.forEach(email => {
         // Normaliser les adresses email pour identifier le client
         const institutEmails = ['contact@laiaskininstitut.fr', 'contact@laia.skininstitut.fr', 'système@laiaskininstitut.fr'];
         const clientEmail = institutEmails.includes(email.from.toLowerCase()) ? email.to : email.from;
-        
+
         // Créer une clé basée uniquement sur l'email du client
         const key = clientEmail.toLowerCase();
-        
+
         if (!convMap.has(key)) {
           // Première conversation avec ce client
           convMap.set(key, {
@@ -80,25 +131,36 @@ export default function EmailConversationTab() {
           }
         }
       });
-      
+
       // Trier les emails dans chaque conversation par date
       convMap.forEach(conv => {
         conv.emails.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
       });
-      
+
       // Convertir en array et trier par date du dernier message
       const convArray = Array.from(convMap.values());
       convArray.sort((a, b) => new Date(b.lastMessage.createdAt).getTime() - new Date(a.lastMessage.createdAt).getTime());
-      
+
       setConversations(convArray);
     }
   }, [emails]);
+
+  // Resélectionner la conversation quand les conversations sont mises à jour
+  useEffect(() => {
+    if (selectedConvId && conversations.length > 0) {
+      const updatedConv = conversations.find(c => c.id === selectedConvId);
+      if (updatedConv) {
+        setSelectedConversation(updatedConv);
+        setSelectedConvId(null); // Réinitialiser
+      }
+    }
+  }, [conversations, selectedConvId]);
 
   const loadEmails = async () => {
     try {
       const response = await fetch('/api/admin/emails');
       const data = await response.json();
-      
+
       if (Array.isArray(data)) {
         setEmails(data);
       } else {
@@ -110,6 +172,45 @@ export default function EmailConversationTab() {
       setEmails([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const syncEmailsFromMailbox = async () => {
+    setSyncing(true);
+    setSyncStatus(null);
+
+    try {
+      const response = await fetch('/api/admin/emails/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ days: 30 }) // Synchroniser les 30 derniers jours
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setSyncStatus({
+          success: true,
+          message: `✅ Synchronisation réussie ! ${data.emailCount || 0} emails dans l'historique.`
+        });
+        // Recharger les emails
+        await loadEmails();
+      } else {
+        setSyncStatus({
+          success: false,
+          message: data.message || 'Erreur de synchronisation. Vérifiez que EMAIL_PASSWORD est configuré dans .env.local'
+        });
+      }
+    } catch (error) {
+      console.error('Erreur sync:', error);
+      setSyncStatus({
+        success: false,
+        message: 'Erreur de connexion. Vérifiez votre configuration email.'
+      });
+    } finally {
+      setSyncing(false);
+      // Masquer le message après 5 secondes
+      setTimeout(() => setSyncStatus(null), 5000);
     }
   };
 
@@ -132,17 +233,15 @@ export default function EmailConversationTab() {
       });
 
       if (response.ok) {
+        const responseData = await response.json();
+        console.log('Email envoyé avec succès:', responseData);
+
         setReplyContent('');
-        // Sauvegarder l'ID de la conversation actuelle
-        const currentConvId = selectedConversation.id;
+        // Sauvegarder l'ID de la conversation actuelle pour la resélectionner
+        setSelectedConvId(selectedConversation.id);
+
+        // Recharger les emails - le useEffect se chargera de resélectionner la conversation
         await loadEmails();
-        // Forcer la mise à jour après un court délai pour laisser le temps aux conversations de se reconstruire
-        setTimeout(() => {
-          const updatedConv = conversations.find(c => c.id === currentConvId);
-          if (updatedConv) {
-            setSelectedConversation(updatedConv);
-          }
-        }, 100);
       } else {
         alert('Erreur lors de l\'envoi de l\'email');
       }
@@ -179,6 +278,29 @@ export default function EmailConversationTab() {
     } finally {
       setSending(false);
     }
+  };
+
+  const loadTemplateToReply = (template: EmailTemplate) => {
+    const clientEmail = selectedConversation?.participants[0] || '';
+    const clientName = clientEmail.split('@')[0].replace('.', ' ');
+    let content = template.content
+      .replace(/{name}/g, clientName)
+      .replace(/{date}/g, new Date().toLocaleDateString('fr-FR'))
+      .replace(/{points}/g, '0');
+
+    // Convertir le HTML en texte simple pour la zone de réponse
+    const textContent = content.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ');
+    setReplyContent(textContent);
+    setShowTemplates(false);
+  };
+
+  const loadTemplateToNewEmail = (template: EmailTemplate) => {
+    setNewEmail({
+      ...newEmail,
+      subject: template.subject,
+      content: template.content
+    });
+    setShowNewEmailTemplates(false);
   };
 
   const getStatusIcon = (status: string) => {
@@ -233,13 +355,44 @@ export default function EmailConversationTab() {
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">Messages</h2>
-            <button
-              onClick={() => setShowCompose(true)}
-              className="px-3 py-1 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm"
-            >
-              Nouveau
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={syncEmailsFromMailbox}
+                disabled={syncing}
+                className="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm flex items-center gap-1 disabled:opacity-50"
+                title="Synchroniser avec la boîte mail"
+              >
+                {syncing ? (
+                  <>
+                    <Clock className="h-3 w-3 animate-spin" />
+                    Sync...
+                  </>
+                ) : (
+                  <>
+                    <Download className="h-3 w-3" />
+                    Sync
+                  </>
+                )}
+              </button>
+              <button
+                onClick={() => setShowCompose(true)}
+                className="px-3 py-1 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm"
+              >
+                Nouveau
+              </button>
+            </div>
           </div>
+
+          {/* Message de statut de synchronisation */}
+          {syncStatus && (
+            <div className={`mb-3 p-2 rounded-lg text-xs ${
+              syncStatus.success
+                ? 'bg-green-50 text-green-800 border border-green-200'
+                : 'bg-red-50 text-red-800 border border-red-200'
+            }`}>
+              {syncStatus.message}
+            </div>
+          )}
           
           <div className="relative mb-3">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -326,8 +479,20 @@ export default function EmailConversationTab() {
                     {selectedConversation.participants.find(p => p !== 'contact@laiaskininstitut.fr') || selectedConversation.participants[0]}
                   </p>
                 </div>
-                <div className="text-sm text-gray-500">
-                  {selectedConversation.emails.length} message{selectedConversation.emails.length > 1 ? 's' : ''}
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-500">
+                    {selectedConversation.emails.length} message{selectedConversation.emails.length > 1 ? 's' : ''}
+                  </span>
+                  <button
+                    onClick={async () => {
+                      setSelectedConvId(selectedConversation.id);
+                      await loadEmails();
+                    }}
+                    className="p-2 text-gray-600 hover:text-purple-600 transition-colors"
+                    title="Actualiser la conversation"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                  </button>
                 </div>
               </div>
             </div>
@@ -370,7 +535,34 @@ export default function EmailConversationTab() {
 
             {/* Zone de réponse */}
             <div className="p-4 border-t border-gray-200 bg-white">
+              {/* Templates dropdown */}
+              {showTemplates && (
+                <div className="mb-3 bg-gray-50 border border-gray-200 rounded-lg p-3 max-h-48 overflow-y-auto">
+                  <div className="text-xs font-semibold text-gray-700 mb-2">Choisir un template :</div>
+                  <div className="space-y-1">
+                    {EMAIL_TEMPLATES.map(template => (
+                      <button
+                        key={template.id}
+                        onClick={() => loadTemplateToReply(template)}
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-purple-100 rounded-lg transition-colors flex items-center gap-2"
+                      >
+                        <FileText className="w-4 h-4 text-purple-600" />
+                        <span className="font-medium">{template.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="flex space-x-2">
+                <button
+                  onClick={() => setShowTemplates(!showTemplates)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-1 text-sm"
+                  title="Utiliser un template"
+                >
+                  <FileText className="h-4 w-4 text-gray-600" />
+                  <ChevronDown className="h-3 w-3 text-gray-600" />
+                </button>
                 <input
                   type="text"
                   value={replyContent}
@@ -399,6 +591,37 @@ export default function EmailConversationTab() {
           <div className="flex-1 p-6">
             <h3 className="text-lg font-semibold mb-4">Nouveau message</h3>
             <div className="space-y-4 max-w-2xl">
+              {/* Bouton pour afficher les templates */}
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={() => setShowNewEmailTemplates(!showNewEmailTemplates)}
+                  className="px-4 py-2 border border-purple-300 text-purple-700 rounded-lg hover:bg-purple-50 flex items-center gap-2 text-sm font-medium"
+                >
+                  <FileText className="w-4 h-4" />
+                  {showNewEmailTemplates ? 'Masquer les templates' : 'Utiliser un template'}
+                  <ChevronDown className={`w-3 h-3 transition-transform ${showNewEmailTemplates ? 'rotate-180' : ''}`} />
+                </button>
+              </div>
+
+              {/* Templates liste */}
+              {showNewEmailTemplates && (
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                  <div className="text-sm font-semibold text-purple-900 mb-3">Choisir un template :</div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {EMAIL_TEMPLATES.map(template => (
+                      <button
+                        key={template.id}
+                        onClick={() => loadTemplateToNewEmail(template)}
+                        className="text-left px-3 py-2 bg-white border border-purple-200 hover:border-purple-400 rounded-lg transition-colors"
+                      >
+                        <div className="font-medium text-sm text-purple-900">{template.name}</div>
+                        <div className="text-xs text-purple-600 truncate">{template.subject}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">À:</label>
                 <input

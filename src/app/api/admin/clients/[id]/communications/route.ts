@@ -29,7 +29,7 @@ export async function GET(
     
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
-      if (decoded.role !== 'admin') {
+      if (decoded.role !== 'admin' && decoded.role !== 'ADMIN') {
         return NextResponse.json({ error: 'Accès interdit' }, { status: 403 });
       }
     } catch (error) {
@@ -212,7 +212,7 @@ export async function POST(
     
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
-      if (decoded.role !== 'admin') {
+      if (decoded.role !== 'admin' && decoded.role !== 'ADMIN') {
         return NextResponse.json({ error: 'Accès interdit' }, { status: 403 });
       }
     } catch (error) {

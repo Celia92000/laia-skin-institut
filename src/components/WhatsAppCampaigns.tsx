@@ -565,6 +565,175 @@ export default function WhatsAppCampaigns() {
           </div>
         )}
       </div>
+
+      {/* Modal de création/édition de campagne */}
+      {(showCreateModal || editingCampaign) && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b">
+              <h3 className="text-xl font-bold text-gray-900">
+                {editingCampaign ? 'Modifier la campagne' : 'Nouvelle campagne WhatsApp'}
+              </h3>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Informations de base */}
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-3">Informations générales</h4>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Nom de la campagne
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ex: Promo Black Friday"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Description
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Brève description de la campagne"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Message */}
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-3">Message</h4>
+                <div className="space-y-3">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Contenu du message
+                      </label>
+                      <div className="flex gap-2">
+                        <button className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200">
+                          Template promo
+                        </button>
+                        <button className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
+                          Template info
+                        </button>
+                        <button className="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded hover:bg-purple-200">
+                          Template rappel
+                        </button>
+                      </div>
+                    </div>
+                    <textarea
+                      rows={6}
+                      placeholder="Écrivez votre message ici...&#10;&#10;Astuce: Vous pouvez utiliser des émojis 😊 et des sauts de ligne"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Variables disponibles : {'{nom}'}, {'{prenom}'}, {'{points}'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Audience */}
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-3">Audience cible</h4>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Segments
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      <label className="flex items-center px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-100">
+                        <input type="checkbox" className="mr-2" />
+                        <span className="text-sm">Tous les clients</span>
+                      </label>
+                      <label className="flex items-center px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-100">
+                        <input type="checkbox" className="mr-2" />
+                        <span className="text-sm">VIP</span>
+                      </label>
+                      <label className="flex items-center px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-100">
+                        <input type="checkbox" className="mr-2" />
+                        <span className="text-sm">Réguliers</span>
+                      </label>
+                      <label className="flex items-center px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-100">
+                        <input type="checkbox" className="mr-2" />
+                        <span className="text-sm">Inactifs</span>
+                      </label>
+                      <label className="flex items-center px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-100">
+                        <input type="checkbox" className="mr-2" />
+                        <span className="text-sm">Nouveaux</span>
+                      </label>
+                    </div>
+                  </div>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <p className="text-sm text-blue-800">
+                      <strong>Portée estimée :</strong> 145 contacts
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Programmation */}
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-3">Programmation</h4>
+                <div className="space-y-3">
+                  <div className="flex gap-3">
+                    <label className="flex items-center px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-green-500">
+                      <input type="radio" name="schedule" value="immediate" className="mr-2" defaultChecked />
+                      <div>
+                        <p className="text-sm font-medium">Envoi immédiat</p>
+                        <p className="text-xs text-gray-600">Envoyer maintenant</p>
+                      </div>
+                    </label>
+                    <label className="flex items-center px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-green-500">
+                      <input type="radio" name="schedule" value="scheduled" className="mr-2" />
+                      <div>
+                        <p className="text-sm font-medium">Programmé</p>
+                        <p className="text-xs text-gray-600">Choisir date et heure</p>
+                      </div>
+                    </label>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <input
+                      type="date"
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                    />
+                    <input
+                      type="time"
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="p-6 border-t flex items-center justify-between">
+              <button
+                onClick={() => {
+                  setShowCreateModal(false);
+                  setEditingCampaign(null);
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                Annuler
+              </button>
+              <div className="flex gap-2">
+                <button className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
+                  Enregistrer comme brouillon
+                </button>
+                <button className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:shadow-lg flex items-center gap-2">
+                  <Send className="w-4 h-4" />
+                  {editingCampaign ? 'Mettre à jour' : 'Créer et envoyer'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

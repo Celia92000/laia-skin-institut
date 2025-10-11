@@ -115,6 +115,23 @@ export async function POST(request: Request) {
       </div>
     `;
 
+    // Enregistrer le message reçu dans l'historique des emails
+    try {
+      await prisma.emailHistory.create({
+        data: {
+          from: email,
+          to: 'contact@laiaskininstitut.fr',
+          subject: subject || 'Message de contact',
+          content: message,
+          template: 'contact_form',
+          status: 'received',
+          direction: 'incoming'
+        }
+      });
+    } catch (historyError) {
+      console.error('Erreur enregistrement historique:', historyError);
+    }
+
     // Envoyer l'email à l'administrateur (votre adresse professionnelle)
     const { data, error } = await getResend().emails.send({
       from: process.env.RESEND_FROM_EMAIL || 'LAIA SKIN Institut <contact@laiaskininstitut.fr>',
@@ -126,7 +143,7 @@ export async function POST(request: Request) {
 
     if (error) {
       console.error('Erreur Resend:', error);
-      
+
       // Si Resend ne fonctionne pas, on sauvegarde au moins le message
       console.log('Message de contact reçu:', {
         name,
@@ -136,7 +153,7 @@ export async function POST(request: Request) {
         message,
         timestamp: new Date().toISOString()
       });
-      
+
       // On retourne quand même un succès pour l'utilisateur
       return NextResponse.json({
         success: true,

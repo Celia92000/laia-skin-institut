@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Mail, Send, Search, Inbox, Users, Filter, CheckSquare, Calendar, Euro, Tag, Star, Globe, ChevronRight, Eye, X, Bold, Italic, Underline, List, ListOrdered, Link2, Image, Type, Palette, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
+import { Mail, Send, Search, Inbox, Users, Filter, CheckSquare, Calendar, Euro, Tag, Star, Globe, ChevronRight, Eye, X, Bold, Italic, Underline, List, ListOrdered, Link2, Image, Type, Palette, AlignLeft, AlignCenter, AlignRight, Strikethrough, AlignJustify, Paintbrush } from 'lucide-react';
 import EmailConversationTab from './EmailConversationTab';
 
 interface Client {
@@ -168,12 +168,27 @@ export default function EmailCompleteInterface() {
       const data = await response.json();
       if (Array.isArray(data)) {
         const enrichedClients = await Promise.all(data.map(async (c: any) => {
+          // Calculer la dernière visite à partir des réservations
+          let lastVisit = null;
+          if (c.reservations && c.reservations.length > 0) {
+            // Trier les réservations par date décroissante et prendre la plus récente
+            const sortedReservations = [...c.reservations].sort((a, b) =>
+              new Date(b.date).getTime() - new Date(a.date).getTime()
+            );
+            lastVisit = sortedReservations[0].date;
+          }
+
+          // Si pas de réservation, utiliser le champ loyaltyProfile.lastVisit
+          if (!lastVisit && c.loyaltyProfile?.lastVisit) {
+            lastVisit = c.loyaltyProfile.lastVisit;
+          }
+
           // Calculer le statut du client
           let status = 'nouveau';
-          if (c.reservations && c.reservations.length > 0) {
-            const lastReservation = new Date(c.reservations[0].date);
-            const daysSinceLastVisit = Math.floor((Date.now() - lastReservation.getTime()) / (1000 * 60 * 60 * 24));
-            
+          if (lastVisit) {
+            const lastVisitDate = new Date(lastVisit);
+            const daysSinceLastVisit = Math.floor((Date.now() - lastVisitDate.getTime()) / (1000 * 60 * 60 * 24));
+
             if (daysSinceLastVisit < 30) {
               status = 'actif';
             } else if (daysSinceLastVisit < 90) {
@@ -190,7 +205,7 @@ export default function EmailCompleteInterface() {
             phone: c.phone,
             loyaltyPoints: c.loyaltyProfile?.points || 0,
             totalSpent: c.loyaltyProfile?.totalSpent || 0,
-            lastVisit: c.loyaltyProfile?.lastVisit,
+            lastVisit: lastVisit,
             lastService: c.reservations?.[0]?.service?.name || '',
             tags: c.tags || [],
             status,
@@ -286,6 +301,10 @@ export default function EmailCompleteInterface() {
 
   const deselectAll = () => {
     setSelectedClients([]);
+  };
+
+  const selectFiltered = () => {
+    setSelectedClients(filteredClients.map(c => c.id));
   };
 
   const loadTemplate = (template: EmailTemplate) => {
@@ -596,9 +615,27 @@ export default function EmailCompleteInterface() {
                   </select>
                 </div>
                 
-                <div className="mt-3 flex justify-between text-xs">
-                  <span>{filteredClients.length} contacts filtrés</span>
-                  <span className="font-medium text-purple-600">{selectedClients.length} sélectionnés</span>
+                <div className="mt-3 pt-3 border-t border-gray-200">
+                  <div className="flex justify-between items-center text-xs mb-2">
+                    <span className="text-gray-600">{filteredClients.length} contacts filtrés</span>
+                    <span className="font-medium text-purple-600">{selectedClients.length} sélectionnés</span>
+                  </div>
+                  {filteredClients.length > 0 ? (
+                    <button
+                      onClick={selectFiltered}
+                      className="w-full px-3 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg text-sm font-medium hover:shadow-lg transition-all"
+                    >
+                      ✓ Sélectionner ces {filteredClients.length} contacts
+                    </button>
+                  ) : (
+                    <div className="text-xs text-center text-gray-500 py-2">
+                      Aucun contact ne correspond aux filtres
+                    </div>
+                  )}
+                  {/* Debug info - à retirer en production */}
+                  <div className="mt-2 text-xs text-gray-400">
+                    Total clients : {clients.length} | Avec dernière visite : {clients.filter(c => c.lastVisit).length}
+                  </div>
                 </div>
               </div>
 
@@ -606,9 +643,9 @@ export default function EmailCompleteInterface() {
               <div className="p-3 border-b bg-white flex justify-between">
                 <button
                   onClick={selectAll}
-                  className="text-xs text-purple-600 hover:underline"
+                  className="text-xs text-purple-600 hover:underline font-medium"
                 >
-                  Tout sélectionner
+                  Sélectionner tous les filtrés ({filteredClients.length})
                 </button>
                 <button
                   onClick={deselectAll}
@@ -670,10 +707,22 @@ export default function EmailCompleteInterface() {
                               </span>
                             )}
                           </div>
-                          {/* Dernier soin */}
-                          {client.lastService && (
-                            <p className="text-xs text-purple-600 mt-1 truncate">
-                              Dernier: {client.lastService}
+                          {/* Dernier soin et dernière visite */}
+                          <div className="flex items-center gap-2 mt-1">
+                            {client.lastService && (
+                              <p className="text-xs text-purple-600 truncate">
+                                Dernier: {client.lastService}
+                              </p>
+                            )}
+                            {client.lastVisit && (
+                              <p className="text-xs text-gray-500">
+                                • {new Date(client.lastVisit).toLocaleDateString('fr-FR')}
+                              </p>
+                            )}
+                          </div>
+                          {!client.lastVisit && (
+                            <p className="text-xs text-gray-400 mt-1">
+                              Aucune visite enregistrée
                             </p>
                           )}
                         </div>
@@ -768,6 +817,14 @@ export default function EmailCompleteInterface() {
                         >
                           <Underline className="h-4 w-4" />
                         </button>
+                        <button
+                          type="button"
+                          onClick={() => formatText('strikeThrough')}
+                          className="p-1.5 hover:bg-gray-200 rounded"
+                          title="Barré"
+                        >
+                          <Strikethrough className="h-4 w-4" />
+                        </button>
                       </div>
 
                       {/* Taille du texte */}
@@ -797,6 +854,13 @@ export default function EmailCompleteInterface() {
                           title="Couleur du texte"
                         />
                         <Palette className="h-4 w-4 text-gray-500" />
+                        <input
+                          type="color"
+                          onChange={(e) => formatText('backColor', e.target.value)}
+                          className="w-8 h-8 border rounded cursor-pointer"
+                          title="Couleur de fond"
+                        />
+                        <Paintbrush className="h-4 w-4 text-gray-500" />
                       </div>
 
                       {/* Alignement */}
@@ -825,6 +889,14 @@ export default function EmailCompleteInterface() {
                         >
                           <AlignRight className="h-4 w-4" />
                         </button>
+                        <button
+                          type="button"
+                          onClick={() => formatText('justifyFull')}
+                          className="p-1.5 hover:bg-gray-200 rounded"
+                          title="Justifier"
+                        >
+                          <AlignJustify className="h-4 w-4" />
+                        </button>
                       </div>
 
                       {/* Listes */}
@@ -844,6 +916,32 @@ export default function EmailCompleteInterface() {
                           title="Liste numérotée"
                         >
                           <ListOrdered className="h-4 w-4" />
+                        </button>
+                      </div>
+
+                      {/* Liens et images */}
+                      <div className="flex items-center gap-1 px-2 border-r">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const url = prompt('Entrez l\'URL du lien:');
+                            if (url) formatText('createLink', url);
+                          }}
+                          className="p-1.5 hover:bg-gray-200 rounded"
+                          title="Insérer un lien"
+                        >
+                          <Link2 className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const url = prompt('Entrez l\'URL de l\'image:');
+                            if (url) formatText('insertImage', url);
+                          }}
+                          className="p-1.5 hover:bg-gray-200 rounded"
+                          title="Insérer une image"
+                        >
+                          <Image className="h-4 w-4" />
                         </button>
                       </div>
 
@@ -944,15 +1042,80 @@ export default function EmailCompleteInterface() {
             </div>
             <div className="p-6 overflow-y-auto">
               <p className="text-sm text-gray-600 mb-2">Objet : {emailData.subject}</p>
-              <div 
+              <div
                 className="border rounded-lg p-4"
-                dangerouslySetInnerHTML={{ 
+                dangerouslySetInnerHTML={{
                   __html: emailData.content
                     .replace(/{name}/g, 'Marie Dupont')
                     .replace(/{date}/g, new Date().toLocaleDateString('fr-FR'))
                     .replace(/{points}/g, '150')
                 }}
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal envoi de test */}
+      {showTestModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-md w-full">
+            <div className="p-4 border-b flex justify-between items-center">
+              <h3 className="font-semibold">Envoyer un email de test</h3>
+              <button onClick={() => setShowTestModal(false)}>
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="p-6">
+              <p className="text-sm text-gray-600 mb-4">
+                Entrez votre adresse email pour recevoir un aperçu de cette campagne avant de l'envoyer à vos clients.
+              </p>
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">Adresse email de test</label>
+                <input
+                  type="email"
+                  value={testEmail}
+                  onChange={(e) => setTestEmail(e.target.value)}
+                  placeholder="votre@email.com"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                <p className="text-sm text-blue-800">
+                  <strong>Aperçu du test :</strong>
+                </p>
+                <p className="text-xs text-blue-700 mt-1">
+                  Objet : [TEST] {emailData.subject}
+                </p>
+                <p className="text-xs text-blue-600 mt-1">
+                  Les variables seront remplacées par des données de test
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowTestModal(false)}
+                  className="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={confirmSendTest}
+                  disabled={!testEmail || sendingTest}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center"
+                >
+                  {sendingTest ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                      Envoi...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4 mr-2" />
+                      Envoyer le test
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>

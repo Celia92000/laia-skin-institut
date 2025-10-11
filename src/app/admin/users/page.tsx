@@ -629,19 +629,17 @@ export default function UsersManagement() {
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
-                            {(user.role === 'CLIENT' || user.role === 'client') && (
-                              <button
-                                onClick={() => {
-                                  setSelectedClientId(user.id);
-                                  setShowClientDetail(true);
-                                }}
-                                className="px-3 py-1 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white text-xs rounded-lg hover:shadow-md transition-all flex items-center gap-1"
-                                title="Voir les communications"
-                              >
-                                <MessageCircle className="w-3 h-3" />
-                                Communications
-                              </button>
-                            )}
+                            <button
+                              onClick={() => {
+                                setSelectedClientId(user.id);
+                                setShowClientDetail(true);
+                              }}
+                              className="px-3 py-1 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white text-xs rounded-lg hover:shadow-md transition-all flex items-center gap-1"
+                              title="Voir les communications"
+                            >
+                              <MessageCircle className="w-3 h-3" />
+                              Communications
+                            </button>
                             <button
                               onClick={() => handleQuickLogin(user)}
                               className="px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs rounded-lg hover:shadow-md transition-all flex items-center gap-1"
