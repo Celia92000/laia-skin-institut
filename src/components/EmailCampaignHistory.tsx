@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Mail, Send, Eye, MousePointer, XCircle, CheckCircle,
   AlertCircle, Calendar, Users, TrendingUp, Filter,
