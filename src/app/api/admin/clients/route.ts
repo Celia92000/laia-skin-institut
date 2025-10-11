@@ -63,12 +63,12 @@ export async function GET(request: NextRequest) {
         reservations: {
           select: {
             date: true,
-            status: true
+            status: true,
+            services: true
           },
           orderBy: {
             date: 'desc'
-          },
-          take: 1
+          }
         }
       },
       orderBy: {
@@ -84,7 +84,12 @@ export async function GET(request: NextRequest) {
       phone: c.phone,
       loyaltyPoints: c.loyaltyPoints,
       totalSpent: c.totalSpent,
-      reservations: c._count.reservations,
+      reservations: c.reservations.map(r => ({
+        date: r.date?.toISOString(),
+        status: r.status,
+        services: r.services
+      })),
+      reservationsCount: c._count.reservations,
       lastVisit: c.reservations[0]?.date?.toISOString(),
       createdAt: c.createdAt.toISOString(),
       skinType: c.skinType,
@@ -95,7 +100,11 @@ export async function GET(request: NextRequest) {
         individualServicesCount: c.loyaltyProfile.individualServicesCount,
         packagesCount: c.loyaltyProfile.packagesCount,
         totalSpent: c.loyaltyProfile.totalSpent,
-        lastVisit: c.loyaltyProfile.lastVisit
+        lastVisit: c.loyaltyProfile.lastVisit,
+        points: c.loyaltyPoints || 0,
+        tier: c.loyaltyProfile.totalSpent >= 1000 ? 'PLATINUM' :
+              c.loyaltyProfile.totalSpent >= 500 ? 'GOLD' :
+              c.loyaltyProfile.totalSpent >= 200 ? 'SILVER' : 'BRONZE'
       } : null
     }));
 

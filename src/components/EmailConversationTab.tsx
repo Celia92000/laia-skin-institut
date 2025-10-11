@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Mail, Send, Search, Inbox, Clock, CheckCircle, AlertCircle, Reply, User, Calendar, FileText, ChevronDown, RefreshCw, Download } from 'lucide-react';
+import { Mail, Send, Search, Inbox, Clock, CheckCircle, AlertCircle, Reply, User, Calendar, FileText, ChevronDown, RefreshCw, Download, Trash2, Archive, ArchiveRestore } from 'lucide-react';
 
 interface Email {
   id: string;
@@ -91,10 +91,16 @@ export default function EmailConversationTab() {
   const [syncing, setSyncing] = useState(false);
   const [syncStatus, setSyncStatus] = useState<{success: boolean; message: string} | null>(null);
   const [selectedConvId, setSelectedConvId] = useState<string | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
+  const [archiving, setArchiving] = useState(false);
 
   useEffect(() => {
     loadEmails();
   }, []);
+
+  useEffect(() => {
+    loadEmails();
+  }, [showArchived]);
 
   useEffect(() => {
     // Grouper les emails en conversations
@@ -162,7 +168,11 @@ export default function EmailConversationTab() {
       const data = await response.json();
 
       if (Array.isArray(data)) {
-        setEmails(data);
+        // Filtrer les emails archivés sauf si showArchived est true
+        const filteredEmails = showArchived
+          ? data
+          : data.filter((email: any) => !email.archived);
+        setEmails(filteredEmails);
       } else {
         console.error('Format de données inattendu:', data);
         setEmails([]);
@@ -172,6 +182,38 @@ export default function EmailConversationTab() {
       setEmails([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const archiveConversation = async (archived: boolean) => {
+    if (!selectedConversation) return;
+
+    setArchiving(true);
+    try {
+      // Récupérer tous les IDs des emails de la conversation
+      const emailIds = selectedConversation.emails.map(e => e.id);
+
+      const response = await fetch('/api/admin/emails/archive', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emailIds, archived })
+      });
+
+      if (response.ok) {
+        // Recharger les emails
+        await loadEmails();
+        // Fermer la conversation si on archive
+        if (archived) {
+          setSelectedConversation(null);
+        }
+      } else {
+        alert(`Erreur lors de l'${archived ? 'archivage' : 'désarchivage'}`);
+      }
+    } catch (error) {
+      console.error('Erreur archivage:', error);
+      alert(`Erreur lors de l'${archived ? 'archivage' : 'désarchivage'}`);
+    } finally {
+      setArchiving(false);
     }
   };
 
@@ -211,6 +253,32 @@ export default function EmailConversationTab() {
       setSyncing(false);
       // Masquer le message après 5 secondes
       setTimeout(() => setSyncStatus(null), 5000);
+    }
+  };
+
+  const deleteEmail = async (emailId: string) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cet email ?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/emails/${emailId}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        // Sauvegarder l'ID de la conversation
+        if (selectedConversation) {
+          setSelectedConvId(selectedConversation.id);
+        }
+        // Recharger les emails
+        await loadEmails();
+      } else {
+        alert('Erreur lors de la suppression de l\'email');
+      }
+    } catch (error) {
+      console.error('Erreur suppression:', error);
+      alert('Erreur lors de la suppression');
     }
   };
 
@@ -380,6 +448,18 @@ export default function EmailConversationTab() {
               >
                 Nouveau
               </button>
+              <button
+                onClick={() => setShowArchived(!showArchived)}
+                className={`px-3 py-1 rounded-lg text-sm flex items-center gap-1 ${
+                  showArchived
+                    ? 'bg-gray-600 text-white hover:bg-gray-700'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+                title={showArchived ? 'Masquer les archives' : 'Afficher les archives'}
+              >
+                {showArchived ? <ArchiveRestore className="h-3 w-3" /> : <Archive className="h-3 w-3" />}
+                {showArchived ? 'Actives' : 'Archives'}
+              </button>
             </div>
           </div>
 
@@ -493,6 +573,21 @@ export default function EmailConversationTab() {
                   >
                     <RefreshCw className="h-4 w-4" />
                   </button>
+                  <button
+                    onClick={() => {
+                      const isArchived = selectedConversation.emails.some(e => (e as any).archived);
+                      archiveConversation(!isArchived);
+                    }}
+                    disabled={archiving}
+                    className="p-2 text-gray-600 hover:text-orange-600 transition-colors disabled:opacity-50"
+                    title={selectedConversation.emails.some(e => (e as any).archived) ? "Désarchiver" : "Archiver"}
+                  >
+                    {selectedConversation.emails.some(e => (e as any).archived) ? (
+                      <ArchiveRestore className="h-4 w-4" />
+                    ) : (
+                      <Archive className="h-4 w-4" />
+                    )}
+                  </button>
                 </div>
               </div>
             </div>
@@ -501,10 +596,10 @@ export default function EmailConversationTab() {
             <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
               {selectedConversation.emails.map((email, index) => {
                 const isOutgoing = email.direction === 'outgoing' || email.from === 'contact@laiaskininstitut.fr';
-                
+
                 return (
                   <div key={email.id} className={`mb-4 ${isOutgoing ? 'flex justify-end' : ''}`}>
-                    <div className={`max-w-2xl ${isOutgoing ? 'bg-purple-600 text-white' : 'bg-white'} rounded-lg p-4 shadow-sm`}>
+                    <div className={`max-w-2xl ${isOutgoing ? 'bg-purple-600 text-white' : 'bg-white'} rounded-lg p-4 shadow-sm relative group`}>
                       <div className={`flex items-center justify-between mb-2 ${isOutgoing ? 'text-purple-100' : 'text-gray-500'} text-xs`}>
                         <span className="font-medium">{isOutgoing ? '✉️ LAIA SKIN Institut' : `📧 ${email.from.split('@')[0]}`}</span>
                         <div className="flex items-center space-x-2">
@@ -516,6 +611,16 @@ export default function EmailConversationTab() {
                             hour: '2-digit',
                             minute: '2-digit'
                           })}</span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteEmail(email.id);
+                            }}
+                            className={`opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-red-500/20 ${isOutgoing ? 'text-white hover:text-red-200' : 'text-gray-500 hover:text-red-600'}`}
+                            title="Supprimer ce message"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
                         </div>
                       </div>
                       <div 

@@ -198,6 +198,24 @@ export default function EmailCompleteInterface() {
             }
           }
 
+          // Extraire le dernier service
+          let lastService = '';
+          if (c.reservations && c.reservations.length > 0) {
+            const lastReservation = c.reservations[0];
+            if (lastReservation.services) {
+              try {
+                const services = typeof lastReservation.services === 'string'
+                  ? JSON.parse(lastReservation.services)
+                  : lastReservation.services;
+                if (Array.isArray(services) && services.length > 0) {
+                  lastService = services[0].name || services[0];
+                }
+              } catch (e) {
+                lastService = '';
+              }
+            }
+          }
+
           return {
             id: c.id,
             name: c.name,
@@ -206,7 +224,7 @@ export default function EmailCompleteInterface() {
             loyaltyPoints: c.loyaltyProfile?.points || 0,
             totalSpent: c.loyaltyProfile?.totalSpent || 0,
             lastVisit: lastVisit,
-            lastService: c.reservations?.[0]?.service?.name || '',
+            lastService,
             tags: c.tags || [],
             status,
             visitCount: c.reservations?.length || 0,

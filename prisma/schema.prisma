@@ -396,6 +396,7 @@ model EmailHistory {
   clickedAt    DateTime?
   resendId     String?  // ID Resend pour le tracking
   messageId    String?  // Message-ID de l'email
+  archived     Boolean  @default(false) // Pour archiver les conversations
   createdAt    DateTime @default(now())
   campaign     EmailCampaign? @relation(fields: [campaignId], references: [id])
 }
