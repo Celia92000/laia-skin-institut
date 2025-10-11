@@ -99,13 +99,17 @@ export async function GET(request: NextRequest) {
       : 0;
 
     // Clients récurrents
-    const clientReservations = await prisma.reservation.groupBy({
-      by: ['userId'],
+    const allReservations = await prisma.reservation.findMany({
       where: { status: { not: 'cancelled' } },
-      _count: true
+      select: { userId: true }
     });
 
-    const recurringClients = clientReservations.filter(c => c._count > 1).length;
+    const userCounts = allReservations.reduce((acc: Record<string, number>, res) => {
+      acc[res.userId] = (acc[res.userId] || 0) + 1;
+      return acc;
+    }, {});
+
+    const recurringClients = Object.values(userCounts).filter(count => count > 1).length;
 
     const stats = {
       reservations: {
