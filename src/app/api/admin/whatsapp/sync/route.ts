@@ -94,9 +94,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Statistiques des messages WhatsApp (avec gestion d'erreur si table n'existe pas)
-    let stats = [];
+    let stats: any[] = [];
     let total = 0;
-    let lastSync = null;
+    let lastSync: Date | null = null;
 
     try {
       stats = await prisma.whatsAppHistory.findMany({
