@@ -54,3 +54,4 @@ Valeur : `https://votre-domaine.vercel.app`
 - ⚠️ Cochez "Production", "Preview" et "Development" pour chaque variable
 - ⚠️ Redéployez après avoir ajouté les variables
 - ⚠️ La DATABASE_URL doit inclure `?pgbouncer=true` pour Supabase
+# Environment variables configured on Vercel Sat Oct 11 06:45:29 CEST 2025
