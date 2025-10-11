@@ -1,7 +1,4 @@
-import { Resend } from 'resend';
-
-// Initialiser Resend avec la clé API
-const resend = new Resend(process.env.RESEND_API_KEY || 're_Mksui53X_CFrkxKtg8YuViZhHmeZNSbmR');
+import { getResend } from '@/lib/resend';
 
 interface SendPasswordResetEmailParams {
   email: string;
@@ -127,8 +124,8 @@ export async function sendPasswordResetEmail({ email, name, resetToken }: SendPa
     }
 
     // Envoyer l'email réel
-    const { data, error } = await resend.emails.send({
-      from: 'LAIA SKIN INSTITUT <onboarding@resend.dev>',
+    const { data, error } = await getResend().emails.send({
+      from: 'LAIA SKIN INSTITUT <contact@laiaskininstitut.fr>',
       to: email,
       subject: '🔐 Réinitialisez votre mot de passe - LAIA SKIN INSTITUT',
       html: htmlContent,
@@ -268,9 +265,9 @@ export async function sendConfirmationEmail({
     // Envoyer l'email au client
     // NOTE: Pour utiliser contact@laia.skininstitut.fr, vous devez d'abord vérifier votre domaine dans Resend
     // Suivez le guide RESEND_CONFIGURATION.md sur votre bureau
-    const fromEmail = process.env.RESEND_FROM_EMAIL || 'LAIA SKIN INSTITUT <onboarding@resend.dev>';
-    
-    const { data, error } = await resend.emails.send({
+    const fromEmail = process.env.RESEND_FROM_EMAIL || 'LAIA SKIN INSTITUT <contact@laiaskininstitut.fr>';
+
+    const { data, error } = await getResend().emails.send({
       from: fromEmail,
       to,
       subject: `✨ Confirmation de votre réservation - ${date} à ${time}`,
@@ -294,7 +291,7 @@ export async function sendConfirmationEmail({
         ${notes ? `<p><strong>Notes:</strong> ${notes}</p>` : ''}
       `;
 
-      await resend.emails.send({
+      await getResend().emails.send({
         from: fromEmail,
         to: 'contact@laia.skininstitut.fr',
         subject: `🔔 Nouvelle réservation - ${date} à ${time}`,

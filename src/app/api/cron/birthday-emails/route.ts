@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { Resend } from 'resend';
-
-// Initialiser Resend avec une clé dummy pour le build
-const resend = new Resend(process.env.RESEND_API_KEY || 'dummy_key_for_build');
+import { getResend } from '@/lib/resend';
 
 export async function GET(request: NextRequest) {
   try {
@@ -103,8 +100,8 @@ export async function GET(request: NextRequest) {
 </body>
 </html>`;
 
-        await resend!.emails.send({
-          from: process.env.RESEND_FROM_EMAIL || 'LAIA SKIN Institut <onboarding@resend.dev>',
+        await getResend().emails.send({
+          from: process.env.RESEND_FROM_EMAIL || 'LAIA SKIN Institut <contact@laiaskininstitut.fr>',
           to: [user.email!],
           subject: `🎂 Joyeux anniversaire ${user.name} ! Une surprise vous attend`,
           html: htmlContent,

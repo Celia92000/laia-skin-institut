@@ -1,20 +1,18 @@
 import { NextResponse } from 'next/server';
-import { Resend } from 'resend';
+import { getResend } from '@/lib/resend';
 
 export async function GET() {
   try {
-    const resend = new Resend(process.env.RESEND_API_KEY || 'dummy');
-    
     if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY === 'dummy_key') {
-      return NextResponse.json({ 
+      return NextResponse.json({
         error: 'Resend non configuré',
         message: 'Ajoutez RESEND_API_KEY dans les variables Vercel'
       }, { status: 400 });
     }
 
     // Envoyer un email de test
-    const { data, error } = await resend.emails.send({
-      from: 'LAIA SKIN Test <onboarding@resend.dev>',
+    const { data, error } = await getResend().emails.send({
+      from: 'LAIA SKIN Test <contact@laiaskininstitut.fr>',
       to: ['delivered@resend.dev'], // Email de test Resend
       subject: 'Test LAIA SKIN - Resend fonctionne !',
       html: `
@@ -48,7 +46,7 @@ export async function GET() {
       message: '✅ Resend fonctionne parfaitement !',
       emailId: data?.id,
       details: {
-        from: 'onboarding@resend.dev',
+        from: 'contact@laiaskininstitut.fr',
         to: 'delivered@resend.dev',
         status: 'Email envoyé avec succès'
       }

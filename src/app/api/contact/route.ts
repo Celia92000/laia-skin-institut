@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import { Resend } from 'resend';
+import { getResend } from '@/lib/resend';
 import { getPrismaClient } from '@/lib/prisma';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Resend instance created lazily via getResend()
 
 export async function POST(request: Request) {
   try {
@@ -116,7 +116,7 @@ export async function POST(request: Request) {
     `;
 
     // Envoyer l'email à l'administrateur (votre adresse professionnelle)
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: process.env.RESEND_FROM_EMAIL || 'LAIA SKIN Institut <contact@laiaskininstitut.fr>',
       to: 'contact@laiaskininstitut.fr', // Votre adresse email professionnelle
       replyTo: email,
@@ -146,7 +146,7 @@ export async function POST(request: Request) {
 
     // Envoyer un email de confirmation au client
     try {
-      await resend.emails.send({
+      await getResend().emails.send({
         from: process.env.RESEND_FROM_EMAIL || 'LAIA SKIN Institut <contact@laiaskininstitut.fr>',
         to: email,
         subject: 'Nous avons bien reçu votre message - LAIA SKIN INSTITUT',

@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrismaClient } from '@/lib/prisma';
-import { Resend } from 'resend';
+import { getResend } from '@/lib/resend';
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-const resend = new Resend(process.env.RESEND_API_KEY || 're_Mksui53X_CFrkxKtg8YuViZhHmeZNSbmR');
 
 export async function POST(
   request: NextRequest,
@@ -178,9 +177,9 @@ export async function POST(
       ? `LAIA SKIN Institut <${process.env.EMAIL_FROM}>`
       : (process.env.VERIFIED_EMAIL_DOMAIN
         ? `LAIA SKIN Institut <contact@${process.env.VERIFIED_EMAIL_DOMAIN}>`
-        : 'LAIA SKIN Institut <onboarding@resend.dev>');
+        : 'LAIA SKIN Institut <contact@laiaskininstitut.fr>');
 
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: fromEmail,
       to: [giftCard.recipientEmail],
       subject: `🎁 Votre carte cadeau LAIA SKIN - ${giftCard.amount}€`,

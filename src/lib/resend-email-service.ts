@@ -1,7 +1,4 @@
-import { Resend } from 'resend';
-
-// Initialiser Resend
-const resend = new Resend(process.env.RESEND_API_KEY || 'dummy_key');
+import { getResend } from '@/lib/resend';
 
 export interface ReservationEmailData {
   to: string;
@@ -202,8 +199,8 @@ WhatsApp : 06 83 71 70 50
 Instagram : @laia.skin`;
 
     // Envoyer l'email via Resend
-    const fromEmail = process.env.RESEND_FROM_EMAIL || 'LAIA SKIN Institut <onboarding@resend.dev>';
-    const { data: emailData, error } = await resend.emails.send({
+    const fromEmail = process.env.RESEND_FROM_EMAIL || 'LAIA SKIN Institut <contact@laiaskininstitut.fr>';
+    const { data: emailData, error } = await getResend().emails.send({
       from: fromEmail,
       to: [data.to],
       subject: `✨ Confirmation RDV - ${data.date} à ${data.time}`,

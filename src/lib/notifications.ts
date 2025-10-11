@@ -11,7 +11,7 @@ const twilioClient = twilio(
 
 // Configuration Resend pour les emails
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'contact@laiaskininstitut.fr';
 
 interface NotificationData {
   clientName: string;

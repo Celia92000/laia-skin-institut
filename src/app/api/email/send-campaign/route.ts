@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Resend } from 'resend';
+import { getResend } from '@/lib/resend';
 import { getPrismaClient } from '@/lib/prisma';
-
-const resend = new Resend(process.env.RESEND_API_KEY || '');
 
 export async function POST(req: NextRequest) {
   try {
@@ -42,9 +40,9 @@ export async function POST(req: NextRequest) {
 
     // Envoyer les emails
     const results = await Promise.allSettled(
-      recipientEmails.map(email => 
-        resend.emails.send({
-          from: process.env.RESEND_FROM_EMAIL || 'LAIA SKIN Institut <onboarding@resend.dev>',
+      recipientEmails.map(email =>
+        getResend().emails.send({
+          from: process.env.RESEND_FROM_EMAIL || 'LAIA SKIN Institut <contact@laiaskininstitut.fr>',
           to: email,
           subject: subject,
           html: getEmailTemplate(templateType, content)

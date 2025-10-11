@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 import { getPrismaClient } from '@/lib/prisma';
-import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY || 're_Mksui53X_CFrkxKtg8YuViZhHmeZNSbmR');
+import { getResend } from '@/lib/resend';
 
 export async function POST(request: NextRequest) {
   const prisma = await getPrismaClient();
@@ -69,7 +67,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Envoyer l'email de réponse
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: 'LAIA SKIN Institut <contact@laiaskininstitut.fr>',
       to: replyTo,
       subject: replySubject,

@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY || 're_123456789');
+import { getResend } from '@/lib/resend';
 
 export async function POST(request: NextRequest) {
   try {
@@ -286,8 +284,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Envoyer l'email avec Resend
-    const { data, error } = await resend.emails.send({
-      from: 'LAIA SKIN INSTITUT <onboarding@resend.dev>',
+    const { data, error } = await getResend().emails.send({
+      from: 'LAIA SKIN INSTITUT <contact@laiaskininstitut.fr>',
       to: [to],
       subject: `✨ Confirmation - RDV du ${date} à ${reservation.time}`,
       html: htmlContent,

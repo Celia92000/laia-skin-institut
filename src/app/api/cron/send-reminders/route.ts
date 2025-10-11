@@ -1,9 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { Resend } from 'resend';
-
-// Initialiser Resend avec une clé dummy pour le build
-const resend = new Resend(process.env.RESEND_API_KEY || 'dummy_key_for_build');
+import { getResend } from '@/lib/resend';
 
 // Cette API doit être appelée régulièrement (toutes les heures par exemple)
 // Via Vercel Cron, GitHub Actions, ou un service externe
@@ -106,8 +103,8 @@ export async function GET(request: Request) {
 </body>
 </html>`;
         
-        await resend!.emails.send({
-          from: process.env.RESEND_FROM_EMAIL || 'LAIA SKIN Institut <onboarding@resend.dev>',
+        await getResend().emails.send({
+          from: process.env.RESEND_FROM_EMAIL || 'LAIA SKIN Institut <contact@laiaskininstitut.fr>',
           to: [reservation.user.email],
           subject: `📅 Rappel : Votre rendez-vous demain à ${reservation.time}`,
           html: htmlContent,
@@ -209,8 +206,8 @@ export async function GET(request: Request) {
 </body>
 </html>`;
           
-          await resend!.emails.send({
-            from: process.env.RESEND_FROM_EMAIL || 'LAIA SKIN Institut <onboarding@resend.dev>',
+          await getResend().emails.send({
+            from: process.env.RESEND_FROM_EMAIL || 'LAIA SKIN Institut <contact@laiaskininstitut.fr>',
             to: [reservation.user.email],
             subject: `⏰ Rappel urgent : Votre rendez-vous dans 2 heures`,
             html: htmlContent,
@@ -302,8 +299,8 @@ export async function GET(request: Request) {
 </body>
 </html>`;
             
-            await resend!.emails.send({
-              from: process.env.RESEND_FROM_EMAIL || 'LAIA SKIN Institut <onboarding@resend.dev>',
+            await getResend().emails.send({
+              from: process.env.RESEND_FROM_EMAIL || 'LAIA SKIN Institut <contact@laiaskininstitut.fr>',
               to: [user.email],
               subject: `🎂 Joyeux anniversaire ${user.name} ! Une surprise vous attend`,
               html: htmlContent,

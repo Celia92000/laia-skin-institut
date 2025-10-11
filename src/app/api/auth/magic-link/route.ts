@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import crypto from 'crypto';
-import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { getResend } from '@/lib/resend';
 
 export async function POST(request: NextRequest) {
   try {
@@ -47,7 +45,7 @@ export async function POST(request: NextRequest) {
 
     // Envoyer l'email avec Resend
     try {
-      await resend.emails.send({
+      await getResend().emails.send({
         from: process.env.RESEND_FROM_EMAIL || 'LAIA SKIN Institut <contact@laiaskininstitut.fr>',
         to: user.email,
         subject: '🔑 Votre lien de connexion - LAIA SKIN',

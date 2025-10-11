@@ -1,10 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { Resend } from 'resend';
+import { getResend } from '@/lib/resend';
 import { sendWhatsAppMessage } from '@/lib/whatsapp-meta';
-
-// Initialiser Resend avec une clé dummy pour le build
-const resend = new Resend(process.env.RESEND_API_KEY || 'dummy_key_for_build');
 
 // Cette API doit être appelée tous les jours à 10h (via un cron job)
 export async function GET(request: Request) {
@@ -148,8 +145,8 @@ export async function GET(request: Request) {
 </body>
 </html>`;
 
-        await resend!.emails.send({
-          from: process.env.RESEND_FROM_EMAIL || 'LAIA SKIN Institut <onboarding@resend.dev>',
+        await getResend().emails.send({
+          from: process.env.RESEND_FROM_EMAIL || 'LAIA SKIN Institut <contact@laiaskininstitut.fr>',
           to: [reservation.user.email],
           subject: `✨ Comment s'est passé votre soin ${serviceNames} ?`,
           html: htmlContent,
@@ -347,8 +344,8 @@ export async function POST(request: Request) {
 </body>
 </html>`;
 
-    await resend!.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || 'LAIA SKIN Institut <onboarding@resend.dev>',
+    await getResend().emails.send({
+      from: process.env.RESEND_FROM_EMAIL || 'LAIA SKIN Institut <contact@laiaskininstitut.fr>',
       to: [reservation.user.email],
       subject: `✨ Comment s'est passé votre soin ${serviceNames} ?`,
       html: htmlContent,
