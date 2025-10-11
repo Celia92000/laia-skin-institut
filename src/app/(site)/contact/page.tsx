@@ -2,6 +2,10 @@ import { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import ContactClient from "./ContactClient";
 
+// Force dynamic rendering to avoid build-time database connections
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: "Contact - LAIA SKIN INSTITUT de Beauté | Paris",
   description: "Contactez LAIA SKIN INSTITUT pour réserver vos soins esthétiques. Téléphone, email, adresse à Paris. Réponse rapide garantie.",

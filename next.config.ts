@@ -32,6 +32,11 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: __dirname,
   poweredByHeader: false,
   compress: true,
+  experimental: {
+    // Optimiser la génération des pages pour éviter les timeouts de DB
+    workerThreads: false,
+    cpus: 1,
+  },
 };
 
 export default nextConfig;
