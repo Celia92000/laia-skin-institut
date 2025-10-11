@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { getPrismaClient } from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
-
-const prisma = new PrismaClient();
 
 // GET - Récupérer les dates bloquées et horaires de travail
 export async function GET(request: NextRequest) {
+  const prisma = await getPrismaClient();
   try {
     // Récupérer les dates bloquées
     const blockedSlots = await prisma.blockedSlot.findMany({
@@ -29,6 +28,7 @@ export async function GET(request: NextRequest) {
 
 // POST - Ajouter une date bloquée
 export async function POST(request: NextRequest) {
+  const prisma = await getPrismaClient();
   try {
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
     
@@ -83,6 +83,7 @@ export async function POST(request: NextRequest) {
 
 // DELETE - Supprimer une date bloquée
 export async function DELETE(request: NextRequest) {
+  const prisma = await getPrismaClient();
   try {
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
     
@@ -116,6 +117,7 @@ export async function DELETE(request: NextRequest) {
 
 // PUT - Mettre à jour les horaires de travail
 export async function PUT(request: NextRequest) {
+  const prisma = await getPrismaClient();
   try {
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
     
