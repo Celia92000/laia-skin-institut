@@ -17,7 +17,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Token invalide' }, { status: 401 });
     }
 
-    const { to, subject, message, clientName } = await request.json();
+    const { to, subject, message, html, clientName } = await request.json();
+
+    // Validation des champs obligatoires
+    if (!to || !subject || (!message && !html)) {
+      return NextResponse.json({
+        error: 'Champs obligatoires manquants: to, subject, message/html'
+      }, { status: 400 });
+    }
+
+    const emailMessage = message || html || '';
 
     // Pour les messages personnalisés, créer un template HTML simple
     const htmlMessage = `
@@ -44,8 +53,8 @@ export async function POST(request: NextRequest) {
         <h1>LAIA SKIN Institut</h1>
       </div>
       <div class="content">
-        <p>Bonjour ${clientName},</p>
-        <div class="message">${message.replace(/\n/g, '<br>')}</div>
+        <p>Bonjour ${clientName || 'cher(e) client(e)'},</p>
+        <div class="message">${(emailMessage || '').replace(/\n/g, '<br>')}</div>
         <p style="margin-top: 30px;">
           À très bientôt,<br>
           <strong>Laïa</strong><br>
@@ -90,11 +99,11 @@ export async function POST(request: NextRequest) {
           service_name: subject, // Le sujet dans le champ service
           appointment_date: '', // Laisser vide
           appointment_time: '', // Laisser vide
-          salon_name: message, // Le message dans salon_name
+          salon_name: emailMessage, // Le message dans salon_name
           salon_address: '', // Laisser vide
           // Champs supplémentaires possibles
           message_html: htmlMessage,
-          message: message,
+          message: emailMessage,
           subject: subject
         }
       })
@@ -107,7 +116,7 @@ export async function POST(request: NextRequest) {
           from: 'contact@laia.skininstitut.fr',
           to: to,
           subject: subject,
-          content: message,
+          content: emailMessage,
           template: 'custom',
           status: 'sent',
           direction: 'outgoing'
@@ -125,7 +134,7 @@ export async function POST(request: NextRequest) {
           from: 'contact@laia.skininstitut.fr',
           to: to,
           subject: subject,
-          content: message,
+          content: emailMessage,
           template: 'custom',
           status: 'failed',
           direction: 'outgoing',

@@ -66,8 +66,24 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
+    // Validation des champs obligatoires
+    if (!body.name || !body.description || body.price === undefined || body.duration === undefined) {
+      return NextResponse.json({
+        error: 'Champs obligatoires manquants: name, description, price, duration'
+      }, { status: 400 });
+    }
+
     // Supprimer l'id s'il existe (pour la création)
     delete body.id;
+
+    // Générer slug si non fourni
+    if (!body.slug) {
+      body.slug = body.name.toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+    }
 
     // Créer la formation
     const formation = await prisma.formation.create({

@@ -95,6 +95,27 @@ export async function POST(request: NextRequest) {
       notes
     } = body;
 
+    // Validation
+    if (!amount) {
+      return NextResponse.json({ error: 'Le montant est requis' }, { status: 400 });
+    }
+
+    // Générer un code si non fourni
+    const generateCode = () => {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let result = 'GC-';
+      for (let i = 0; i < 4; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      result += '-';
+      for (let i = 0; i < 4; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return result;
+    };
+
+    const finalCode = code || generateCode();
+
     // Définir la date d'expiration (1 an par défaut si non spécifiée)
     let finalExpiryDate: Date;
     if (expiryDate) {
@@ -122,7 +143,7 @@ export async function POST(request: NextRequest) {
     // Créer la carte cadeau
     const giftCard = await prisma.giftCard.create({
       data: {
-        code,
+        code: finalCode,
         amount,
         initialAmount: amount,
         balance: amount,

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
 
 // PUT - Mettre à jour un produit spécifique
@@ -8,10 +8,12 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+  const prisma = await getPrismaClient();
+
   try {
     const authHeader = request.headers.get('authorization');
     const token = authHeader?.replace('Bearer ', '');
-    
+
     if (!token) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
@@ -22,7 +24,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    
+
     // Mettre à jour le produit
     const product = await prisma.product.update({
       where: { id },
@@ -60,10 +62,12 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+  const prisma = await getPrismaClient();
+
   try {
     const authHeader = request.headers.get('authorization');
     const token = authHeader?.replace('Bearer ', '');
-    
+
     if (!token) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }

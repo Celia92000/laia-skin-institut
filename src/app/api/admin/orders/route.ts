@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
         customerName: customer.name,
         customerEmail: customer.email,
         orderType: orderType || 'product',
-        items,
+        items: typeof items === 'string' ? items : JSON.stringify(items),
         subtotal: totalAmount,
         totalAmount,
         paymentMethod: paymentMethod || 'cash',

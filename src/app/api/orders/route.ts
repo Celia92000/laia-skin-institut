@@ -16,6 +16,13 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
+    // Validation des champs obligatoires
+    if (!body.customerName || !body.customerEmail || !body.totalAmount || !body.orderType) {
+      return NextResponse.json({
+        error: 'Champs obligatoires manquants: customerName, customerEmail, totalAmount, orderType'
+      }, { status: 400 });
+    }
+
     // Vérifier si utilisateur connecté
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
     let userId = null;

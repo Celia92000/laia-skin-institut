@@ -15,7 +15,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Token invalide' }, { status: 401 });
     }
 
-    const { to, subject, content, clientId } = await request.json();
+    const { to, subject, content, message, clientId } = await request.json();
+
+    // Validation des champs obligatoires
+    if (!to || !subject || (!content && !message)) {
+      return NextResponse.json({
+        error: 'Champs obligatoires manquants: to, subject, content/message'
+      }, { status: 400 });
+    }
+
+    const emailContent = content || message;
 
     // Utiliser EmailJS directement pour les campagnes
     if (process.env.EMAILJS_PUBLIC_KEY) {
@@ -33,7 +42,7 @@ export async function POST(request: Request) {
             from_name: 'LAIA SKIN Institut',
             reply_to: 'contact@laia.skin.fr',
             subject: subject,
-            message: content
+            message: emailContent
           }
         })
       });
@@ -59,7 +68,9 @@ export async function POST(request: Request) {
     console.log('📧 Email de campagne (simulé):');
     console.log('To:', to);
     console.log('Subject:', subject);
-    console.log('Content:', content.substring(0, 200));
+    if (emailContent) {
+      console.log('Content:', emailContent.substring(0, 200));
+    }
     
     return NextResponse.json({ 
       success: true,

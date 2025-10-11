@@ -1,13 +1,15 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
 
 // GET - Récupérer toutes les campagnes
 export async function GET(request: Request) {
+  const prisma = await getPrismaClient();
+
   try {
     const authHeader = request.headers.get('authorization');
     const token = authHeader?.replace('Bearer ', '');
-    
+
     if (!token || !verifyToken(token)) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
@@ -31,10 +33,12 @@ export async function GET(request: Request) {
 
 // POST - Créer une nouvelle campagne
 export async function POST(request: Request) {
+  const prisma = await getPrismaClient();
+
   try {
     const authHeader = request.headers.get('authorization');
     const token = authHeader?.replace('Bearer ', '');
-    
+
     if (!token || !verifyToken(token)) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
@@ -42,10 +46,15 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { name, templateId, recipients, scheduledAt } = body;
 
+    // Validation
+    if (!name) {
+      return NextResponse.json({ error: 'Le nom de la campagne est requis' }, { status: 400 });
+    }
+
     const campaign = await prisma.whatsAppCampaign.create({
       data: {
         name,
-        templateId,
+        templateId: templateId || 'default',
         recipients: JSON.stringify(recipients || []),
         recipientCount: recipients?.length || 0,
         status: scheduledAt ? 'scheduled' : 'draft',
@@ -62,10 +71,12 @@ export async function POST(request: Request) {
 
 // PUT - Mettre à jour une campagne (status, etc.)
 export async function PUT(request: Request) {
+  const prisma = await getPrismaClient();
+
   try {
     const authHeader = request.headers.get('authorization');
     const token = authHeader?.replace('Bearer ', '');
-    
+
     if (!token || !verifyToken(token)) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
@@ -143,10 +154,12 @@ export async function PUT(request: Request) {
 
 // DELETE - Supprimer une campagne
 export async function DELETE(request: Request) {
+  const prisma = await getPrismaClient();
+
   try {
     const authHeader = request.headers.get('authorization');
     const token = authHeader?.replace('Bearer ', '');
-    
+
     if (!token || !verifyToken(token)) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
