@@ -34,8 +34,8 @@ export async function GET(
       }
 
       return NextResponse.json({
-        id: `google_${review.id}`,
         ...review,
+        id: `google_${review.id}`,
         isGoogleReview: true
       });
     } else {
