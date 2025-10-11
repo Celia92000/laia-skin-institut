@@ -6,6 +6,15 @@ const globalForPrisma = globalThis as unknown as {
 
 // Créer une instance Prisma avec pool de connexions optimisé pour Supabase free tier
 const createPrismaClient = () => {
+  // Vérifier que DATABASE_URL est définie
+  if (!process.env.DATABASE_URL) {
+    console.error('DATABASE_URL is not defined');
+    // Retourner un client mock en développement si DATABASE_URL n'est pas définie
+    if (process.env.NODE_ENV === 'development') {
+      throw new Error('DATABASE_URL environment variable is required');
+    }
+  }
+
   return new PrismaClient({
     log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
     errorFormat: 'minimal',
@@ -14,8 +23,6 @@ const createPrismaClient = () => {
         url: process.env.DATABASE_URL
       }
     },
-    // Désactiver les prepared statements pour PgBouncer en mode transaction
-    // Cela évite l'erreur "prepared statement does not exist"
   }).$extends({
     query: {
       async $allOperations({ operation, model, args, query }) {
