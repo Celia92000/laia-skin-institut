@@ -27,10 +27,7 @@ export async function GET(
       return NextResponse.json({ error: 'Template non trouvé' }, { status: 404 });
     }
 
-    return NextResponse.json({
-      ...template,
-      campaignsCount: template._count.campaigns
-    });
+    return NextResponse.json(template);
   } catch (error) {
     console.error('Erreur récupération template:', error);
     return NextResponse.json({
