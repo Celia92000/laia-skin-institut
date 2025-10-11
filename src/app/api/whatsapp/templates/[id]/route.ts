@@ -20,14 +20,7 @@ export async function GET(
     }
 
     const template = await prisma.whatsAppTemplate.findUnique({
-      where: { id },
-      include: {
-        _count: {
-          select: {
-            campaigns: true
-          }
-        }
-      }
+      where: { id }
     });
 
     if (!template) {
