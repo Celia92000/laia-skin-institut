@@ -1,16 +1,17 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Mail, Users, Zap, Filter, Send, BarChart3, ExternalLink, Settings, PenTool, Inbox, FileText } from 'lucide-react';
+import { Mail, Users, Zap, Filter, Send, BarChart3, ExternalLink, Settings, PenTool, Inbox, FileText, Key } from 'lucide-react';
 import ClientSegmentation from './ClientSegmentation';
 import EmailAutomations from './EmailAutomations';
 import EmailCampaignHistory from './EmailCampaignHistory';
 import EmailComposer from './EmailComposer';
 import EmailInbox from './EmailInbox';
 import EmailTemplateManager from './EmailTemplateManager';
+import EmailAPISync from './EmailAPISync';
 
 export default function EmailingHub() {
-  const [activeSubTab, setActiveSubTab] = useState<'inbox' | 'compose' | 'campaigns' | 'automations' | 'history' | 'templates'>('inbox');
+  const [activeSubTab, setActiveSubTab] = useState<'inbox' | 'compose' | 'campaigns' | 'automations' | 'history' | 'templates' | 'sync'>('inbox');
 
   return (
     <div>
@@ -99,6 +100,17 @@ export default function EmailingHub() {
               <FileText className="w-4 h-4" />
               Templates
             </button>
+            <button
+              onClick={() => setActiveSubTab('sync')}
+              className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
+                activeSubTab === 'sync'
+                  ? 'bg-blue-500 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <Key className="w-4 h-4" />
+              Synchronisation API
+            </button>
           </div>
         </div>
       </div>
@@ -157,6 +169,7 @@ export default function EmailingHub() {
       {activeSubTab === 'automations' && <EmailAutomations />}
       {activeSubTab === 'history' && <EmailCampaignHistory />}
       {activeSubTab === 'templates' && <EmailTemplateManager />}
+      {activeSubTab === 'sync' && <EmailAPISync />}
     </div>
   );
 }

@@ -808,6 +808,8 @@ model GiftCard {
 
 model SocialMediaPost {
   id              String    @id @default(cuid())
+  userId          String?   // Propriétaire du post
+  socialConfigId  String?   // Compte social media utilisé
   title           String    // Titre/sujet de la publication
   content         String    @db.Text // Texte de la publication
   platform        String?   // Instagram, Facebook, TikTok, etc.
@@ -820,25 +822,81 @@ model SocialMediaPost {
   publishedAt     DateTime? // Date de publication effective
   apiPostId       String?   // ID de la publication sur la plateforme
   errorMessage    String?   @db.Text // Message d'erreur en cas d'échec
+  instagramType   String?   // post, story, reel
+  facebookType    String?   // post, story, reel
+  tiktokType      String?   // reel
+  category        String?   // conseils, avant-apres, nouveaute, promotion, etc.
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
+  @@index([userId])
   @@index([scheduledDate])
   @@index([status])
+  @@index([category])
 }
 
 model SocialMediaConfig {
   id                    String    @id @default(cuid())
-  platform              String    @unique // instagram, facebook, tiktok, youtube
+  userId                String?   // Propriétaire du compte (null = compte global)
+  platform              String    // instagram, facebook, tiktok, youtube
+  accountName           String?   // Nom du compte/page pour affichage
   accessToken           String?   @db.Text // Token d'accès
   refreshToken          String?   @db.Text // Token de rafraîchissement
   pageId                String?   // ID de la page/compte
+  accountId             String?   // ID du compte Instagram/Facebook
+  appId                 String?   // App ID Meta
+  appSecret             String?   @db.Text // App Secret Meta
   expiresAt             DateTime? // Date d'expiration du token
   enabled               Boolean   @default(false)
   autoPublish           Boolean   @default(false) // Publication automatique activée
+  isDefault             Boolean   @default(false) // Compte par défaut pour ce user
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
+  @@unique([userId, platform, accountId]) // Un user peut avoir plusieurs comptes par plateforme
+  @@index([userId])
   @@index([platform])
+}
+
+model WhatsAppConfig {
+  id                    String    @id @default(cuid())
+  userId                String?   // Propriétaire du compte (null = compte global)
+  accountName           String?   // Nom du compte pour affichage
+  phoneNumberId         String?   // ID du numéro de téléphone WhatsApp Business
+  phoneNumber           String?   // Numéro de téléphone formaté
+  accessToken           String?   @db.Text // Token d'accès WhatsApp Business API
+  businessAccountId     String?   // ID du compte WhatsApp Business
+  appId                 String?   // App ID Meta
+  appSecret             String?   @db.Text // App Secret Meta
+  webhookVerifyToken    String?   // Token de vérification webhook
+  expiresAt             DateTime? // Date d'expiration du token
+  enabled               Boolean   @default(false)
+  isDefault             Boolean   @default(false) // Compte par défaut pour ce user
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@unique([userId, phoneNumberId])
+  @@index([userId])
+}
+
+model EmailConfig {
+  id                    String    @id @default(cuid())
+  userId                String?   // Propriétaire du compte (null = compte global)
+  accountName           String?   // Nom du compte pour affichage (ex: "Contact Laia Skin")
+  provider              String    // resend, gmail, outlook, etc.
+  email                 String    // Adresse email
+  apiKey                String?   @db.Text // API Key (pour Resend, SendGrid, etc.)
+  password              String?   @db.Text // Mot de passe (pour SMTP)
+  smtpHost              String?   // Serveur SMTP
+  smtpPort              Int?      // Port SMTP
+  imapHost              String?   // Serveur IMAP pour réception
+  imapPort              Int?      // Port IMAP
+  enabled               Boolean   @default(false)
+  isDefault             Boolean   @default(false) // Compte par défaut pour ce user
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@unique([userId, email])
+  @@index([userId])
 }
 

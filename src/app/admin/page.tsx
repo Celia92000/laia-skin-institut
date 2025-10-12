@@ -43,6 +43,7 @@ import FormationOrderSection from "@/components/FormationOrderSection";
 import AdminGiftCardsTab from "@/components/AdminGiftCardsTab";
 import AdminPendingOrdersTab from "@/components/AdminPendingOrdersTab";
 import SocialMediaCalendar from "@/components/admin/SocialMediaCalendar";
+import SocialMediaHub from "@/components/admin/SocialMediaHub";
 
 interface Reservation {
   id: string;
@@ -3351,11 +3352,7 @@ export default function AdminDashboard() {
           {activeTab === "reviews" && <AdminReviewsManager />}
 
           {activeTab === "social-media" && (
-            <div>
-              <h2 className="text-2xl font-serif font-bold text-[#2c3e50] mb-6">Calendrier de Publication</h2>
-              <p className="text-gray-600 mb-6">Planifiez et organisez vos publications sur les réseaux sociaux</p>
-              <SocialMediaCalendar />
-            </div>
+            <SocialMediaHub />
           )}
         </div>
 

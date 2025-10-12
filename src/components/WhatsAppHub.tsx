@@ -1,15 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import { MessageCircle, Send, Zap, MessageSquare, FileText, History } from 'lucide-react';
+import { MessageCircle, Send, Zap, MessageSquare, FileText, History, Key } from 'lucide-react';
 import WhatsAppCampaigns from './WhatsAppCampaigns';
 import WhatsAppAutomations from './WhatsAppAutomations';
 import WhatsAppReal from './WhatsAppReal';
 import WhatsAppHistory from './WhatsAppHistory';
 import WhatsAppSimple from './WhatsAppSimple';
+import WhatsAppAPISync from './WhatsAppAPISync';
 
 export default function WhatsAppHub() {
-  const [activeSubTab, setActiveSubTab] = useState<'templates' | 'conversations' | 'campaigns' | 'automations' | 'history'>('conversations');
+  const [activeSubTab, setActiveSubTab] = useState<'templates' | 'conversations' | 'campaigns' | 'automations' | 'history' | 'sync'>('conversations');
 
   return (
     <div>
@@ -81,6 +82,18 @@ export default function WhatsAppHub() {
               <span className="hidden sm:inline">Templates</span>
               <span className="sm:hidden">📄</span>
             </button>
+            <button
+              onClick={() => setActiveSubTab('sync')}
+              className={`px-3 md:px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
+                activeSubTab === 'sync'
+                  ? 'bg-green-500 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <Key className="w-4 h-4" />
+              <span className="hidden sm:inline">API Sync</span>
+              <span className="sm:hidden">🔑</span>
+            </button>
           </div>
         </div>
       </div>
@@ -91,6 +104,7 @@ export default function WhatsAppHub() {
       {activeSubTab === 'campaigns' && <WhatsAppCampaigns />}
       {activeSubTab === 'automations' && <WhatsAppAutomations />}
       {activeSubTab === 'history' && <WhatsAppHistory />}
+      {activeSubTab === 'sync' && <WhatsAppAPISync />}
     </div>
   );
 }

@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import SocialMediaCalendar from '@/components/admin/SocialMediaCalendar';
-import { FaCalendarAlt, FaArrowLeft, FaTachometerAlt } from 'react-icons/fa';
+import SocialMediaHub from '@/components/admin/SocialMediaHub';
+import { FaArrowLeft } from 'react-icons/fa';
 
 export default function SocialMediaPage() {
   const router = useRouter();
@@ -24,43 +24,30 @@ export default function SocialMediaPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-600">Chargement...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
+        <div className="backdrop-blur-lg bg-white/10 rounded-3xl p-8 border border-white/20">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-white mx-auto mb-4"></div>
+          <p className="text-white font-bold text-xl">Chargement...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link
-                href="/admin"
-                className="flex items-center gap-2 text-gray-600 hover:text-[#d4b5a0] transition-colors"
-              >
-                <FaArrowLeft />
-                <span>Retour au dashboard</span>
-              </Link>
-              <div className="border-l border-gray-300 h-6"></div>
-              <div className="flex items-center gap-3">
-                <FaCalendarAlt className="text-[#d4b5a0] text-2xl" />
-                <h1 className="text-2xl font-bold text-gray-800">Calendrier de Publication</h1>
-              </div>
-            </div>
-          </div>
-          <p className="text-gray-600 mt-2">
-            Planifiez et organisez vos publications sur les réseaux sociaux
-          </p>
-        </div>
+    <div className="min-h-screen relative">
+      {/* Bouton retour */}
+      <div className="absolute top-6 left-6 z-50">
+        <Link
+          href="/admin"
+          className="inline-flex items-center gap-3 px-6 py-3 bg-white/10 backdrop-blur-lg rounded-full shadow-2xl text-white hover:bg-white/20 transition-all hover:scale-105 border-2 border-white/20"
+        >
+          <FaArrowLeft className="text-lg" />
+          <span className="font-bold">Retour</span>
+        </Link>
       </div>
 
-      {/* Contenu */}
-      <div className="p-6">
-        <SocialMediaCalendar />
-      </div>
+      {/* Contenu principal */}
+      <SocialMediaHub />
     </div>
   );
 }
