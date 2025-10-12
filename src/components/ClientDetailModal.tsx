@@ -1,12 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { 
-  X, User, Phone, Mail, Calendar, Gift, Star, TrendingUp, CreditCard, 
+import {
+  X, User, Phone, Mail, Calendar, Gift, Star, TrendingUp, CreditCard,
   CheckCircle, Clock, XCircle, AlertCircle, Cake, Heart, FileText, Users,
-  ChevronRight, Euro, Package, Award, Camera
+  ChevronRight, Euro, Package, Award, Camera, MessageCircle
 } from 'lucide-react';
 import ClientEvolutionPhotos from './ClientEvolutionPhotos';
+import ClientCommunications from './ClientCommunications';
 import { formatDateLocal } from '@/lib/date-utils';
 
 interface ClientDetailModalProps {
@@ -24,7 +25,7 @@ export default function ClientDetailModal({
   onClose, 
   onEdit 
 }: ClientDetailModalProps) {
-  const [activeTab, setActiveTab] = useState<'info' | 'reservations' | 'loyalty' | 'stats' | 'photos'>('info');
+  const [activeTab, setActiveTab] = useState<'info' | 'reservations' | 'loyalty' | 'stats' | 'photos' | 'communications'>('info');
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState(client);
 
@@ -150,6 +151,7 @@ export default function ClientDetailModal({
           <div className="flex">
             {[
               { id: 'info', label: 'Fiche beauté', icon: User },
+              { id: 'communications', label: 'Communications', icon: MessageCircle },
               { id: 'photos', label: 'Photos', icon: Camera },
               { id: 'reservations', label: 'Réservations', icon: Calendar },
               { id: 'loyalty', label: 'Fidélité', icon: Gift },
@@ -292,6 +294,18 @@ export default function ClientDetailModal({
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Communications Tab */}
+          {activeTab === 'communications' && (
+            <div className="h-[500px]">
+              <ClientCommunications
+                clientId={client.id}
+                clientEmail={client.email}
+                clientPhone={client.phone}
+                clientName={client.name}
+              />
             </div>
           )}
 
