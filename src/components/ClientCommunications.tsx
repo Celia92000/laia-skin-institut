@@ -45,6 +45,16 @@ export default function ClientCommunications({
   const [replyContent, setReplyContent] = useState('');
   const [sending, setSending] = useState(false);
 
+  // Normaliser les numéros de téléphone pour la comparaison
+  const normalizePhone = (phone: string | undefined): string => {
+    if (!phone) return '';
+    // Retirer le préfixe whatsapp: si présent
+    let normalized = phone.replace(/^whatsapp:/i, '');
+    // Retirer tous les caractères non-numériques sauf le +
+    normalized = normalized.replace(/[\s\-\.\(\)]/g, '').trim();
+    return normalized;
+  };
+
   useEffect(() => {
     loadCommunications();
   }, [clientId, clientEmail]);
@@ -69,12 +79,18 @@ export default function ClientCommunications({
       }
 
       // Charger les messages WhatsApp
-      const whatsappResponse = await fetch(`/api/whatsapp/history?userId=${clientId}`, {
+      const whatsappResponse = await fetch('/api/whatsapp/history', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (whatsappResponse.ok) {
-        const data = await whatsappResponse.json();
-        setWhatsappMessages(Array.isArray(data) ? data : []);
+        const allMessages = await whatsappResponse.json();
+        // Filtrer les messages par numéro de téléphone normalisé
+        const normalizedClientPhone = normalizePhone(clientPhone);
+        const clientMessages = allMessages.filter((msg: WhatsAppMessage) => {
+          const msgPhone = normalizePhone(msg.from === 'whatsapp:+33757909144' ? msg.to : msg.from);
+          return msgPhone === normalizedClientPhone;
+        });
+        setWhatsappMessages(Array.isArray(clientMessages) ? clientMessages : []);
       }
     } catch (error) {
       console.error('Erreur chargement communications:', error);

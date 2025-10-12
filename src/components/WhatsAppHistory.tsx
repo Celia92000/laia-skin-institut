@@ -76,6 +76,16 @@ export default function WhatsAppHistory() {
     filterMessages();
   }, [searchTerm, filterType, filterStatus, dateRange, messages]);
 
+  // Fonction pour normaliser les numéros de téléphone
+  const normalizePhoneForLoad = (phone: string): string => {
+    if (!phone) return '';
+    // Retirer le préfixe whatsapp: si présent
+    let normalized = phone.replace(/^whatsapp:/i, '');
+    // Retirer tous les caractères non-numériques sauf le +
+    normalized = normalized.replace(/[\s\-\.\(\)]/g, '').trim();
+    return normalized;
+  };
+
   const loadMessageHistory = async () => {
     setLoading(true);
     try {
@@ -93,13 +103,14 @@ export default function WhatsAppHistory() {
         const transformedMessages: MessageHistory[] = data.map((msg: any) => {
           // Déterminer le numéro du client selon la direction du message
           const isOutgoing = msg.direction === 'outgoing';
-          const clientPhone = isOutgoing ? msg.to : msg.from;
+          const rawClientPhone = isOutgoing ? msg.to : msg.from;
+          const clientPhone = normalizePhoneForLoad(rawClientPhone);
 
           return {
             id: msg.id,
-            clientId: msg.userId || clientPhone, // Utiliser le téléphone comme ID si pas de userId
+            clientId: msg.userId || clientPhone, // Utiliser le téléphone normalisé comme ID si pas de userId
             clientName: msg.clientName || clientPhone,
-            clientPhone: clientPhone,
+            clientPhone: clientPhone, // Stocker le numéro normalisé
             clientEmail: msg.clientEmail || '',
             message: msg.message,
             messageType: 'manual' as const,
@@ -249,21 +260,43 @@ export default function WhatsAppHistory() {
     a.click();
   };
 
-  // Grouper les messages par numéro de téléphone (identifiant unique pour WhatsApp)
+  // Fonction pour normaliser les numéros de téléphone
+  const normalizePhone = (phone: string): string => {
+    if (!phone) return 'unknown';
+    // Retirer le préfixe whatsapp: si présent
+    let normalized = phone.replace(/^whatsapp:/i, '');
+    // Retirer tous les caractères non-numériques sauf le +
+    normalized = normalized.replace(/[\s\-\.\(\)]/g, '').trim();
+    return normalized;
+  };
+
+  // Grouper les messages par numéro de téléphone normalisé (identifiant unique pour WhatsApp)
   const messagesByClient = filteredMessages.reduce((acc, msg) => {
-    // Utiliser le numéro de téléphone comme clé unique
-    const key = msg.clientPhone || msg.clientId || 'unknown';
+    // Normaliser le numéro de téléphone pour éviter les doublons dus au formatage
+    const normalizedPhone = normalizePhone(msg.clientPhone);
+    const key = normalizedPhone || msg.clientId || 'unknown';
 
     if (!acc[key]) {
       acc[key] = {
         client: {
           id: msg.clientId,
           name: msg.clientName,
-          phone: msg.clientPhone,
+          phone: msg.clientPhone, // Garder le format original pour l'affichage
           email: msg.clientEmail
         },
         messages: []
       };
+    } else {
+      // Si on a déjà ce client mais avec un nom différent (ex: nom vs numéro), prendre le premier nom non-vide
+      if (!acc[key].client.name || acc[key].client.name === normalizedPhone) {
+        if (msg.clientName && msg.clientName !== normalizedPhone) {
+          acc[key].client.name = msg.clientName;
+        }
+      }
+      // Pareil pour l'email
+      if (!acc[key].client.email && msg.clientEmail) {
+        acc[key].client.email = msg.clientEmail;
+      }
     }
     acc[key].messages.push(msg);
     return acc;
