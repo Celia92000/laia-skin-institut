@@ -45,18 +45,39 @@ export default function RealTimeStats() {
   const fetchStats = async () => {
     try {
       const token = localStorage.getItem('token');
+
+      if (!token) {
+        console.warn('Pas de token trouvé');
+        setLoading(false);
+        return;
+      }
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
       const response = await fetch('/api/admin/real-stats', {
         headers: {
           'Authorization': `Bearer ${token}`
-        }
+        },
+        signal: controller.signal
       });
-      
+
+      clearTimeout(timeoutId);
+
       if (response.ok) {
         const data = await response.json();
         setStats(data);
+      } else {
+        console.error('Erreur API stats:', response.status, response.statusText);
       }
     } catch (error) {
-      console.error('Erreur lors de la récupération des stats:', error);
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          console.error('Timeout lors de la récupération des stats');
+        } else {
+          console.error('Erreur lors de la récupération des stats:', error.message);
+        }
+      }
     } finally {
       setLoading(false);
     }

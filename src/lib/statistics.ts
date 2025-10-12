@@ -1,4 +1,4 @@
-import { getPrismaClient } from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 
 export async function getAdminStatistics() {
   try {
@@ -6,10 +6,9 @@ export async function getAdminStatistics() {
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
-    
+
     // Récupérer toutes les réservations et commandes
     // Optimisation : Ne pas inclure les relations si pas nécessaire pour les stats
-    const prisma = await getPrismaClient();
     const reservations = await prisma.reservation.findMany({
       select: {
         id: true,
