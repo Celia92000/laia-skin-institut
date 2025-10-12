@@ -276,6 +276,18 @@ export default function WhatsAppHistory() {
     const normalizedPhone = normalizePhone(msg.clientPhone);
     const key = normalizedPhone || msg.clientId || 'unknown';
 
+    // Debug: afficher les clés pour identifier les doublons
+    if (msg.clientName?.includes('Test User') || msg.clientPhone?.includes('0612345678')) {
+      console.log('🔍 Groupement WhatsApp:', {
+        originalPhone: msg.clientPhone,
+        normalizedPhone,
+        key,
+        clientName: msg.clientName,
+        clientId: msg.clientId,
+        messageId: msg.id
+      });
+    }
+
     if (!acc[key]) {
       acc[key] = {
         client: {
@@ -287,9 +299,9 @@ export default function WhatsAppHistory() {
         messages: []
       };
     } else {
-      // Si on a déjà ce client mais avec un nom différent (ex: nom vs numéro), prendre le premier nom non-vide
-      if (!acc[key].client.name || acc[key].client.name === normalizedPhone) {
-        if (msg.clientName && msg.clientName !== normalizedPhone) {
+      // Si on a déjà ce client mais avec un nom différent (ex: nom vs numéro), prendre le meilleur nom
+      if (!acc[key].client.name || acc[key].client.name === normalizedPhone || acc[key].client.name === key) {
+        if (msg.clientName && msg.clientName !== normalizedPhone && msg.clientName !== key) {
           acc[key].client.name = msg.clientName;
         }
       }
@@ -297,10 +309,26 @@ export default function WhatsAppHistory() {
       if (!acc[key].client.email && msg.clientEmail) {
         acc[key].client.email = msg.clientEmail;
       }
+      // Mettre à jour le clientId si on n'en avait pas
+      if ((!acc[key].client.id || acc[key].client.id === normalizedPhone) && msg.clientId && msg.clientId !== normalizedPhone) {
+        acc[key].client.id = msg.clientId;
+      }
     }
     acc[key].messages.push(msg);
     return acc;
   }, {} as Record<string, { client: any, messages: MessageHistory[] }>);
+
+  // Debug: afficher le résultat du groupement
+  console.log('📊 Total conversations groupées:', Object.keys(messagesByClient).length);
+  const testUserConvos = Object.entries(messagesByClient).filter(([_, data]) =>
+    data.client.name?.includes('Test User') || data.client.phone?.includes('0612345678')
+  );
+  if (testUserConvos.length > 0) {
+    console.log('🔍 Conversations Test User trouvées:', testUserConvos.length);
+    testUserConvos.forEach(([key, data]) => {
+      console.log('  - Clé:', key, '| Nom:', data.client.name, '| Messages:', data.messages.length);
+    });
+  }
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-6">

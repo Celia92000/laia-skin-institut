@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { MessageCircle, Send, Zap, MessageSquare, FileText } from 'lucide-react';
+import { MessageCircle, Send, Zap, MessageSquare, FileText, History } from 'lucide-react';
 import WhatsAppCampaigns from './WhatsAppCampaigns';
 import WhatsAppAutomations from './WhatsAppAutomations';
 import WhatsAppReal from './WhatsAppReal';
@@ -9,7 +9,7 @@ import WhatsAppHistory from './WhatsAppHistory';
 import WhatsAppSimple from './WhatsAppSimple';
 
 export default function WhatsAppHub() {
-  const [activeSubTab, setActiveSubTab] = useState<'templates' | 'conversations' | 'campaigns' | 'automations'>('templates');
+  const [activeSubTab, setActiveSubTab] = useState<'templates' | 'conversations' | 'campaigns' | 'automations' | 'history'>('templates');
 
   return (
     <div>
@@ -65,6 +65,17 @@ export default function WhatsAppHub() {
               <Zap className="w-4 h-4" />
               Automatisations
             </button>
+            <button
+              onClick={() => setActiveSubTab('history')}
+              className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
+                activeSubTab === 'history'
+                  ? 'bg-green-500 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <History className="w-4 h-4" />
+              Historique
+            </button>
           </div>
         </div>
       </div>
@@ -74,6 +85,7 @@ export default function WhatsAppHub() {
       {activeSubTab === 'conversations' && <WhatsAppReal />}
       {activeSubTab === 'campaigns' && <WhatsAppCampaigns />}
       {activeSubTab === 'automations' && <WhatsAppAutomations />}
+      {activeSubTab === 'history' && <WhatsAppHistory />}
     </div>
   );
 }
