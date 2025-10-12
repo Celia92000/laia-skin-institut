@@ -78,117 +78,52 @@ export default function WhatsAppHistory() {
 
   const loadMessageHistory = async () => {
     setLoading(true);
-    // Simuler le chargement des données
-    const mockMessages: MessageHistory[] = [
-      {
-        id: '1',
-        clientId: 'c1',
-        clientName: 'Marie Dupont',
-        clientPhone: '+33612345678',
-        clientEmail: 'marie.dupont@email.com',
-        message: '📅 Rappel de votre RDV demain\n\nBonjour Marie,\n\nJe vous attends demain à 14h00 pour votre soin Hydro\'Naissance.\n\n📍 LAIA SKIN Institut\n💆 Durée : 60 min\n\nÀ demain ! 💕',
-        messageType: 'automation',
-        automationName: 'Rappel RDV 24h',
-        sentAt: new Date(Date.now() - 1000 * 60 * 60 * 2),
-        deliveredAt: new Date(Date.now() - 1000 * 60 * 60 * 2 + 1000 * 30),
-        readAt: new Date(Date.now() - 1000 * 60 * 60 * 1),
-        status: 'read',
-        tags: ['Rappel', 'RDV'],
-        metadata: {
-          service: 'Hydro\'Naissance',
-          appointmentDate: '2024-11-22',
-          templateUsed: 'reminder_24h',
-          variables: {
-            clientName: 'Marie',
-            appointmentTime: '14h00',
-            serviceName: 'Hydro\'Naissance',
-            duration: '60 min'
-          }
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/whatsapp/history', {
+        headers: {
+          'Authorization': `Bearer ${token}`
         }
-      },
-      {
-        id: '2',
-        clientId: 'c2',
-        clientName: 'Sophie Martin',
-        clientPhone: '+33687654321',
-        clientEmail: 'sophie.martin@email.com',
-        message: '🌟 OFFRE EXCLUSIVE Sophie ! 🌟\n\n-20% sur tous les soins ce mois-ci !\n✨ BB Glow\n✨ Hydro\'Naissance\n✨ LED Thérapie\n\nRéservez vite : laiaskin.com',
-        messageType: 'campaign',
-        campaignName: 'Black Friday 2024',
-        sentAt: new Date(Date.now() - 1000 * 60 * 60 * 24),
-        deliveredAt: new Date(Date.now() - 1000 * 60 * 60 * 24 + 1000 * 45),
-        status: 'delivered',
-        tags: ['Promo', 'Black Friday']
-      },
-      {
-        id: '3',
-        clientId: 'c3',
-        clientName: 'Julie Bernard',
-        clientPhone: '+33698765432',
-        clientEmail: 'julie.bernard@email.com',
-        message: 'Bonjour Julie ! Merci pour votre visite aujourd\'hui. N\'hésitez pas si vous avez des questions sur les soins post-traitement. Belle journée ! 💕',
-        messageType: 'manual',
-        sentAt: new Date(Date.now() - 1000 * 60 * 60 * 3),
-        deliveredAt: new Date(Date.now() - 1000 * 60 * 60 * 3 + 1000 * 20),
-        readAt: new Date(Date.now() - 1000 * 60 * 60 * 2),
-        status: 'read',
-        tags: ['Suivi', 'Manuel']
-      },
-      {
-        id: '4',
-        clientId: 'c4',
-        clientName: 'Emma Rousseau',
-        clientPhone: '+33611223344',
-        clientEmail: 'emma.rousseau@email.com',
-        message: '🎂 Joyeux anniversaire Emma ! 🎉\n\nPour célébrer, profitez de -30% sur le soin de votre choix ce mois-ci !\n\nÀ bientôt,\nLaïa 💕',
-        messageType: 'automation',
-        automationName: 'Anniversaire client',
-        sentAt: new Date(Date.now() - 1000 * 60 * 60 * 48),
-        deliveredAt: new Date(Date.now() - 1000 * 60 * 60 * 48 + 1000 * 60),
-        readAt: new Date(Date.now() - 1000 * 60 * 60 * 47),
-        status: 'read',
-        tags: ['Anniversaire', 'Fidélité'],
-        metadata: {
-          templateUsed: 'birthday',
-          variables: {
-            clientName: 'Emma'
-          }
-        }
-      },
-      {
-        id: '5',
-        clientId: 'c5',
-        clientName: 'Claire Dubois',
-        clientPhone: '+33655443322',
-        clientEmail: 'claire.dubois@email.com',
-        message: 'Message non délivré',
-        messageType: 'campaign',
-        campaignName: 'Relance inactive',
-        sentAt: new Date(Date.now() - 1000 * 60 * 60 * 72),
-        status: 'failed',
-        errorMessage: 'Numéro WhatsApp non valide',
-        tags: ['Échec', 'À vérifier']
-      },
-      {
-        id: '6',
-        clientId: 'c1',
-        clientName: 'Marie Dupont',
-        clientPhone: '+33612345678',
-        clientEmail: 'marie.dupont@email.com',
-        message: '🌟 Félicitations Marie ! 🌟\n\nVous avez atteint 5 visites ! 🎉\n\nVotre récompense :\n🎁 1 soin LED OFFERT (valeur 60€)\n\nRéservez : laiaskin.com',
-        messageType: 'automation',
-        automationName: 'Programme fidélité',
-        sentAt: new Date(Date.now() - 1000 * 60 * 60 * 96),
-        deliveredAt: new Date(Date.now() - 1000 * 60 * 60 * 96 + 1000 * 40),
-        readAt: new Date(Date.now() - 1000 * 60 * 60 * 95),
-        status: 'read',
-        tags: ['Fidélité', 'Récompense']
-      }
-    ];
+      });
 
-    setMessages(mockMessages);
-    calculateStats(mockMessages);
-    setLoading(false);
+      if (response.ok) {
+        const data = await response.json();
+
+        // Transformer les données API en format MessageHistory
+        const transformedMessages: MessageHistory[] = data.map((msg: any) => {
+          // Déterminer le numéro du client selon la direction du message
+          const isOutgoing = msg.direction === 'outgoing';
+          const clientPhone = isOutgoing ? msg.to : msg.from;
+
+          return {
+            id: msg.id,
+            clientId: msg.userId || clientPhone, // Utiliser le téléphone comme ID si pas de userId
+            clientName: msg.clientName || clientPhone,
+            clientPhone: clientPhone,
+            clientEmail: msg.clientEmail || '',
+            message: msg.message,
+            messageType: 'manual' as const,
+            sentAt: new Date(msg.sentAt),
+            deliveredAt: msg.deliveredAt ? new Date(msg.deliveredAt) : undefined,
+            readAt: msg.readAt ? new Date(msg.readAt) : undefined,
+            status: msg.status || 'sent',
+            tags: [],
+            metadata: {}
+          };
+        });
+
+        setMessages(transformedMessages);
+        calculateStats(transformedMessages);
+      } else {
+        console.error('Erreur lors du chargement de l\'historique WhatsApp');
+        setMessages([]);
+      }
+    } catch (error) {
+      console.error('Erreur chargement WhatsApp:', error);
+      setMessages([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const filterMessages = () => {
@@ -314,10 +249,13 @@ export default function WhatsAppHistory() {
     a.click();
   };
 
-  // Grouper les messages par client
+  // Grouper les messages par numéro de téléphone (identifiant unique pour WhatsApp)
   const messagesByClient = filteredMessages.reduce((acc, msg) => {
-    if (!acc[msg.clientId]) {
-      acc[msg.clientId] = {
+    // Utiliser le numéro de téléphone comme clé unique
+    const key = msg.clientPhone || msg.clientId || 'unknown';
+
+    if (!acc[key]) {
+      acc[key] = {
         client: {
           id: msg.clientId,
           name: msg.clientName,
@@ -327,7 +265,7 @@ export default function WhatsAppHistory() {
         messages: []
       };
     }
-    acc[msg.clientId].messages.push(msg);
+    acc[key].messages.push(msg);
     return acc;
   }, {} as Record<string, { client: any, messages: MessageHistory[] }>);
 

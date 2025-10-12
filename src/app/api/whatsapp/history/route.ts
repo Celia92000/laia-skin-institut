@@ -45,22 +45,27 @@ export async function GET(request: Request) {
       }
     });
 
-    // Formater les messages
-    const formattedMessages = messages.map(msg => ({
-      id: msg.id,
-      from: msg.from,
-      to: msg.to,
-      message: msg.message,
-      status: msg.status,
-      direction: msg.direction,
-      sentAt: msg.sentAt.toISOString(),
-      deliveredAt: msg.deliveredAt?.toISOString(),
-      readAt: msg.readAt?.toISOString(),
-      userId: msg.userId,
-      clientName: msg.user?.name,
-      clientEmail: msg.user?.email,
-      clientPhone: msg.user?.phone
-    }));
+    // Formater les messages avec les infos complètes du client
+    const formattedMessages = messages.map(msg => {
+      // Le numéro du client dépend de la direction du message
+      const clientPhone = msg.direction === 'outgoing' ? msg.to : msg.from;
+
+      return {
+        id: msg.id,
+        from: msg.from,
+        to: msg.to,
+        message: msg.message,
+        status: msg.status,
+        direction: msg.direction,
+        sentAt: msg.sentAt.toISOString(),
+        deliveredAt: msg.deliveredAt?.toISOString(),
+        readAt: msg.readAt?.toISOString(),
+        userId: msg.userId,
+        clientName: msg.user?.name || clientPhone,
+        clientEmail: msg.user?.email || '',
+        clientPhone: clientPhone
+      };
+    });
 
     return NextResponse.json(formattedMessages);
   } catch (error) {
