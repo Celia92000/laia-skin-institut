@@ -15,7 +15,7 @@ import PlanningCalendarDebug from "@/components/PlanningCalendarDebug";
 import AdminDisponibilitesTabSync from "@/components/AdminDisponibilitesTabSync";
 import { InvoiceButton } from "@/components/InvoiceGenerator";
 import PaymentSectionEnhanced from "@/components/PaymentSectionEnhanced";
-import WhatsAppFunctional from "@/components/WhatsAppFunctional";
+import WhatsAppHub from "@/components/WhatsAppHub";
 import AdminLoyaltyTab from "@/components/AdminLoyaltyTab";
 import AdminStatsEnhanced from "@/components/AdminStatsEnhanced";
 import EmployeeStatsView from "@/components/EmployeeStatsView";
@@ -3346,7 +3346,7 @@ export default function AdminDashboard() {
           {activeTab === "products" && <AdminStockTab />}
           {activeTab === "pending" && <AdminPendingOrdersTab />}
 
-          {activeTab === "whatsapp" && <WhatsAppFunctional />}
+          {activeTab === "whatsapp" && <WhatsAppHub />}
 
           {activeTab === "reviews" && <AdminReviewsManager />}
 
