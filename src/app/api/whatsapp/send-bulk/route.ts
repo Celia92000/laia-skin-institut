@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
-import twilio from 'twilio';
 
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authToken = process.env.TWILIO_AUTH_TOKEN;
-const whatsappNumber = process.env.TWILIO_WHATSAPP_NUMBER || 'whatsapp:+33757909144';
+// Configuration Meta WhatsApp
+const metaAccessToken = process.env.WHATSAPP_ACCESS_TOKEN || '';
+const metaPhoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID || '';
+const metaApiVersion = 'v18.0';
 
 export async function POST(request: Request) {
   try {
@@ -33,11 +33,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Message manquant' }, { status: 400 });
     }
 
-    // Vérifier les credentials Twilio
-    if (!accountSid || !authToken) {
+    // Vérifier la configuration Meta WhatsApp
+    if (!metaAccessToken || !metaPhoneNumberId) {
       return NextResponse.json({
-        error: 'Configuration Twilio manquante',
-        details: 'TWILIO_ACCOUNT_SID et TWILIO_AUTH_TOKEN doivent être configurés dans .env'
+        error: 'Configuration Meta WhatsApp manquante',
+        details: 'WHATSAPP_ACCESS_TOKEN et WHATSAPP_PHONE_NUMBER_ID doivent être configurés dans .env'
       }, { status: 500 });
     }
 
@@ -54,7 +54,6 @@ export async function POST(request: Request) {
       }
     });
 
-    const client = twilio(accountSid, authToken);
     const results: any[] = [];
     let successCount = 0;
     let failCount = 0;
@@ -73,33 +72,53 @@ export async function POST(request: Request) {
       }
 
       try {
-        // Formater le numéro
+        // Formater le numéro (enlever le + et whatsapp:)
         let formattedPhone = user.phone.replace(/\D/g, '');
         if (formattedPhone.startsWith('0')) {
           formattedPhone = '33' + formattedPhone.substring(1);
         } else if (!formattedPhone.startsWith('33')) {
           formattedPhone = '33' + formattedPhone;
         }
-        const whatsappTo = `whatsapp:+${formattedPhone}`;
 
-        // Envoyer via Twilio
-        const twilioMessage = await client.messages.create({
-          from: whatsappNumber,
-          to: whatsappTo,
-          body: message
-        });
+        // Envoyer via Meta WhatsApp
+        const messageData = {
+          messaging_product: 'whatsapp',
+          recipient_type: 'individual',
+          to: formattedPhone,
+          type: 'text',
+          text: {
+            body: message
+          }
+        };
+
+        const response = await fetch(
+          `https://graph.facebook.com/${metaApiVersion}/${metaPhoneNumberId}/messages`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${metaAccessToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(messageData)
+          }
+        );
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(`Meta API error: ${JSON.stringify(error)}`);
+        }
+
+        const metaResponse = await response.json();
 
         // Enregistrer dans l'historique
         await prisma.whatsAppHistory.create({
           data: {
-            from: whatsappNumber,
-            to: whatsappTo,
+            from: metaPhoneNumberId,
+            to: formattedPhone,
             message,
             status: 'sent',
             direction: 'outgoing',
-            userId: user.id,
-            sentAt: new Date(),
-            twilioSid: twilioMessage.sid
+            userId: user.id
           }
         });
 
@@ -107,14 +126,16 @@ export async function POST(request: Request) {
           clientId: user.id,
           clientName: user.name,
           status: 'sent',
-          twilioSid: twilioMessage.sid
+          messageId: metaResponse.messages?.[0]?.id
         });
         successCount++;
+
+        console.log(`✅ Message WhatsApp envoyé à ${user.name} (${formattedPhone})`);
 
         // Petit délai entre chaque envoi pour éviter le rate limit
         await new Promise(resolve => setTimeout(resolve, 1000));
       } catch (error) {
-        console.error(`Erreur envoi à ${user.name}:`, error);
+        console.error(`❌ Erreur envoi à ${user.name}:`, error);
         results.push({
           clientId: user.id,
           clientName: user.name,

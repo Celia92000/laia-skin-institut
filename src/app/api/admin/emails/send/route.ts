@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
-import { sendConfirmationEmail } from '@/lib/email-service';
+import { getResend } from '@/lib/resend';
+import { prisma } from '@/lib/prisma';
 
 export async function POST(request: Request) {
   try {
@@ -15,9 +16,66 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Token invalide' }, { status: 401 });
     }
 
-    const { to, subject, content, message, clientId } = await request.json();
+    const { to, subject, content, message, clientId, recipients } = await request.json();
 
-    // Validation des champs obligatoires
+    // Si c'est un envoi groupé avec plusieurs destinataires
+    if (recipients && Array.isArray(recipients)) {
+      const results = [];
+
+      for (const recipient of recipients) {
+        try {
+          const emailContent = content || message;
+          const fromEmail = process.env.RESEND_FROM_EMAIL || 'LAIA SKIN Institut <contact@laiaskininstitut.fr>';
+
+          const { data: emailData, error } = await getResend().emails.send({
+            from: fromEmail,
+            to: [recipient.email],
+            subject: subject,
+            html: emailContent,
+            text: emailContent.replace(/<[^>]*>/g, '') // Enlève les balises HTML pour le texte
+          });
+
+          if (error) {
+            console.error(`❌ Erreur envoi à ${recipient.email}:`, error);
+            results.push({ email: recipient.email, success: false, error: error.message });
+          } else {
+            console.log(`✅ Email envoyé à ${recipient.email}`);
+
+            // Enregistrer dans l'historique
+            await prisma.emailHistory.create({
+              data: {
+                from: 'contact@laiaskininstitut.fr',
+                to: recipient.email,
+                subject: subject,
+                content: emailContent,
+                template: 'campaign',
+                status: 'sent',
+                direction: 'outgoing',
+                userId: recipient.userId
+              }
+            });
+
+            results.push({ email: recipient.email, success: true, id: emailData?.id });
+          }
+        } catch (err) {
+          console.error(`❌ Erreur pour ${recipient.email}:`, err);
+          results.push({ email: recipient.email, success: false, error: 'Erreur serveur' });
+        }
+      }
+
+      const successCount = results.filter(r => r.success).length;
+      return NextResponse.json({
+        success: true,
+        results,
+        summary: {
+          total: recipients.length,
+          sent: successCount,
+          failed: recipients.length - successCount
+        }
+      });
+    }
+
+    // Envoi simple à un destinataire
     if (!to || !subject || (!content && !message)) {
       return NextResponse.json({
         error: 'Champs obligatoires manquants: to, subject, content/message'
@@ -25,63 +83,52 @@ export async function POST(request: Request) {
     }
 
     const emailContent = content || message;
+    const fromEmail = process.env.RESEND_FROM_EMAIL || 'LAIA SKIN Institut <contact@laiaskininstitut.fr>';
 
-    // Utiliser EmailJS directement pour les campagnes
-    if (process.env.EMAILJS_PUBLIC_KEY) {
-      const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          service_id: 'default_service',
-          template_id: 'template_campaign', // Template pour les campagnes
-          user_id: process.env.EMAILJS_PUBLIC_KEY,
-          template_params: {
-            to_email: to,
-            from_name: 'LAIA SKIN Institut',
-            reply_to: 'contact@laia.skin.fr',
-            subject: subject,
-            message: emailContent
-          }
-        })
-      });
+    // Envoyer via Resend
+    const { data: emailData, error } = await getResend().emails.send({
+      from: fromEmail,
+      to: [to],
+      subject: subject,
+      html: emailContent,
+      text: emailContent.replace(/<[^>]*>/g, '') // Enlève les balises HTML pour le texte
+    });
 
-      if (response.ok) {
-        console.log('✅ Email de campagne envoyé à:', to);
-        
-        // Enregistrer dans l'historique (optionnel)
-        // await prisma.emailHistory.create({...})
-        
-        return NextResponse.json({ success: true });
-      } else {
-        const error = await response.text();
-        console.error('❌ Erreur EmailJS:', error);
-        return NextResponse.json({ 
-          success: false, 
-          error: 'Erreur envoi email' 
-        }, { status: 500 });
+    if (error) {
+      console.error('❌ Erreur Resend:', error);
+      return NextResponse.json({
+        success: false,
+        error: error.message || 'Erreur envoi email'
+      }, { status: 500 });
+    }
+
+    console.log('✅ Email de campagne envoyé à:', to);
+    console.log('   ID Resend:', emailData?.id);
+
+    // Enregistrer dans l'historique
+    await prisma.emailHistory.create({
+      data: {
+        from: 'contact@laiaskininstitut.fr',
+        to: to,
+        subject: subject,
+        content: emailContent,
+        template: 'campaign',
+        status: 'sent',
+        direction: 'outgoing',
+        userId: clientId
       }
-    }
+    });
 
-    // Fallback : simuler l'envoi
-    console.log('📧 Email de campagne (simulé):');
-    console.log('To:', to);
-    console.log('Subject:', subject);
-    if (emailContent) {
-      console.log('Content:', emailContent.substring(0, 200));
-    }
-    
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
-      simulated: true,
-      message: 'Email simulé (configurez EmailJS pour l\'envoi réel)'
+      id: emailData?.id
     });
 
   } catch (error) {
     console.error('Erreur envoi email campagne:', error);
-    return NextResponse.json({ 
-      error: 'Erreur serveur' 
+    return NextResponse.json({
+      error: 'Erreur serveur',
+      details: error instanceof Error ? error.message : 'Erreur inconnue'
     }, { status: 500 });
   }
 }
