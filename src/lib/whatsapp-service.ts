@@ -1,12 +1,19 @@
 import twilio from 'twilio';
 import { getPrismaClient } from './prisma';
 
-// Configuration Twilio WhatsApp
-const accountSid = process.env.TWILIO_ACCOUNT_SID || '';
-const authToken = process.env.TWILIO_AUTH_TOKEN || '';
-const whatsappNumber = process.env.TWILIO_WHATSAPP_NUMBER || 'whatsapp:+14155238886'; // Sandbox par défaut
+// Détection du provider
+const provider = process.env.WHATSAPP_PROVIDER || 'twilio';
 
-const client = accountSid && authToken ? twilio(accountSid, authToken) : null;
+// Configuration Twilio WhatsApp
+const twilioAccountSid = process.env.TWILIO_ACCOUNT_SID || '';
+const twilioAuthToken = process.env.TWILIO_AUTH_TOKEN || '';
+const twilioWhatsappNumber = process.env.TWILIO_WHATSAPP_FROM || 'whatsapp:+14155238886';
+const twilioClient = twilioAccountSid && twilioAuthToken ? twilio(twilioAccountSid, twilioAuthToken) : null;
+
+// Configuration Meta WhatsApp
+const metaAccessToken = process.env.WHATSAPP_ACCESS_TOKEN || '';
+const metaPhoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID || '';
+const metaApiVersion = 'v18.0';
 
 export interface WhatsAppMessage {
   id?: string;
@@ -27,33 +34,89 @@ export class WhatsAppService {
    * Envoyer un message WhatsApp
    */
   static async sendMessage(to: string, message: string, mediaUrl?: string[]): Promise<any> {
-    if (!client) {
-      throw new Error('WhatsApp non configuré. Ajoutez TWILIO_ACCOUNT_SID et TWILIO_AUTH_TOKEN');
-    }
+    const prisma = await getPrismaClient();
 
     try {
-      // Formater le numéro (ajouter whatsapp: si nécessaire)
-      const toNumber = to.startsWith('whatsapp:') ? to : `whatsapp:${to}`;
-      
-      const messageOptions: any = {
-        from: whatsappNumber,
-        to: toNumber,
-        body: message
-      };
+      let result: any;
+      let fromNumber: string;
 
-      if (mediaUrl && mediaUrl.length > 0) {
-        messageOptions.mediaUrl = mediaUrl;
+      if (provider === 'meta') {
+        // ***** ENVOI VIA META WHATSAPP *****
+        if (!metaAccessToken || !metaPhoneNumberId) {
+          throw new Error('Meta WhatsApp non configuré. Ajoutez WHATSAPP_ACCESS_TOKEN et WHATSAPP_PHONE_NUMBER_ID');
+        }
+
+        // Formater le numéro (enlever le + et whatsapp:)
+        const toNumber = to.replace('whatsapp:', '').replace('+', '');
+
+        const messageData: any = {
+          messaging_product: 'whatsapp',
+          recipient_type: 'individual',
+          to: toNumber,
+          type: 'text',
+          text: {
+            body: message
+          }
+        };
+
+        // TODO: Support des images avec Meta
+        // if (mediaUrl && mediaUrl.length > 0) {
+        //   messageData.type = 'image';
+        //   messageData.image = { link: mediaUrl[0] };
+        // }
+
+        const response = await fetch(
+          `https://graph.facebook.com/${metaApiVersion}/${metaPhoneNumberId}/messages`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${metaAccessToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(messageData)
+          }
+        );
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(`Meta WhatsApp error: ${JSON.stringify(error)}`);
+        }
+
+        result = await response.json();
+        fromNumber = metaPhoneNumberId;
+
+        console.log('📱 Message WhatsApp envoyé via Meta:', result);
+
+      } else {
+        // ***** ENVOI VIA TWILIO *****
+        if (!twilioClient) {
+          throw new Error('Twilio non configuré. Ajoutez TWILIO_ACCOUNT_SID et TWILIO_AUTH_TOKEN');
+        }
+
+        // Formater le numéro (ajouter whatsapp: si nécessaire)
+        const toNumber = to.startsWith('whatsapp:') ? to : `whatsapp:${to}`;
+
+        const messageOptions: any = {
+          from: twilioWhatsappNumber,
+          to: toNumber,
+          body: message
+        };
+
+        if (mediaUrl && mediaUrl.length > 0) {
+          messageOptions.mediaUrl = mediaUrl;
+        }
+
+        result = await twilioClient.messages.create(messageOptions);
+        fromNumber = twilioWhatsappNumber.replace('whatsapp:', '');
+
+        console.log('📱 Message WhatsApp envoyé via Twilio:', result.sid);
       }
 
-      // Envoyer via Twilio
-      const result = await client.messages.create(messageOptions);
-
       // Enregistrer dans la base de données
-      const prisma = await getPrismaClient();
       await prisma.whatsAppHistory.create({
         data: {
-          from: whatsappNumber.replace('whatsapp:', ''),
-          to: to.replace('whatsapp:', ''),
+          from: fromNumber,
+          to: to.replace('whatsapp:', '').replace('+', ''),
           message: message,
           status: 'sent',
           direction: 'outgoing',
@@ -109,7 +172,7 @@ export class WhatsAppService {
    * Synchroniser les messages WhatsApp depuis Twilio
    */
   static async syncMessages(days: number = 7): Promise<void> {
-    if (!client) {
+    if (!twilioClient) {
       console.log('WhatsApp non configuré pour la synchronisation');
       return;
     }
@@ -120,10 +183,10 @@ export class WhatsAppService {
       since.setDate(since.getDate() - days);
 
       // Récupérer les messages depuis Twilio
-      const messages = await client.messages.list({
+      const messages = await twilioClient.messages.list({
         dateSentAfter: since,
-        to: whatsappNumber,
-        from: whatsappNumber
+        to: twilioWhatsappNumber,
+        from: twilioWhatsappNumber
       });
 
       console.log(`${messages.length} messages WhatsApp à synchroniser`);
@@ -140,7 +203,7 @@ export class WhatsAppService {
 
         if (!existing) {
           // Déterminer la direction
-          const isIncoming = msg.to === whatsappNumber;
+          const isIncoming = msg.to === twilioWhatsappNumber;
           
           await prisma.whatsAppHistory.create({
             data: {

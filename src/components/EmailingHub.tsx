@@ -1,15 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Mail, Users, Zap, Filter, Send, BarChart3, ExternalLink, Settings, PenTool, Inbox } from 'lucide-react';
+import { Mail, Users, Zap, Filter, Send, BarChart3, ExternalLink, Settings, PenTool, Inbox, FileText } from 'lucide-react';
 import ClientSegmentation from './ClientSegmentation';
 import EmailAutomations from './EmailAutomations';
 import EmailCampaignHistory from './EmailCampaignHistory';
 import EmailComposer from './EmailComposer';
 import EmailInbox from './EmailInbox';
+import EmailTemplateManager from './EmailTemplateManager';
 
 export default function EmailingHub() {
-  const [activeSubTab, setActiveSubTab] = useState<'inbox' | 'compose' | 'campaigns' | 'automations' | 'history'>('inbox');
+  const [activeSubTab, setActiveSubTab] = useState<'inbox' | 'compose' | 'campaigns' | 'automations' | 'history' | 'templates'>('inbox');
 
   return (
     <div>
@@ -87,6 +88,17 @@ export default function EmailingHub() {
               <BarChart3 className="w-4 h-4" />
               Historique & Rapports
             </button>
+            <button
+              onClick={() => setActiveSubTab('templates')}
+              className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
+                activeSubTab === 'templates'
+                  ? 'bg-blue-500 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <FileText className="w-4 h-4" />
+              Templates
+            </button>
           </div>
         </div>
       </div>
@@ -144,6 +156,7 @@ export default function EmailingHub() {
       {activeSubTab === 'campaigns' && <ClientSegmentation />}
       {activeSubTab === 'automations' && <EmailAutomations />}
       {activeSubTab === 'history' && <EmailCampaignHistory />}
+      {activeSubTab === 'templates' && <EmailTemplateManager />}
     </div>
   );
 }

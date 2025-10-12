@@ -588,28 +588,25 @@ export default function WhatsAppHistory() {
                   <p className="text-sm text-gray-500">messages</p>
                 </div>
               </div>
-              <div className="p-4 space-y-2">
-                {messages.slice(0, 3).map(msg => (
-                  <div key={msg.id} className="flex items-center justify-between py-2 border-b last:border-0">
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-600 line-clamp-1">{msg.message}</p>
-                      <div className="flex items-center gap-3 mt-1">
-                        <span className="text-xs text-gray-500">
-                          {new Date(msg.sentAt).toLocaleDateString('fr-FR')}
-                        </span>
-                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${getTypeColor(msg.messageType)}`}>
-                          {msg.messageType}
-                        </span>
+              <div className="p-4 max-h-96 overflow-y-auto">
+                <div className="space-y-2">
+                  {messages.map(msg => (
+                    <div key={msg.id} className="flex items-center justify-between py-2 border-b last:border-0">
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-600 line-clamp-1">{msg.message}</p>
+                        <div className="flex items-center gap-3 mt-1">
+                          <span className="text-xs text-gray-500">
+                            {new Date(msg.sentAt).toLocaleDateString('fr-FR')}
+                          </span>
+                          <span className={`px-2 py-0.5 rounded text-xs font-medium ${getTypeColor(msg.messageType)}`}>
+                            {msg.messageType}
+                          </span>
+                        </div>
                       </div>
+                      {getStatusIcon(msg.status)}
                     </div>
-                    {getStatusIcon(msg.status)}
-                  </div>
-                ))}
-                {messages.length > 3 && (
-                  <button className="text-sm text-green-600 hover:text-green-700 font-medium">
-                    Voir {messages.length - 3} messages de plus →
-                  </button>
-                )}
+                  ))}
+                </div>
               </div>
             </div>
           ))}

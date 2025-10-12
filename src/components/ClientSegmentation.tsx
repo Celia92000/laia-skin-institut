@@ -64,6 +64,8 @@ export default function EmailCampaigns() {
   const [showSegmentDetailsModal, setShowSegmentDetailsModal] = useState(false);
   const [selectedSegmentDetails, setSelectedSegmentDetails] = useState<ClientSegment | null>(null);
   const [segmentClients, setSegmentClients] = useState<Client[]>([]);
+  const [sortBy, setSortBy] = useState<'name' | 'totalSpent' | 'visitCount' | 'loyaltyPoints' | 'lastVisit'>('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   // Filtres disponibles
   const availableFilters: ClientFilter[] = [
@@ -192,17 +194,16 @@ export default function EmailCampaigns() {
     }
   ];
 
-  // Segments pré-définis
-  const predefinedSegments: ClientSegment[] = [
+  // Segments pré-définis avec compteurs dynamiques
+  const [predefinedSegments, setPredefinedSegments] = useState<ClientSegment[]>([
     {
       id: 'vip-clients',
       name: 'Clients VIP',
-      description: 'Clients fidèles avec dépenses élevées',
+      description: 'Clients avec plus de 500€ dépensés',
       filters: [
-        { ...availableFilters[1], value: { min: 1000, max: 5000 } },
-        { ...availableFilters[6], value: true }
+        { ...availableFilters[1], value: { min: 500, max: 50000 } }
       ],
-      clientCount: 45,
+      clientCount: 0,
       color: 'purple'
     },
     {
@@ -210,19 +211,19 @@ export default function EmailCampaigns() {
       name: 'Anniversaires du mois',
       description: 'Clients dont c\'est l\'anniversaire ce mois',
       filters: [
-        { ...availableFilters[5], value: new Date().getMonth() + 1 }
+        { ...availableFilters[5], value: String(new Date().getMonth() + 1) }
       ],
-      clientCount: 12,
+      clientCount: 0,
       color: 'pink'
     },
     {
       id: 'inactive-clients',
       name: 'Clients à réactiver',
-      description: 'Inactifs depuis plus de 90 jours',
+      description: 'Inactifs depuis plus de 60 jours',
       filters: [
-        { ...availableFilters[7], value: '90days' }
+        { ...availableFilters[7], value: '60days' }
       ],
-      clientCount: 28,
+      clientCount: 0,
       color: 'orange'
     },
     {
@@ -232,20 +233,27 @@ export default function EmailCampaigns() {
       filters: [
         { ...availableFilters[2], value: '30days' }
       ],
-      clientCount: 8,
+      clientCount: 0,
       color: 'green'
     },
     {
-      id: 'high-satisfaction',
-      name: 'Clients très satisfaits',
-      description: 'Note de satisfaction 5 étoiles',
+      id: 'loyal-clients',
+      name: 'Clients fidèles',
+      description: 'Plus de 3 visites',
       filters: [
-        { ...availableFilters[8], value: '5' }
+        {
+          id: 'visit-count',
+          name: 'Nombre de visites',
+          icon: <Calendar className="w-4 h-4" />,
+          type: 'range',
+          field: 'visitCount',
+          value: { min: 3, max: 1000 }
+        }
       ],
-      clientCount: 67,
+      clientCount: 0,
       color: 'blue'
     }
-  ];
+  ]);
 
   // Charger les données
   useEffect(() => {
@@ -275,18 +283,21 @@ export default function EmailCampaigns() {
             visitCount: c.reservations || 0,
             averageSpent: c.reservations > 0 ? Math.round(c.totalSpent / c.reservations) : 0,
             favoriteService: c.preferences || undefined,
-            birthday: undefined, // À ajouter dans la base si nécessaire
+            birthday: c.birthDate ? new Date(c.birthDate) : undefined,
             loyaltyPoints: c.loyaltyPoints || 0,
             tags: determineClientTags(c),
-            isVip: (c.totalSpent || 0) > 500, // VIP si plus de 500€ dépensés
-            satisfaction: 5, // Par défaut, à calculer depuis les avis si disponible
+            isVip: (c.totalSpent || 0) > 500,
+            satisfaction: 5,
             notes: c.medicalNotes || undefined,
             lastService: c.preferences || undefined,
-            nextAppointment: undefined // À calculer depuis les réservations futures
+            nextAppointment: undefined
           }));
 
           setClients(transformedClients);
           setFilteredClients(transformedClients);
+
+          // Mettre à jour les compteurs des segments
+          updateSegmentCounts(transformedClients);
         }
       } catch (error) {
         console.error('Erreur lors du chargement des clients:', error);
@@ -294,8 +305,19 @@ export default function EmailCampaigns() {
     };
 
     fetchClients();
-    setSegments(predefinedSegments);
   }, []);
+
+  // Mettre à jour les compteurs des segments
+  const updateSegmentCounts = (clientsList: Client[]) => {
+    const updatedSegments = predefinedSegments.map(segment => {
+      const filtered = applySegmentFilters(segment.filters, clientsList);
+      return {
+        ...segment,
+        clientCount: filtered.length
+      };
+    });
+    setPredefinedSegments(updatedSegments);
+  };
 
   // Fonction pour déterminer automatiquement les tags d'un client
   const determineClientTags = (client: any): string[] => {
@@ -330,10 +352,84 @@ export default function EmailCampaigns() {
     return tags;
   };
 
+  // Appliquer les filtres d'un segment
+  const applySegmentFilters = (segmentFilters: ClientFilter[], clientsList: Client[] = clients): Client[] => {
+    let filtered = [...clientsList];
+
+    segmentFilters.forEach(filter => {
+      switch (filter.field) {
+        case 'totalSpent':
+          if (filter.value && typeof filter.value === 'object' && 'min' in filter.value) {
+            filtered = filtered.filter(client =>
+              client.totalSpent >= filter.value.min && client.totalSpent <= filter.value.max
+            );
+          }
+          break;
+        case 'isVip':
+          filtered = filtered.filter(client => client.isVip === filter.value);
+          break;
+        case 'inactivity':
+          const now = Date.now();
+          const daysMap: { [key: string]: number } = {
+            '60days': 60,
+            '90days': 90,
+            '180days': 180
+          };
+          const days = daysMap[filter.value as string] || 90;
+          const threshold = now - (days * 24 * 60 * 60 * 1000);
+          filtered = filtered.filter(client =>
+            client.lastVisit && new Date(client.lastVisit).getTime() < threshold
+          );
+          break;
+        case 'lastVisitRange':
+          const currentDate = Date.now();
+          const rangeMap: { [key: string]: number } = {
+            '7days': 7,
+            '30days': 30,
+            '90days': 90
+          };
+          const rangeDays = rangeMap[filter.value as string];
+          if (rangeDays) {
+            const rangeThreshold = currentDate - (rangeDays * 24 * 60 * 60 * 1000);
+            filtered = filtered.filter(client =>
+              client.dateJoined && new Date(client.dateJoined).getTime() >= rangeThreshold
+            );
+          }
+          break;
+        case 'birthdayMonth':
+          if (filter.value) {
+            const targetMonth = parseInt(String(filter.value));
+            filtered = filtered.filter(client => {
+              if (!client.birthday) return false;
+              const birthMonth = new Date(client.birthday).getMonth() + 1;
+              return birthMonth === targetMonth;
+            });
+          }
+          break;
+        case 'visitCount':
+          if (filter.value && typeof filter.value === 'object' && 'min' in filter.value) {
+            filtered = filtered.filter(client =>
+              client.visitCount >= filter.value.min && client.visitCount <= filter.value.max
+            );
+          }
+          break;
+        case 'satisfaction':
+          if (filter.value === '5') {
+            filtered = filtered.filter(client => client.satisfaction === 5);
+          } else if (filter.value === '4+') {
+            filtered = filtered.filter(client => (client.satisfaction || 0) >= 4);
+          }
+          break;
+      }
+    });
+
+    return filtered;
+  };
+
   // Appliquer les filtres
   const applyFilters = () => {
     let filtered = [...clients];
-    
+
     activeFilters.forEach(filter => {
       switch (filter.type) {
         case 'range':
@@ -343,7 +439,7 @@ export default function EmailCampaigns() {
           });
           break;
         case 'boolean':
-          filtered = filtered.filter(client => 
+          filtered = filtered.filter(client =>
             client[filter.field as keyof Client] === filter.value
           );
           break;
@@ -355,9 +451,37 @@ export default function EmailCampaigns() {
           break;
       }
     });
-    
+
     setFilteredClients(filtered);
   };
+
+  // Appliquer le tri aux clients (variable dérivée pour éviter les boucles)
+  const sortedFilteredClients = [...filteredClients].sort((a, b) => {
+    let comparison = 0;
+
+    switch (sortBy) {
+      case 'name':
+        comparison = a.name.localeCompare(b.name);
+        break;
+      case 'totalSpent':
+        comparison = a.totalSpent - b.totalSpent;
+        break;
+      case 'visitCount':
+        comparison = a.visitCount - b.visitCount;
+        break;
+      case 'loyaltyPoints':
+        comparison = a.loyaltyPoints - b.loyaltyPoints;
+        break;
+      case 'lastVisit':
+        if (!a.lastVisit && !b.lastVisit) comparison = 0;
+        else if (!a.lastVisit) comparison = 1;
+        else if (!b.lastVisit) comparison = -1;
+        else comparison = new Date(a.lastVisit).getTime() - new Date(b.lastVisit).getTime();
+        break;
+    }
+
+    return sortOrder === 'asc' ? comparison : -comparison;
+  });
 
   // Ajouter un filtre
   const addFilter = (filter: ClientFilter) => {
@@ -377,35 +501,29 @@ export default function EmailCampaigns() {
   const [emailContent, setEmailContent] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState('');
 
-  // Templates d'email prédéfinis liés à EmailJS
-  const emailTemplates = [
-    {
-      id: 'confirmation',
-      name: '✨ Confirmation (EmailJS)',
-      subject: '✨ Votre réservation chez LAIA SKIN est confirmée',
-      content: `Template EmailJS: template_myu4emv\nEnvoyé automatiquement après chaque réservation`,
-      templateId: 'template_myu4emv'
-    },
-    {
-      id: 'review',
-      name: '⭐ Demande d\'avis (EmailJS)',
-      subject: '{{client_name}}, comment s\'est passé votre soin ?',
-      content: `Template EmailJS: template_36zodeb\nEnvoyé 3 jours après le soin avec programme fidélité`,
-      templateId: 'template_36zodeb'
-    },
-    {
-      id: 'promo',
-      name: '🎁 Promotion',
-      subject: '🎁 Offre spéciale pour vous {{client_name}} !',
-      content: `Bonjour {{client_name}},\n\nJ'ai le plaisir de vous offrir une réduction exclusive de -20% sur votre prochain soin !\n\nCette offre est valable jusqu'à la fin du mois.\n\nRéservez vite sur le site ou WhatsApp.\n\nÀ très bientôt,\nLaïa\nLAIA SKIN Institut`
-    },
-    {
-      id: 'reactivation',
-      name: '🔄 Réactivation',
-      subject: 'Votre peau me manque ! 💕',
-      content: `Bonjour {{client_name}},\n\nCela fait un moment qu'on ne s'est pas vues et votre peau me manque !\n\nPour faciliter votre retour, je vous offre -25% sur le soin de votre choix.\n\nJ'ai aussi de nouveaux soins qui pourraient vous intéresser.\n\nÀ très vite j'espère,\nLaïa`
-    }
-  ];
+  // Templates d'email - chargés depuis l'API
+  const [emailTemplates, setEmailTemplates] = useState<any[]>([]);
+
+  // Charger les templates depuis l'API
+  useEffect(() => {
+    const loadTemplates = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/admin/email-templates', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setEmailTemplates(data);
+        }
+      } catch (error) {
+        console.error('Erreur chargement templates:', error);
+      }
+    };
+
+    loadTemplates();
+  }, []);
 
   // Créer une campagne email
   const createEmailCampaign = () => {
@@ -416,41 +534,65 @@ export default function EmailCampaigns() {
     setShowCampaignModal(true);
   };
 
-  // Envoyer la campagne via EmailJS
+  // Envoyer la campagne via l'API backend
   const sendCampaign = async () => {
     const selectedClientsData = clients.filter(c => selectedClients.includes(c.id));
     console.log('Envoi de la campagne à', selectedClientsData.length, 'clients');
-    
-    // Si c'est un template EmailJS
-    const template = emailTemplates.find(t => t.id === selectedTemplate);
-    if (template?.templateId) {
-      // Utiliser le vrai template EmailJS
-      for (const client of selectedClientsData) {
-        try {
-          await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              service_id: 'default_service',
-              template_id: template.templateId,
-              user_id: 'QK6MriGN3B0UqkIoS',
-              template_params: {
-                to_email: client.email,
-                client_name: client.name,
-                from_name: 'LAIA SKIN Institut',
-                reply_to: 'contact@laia.skininstitut.fr'
-              }
-            })
-          });
-        } catch (error) {
-          console.error(`Erreur envoi à ${client.email}:`, error);
-        }
-      }
+
+    if (selectedClientsData.length === 0) {
+      alert('Aucun client sélectionné');
+      return;
     }
-    
-    alert(`Campagne envoyée à ${selectedClientsData.length} clients via EmailJS !`);
-    setShowCampaignModal(false);
-    setSelectedClients([]);
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Session expirée, veuillez vous reconnecter');
+        return;
+      }
+
+      // Préparer les données pour l'API
+      const recipients = selectedClientsData.map(client => ({
+        email: client.email,
+        name: client.name,
+        loyaltyPoints: client.loyaltyPoints
+      }));
+
+      // Personnaliser le contenu avec les variables
+      let finalContent = emailContent;
+      let finalSubject = emailSubject;
+
+      // Envoyer via l'API backend
+      const response = await fetch('/api/admin/campaigns/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          subject: finalSubject,
+          content: finalContent,
+          recipients: recipients,
+          template: selectedTemplate
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert(`✅ Campagne envoyée avec succès !\n${result.sent} envois réussis${result.failed > 0 ? `\n${result.failed} échecs` : ''}`);
+        setShowCampaignModal(false);
+        setSelectedClients([]);
+        setEmailSubject('');
+        setEmailContent('');
+        setSelectedTemplate('');
+      } else {
+        alert(`❌ Erreur lors de l'envoi : ${result.error || 'Erreur inconnue'}`);
+      }
+    } catch (error) {
+      console.error('Erreur envoi campagne:', error);
+      alert('❌ Erreur lors de l\'envoi de la campagne');
+    }
   };
 
   // Copier les emails sélectionnés
@@ -533,11 +675,19 @@ export default function EmailCampaigns() {
             <button
               key={segment.id}
               onClick={() => {
+                console.log('🔍 Segment cliqué:', segment.name);
+                console.log('📊 Nombre de clients totaux:', clients.length);
+                console.log('🔧 Filtres du segment:', segment.filters);
+
                 setSelectedSegment(segment.id);
                 setSelectedSegmentDetails(segment);
-                // Simuler les clients du segment
-                const mockSegmentClients = clients.slice(0, segment.clientCount);
-                setSegmentClients(mockSegmentClients);
+                // Appliquer les vrais filtres du segment
+                const realSegmentClients = applySegmentFilters(segment.filters, clients);
+                console.log('✅ Clients filtrés:', realSegmentClients.length);
+
+                setSegmentClients(realSegmentClients);
+                // Sélectionner automatiquement tous les clients filtrés
+                setSelectedClients(realSegmentClients.map(c => c.id));
                 setShowSegmentDetailsModal(true);
               }}
               className={`p-3 rounded-lg border-2 transition-all ${
@@ -653,24 +803,47 @@ export default function EmailCampaigns() {
         </div>
       </div>
 
-      {/* Actions groupées */}
+      {/* Actions groupées et tri */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <button
             onClick={() => setSelectedClients(
-              selectedClients.length === filteredClients.length 
-                ? [] 
-                : filteredClients.map(c => c.id)
+              selectedClients.length === sortedFilteredClients.length
+                ? []
+                : sortedFilteredClients.map(c => c.id)
             )}
             className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm"
           >
-            {selectedClients.length === filteredClients.length ? 'Désélectionner tout' : 'Tout sélectionner'}
+            {selectedClients.length === sortedFilteredClients.length ? 'Désélectionner tout' : 'Tout sélectionner'}
           </button>
           <span className="text-sm text-gray-600">
             {selectedClients.length} client{selectedClients.length > 1 ? 's' : ''} sélectionné{selectedClients.length > 1 ? 's' : ''}
           </span>
+
+          {/* Options de tri */}
+          <div className="flex items-center gap-2 ml-4 pl-4 border-l border-gray-300">
+            <span className="text-sm text-gray-600">Trier par :</span>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="name">Nom</option>
+              <option value="totalSpent">Total dépensé</option>
+              <option value="visitCount">Nombre de visites</option>
+              <option value="loyaltyPoints">Points fidélité</option>
+              <option value="lastVisit">Dernière visite</option>
+            </select>
+            <button
+              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+              className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+              title={sortOrder === 'asc' ? 'Ordre croissant' : 'Ordre décroissant'}
+            >
+              {sortOrder === 'asc' ? '↑' : '↓'}
+            </button>
+          </div>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <button
             onClick={() => setViewMode(viewMode === 'list' ? 'grid' : 'list')}
@@ -706,11 +879,11 @@ export default function EmailCampaigns() {
                 <th className="px-4 py-3 text-left">
                   <input
                     type="checkbox"
-                    checked={selectedClients.length === filteredClients.length}
+                    checked={selectedClients.length === sortedFilteredClients.length}
                     onChange={() => setSelectedClients(
-                      selectedClients.length === filteredClients.length 
-                        ? [] 
-                        : filteredClients.map(c => c.id)
+                      selectedClients.length === sortedFilteredClients.length
+                        ? []
+                        : sortedFilteredClients.map(c => c.id)
                     )}
                   />
                 </th>
@@ -724,7 +897,7 @@ export default function EmailCampaigns() {
               </tr>
             </thead>
             <tbody>
-              {filteredClients.map(client => (
+              {sortedFilteredClients.map(client => (
                 <tr key={client.id} className="border-t border-gray-100 hover:bg-gray-50">
                   <td className="px-4 py-3">
                     <input
@@ -798,7 +971,7 @@ export default function EmailCampaigns() {
           </table>
         ) : (
           <div className="grid grid-cols-3 gap-4 p-4">
-            {filteredClients.map(client => (
+            {sortedFilteredClients.map(client => (
               <div
                 key={client.id}
                 className={`border rounded-lg p-4 cursor-pointer transition-all ${
@@ -1074,6 +1247,9 @@ export default function EmailCampaigns() {
               <div className="flex gap-2">
                 <button
                   onClick={() => {
+                    // Sélectionner tous les clients du segment
+                    const segmentClientIds = segmentClients.map(c => c.id);
+                    setSelectedClients(segmentClientIds);
                     setShowSegmentDetailsModal(false);
                     setShowCampaignModal(true);
                   }}

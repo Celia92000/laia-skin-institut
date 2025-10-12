@@ -1063,7 +1063,7 @@ export default function AdminDashboard() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setShowAdvancedSearch(true)}
-                className="px-4 py-2 text-sm bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white hover:from-[#c9a084] hover:to-[#b89778] rounded-lg transition-all flex items-center gap-2 shadow-lg hover:shadow-xl"
+                className="px-4 py-2 text-sm border border-laia-primary/10 bg-white/50 backdrop-blur-sm hover:bg-white hover:border-laia-primary/30 rounded-full transition-all flex items-center gap-2 text-laia-gray hover:text-laia-primary"
               >
                 <Search className="w-4 h-4" />
                 Recherche

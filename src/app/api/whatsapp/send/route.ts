@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
+import { WhatsAppService } from '@/lib/whatsapp-service';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { to, message, template, templateData, clientId, clientName, templateId, templateName } = body;
-    
+    const { to, message, clientId, clientName } = body;
+
     // Vérifier l'authentification
     const authHeader = request.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -18,69 +18,35 @@ export async function POST(request: Request) {
     if (!decoded) {
       return NextResponse.json({ error: 'Token invalide' }, { status: 401 });
     }
-    
-    let finalMessage = message;
-    let finalTemplateName = templateName;
-    
+
     // Vérifier que le message et le destinataire sont fournis
-    if (!to || !finalMessage) {
+    if (!to || !message) {
       return NextResponse.json({ error: 'Destinataire et message requis' }, { status: 400 });
     }
 
-    // Essayer d'envoyer via Twilio si configuré
-    let messageSent = false;
-    let messageId = `sim_${Date.now()}`;
-    
-    if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
-      try {
-        const twilio = require('twilio');
-        const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-        
-        const twilioMessage = await client.messages.create({
-          from: process.env.TWILIO_WHATSAPP_FROM || 'whatsapp:+14155238886',
-          to: to.startsWith('whatsapp:') ? to : `whatsapp:${to}`,
-          body: finalMessage
-        });
-        
-        messageSent = true;
-        messageId = twilioMessage.sid;
-      } catch (twilioError: any) {
-        console.log('Twilio non configuré, mode simulation:', twilioError?.message);
-      }
+    // Formater le numéro de téléphone (ajouter +33 si nécessaire)
+    let formattedPhone = to.replace(/\D/g, '');
+    if (formattedPhone.startsWith('0')) {
+      formattedPhone = '33' + formattedPhone.substring(1);
+    } else if (!formattedPhone.startsWith('33')) {
+      formattedPhone = '33' + formattedPhone;
     }
-    
-    // Dans tous les cas, enregistrer le message
-    try {
-      await prisma.whatsAppHistory.create({
-        data: {
-          from: 'LAIA SKIN Institut',
-          to: to,
-          message: finalMessage,
-          status: messageSent ? 'delivered' : 'sent',
-          direction: 'outgoing',
-          userId: clientId || null,
-          deliveredAt: messageSent ? new Date() : null
-        }
-      });
-      console.log('Message WhatsApp enregistré dans l\'historique');
-    } catch (error) {
-      console.log('Historique WhatsApp non disponible:', error);
-    }
-    
-    // Réponse de succès
-    console.log(`📱 WhatsApp ${messageSent ? 'envoyé' : 'simulé'} à ${clientName || to}: ${finalMessage.substring(0, 50)}...`);
-    
-    return NextResponse.json({ 
-      success: true, 
-      message: messageSent ? 'Message envoyé avec succès' : 'Message enregistré (mode simulation)',
-      messageId: messageId,
-      status: messageSent ? 'delivered' : 'simulated',
+    formattedPhone = '+' + formattedPhone;
+
+    // Envoyer via le WhatsAppService (Meta ou Twilio selon WHATSAPP_PROVIDER)
+    const result = await WhatsAppService.sendMessage(formattedPhone, message);
+
+    return NextResponse.json({
+      success: true,
+      message: 'Message envoyé avec succès',
+      messageId: result?.messages?.[0]?.id || result?.sid || `msg_${Date.now()}`,
+      status: 'sent',
       timestamp: new Date().toISOString()
     });
-    
+
   } catch (error) {
     console.error('Erreur envoi WhatsApp:', error);
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: 'Erreur serveur',
       details: error instanceof Error ? error.message : 'Erreur inconnue'
     }, { status: 500 });

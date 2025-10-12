@@ -30,8 +30,19 @@ export async function POST(request: Request) {
             subscribedAt: new Date()
           }
         });
+
+        // Mettre à jour les notes admin de l'utilisateur
+        const user = await prisma.user.findUnique({ where: { email } });
+        if (user) {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: {
+              adminNotes: `${user.adminNotes || ''}\n[${new Date().toLocaleDateString('fr-FR')}] Réinscrit à la newsletter`
+            }
+          });
+        }
       }
-      return NextResponse.json({ 
+      return NextResponse.json({
         message: 'Déjà inscrit à la newsletter',
         isReactivated: !existingSubscriber.isActive
       });

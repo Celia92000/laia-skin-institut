@@ -285,7 +285,7 @@ const WhatsAppSimple: React.FC = () => {
     } else if (!cleaned.startsWith('33')) {
       cleaned = '33' + cleaned;
     }
-    return cleaned;
+    return '+' + cleaned;  // Ajouter le + pour le format international
   };
 
   // Handle send message
