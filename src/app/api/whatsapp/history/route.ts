@@ -31,7 +31,7 @@ export async function GET(request: Request) {
     const messages = await prisma.whatsAppHistory.findMany({
       where,
       orderBy: {
-        sentAt: 'desc'
+        createdAt: 'desc'
       },
       include: {
         user: {
@@ -57,7 +57,7 @@ export async function GET(request: Request) {
         message: msg.message,
         status: msg.status,
         direction: msg.direction,
-        sentAt: msg.sentAt.toISOString(),
+        sentAt: msg.createdAt.toISOString(),
         deliveredAt: msg.deliveredAt?.toISOString(),
         readAt: msg.readAt?.toISOString(),
         userId: msg.userId,

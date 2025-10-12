@@ -43,7 +43,7 @@ export class WhatsAppService {
       if (provider === 'meta') {
         // ***** ENVOI VIA META WHATSAPP *****
         if (!metaAccessToken || !metaPhoneNumberId) {
-          throw new Error('Meta WhatsApp non configuré. Ajoutez WHATSAPP_ACCESS_TOKEN et WHATSAPP_PHONE_NUMBER_ID');
+          throw new Error('Meta WhatsApp non configuré. Ajoutez WHATSAPP_ACCESS_TOKEN et WHATSAPP_PHONE_NUMBER_ID dans .env');
         }
 
         // Formater le numéro (enlever le + et whatsapp:)
@@ -79,6 +79,10 @@ export class WhatsAppService {
 
         if (!response.ok) {
           const error = await response.json();
+          // Si le token est expiré, suggérer Twilio comme alternative
+          if (error.error?.code === 190) {
+            throw new Error(`Token Meta WhatsApp expiré. Veuillez renouveler le token ou utiliser Twilio en définissant WHATSAPP_PROVIDER=twilio dans .env`);
+          }
           throw new Error(`Meta WhatsApp error: ${JSON.stringify(error)}`);
         }
 

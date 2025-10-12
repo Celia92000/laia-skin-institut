@@ -9,7 +9,7 @@ import WhatsAppHistory from './WhatsAppHistory';
 import WhatsAppSimple from './WhatsAppSimple';
 
 export default function WhatsAppHub() {
-  const [activeSubTab, setActiveSubTab] = useState<'templates' | 'conversations' | 'campaigns' | 'automations' | 'history'>('history');
+  const [activeSubTab, setActiveSubTab] = useState<'templates' | 'conversations' | 'campaigns' | 'automations' | 'history'>('conversations');
 
   return (
     <div>
@@ -21,18 +21,6 @@ export default function WhatsAppHub() {
             Centre WhatsApp
           </h2>
           <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-            <button
-              onClick={() => setActiveSubTab('history')}
-              className={`px-3 md:px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
-                activeSubTab === 'history'
-                  ? 'bg-green-500 text-white shadow-md'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              <History className="w-4 h-4" />
-              <span className="hidden sm:inline">Historique</span>
-              <span className="sm:hidden">🕒</span>
-            </button>
             <button
               onClick={() => setActiveSubTab('conversations')}
               className={`px-3 md:px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
@@ -68,6 +56,18 @@ export default function WhatsAppHub() {
               <Zap className="w-4 h-4" />
               <span className="hidden sm:inline">Automatisations</span>
               <span className="sm:hidden">⚡</span>
+            </button>
+            <button
+              onClick={() => setActiveSubTab('history')}
+              className={`px-3 md:px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
+                activeSubTab === 'history'
+                  ? 'bg-green-500 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <History className="w-4 h-4" />
+              <span className="hidden sm:inline">Historique</span>
+              <span className="sm:hidden">🕒</span>
             </button>
             <button
               onClick={() => setActiveSubTab('templates')}
