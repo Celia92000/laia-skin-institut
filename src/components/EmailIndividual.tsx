@@ -22,132 +22,14 @@ export default function EmailIndividual() {
   });
   const [sending, setSending] = useState(false);
   const [sentStatus, setSentStatus] = useState<{ success: boolean; message: string } | null>(null);
-
-  // Templates prédéfinis
-  const templates = [
-    {
-      id: 'custom',
-      name: 'Message personnalisé',
-      subject: '',
-      message: ''
-    },
-    {
-      id: 'rappel',
-      name: '📅 Rappel de RDV',
-      subject: '📅 Rappel de votre rendez-vous {{client_name}}',
-      message: `Bonjour {{client_name}},
-
-Je vous rappelle votre rendez-vous demain pour votre soin.
-
-N'hésitez pas à me contacter si vous avez besoin de modifier l'horaire.
-
-À très bientôt,
-Laïa`
-    },
-    {
-      id: 'merci',
-      name: '💕 Remerciement',
-      subject: 'Merci pour votre visite {{client_name}}',
-      message: `Bonjour {{client_name}},
-
-Je tenais à vous remercier pour votre visite aujourd'hui.
-
-J'espère que le soin vous a plu et que vous êtes satisfaite des résultats.
-
-N'hésitez pas à me faire part de vos impressions.
-
-À bientôt,
-Laïa`
-    },
-    {
-      id: 'info',
-      name: '📢 Information',
-      subject: 'Information importante',
-      message: `Bonjour {{client_name}},
-
-Je voulais vous informer que...
-
-Cordialement,
-Laïa`
-    },
-    {
-      id: 'promo',
-      name: '🎁 Promotion',
-      subject: '🎁 Offre spéciale pour vous {{client_name}}',
-      message: `Bonjour {{client_name}},
-
-J'ai le plaisir de vous offrir une réduction exclusive !
-
-Pour vous remercier de votre fidélité, bénéficiez de -20% sur votre prochain soin.
-
-Cette offre est valable jusqu'au 31 janvier 2025.
-
-Au plaisir de vous revoir,
-Laïa`
-    },
-    {
-      id: 'anniversaire',
-      name: '🎂 Anniversaire',
-      subject: '🎂 Joyeux anniversaire {{client_name}} !',
-      message: `Bonjour {{client_name}},
-
-Toute l'équipe de LAIA SKIN Institut vous souhaite un merveilleux anniversaire !
-
-Pour célébrer ce jour spécial, nous vous offrons -30% sur le soin de votre choix.
-
-Offre valable tout le mois de votre anniversaire.
-
-Très belle journée à vous,
-Laïa`
-    },
-    {
-      id: 'bienvenue',
-      name: '👋 Bienvenue',
-      subject: 'Bienvenue chez LAIA SKIN Institut',
-      message: `Bonjour {{client_name}},
-
-Bienvenue chez LAIA SKIN Institut !
-
-Je suis ravie de vous compter parmi nos clientes privilégiées.
-
-Pour bien démarrer, bénéficiez de -15% sur votre premier soin avec le code BIENVENUE.
-
-N'hésitez pas à me contacter pour toute question.
-
-À très bientôt,
-Laïa`
-    }
-  ];
+  const [templates, setTemplates] = useState<any[]>([{ id: 'custom', name: 'Message personnalisé', subject: '', message: '' }]);
 
   useEffect(() => {
     fetchClients();
+    fetchTemplates();
   }, []);
 
   const fetchClients = async () => {
-    // Charger les clients
-    const clientsList = [
-      {
-        id: '1',
-        name: 'Célia IVORRA',
-        email: 'celia.ivorra95@hotmail.fr',
-        phone: '0683717050'
-      },
-      {
-        id: '2',
-        name: 'Marie Dupont',
-        email: 'marie.dupont@email.com',
-        phone: '0612345678'
-      },
-      {
-        id: '3',
-        name: 'Sophie Martin',
-        email: 'sophie.martin@email.com',
-        phone: '0654321098'
-      }
-    ];
-    
-    setClients(clientsList);
-    
     try {
       const token = localStorage.getItem('adminToken');
       if (token) {
@@ -156,16 +38,37 @@ Laïa`
             'Authorization': `Bearer ${token}`
           }
         });
-        
+
         if (response.ok) {
           const data = await response.json();
-          if (data && data.length > 0) {
-            setClients(data);
-          }
+          setClients(data);
         }
       }
     } catch (error) {
-      console.log('Utilisation des données locales');
+      console.error('Erreur chargement clients:', error);
+    }
+  };
+
+  const fetchTemplates = async () => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      if (token) {
+        const response = await fetch('/api/admin/email-templates/', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setTemplates([
+            { id: 'custom', name: 'Message personnalisé', subject: '', message: '' },
+            ...data
+          ]);
+        }
+      }
+    } catch (error) {
+      console.error('Erreur chargement templates:', error);
     }
   };
 

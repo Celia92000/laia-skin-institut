@@ -65,67 +65,25 @@ export default function EmailCompleteInterface() {
     template: ''
   });
 
-  // Templates prédéfinis
-  const templates: EmailTemplate[] = [
-    {
-      id: 'promo',
-      name: 'Promotion',
-      subject: '🎁 Offre spéciale pour vous !',
-      content: `
-        <h2>Offre exclusive réservée à nos clients privilégiés</h2>
-        <p>Bonjour {name},</p>
-        <p>En tant que client(e) fidèle, nous avons le plaisir de vous offrir <strong>-20% sur votre prochain soin</strong>.</p>
-        <p>Cette offre est valable jusqu\'au {date}.</p>
-        <p>Réservez dès maintenant votre créneau !</p>
-        <p>À très bientôt,<br>LAIA SKIN Institut</p>
-      `
-    },
-    {
-      id: 'birthday',
-      name: 'Anniversaire',
-      subject: '🎂 Joyeux anniversaire !',
-      content: `
-        <h2>C\'est votre anniversaire !</h2>
-        <p>Bonjour {name},</p>
-        <p>Toute l\'équipe de LAIA SKIN Institut vous souhaite un merveilleux anniversaire !</p>
-        <p>Pour cette occasion spéciale, nous vous offrons <strong>un soin découverte gratuit</strong> à réserver ce mois-ci.</p>
-        <p>Nous avons hâte de vous chouchouter !</p>
-        <p>Avec nos meilleurs vœux,<br>LAIA SKIN Institut</p>
-      `
-    },
-    {
-      id: 'reminder',
-      name: 'Rappel',
-      subject: '⏰ Il est temps de prendre soin de vous',
-      content: `
-        <h2>Cela fait un moment qu\'on ne s\'est pas vu !</h2>
-        <p>Bonjour {name},</p>
-        <p>Nous avons remarqué que cela fait quelques semaines que nous n\'avons pas eu le plaisir de vous voir.</p>
-        <p>Votre peau mérite une attention régulière pour rester éclatante !</p>
-        <p>Réservez votre prochain rendez-vous et bénéficiez de <strong>10% de réduction</strong>.</p>
-        <p>À très vite,<br>LAIA SKIN Institut</p>
-      `
-    },
-    {
-      id: 'new_service',
-      name: 'Nouveau service',
-      subject: '✨ Découvrez notre nouveau soin',
-      content: `
-        <h2>Nouveau soin disponible !</h2>
-        <p>Bonjour {name},</p>
-        <p>Nous sommes ravis de vous présenter notre tout nouveau soin : <strong>[Nom du soin]</strong></p>
-        <p>Ce traitement révolutionnaire permet de :</p>
-        <ul>
-          <li>Améliorer l\'éclat de votre peau</li>
-          <li>Réduire les signes de l\'âge</li>
-          <li>Hydrater en profondeur</li>
-        </ul>
-        <p>Pour le lancement, profitez de <strong>-15% de réduction</strong> sur ce soin.</p>
-        <p>Réservez votre séance découverte !</p>
-        <p>À bientôt,<br>LAIA SKIN Institut</p>
-      `
-    }
-  ];
+  const [templates, setTemplates] = useState<EmailTemplate[]>([]);
+
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/admin/email-templates/', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setTemplates(data);
+        }
+      } catch (error) {
+        console.error('Erreur chargement templates:', error);
+      }
+    };
+    fetchTemplates();
+  }, []);
 
   const [showPreview, setShowPreview] = useState(false);
   const [showHistory, setShowHistory] = useState(false);

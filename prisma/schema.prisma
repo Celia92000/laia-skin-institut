@@ -827,6 +827,19 @@ model GiftCardSettings {
   @@map("gift_card_settings")
 }
 
+model EmailTemplate {
+  id        String   @id @default(cuid())
+  name      String   // Nom du template (ex: "Promotion du mois")
+  subject   String   // Sujet de l'email
+  content   String   @db.Text // Contenu de l'email
+  category  String?  @default("general") // general, promo, rappel, nouveaute
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("email_templates")
+}
+
 model SocialMediaPost {
   id              String    @id @default(cuid())
   userId          String?   // Propriétaire du post

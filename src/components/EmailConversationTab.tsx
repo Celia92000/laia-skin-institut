@@ -37,157 +37,6 @@ interface EmailTemplate {
   category: string;
 }
 
-const EMAIL_TEMPLATES: EmailTemplate[] = [
-  {
-    id: 'welcome',
-    name: 'Bienvenue',
-    subject: 'Bienvenue chez LAIA SKIN Institut',
-    content: `
-      <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;">
-        <div style="background: linear-gradient(135deg, #d4b5a0, #c9a084); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-          <h1 style="color: white; margin: 0; font-size: 24px; font-weight: 400; letter-spacing: 2px;">LAIA SKIN INSTITUT</h1>
-        </div>
-        <div style="background: white; padding: 30px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-          <h2 style="color: #2c3e50; font-size: 22px;">Bonjour {name},</h2>
-          <p style="color: #666; line-height: 1.6;">Bienvenue chez LAIA SKIN Institut ! Je suis ravie de vous accueillir.</p>
-          <p style="color: #666; line-height: 1.6;">Notre institut vous propose des soins personnalisés et de haute qualité pour sublimer votre peau.</p>
-
-          <div style="background: #fdfbf7; padding: 20px; border-left: 4px solid #d4b5a0; margin: 20px 0; border-radius: 4px;">
-            <p style="color: #d4b5a0; font-weight: bold; margin: 0 0 10px 0;">Votre cadeau de bienvenue</p>
-            <p style="color: #2c3e50; font-size: 18px; font-weight: bold; margin: 0;">-15% sur votre premier soin</p>
-          </div>
-
-          <p style="color: #666; line-height: 1.6; margin-top: 20px;">N'hésitez pas à prendre rendez-vous dès maintenant.</p>
-          <p style="color: #2c3e50; margin-top: 30px;">À très bientôt,<br><strong>Laia</strong></p>
-
-          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center;">
-            <p style="color: #999; font-size: 12px; margin: 0;">LAIA SKIN INSTITUT<br>Allée Jean de la Fontaine, 92000 Nanterre<br>Tel: 06 83 71 70 50</p>
-          </div>
-        </div>
-      </div>
-    `,
-    category: 'general'
-  },
-  {
-    id: 'appointment-reminder',
-    name: 'Rappel RDV',
-    subject: 'Rappel : Votre rendez-vous chez LAIA SKIN',
-    content: `
-      <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;">
-        <div style="background: linear-gradient(135deg, #d4b5a0, #c9a084); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-          <h1 style="color: white; margin: 0; font-size: 24px; font-weight: 400; letter-spacing: 2px;">LAIA SKIN INSTITUT</h1>
-        </div>
-        <div style="background: white; padding: 30px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-          <h2 style="color: #2c3e50; font-size: 22px;">Bonjour {name},</h2>
-          <p style="color: #666; line-height: 1.6;">Je vous rappelle avec plaisir votre rendez-vous.</p>
-
-          <div style="background: #fdfbf7; padding: 20px; border: 2px solid #d4b5a0; margin: 20px 0; border-radius: 8px; text-align: center;">
-            <p style="color: #d4b5a0; font-weight: bold; margin: 0 0 10px 0;">Votre rendez-vous</p>
-            <p style="color: #2c3e50; font-size: 16px; margin: 5px 0;"><strong>Date:</strong> {date}</p>
-          </div>
-
-          <p style="color: #666; line-height: 1.6;">J'ai hâte de vous retrouver !</p>
-          <p style="color: #999; font-size: 14px; margin-top: 20px;">En cas d'empêchement, merci de me prévenir au moins 24h à l'avance au 06 83 71 70 50</p>
-          <p style="color: #2c3e50; margin-top: 30px;">À bientôt,<br><strong>Laia</strong></p>
-
-          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center;">
-            <p style="color: #999; font-size: 12px; margin: 0;">LAIA SKIN INSTITUT<br>Allée Jean de la Fontaine, 92000 Nanterre<br>Tel: 06 83 71 70 50</p>
-          </div>
-        </div>
-      </div>
-    `,
-    category: 'appointment'
-  },
-  {
-    id: 'thank-you',
-    name: 'Remerciement',
-    subject: 'Merci pour votre visite',
-    content: `
-      <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;">
-        <div style="background: linear-gradient(135deg, #d4b5a0, #c9a084); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-          <h1 style="color: white; margin: 0; font-size: 24px; font-weight: 400; letter-spacing: 2px;">LAIA SKIN INSTITUT</h1>
-        </div>
-        <div style="background: white; padding: 30px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-          <h2 style="color: #2c3e50; font-size: 22px;">Bonjour {name},</h2>
-          <p style="color: #666; line-height: 1.6;">Merci d'avoir choisi LAIA SKIN Institut pour votre soin.</p>
-          <p style="color: #666; line-height: 1.6;">J'espère que vous avez passé un moment agréable et que les résultats répondent à vos attentes.</p>
-
-          <div style="background: #f0f8ff; padding: 20px; margin: 20px 0; border-radius: 8px;">
-            <p style="color: #2c3e50; font-weight: bold; margin: 0 0 10px 0;">Votre avis compte</p>
-            <p style="color: #666; font-size: 14px; margin: 0;">N'hésitez pas à me faire part de vos retours ou à prendre rendez-vous pour votre prochain soin.</p>
-          </div>
-
-          <p style="color: #2c3e50; margin-top: 30px;">À très bientôt,<br><strong>Laia</strong></p>
-
-          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center;">
-            <p style="color: #999; font-size: 12px; margin: 0;">LAIA SKIN INSTITUT<br>Allée Jean de la Fontaine, 92000 Nanterre<br>Tel: 06 83 71 70 50</p>
-          </div>
-        </div>
-      </div>
-    `,
-    category: 'followup'
-  },
-  {
-    id: 'promo',
-    name: 'Offre promotionnelle',
-    subject: 'Offre spéciale pour vous',
-    content: `
-      <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;">
-        <div style="background: linear-gradient(135deg, #d4b5a0, #c9a084); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-          <h1 style="color: white; margin: 0; font-size: 24px; font-weight: 400; letter-spacing: 2px;">LAIA SKIN INSTITUT</h1>
-        </div>
-        <div style="background: white; padding: 30px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-          <h2 style="color: #2c3e50; font-size: 22px;">Bonjour {name},</h2>
-          <p style="color: #666; line-height: 1.6;">J'ai le plaisir de vous proposer une offre exclusive !</p>
-
-          <div style="background: linear-gradient(135deg, #fff0e6, #ffe6d9); border: 2px solid #d4b5a0; padding: 25px; margin: 20px 0; border-radius: 8px; text-align: center;">
-            <p style="color: #d4b5a0; font-weight: bold; font-size: 18px; margin: 0 0 10px 0;">Offre Exclusive</p>
-            <p style="color: #2c3e50; font-size: 24px; font-weight: bold; margin: 10px 0;">-20% sur votre prochain soin</p>
-            <p style="color: #666; font-size: 14px; margin: 10px 0 0 0;">Valable jusqu'au [DATE]</p>
-          </div>
-
-          <p style="color: #666; line-height: 1.6;">Réservez vite votre rendez-vous au 06 83 71 70 50</p>
-          <p style="color: #2c3e50; margin-top: 30px;">À très bientôt,<br><strong>Laia</strong></p>
-
-          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center;">
-            <p style="color: #999; font-size: 12px; margin: 0;">LAIA SKIN INSTITUT<br>Allée Jean de la Fontaine, 92000 Nanterre<br>Tel: 06 83 71 70 50</p>
-          </div>
-        </div>
-      </div>
-    `,
-    category: 'promotion'
-  },
-  {
-    id: 'birthday',
-    name: 'Anniversaire',
-    subject: 'Joyeux anniversaire {name}',
-    content: `
-      <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;">
-        <div style="background: linear-gradient(135deg, #d4b5a0, #c9a084); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-          <h1 style="color: white; margin: 0; font-size: 24px; font-weight: 400; letter-spacing: 2px;">LAIA SKIN INSTITUT</h1>
-        </div>
-        <div style="background: white; padding: 30px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-          <h2 style="color: #2c3e50; font-size: 22px; text-align: center;">Joyeux anniversaire {name} !</h2>
-          <p style="color: #666; line-height: 1.6; text-align: center;">En ce jour spécial, toute l'équipe LAIA SKIN vous souhaite un merveilleux anniversaire.</p>
-
-          <div style="background: linear-gradient(135deg, #ffe0f0, #ffc0e0); border: 2px solid #ff69b4; padding: 25px; margin: 20px 0; border-radius: 8px; text-align: center;">
-            <p style="color: #e91e63; font-weight: bold; font-size: 18px; margin: 0 0 10px 0;">Votre cadeau d'anniversaire</p>
-            <p style="color: #2c3e50; font-size: 24px; font-weight: bold; margin: 10px 0;">-15% sur tous nos soins</p>
-            <p style="color: #666; font-size: 14px; margin: 10px 0 0 0;">Valable tout le mois de votre anniversaire</p>
-          </div>
-
-          <p style="color: #666; line-height: 1.6; text-align: center;">Venez vous faire chouchouter !</p>
-          <p style="color: #2c3e50; margin-top: 30px; text-align: center;">Avec toute ma bienveillance,<br><strong>Laia</strong></p>
-
-          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center;">
-            <p style="color: #999; font-size: 12px; margin: 0;">LAIA SKIN INSTITUT<br>Allée Jean de la Fontaine, 92000 Nanterre<br>Tel: 06 83 71 70 50</p>
-          </div>
-        </div>
-      </div>
-    `,
-    category: 'special'
-  }
-];
 
 interface Client {
   id: string;
@@ -215,7 +64,7 @@ export default function EmailConversationTab() {
   const [archiving, setArchiving] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
   const [showClientList, setShowClientList] = useState(false);
-  const [templates, setTemplates] = useState<EmailTemplate[]>(EMAIL_TEMPLATES);
+  const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [showTemplateManager, setShowTemplateManager] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<EmailTemplate | null>(null);
   const [templateForm, setTemplateForm] = useState({ name: '', subject: '', content: '', category: 'general' });
@@ -223,6 +72,7 @@ export default function EmailConversationTab() {
   useEffect(() => {
     loadEmails();
     loadClients();
+    loadTemplates();
   }, []);
 
   useEffect(() => {
@@ -248,6 +98,31 @@ export default function EmailConversationTab() {
       }
     } catch (error) {
       console.error('Erreur chargement clients:', error);
+    }
+  };
+
+  const loadTemplates = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      console.log('🔍 Chargement templates... Token:', token ? 'présent' : 'absent');
+
+      const response = await fetch('/api/admin/email-templates/', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      console.log('📡 Réponse API templates:', response.status);
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Templates chargés:', data.length, data);
+        setTemplates(data);
+      } else {
+        console.error('❌ Erreur HTTP:', response.status, await response.text());
+      }
+    } catch (error) {
+      console.error('❌ Erreur chargement templates:', error);
     }
   };
 
@@ -876,7 +751,7 @@ export default function EmailConversationTab() {
             <div className="p-3 border-t border-gray-200 bg-white">
               {/* Templates dropdown */}
               {showTemplates && (
-                <div className="mb-2 bg-gray-50 border border-gray-200 rounded-md p-2 max-h-40 overflow-y-auto">
+                <div className="mb-2 bg-gray-50 border border-gray-200 rounded-md p-2">
                   <div className="text-xs font-semibold text-gray-700 mb-1.5">Templates :</div>
                   <div className="space-y-0.5">
                     {templates.map(template => (

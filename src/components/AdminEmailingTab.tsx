@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Mail, Send, Users, Clock, Check, AlertCircle, Filter, Search, Plus, X, Eye, Copy } from "lucide-react";
+import { Mail, Send, Users, Clock, Check, AlertCircle, Filter, Search, Plus, X, Eye, Copy, Edit2, Trash2 } from "lucide-react";
 
 interface Client {
   id: string;
@@ -44,338 +44,101 @@ export default function AdminEmailingTab() {
   const [previewTemplate, setPreviewTemplate] = useState<EmailTemplate | null>(null);
   const [sendHistory, setSendHistory] = useState<any[]>([]);
   const [includeNewsletter, setIncludeNewsletter] = useState(false);
-
-  // Templates prédéfinis
-  const templates: EmailTemplate[] = [
-    {
-      id: "promo",
-      name: "Promotion du mois",
-      subject: "🎁 [Prénom], profitez de -20% ce mois-ci !",
-      content: `Bonjour [Prénom],
-
-J'espère que vous allez bien !
-
-Ce mois-ci, profitez de -20% sur tous nos soins visage.
-C'est le moment idéal pour prendre soin de vous !
-
-Réservez vite votre créneau :
-https://laiaskin.fr/reservation
-
-À très bientôt,
-Laïa
-LAIA SKIN Institut`
-    },
-    {
-      id: "rappel",
-      name: "Rappel de soin",
-      subject: "Il est temps de reprendre soin de votre peau !",
-      content: `Bonjour [Prénom],
-
-Cela fait maintenant 2 mois depuis votre dernier soin.
-
-Pour maintenir les bienfaits et continuer à sublimer votre peau, 
-je vous recommande de planifier votre prochain rendez-vous.
-
-Réservez en ligne : https://laiaskin.fr/reservation
-Ou répondez simplement à cet email !
-
-Au plaisir de vous revoir,
-Laïa`
-    },
-    {
-      id: "nouveaute",
-      name: "Nouveau soin",
-      subject: "✨ Découvrez notre nouveau soin exclusif !",
-      content: `Bonjour [Prénom],
-
-J'ai le plaisir de vous annoncer l'arrivée d'un nouveau soin !
-
-[Description du nouveau soin]
-
-Pour le lancement, profitez de -15% sur ce soin.
-
-Réservez votre découverte : https://laiaskin.fr/reservation
-
-À bientôt,
-Laïa`
-    },
-    {
-      id: "newsletter",
-      name: "Newsletter mensuelle",
-      subject: "🌸 Newsletter LAIA SKIN - [Mois] 2024",
-      content: `Bonjour [Prénom],
-
-J'espère que vous allez bien !
-
-Ce mois-ci chez LAIA SKIN :
-
-🌟 NOUVEAUTÉS
-[Nouveautés du mois]
-
-💆‍♀️ CONSEIL BEAUTÉ
-[Conseil beauté du mois]
-
-🎁 OFFRE EXCLUSIVE
-Pour nos abonnés newsletter : -10% sur votre prochain soin
-Code : NEWS[MOIS]2024
-
-Réservez votre soin : https://laiaskin.fr/reservation
-
-À très bientôt,
-Laïa
-
-P.S. : Vous recevez cette newsletter car vous êtes inscrit(e) à notre liste. 
-Pour vous désinscrire : [Lien de désinscription]`
-    },
-    {
-      id: "anniversaire",
-      name: "Anniversaire",
-      subject: "🎂 Joyeux anniversaire [Prénom] !",
-      content: `Bonjour [Prénom],
-
-Toute l'équipe de LAIA SKIN vous souhaite un merveilleux anniversaire !
-
-Pour l'occasion, je vous offre -30% sur le soin de votre choix.
-Valable tout le mois !
-
-Réservez votre moment de détente : https://laiaskin.fr/reservation
-
-Belle journée à vous,
-Laïa`
-    },
-    {
-      id: "bienvenue",
-      name: "Bienvenue nouveau client",
-      subject: "Bienvenue chez LAIA SKIN Institut 🌸",
-      content: `Bonjour [Prénom],
-
-Je suis ravie de vous compter parmi nos nouvelles clientes !
-
-Pour bien démarrer votre parcours beauté avec nous, je vous offre :
-- Une consultation personnalisée gratuite
-- 10% de réduction sur votre premier soin
-- Un diagnostic de peau offert
-
-Réservez votre premier rendez-vous : https://laiaskin.fr/reservation
-
-N'hésitez pas à me contacter pour toute question !
-
-À très vite,
-Laïa
-LAIA SKIN Institut`
-    },
-    {
-      id: "remerciement",
-      name: "Remerciement après visite",
-      subject: "Merci de votre visite [Prénom] 💕",
-      content: `Bonjour [Prénom],
-
-J'espère que vous avez apprécié votre soin d'aujourd'hui !
-
-Votre satisfaction est ma priorité. Si vous avez des questions sur les soins prodigués ou les conseils donnés, n'hésitez pas à me contacter.
-
-Pour prolonger les bienfaits de votre soin :
-- Hydratez-vous bien (1,5L d'eau par jour minimum)
-- Appliquez les produits conseillés matin et soir
-- Protégez votre peau du soleil
-
-Je vous recommande de prévoir votre prochain rendez-vous dans 4 semaines.
-
-Réservez en ligne : https://laiaskin.fr/reservation
-
-Belle journée,
-Laïa`
-    },
-    {
-      id: "relance",
-      name: "Relance client inactif",
-      subject: "Vous nous manquez [Prénom] 😢",
-      content: `Bonjour [Prénom],
-
-Cela fait longtemps que nous ne vous avons pas vue à l'institut !
-
-J'espère que tout va bien pour vous. Votre peau a certainement besoin d'un petit coup de boost après tous ces mois.
-
-Pour vous donner envie de revenir, je vous offre :
-✨ -25% sur le soin de votre choix
-✨ Un masque hydratant offert
-✨ Valable 30 jours
-
-Réservez vite : https://laiaskin.fr/reservation
-
-Au plaisir de vous revoir,
-Laïa`
-    },
-    {
-      id: "noel",
-      name: "Offre spéciale Noël",
-      subject: "🎄 Offres de Noël chez LAIA SKIN",
-      content: `Bonjour [Prénom],
-
-Les fêtes approchent ! C'est le moment parfait pour prendre soin de vous ou faire plaisir à vos proches.
-
-🎁 OFFRES SPÉCIALES NOËL :
-- Coffrets cadeaux à partir de 50€
-- Cartes cadeaux personnalisées
-- -20% sur tous les forfaits 
-- Un soin découverte offert pour 2 soins achetés
-
-Offres valables jusqu'au 31 décembre.
-
-Réservez votre moment de détente : https://laiaskin.fr/reservation
-
-Joyeuses fêtes !
-Laïa`
-    },
-    {
-      id: "ete",
-      name: "Préparer sa peau pour l'été",
-      subject: "☀️ Préparez votre peau pour l'été",
-      content: `Bonjour [Prénom],
-
-L'été arrive ! Il est temps de préparer votre peau pour la saison.
-
-Je vous propose mon programme spécial été :
-🌊 Hydratation intense
-☀️ Protection solaire adaptée
-✨ Gommage doux pour un bronzage uniforme
-💆‍♀️ Soin après-soleil réparateur
-
-OFFRE SPÉCIALE : -15% sur le programme complet
-
-Conseils pour un été radieux :
-- Hydratez-vous de l'intérieur (2L d'eau/jour)
-- Protégez votre peau avec un SPF 50
-- Exfoliez 1 fois par semaine
-- Nourrissez votre peau après l'exposition
-
-Réservez votre programme été : https://laiaskin.fr/reservation
-
-Belle saison estivale,
-Laïa`
-    },
-    {
-      id: "flash",
-      name: "Vente flash 48h",
-      subject: "⚡ VENTE FLASH 48H : -30% sur tout !",
-      content: `Bonjour [Prénom],
-
-ATTENTION : Offre limitée dans le temps !
-
-⏰ VENTE FLASH 48H SEULEMENT ⏰
--30% sur TOUS les soins
--40% sur les forfaits 3 séances
--50% sur les produits de soin
-
-Cette offre exceptionnelle se termine dans 48h !
-
-Réservez MAINTENANT : https://laiaskin.fr/reservation
-Ou appelez-moi au 06.31.91.66.01
-
-Ne manquez pas cette occasion unique !
-
-Vite, à tout de suite,
-Laïa`
-    },
-    {
-      id: "parrainage",
-      name: "Programme parrainage",
-      subject: "🤝 Parrainez et soyez récompensée !",
-      content: `Bonjour [Prénom],
-
-Vous êtes satisfaite de nos soins ? Parlez-en autour de vous !
-
-🎁 PROGRAMME PARRAINAGE :
-Pour vous : 20€ offerts sur votre prochain soin
-Pour votre filleule : -15% sur son premier soin
-
-Comment ça marche ?
-1. Parlez de nous à vos amies
-2. Elles mentionnent votre nom lors de la réservation
-3. Vous recevez tous les deux vos avantages !
-
-Pas de limite de parrainages !
-
-Plus d'infos : https://laiaskin.fr/parrainage
-
-Merci pour votre confiance,
-Laïa`
-    },
-    {
-      id: "satisfaction",
-      name: "Enquête satisfaction",
-      subject: "Votre avis compte pour nous 🌟",
-      content: `Bonjour [Prénom],
-
-J'espère que votre dernier soin vous a plu !
-
-Votre satisfaction est essentielle pour nous. Pourriez-vous prendre 2 minutes pour nous donner votre avis ?
-
-👉 [Lien vers l'enquête]
-
-En remerciement, vous recevrez :
-- Un bon de -10% sur votre prochain soin
-- Une chance de gagner un soin gratuit (tirage mensuel)
-
-Vos retours nous aident à nous améliorer !
-
-Merci d'avance,
-Laïa`
-    },
-    {
-      id: "conseils",
-      name: "Conseils beauté du mois",
-      subject: "💡 Vos conseils beauté du mois",
-      content: `Bonjour [Prénom],
-
-Voici mes conseils beauté pour ce mois :
-
-🌿 ROUTINE DU MATIN :
-1. Nettoyage doux
-2. Tonique rafraîchissant
-3. Sérum vitamine C
-4. Crème hydratante
-5. Protection SPF
-
-🌙 ROUTINE DU SOIR :
-1. Démaquillage à l'huile
-2. Nettoyage moussant
-3. Sérum rétinol (2-3x/semaine)
-4. Crème de nuit réparatrice
-
-💡 ASTUCE DU MOIS :
-Massez votre visage 5 minutes chaque soir pour stimuler la circulation et raffermir la peau.
-
-Questions ? Répondez à cet email !
-
-Belle journée,
-Laïa`
-    },
-    {
-      id: "forfait",
-      name: "Promotion forfaits",
-      subject: "📦 Économisez avec nos forfaits !",
-      content: `Bonjour [Prénom],
-
-Saviez-vous que nos forfaits vous font économiser jusqu'à 20% ?
-
-NOS FORFAITS AVANTAGEUX :
-✨ Forfait Découverte (3 séances) : -10%
-✨ Forfait Bien-être (5 séances) : -15%
-✨ Forfait Premium (10 séances) : -20%
-
-AVANTAGES EXCLUSIFS :
-- Séances flexibles sur 6 mois
-- Possibilité de changer de soin
-- Une séance bonus offerte à partir du forfait Premium
-- Paiement en 3 fois sans frais
-
-Calculez vos économies : https://laiaskin.fr/forfaits
-
-À bientôt,
-Laïa`
+  const [templates, setTemplates] = useState<EmailTemplate[]>([]);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<EmailTemplate | null>(null);
+  const [templateForm, setTemplateForm] = useState({
+    name: '',
+    subject: '',
+    content: '',
+    category: 'general'
+  });
+
+  // Charger les templates depuis l'API
+  useEffect(() => {
+    fetchTemplates();
+  }, []);
+
+  const fetchTemplates = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      console.log('🔍 [Campagnes] Chargement templates...');
+
+      const response = await fetch('/api/admin/email-templates/', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      console.log('📡 [Campagnes] Réponse API:', response.status);
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ [Campagnes] Templates reçus:', data.length, data.map(t => t.name));
+        setTemplates(data);
+      }
+    } catch (error) {
+      console.error('❌ [Campagnes] Erreur chargement templates:', error);
     }
-  ];
+  };
+
+  const handleSaveTemplate = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const url = editingTemplate
+        ? `/api/admin/email-templates/${editingTemplate.id}`
+        : '/api/admin/email-templates/';
+
+      const method = editingTemplate ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(templateForm)
+      });
+
+      if (response.ok) {
+        await fetchTemplates();
+        setShowTemplateModal(false);
+        setEditingTemplate(null);
+        setTemplateForm({ name: '', subject: '', content: '', category: 'general' });
+      } else {
+        alert('Erreur lors de la sauvegarde du template');
+      }
+    } catch (error) {
+      console.error('Erreur sauvegarde template:', error);
+      alert('Erreur lors de la sauvegarde du template');
+    }
+  };
+
+  const handleDeleteTemplate = async (templateId: string) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer ce template ?')) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/admin/email-templates/${templateId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        await fetchTemplates();
+      } else {
+        alert('Erreur lors de la suppression du template');
+      }
+    } catch (error) {
+      console.error('Erreur suppression template:', error);
+      alert('Erreur lors de la suppression du template');
+    }
+  };
+
 
   useEffect(() => {
     fetchClients();
@@ -397,85 +160,6 @@ Laïa`
   };
 
   const fetchClients = async () => {
-    // Charger d'abord les données locales
-    const localClients = [
-      {
-        id: '1',
-        name: 'Célia IVORRA',
-        email: 'celia.ivorra95@hotmail.fr',
-        phone: '0683717050',
-        totalSpent: 500,
-        lastVisit: '2025-09-15'
-      },
-      {
-        id: '2',
-        name: 'Marie Dupont',
-        email: 'marie.dupont@email.com',
-        phone: '0612345678',
-        totalSpent: 350,
-        lastVisit: '2025-09-14'
-      },
-      {
-        id: '3',
-        name: 'Sophie Martin',
-        email: 'sophie.martin@email.com',
-        phone: '0654321098',
-        totalSpent: 250,
-        lastVisit: '2025-09-10'
-      },
-      {
-        id: '4',
-        name: 'Julie Bernard',
-        email: 'julie.bernard@email.com',
-        phone: '0698765432',
-        totalSpent: 150,
-        lastVisit: '2025-09-08'
-      },
-      {
-        id: '5',
-        name: 'Emma Rousseau',
-        email: 'emma.rousseau@email.com',
-        phone: '0623456789',
-        totalSpent: 450,
-        lastVisit: '2025-09-05'
-      },
-      {
-        id: '6',
-        name: 'Claire Leroy',
-        email: 'claire.leroy@email.com',
-        phone: '0645678901',
-        totalSpent: 320,
-        lastVisit: '2025-09-03'
-      },
-      {
-        id: '7',
-        name: 'Lucie Garcia',
-        email: 'lucie.garcia@email.com',
-        phone: '0678901234',
-        totalSpent: 180,
-        lastVisit: '2025-09-01'
-      },
-      {
-        id: '8',
-        name: 'Camille Moreau',
-        email: 'camille.moreau@email.com',
-        phone: '0689012345',
-        totalSpent: 420,
-        lastVisit: '2025-08-28'
-      },
-      {
-        id: '9',
-        name: 'Léa Petit',
-        email: 'lea.petit@email.com',
-        phone: '0690123456',
-        totalSpent: 280,
-        lastVisit: '2025-08-25'
-      }
-    ];
-    
-    setClients(localClients);
-    
-    // Essayer de charger depuis l'API
     try {
       const token = localStorage.getItem('token');
       if (token) {
@@ -486,13 +170,11 @@ Laïa`
         });
         if (response.ok) {
           const data = await response.json();
-          if (data && data.length > 0) {
-            setClients(data);
-          }
+          setClients(data);
         }
       }
     } catch (error) {
-      console.log('Utilisation des données locales');
+      console.error('Erreur chargement clients:', error);
     }
   };
 
@@ -877,10 +559,23 @@ Laïa`
 
           {/* Templates */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-[#2c3e50] mb-2">
-              Templates rapides ({templates.length} modèles disponibles)
-            </label>
-            <div className="max-h-48 overflow-y-auto border rounded-lg p-2 space-y-1">
+            <div className="flex justify-between items-center mb-2">
+              <label className="block text-sm font-medium text-[#2c3e50]">
+                Templates rapides ({templates.length} modèles disponibles)
+              </label>
+              <button
+                onClick={() => {
+                  setEditingTemplate(null);
+                  setTemplateForm({ name: '', subject: '', content: '', category: 'general' });
+                  setShowTemplateModal(true);
+                }}
+                className="px-3 py-1 text-sm bg-[#d4b5a0] text-white rounded-lg hover:bg-[#c4a590] flex items-center gap-1"
+              >
+                <Plus className="w-4 h-4" />
+                Nouveau template
+              </button>
+            </div>
+            <div className="border rounded-lg p-2 space-y-1">
               {templates.map(template => (
                 <div
                   key={template.id}
@@ -911,6 +606,29 @@ Laïa`
                       title="Dupliquer"
                     >
                       <Copy className="w-4 h-4 text-gray-500" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditingTemplate(template);
+                        setTemplateForm({
+                          name: template.name,
+                          subject: template.subject,
+                          content: template.content,
+                          category: template.category || 'general'
+                        });
+                        setShowTemplateModal(true);
+                      }}
+                      className="p-1 hover:bg-blue-100 rounded text-blue-600"
+                      title="Modifier"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteTemplate(template.id)}
+                      className="p-1 hover:bg-red-100 rounded text-red-600"
+                      title="Supprimer"
+                    >
+                      <Trash2 className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => loadTemplate(template)}
@@ -1121,6 +839,122 @@ Utilisez [Prénom] pour personnaliser"
                     Utiliser ce template
                   </button>
                 )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de création/édition de template */}
+      {showTemplateModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white px-6 py-4 flex justify-between items-center">
+              <h3 className="text-xl font-semibold">
+                {editingTemplate ? 'Modifier le template' : 'Nouveau template'}
+              </h3>
+              <button
+                onClick={() => {
+                  setShowTemplateModal(false);
+                  setEditingTemplate(null);
+                  setTemplateForm({ name: '', subject: '', content: '', category: 'general' });
+                }}
+                className="hover:bg-white/20 rounded-lg p-1"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {/* Nom du template */}
+              <div>
+                <label className="block text-sm font-medium text-[#2c3e50] mb-2">
+                  Nom du template *
+                </label>
+                <input
+                  type="text"
+                  value={templateForm.name}
+                  onChange={(e) => setTemplateForm({ ...templateForm, name: e.target.value })}
+                  placeholder="Ex: Promotion du mois"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#d4b5a0] focus:border-transparent"
+                />
+              </div>
+
+              {/* Catégorie */}
+              <div>
+                <label className="block text-sm font-medium text-[#2c3e50] mb-2">
+                  Catégorie
+                </label>
+                <select
+                  value={templateForm.category}
+                  onChange={(e) => setTemplateForm({ ...templateForm, category: e.target.value })}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#d4b5a0] focus:border-transparent"
+                >
+                  <option value="general">Général</option>
+                  <option value="promo">Promotion</option>
+                  <option value="rappel">Rappel</option>
+                  <option value="nouveaute">Nouveauté</option>
+                  <option value="anniversaire">Anniversaire</option>
+                  <option value="fidelite">Fidélité</option>
+                </select>
+              </div>
+
+              {/* Sujet */}
+              <div>
+                <label className="block text-sm font-medium text-[#2c3e50] mb-2">
+                  Sujet *
+                </label>
+                <input
+                  type="text"
+                  value={templateForm.subject}
+                  onChange={(e) => setTemplateForm({ ...templateForm, subject: e.target.value })}
+                  placeholder="Ex: 🎁 [Prénom], profitez de -20% ce mois-ci !"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#d4b5a0] focus:border-transparent"
+                />
+              </div>
+
+              {/* Contenu */}
+              <div>
+                <label className="block text-sm font-medium text-[#2c3e50] mb-2">
+                  Contenu *
+                </label>
+                <textarea
+                  value={templateForm.content}
+                  onChange={(e) => setTemplateForm({ ...templateForm, content: e.target.value })}
+                  placeholder="Votre message ici... Utilisez [Prénom] et [Nom] pour personnaliser"
+                  rows={10}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#d4b5a0] focus:border-transparent resize-none"
+                />
+              </div>
+
+              {/* Variables disponibles */}
+              <div className="bg-gray-50 rounded-lg p-3">
+                <p className="text-sm text-[#2c3e50]/60 mb-2">Variables disponibles :</p>
+                <div className="flex flex-wrap gap-2">
+                  <code className="px-2 py-1 bg-white rounded text-xs">[Prénom]</code>
+                  <code className="px-2 py-1 bg-white rounded text-xs">[Nom]</code>
+                </div>
+              </div>
+
+              {/* Boutons d'action */}
+              <div className="flex justify-end gap-3 pt-4">
+                <button
+                  onClick={() => {
+                    setShowTemplateModal(false);
+                    setEditingTemplate(null);
+                    setTemplateForm({ name: '', subject: '', content: '', category: 'general' });
+                  }}
+                  className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={handleSaveTemplate}
+                  disabled={!templateForm.name || !templateForm.subject || !templateForm.content}
+                  className="px-4 py-2 bg-[#d4b5a0] text-white rounded-lg hover:bg-[#c4a590] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {editingTemplate ? 'Enregistrer' : 'Créer'}
+                </button>
               </div>
             </div>
           </div>

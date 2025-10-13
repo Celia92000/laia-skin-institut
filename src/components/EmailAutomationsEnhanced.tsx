@@ -43,27 +43,6 @@ export default function EmailAutomationsEnhanced() {
 
   const fetchClients = async () => {
     // Charger les clients
-    const clientsList = [
-      {
-        id: '1',
-        name: 'Célia IVORRA',
-        email: 'celia.ivorra95@hotmail.fr',
-        phone: '0683717050'
-      },
-      {
-        id: '2',
-        name: 'Marie Dupont',
-        email: 'marie.dupont@email.com',
-        phone: '0612345678'
-      },
-      {
-        id: '3',
-        name: 'Sophie Martin',
-        email: 'sophie.martin@email.com',
-        phone: '0654321098'
-      }
-    ];
-    setClients(clientsList);
 
     try {
       const token = localStorage.getItem('adminToken');

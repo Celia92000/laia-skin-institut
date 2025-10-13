@@ -1044,50 +1044,56 @@ export default function UnifiedCRMTab({
                                 Progression Fidélité
                               </h4>
                               <div className="bg-white rounded-lg p-4 space-y-3">
-                                {/* Soins individuels */}
-                                <div>
-                                  <div className="flex justify-between items-center mb-2">
-                                    <span className="text-sm font-medium text-[#2c3e50]">Soins individuels</span>
-                                    <span className="text-xs text-[#2c3e50]/60">
-                                      {client.individualServicesCount || 0} / 5
-                                    </span>
-                                  </div>
-                                  <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                                    <div 
-                                      className="bg-gradient-to-r from-blue-400 to-blue-600 h-full transition-all duration-500"
-                                      style={{ 
-                                        width: `${Math.min(((client.individualServicesCount || 0) % 5) * 20, 100)}%` 
-                                      }}
-                                    />
-                                  </div>
-                                  {(client.individualServicesCount || 0) >= 5 && (
-                                    <p className="text-xs text-green-600 mt-1 font-medium animate-pulse">
-                                      🎉 -20€ sur le prochain soin !
-                                    </p>
-                                  )}
-                                </div>
-                                
-                                {/* Forfaits */}
-                                <div>
-                                  <div className="flex justify-between items-center mb-2">
-                                    <span className="text-sm font-medium text-[#2c3e50]">Forfaits (4 séances chacun)</span>
-                                    <span className="text-xs text-[#2c3e50]/60">
-                                      {client.packagesCount || 0} / 3
-                                    </span>
-                                  </div>
-                                  <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                                    <div 
-                                      className="bg-gradient-to-r from-purple-400 to-purple-600 h-full transition-all duration-500"
-                                      style={{ 
-                                        width: `${Math.min(((client.packagesCount || 0) % 3) * 33.33, 100)}%` 
-                                      }}
-                                    />
-                                  </div>
-                                  
-                                  {/* Détail des forfaits et séances */}
-                                  <div className="mt-2 text-xs space-y-1">
-                                    {(() => {
-                                      const packagesCount = client.packagesCount || 0;
+                                {(() => {
+                                  const loyaltyProfile = loyaltyProfiles.find(p => p.userId === client.id);
+                                  const individualServicesCount = loyaltyProfile?.individualServicesCount || 0;
+                                  const packagesCount = loyaltyProfile?.packagesCount || 0;
+
+                                  return (
+                                    <>
+                                      {/* Soins individuels */}
+                                      <div>
+                                        <div className="flex justify-between items-center mb-2">
+                                          <span className="text-sm font-medium text-[#2c3e50]">Soins individuels</span>
+                                          <span className="text-xs text-[#2c3e50]/60">
+                                            {individualServicesCount} / 5
+                                          </span>
+                                        </div>
+                                        <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                          <div
+                                            className="bg-gradient-to-r from-blue-400 to-blue-600 h-full transition-all duration-500"
+                                            style={{
+                                              width: `${Math.min((individualServicesCount % 5) * 20, 100)}%`
+                                            }}
+                                          />
+                                        </div>
+                                        {individualServicesCount >= 5 && (
+                                          <p className="text-xs text-green-600 mt-1 font-medium animate-pulse">
+                                            🎉 -20€ sur le prochain soin !
+                                          </p>
+                                        )}
+                                      </div>
+
+                                      {/* Forfaits */}
+                                      <div>
+                                        <div className="flex justify-between items-center mb-2">
+                                          <span className="text-sm font-medium text-[#2c3e50]">Forfaits (4 séances chacun)</span>
+                                          <span className="text-xs text-[#2c3e50]/60">
+                                            {packagesCount} / 3
+                                          </span>
+                                        </div>
+                                        <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                          <div
+                                            className="bg-gradient-to-r from-purple-400 to-purple-600 h-full transition-all duration-500"
+                                            style={{
+                                              width: `${Math.min((packagesCount % 3) * 33.33, 100)}%`
+                                            }}
+                                          />
+                                        </div>
+
+                                        {/* Détail des forfaits et séances */}
+                                        <div className="mt-2 text-xs space-y-1">
+                                          {(() => {
                                       const seancesRealisees = packagesCount * 4;
                                       const positionCycle = packagesCount % 3;
                                       
@@ -1150,20 +1156,23 @@ export default function UnifiedCRMTab({
                                             </>
                                           );
                                         }
-                                      }
-                                    })()}
-                                  </div>
-                                </div>
-                                
-                                {/* Total dépensé */}
-                                <div className="pt-2 border-t border-gray-100">
-                                  <div className="flex justify-between items-center">
-                                    <span className="text-sm text-[#2c3e50]/60">Total investi</span>
-                                    <span className="text-lg font-bold text-[#d4b5a0]">
-                                      {(client.totalSpent || 0).toFixed(0)}€
-                                    </span>
-                                  </div>
-                                </div>
+                                          }
+                                          })()}
+                                        </div>
+                                      </div>
+
+                                      {/* Total dépensé */}
+                                      <div className="pt-2 border-t border-gray-100">
+                                        <div className="flex justify-between items-center">
+                                          <span className="text-sm text-[#2c3e50]/60">Total investi</span>
+                                          <span className="text-lg font-bold text-[#d4b5a0]">
+                                            {(client.totalSpent || 0).toFixed(0)}€
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </>
+                                  );
+                                })()}
                               </div>
                             </div>
                             
@@ -1297,39 +1306,128 @@ export default function UnifiedCRMTab({
                                 
                                 {/* Galerie d'évolutions */}
                                 {clientEvolutions[client.id] && clientEvolutions[client.id].length > 0 ? (
-                                  <div className="grid grid-cols-2 gap-3">
+                                  <div className="space-y-3">
                                     {clientEvolutions[client.id].map((evolution, idx) => (
-                                      <div key={idx} className="relative group cursor-pointer bg-white rounded-lg border border-[#d4b5a0]/20 overflow-hidden hover:shadow-lg transition-all">
-                                        <div className="aspect-square bg-gray-100 relative">
-                                          {evolution.beforePhoto && (
-                                            <img 
-                                              src={evolution.beforePhoto} 
-                                              alt={`Séance ${evolution.sessionNumber}`}
-                                              className="w-full h-full object-cover"
-                                            />
-                                          )}
-                                          {evolution.videoUrl && !evolution.beforePhoto && (
-                                            <div className="w-full h-full flex items-center justify-center bg-purple-50">
-                                              <PlayCircle className="w-12 h-12 text-purple-400" />
-                                            </div>
-                                          )}
-                                          {/* Badge avec numéro de séance */}
-                                          <div className="absolute top-2 left-2 bg-white/90 backdrop-blur px-2 py-1 rounded-full">
-                                            <span className="text-xs font-bold text-[#d4b5a0]">#{evolution.sessionNumber}</span>
+                                      <div key={idx} className="bg-white rounded-lg border border-[#d4b5a0]/20 overflow-hidden hover:shadow-lg transition-all">
+                                        {/* Header */}
+                                        <div className="bg-gradient-to-r from-[#d4b5a0]/10 to-[#c9a084]/10 px-3 py-2 flex items-center justify-between">
+                                          <div className="flex items-center gap-2">
+                                            <span className="bg-[#d4b5a0] text-white px-2 py-0.5 rounded-full text-xs font-bold">
+                                              Séance #{evolution.sessionNumber}
+                                            </span>
+                                            <span className="text-sm font-semibold text-[#2c3e50]">
+                                              {evolution.serviceName || 'Service'}
+                                            </span>
+                                          </div>
+                                          <div className="flex items-center gap-2">
+                                            <span className="text-xs text-[#2c3e50]/60">
+                                              {new Date(evolution.sessionDate).toLocaleDateString('fr-FR')}
+                                            </span>
+                                            <button
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (confirm('Supprimer cette évolution ?')) {
+                                                  const updated = clientEvolutions[client.id].filter((_, i) => i !== idx);
+                                                  setClientEvolutions(prev => ({
+                                                    ...prev,
+                                                    [client.id]: updated
+                                                  }));
+                                                  const storageKey = `evolutions_${client.id}`;
+                                                  localStorage.setItem(storageKey, JSON.stringify(updated));
+                                                }
+                                              }}
+                                              className="p-1 hover:bg-red-100 rounded text-red-500 transition-colors"
+                                              title="Supprimer"
+                                            >
+                                              <Trash2 className="w-4 h-4" />
+                                            </button>
                                           </div>
                                         </div>
-                                        <div className="p-2 bg-gradient-to-r from-[#fdfbf7] to-white">
-                                          <p className="text-xs font-semibold text-[#2c3e50]">
-                                            {evolution.serviceName || 'Service'}
-                                          </p>
-                                          <p className="text-xs text-[#2c3e50]/60">
-                                            {new Date(evolution.sessionDate).toLocaleDateString('fr-FR', { 
-                                              day: 'numeric', 
-                                              month: 'long', 
-                                              year: 'numeric' 
-                                            })}
-                                          </p>
+
+                                        {/* Photos/Vidéo */}
+                                        <div className="grid grid-cols-2 gap-2 p-3">
+                                          {evolution.beforePhoto && (
+                                            <div>
+                                              <p className="text-xs text-gray-600 mb-1">Avant</p>
+                                              <img
+                                                src={evolution.beforePhoto}
+                                                alt="Avant"
+                                                className="w-full h-32 object-cover rounded-lg"
+                                              />
+                                            </div>
+                                          )}
+                                          {evolution.afterPhoto && (
+                                            <div>
+                                              <p className="text-xs text-gray-600 mb-1">Après</p>
+                                              <img
+                                                src={evolution.afterPhoto}
+                                                alt="Après"
+                                                className="w-full h-32 object-cover rounded-lg"
+                                              />
+                                            </div>
+                                          )}
+                                          {evolution.videoUrl && (
+                                            <div className="col-span-2">
+                                              <p className="text-xs text-gray-600 mb-1">Vidéo</p>
+                                              <video
+                                                src={evolution.videoUrl}
+                                                controls
+                                                className="w-full h-32 object-cover rounded-lg bg-black"
+                                              />
+                                            </div>
+                                          )}
                                         </div>
+
+                                        {/* Mesures */}
+                                        {(evolution.hydrationLevel || evolution.elasticity || evolution.pigmentation || evolution.wrinkleDepth) && (
+                                          <div className="px-3 pb-2">
+                                            <p className="text-xs font-medium text-gray-700 mb-1">Mesures :</p>
+                                            <div className="grid grid-cols-4 gap-2 text-xs">
+                                              {evolution.hydrationLevel && (
+                                                <div className="bg-blue-50 rounded px-2 py-1 text-center">
+                                                  <div className="font-bold text-blue-700">{evolution.hydrationLevel}</div>
+                                                  <div className="text-blue-600">Hydratation</div>
+                                                </div>
+                                              )}
+                                              {evolution.elasticity && (
+                                                <div className="bg-green-50 rounded px-2 py-1 text-center">
+                                                  <div className="font-bold text-green-700">{evolution.elasticity}</div>
+                                                  <div className="text-green-600">Élasticité</div>
+                                                </div>
+                                              )}
+                                              {evolution.pigmentation && (
+                                                <div className="bg-purple-50 rounded px-2 py-1 text-center">
+                                                  <div className="font-bold text-purple-700">{evolution.pigmentation}</div>
+                                                  <div className="text-purple-600">Uniformité</div>
+                                                </div>
+                                              )}
+                                              {evolution.wrinkleDepth && (
+                                                <div className="bg-orange-50 rounded px-2 py-1 text-center">
+                                                  <div className="font-bold text-orange-700">{evolution.wrinkleDepth}</div>
+                                                  <div className="text-orange-600">Rides</div>
+                                                </div>
+                                              )}
+                                            </div>
+                                          </div>
+                                        )}
+
+                                        {/* Notes */}
+                                        {(evolution.improvements || evolution.clientFeedback) && (
+                                          <div className="px-3 pb-3 space-y-2">
+                                            {evolution.improvements && (
+                                              <div className="bg-green-50 rounded-lg p-2">
+                                                <p className="text-xs font-medium text-green-700">Améliorations :</p>
+                                                <p className="text-xs text-green-600 mt-0.5">{evolution.improvements}</p>
+                                              </div>
+                                            )}
+                                            {evolution.clientFeedback && (
+                                              <div className="bg-blue-50 rounded-lg p-2">
+                                                <p className="text-xs font-medium text-blue-700">Feedback client :</p>
+                                                <p className="text-xs text-blue-600 mt-0.5">{evolution.clientFeedback}</p>
+                                              </div>
+                                            )}
+                                          </div>
+                                        )}
                                       </div>
                                     ))}
                                   </div>
@@ -1545,7 +1643,8 @@ export default function UnifiedCRMTab({
                   </label>
                   <input
                     type="date"
-                    defaultValue={formatDateLocal(new Date())}
+                    value={evolutionForm.sessionDate}
+                    onChange={(e) => setEvolutionForm({...evolutionForm, sessionDate: e.target.value})}
                     className="w-full px-3 py-2 border border-[#d4b5a0]/20 rounded-lg focus:border-[#d4b5a0] focus:outline-none"
                   />
                 </div>
@@ -1556,6 +1655,8 @@ export default function UnifiedCRMTab({
                   <input
                     type="number"
                     placeholder="Ex: 1, 2, 3..."
+                    value={evolutionForm.sessionNumber}
+                    onChange={(e) => setEvolutionForm({...evolutionForm, sessionNumber: e.target.value})}
                     className="w-full px-3 py-2 border border-[#d4b5a0]/20 rounded-lg focus:border-[#d4b5a0] focus:outline-none"
                   />
                 </div>
@@ -1563,7 +1664,11 @@ export default function UnifiedCRMTab({
                   <label className="block text-sm font-medium text-[#2c3e50] mb-1">
                     Service effectué
                   </label>
-                  <select className="w-full px-3 py-2 border border-[#d4b5a0]/20 rounded-lg focus:border-[#d4b5a0] focus:outline-none">
+                  <select
+                    value={evolutionForm.serviceName}
+                    onChange={(e) => setEvolutionForm({...evolutionForm, serviceName: e.target.value})}
+                    className="w-full px-3 py-2 border border-[#d4b5a0]/20 rounded-lg focus:border-[#d4b5a0] focus:outline-none"
+                  >
                     <option value="">Sélectionner un service</option>
                     <option value="hydro-naissance">Hydro'Naissance</option>
                     <option value="hydro">Hydro'Cleaning</option>
@@ -1733,17 +1838,21 @@ export default function UnifiedCRMTab({
                   </label>
                   <textarea
                     placeholder="Ex: Peau plus lumineuse, rides atténuées, teint unifié..."
+                    value={evolutionForm.improvements}
+                    onChange={(e) => setEvolutionForm({...evolutionForm, improvements: e.target.value})}
                     className="w-full px-3 py-2 border border-[#d4b5a0]/20 rounded-lg focus:border-[#d4b5a0] focus:outline-none"
                     rows={3}
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-[#2c3e50] mb-1">
                     Feedback client
                   </label>
                   <textarea
                     placeholder="Ressenti du client, satisfaction..."
+                    value={evolutionForm.clientFeedback}
+                    onChange={(e) => setEvolutionForm({...evolutionForm, clientFeedback: e.target.value})}
                     className="w-full px-3 py-2 border border-[#d4b5a0]/20 rounded-lg focus:border-[#d4b5a0] focus:outline-none"
                     rows={2}
                   />
@@ -1755,19 +1864,47 @@ export default function UnifiedCRMTab({
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="text-xs text-[#2c3e50]/60">Hydratation (0-100)</label>
-                      <input type="number" min="0" max="100" className="w-full px-2 py-1 border border-[#d4b5a0]/20 rounded" />
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={evolutionForm.hydrationLevel}
+                        onChange={(e) => setEvolutionForm({...evolutionForm, hydrationLevel: e.target.value})}
+                        className="w-full px-2 py-1 border border-[#d4b5a0]/20 rounded"
+                      />
                     </div>
                     <div>
                       <label className="text-xs text-[#2c3e50]/60">Élasticité (0-100)</label>
-                      <input type="number" min="0" max="100" className="w-full px-2 py-1 border border-[#d4b5a0]/20 rounded" />
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={evolutionForm.elasticity}
+                        onChange={(e) => setEvolutionForm({...evolutionForm, elasticity: e.target.value})}
+                        className="w-full px-2 py-1 border border-[#d4b5a0]/20 rounded"
+                      />
                     </div>
                     <div>
                       <label className="text-xs text-[#2c3e50]/60">Uniformité (0-100)</label>
-                      <input type="number" min="0" max="100" className="w-full px-2 py-1 border border-[#d4b5a0]/20 rounded" />
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={evolutionForm.pigmentation}
+                        onChange={(e) => setEvolutionForm({...evolutionForm, pigmentation: e.target.value})}
+                        className="w-full px-2 py-1 border border-[#d4b5a0]/20 rounded"
+                      />
                     </div>
                     <div>
                       <label className="text-xs text-[#2c3e50]/60">Rides (0-100)</label>
-                      <input type="number" min="0" max="100" className="w-full px-2 py-1 border border-[#d4b5a0]/20 rounded" />
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={evolutionForm.wrinkleDepth}
+                        onChange={(e) => setEvolutionForm({...evolutionForm, wrinkleDepth: e.target.value})}
+                        className="w-full px-2 py-1 border border-[#d4b5a0]/20 rounded"
+                      />
                     </div>
                   </div>
                 </div>

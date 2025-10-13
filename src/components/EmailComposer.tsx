@@ -24,184 +24,14 @@ export default function EmailComposer() {
   const [selectAll, setSelectAll] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [previewMode, setPreviewMode] = useState(false);
-
-  // Templates prédéfinis
-  const templates = [
-    {
-      id: 'custom',
-      name: 'Message personnalisé',
-      subject: '',
-      message: ''
-    },
-    {
-      id: 'promo',
-      name: '🎁 Promotion',
-      subject: '🎁 Offre spéciale pour vous {{client_name}} !',
-      message: `Bonjour {{client_name}},
-
-J'ai le plaisir de vous offrir une réduction exclusive de -20% sur votre prochain soin !
-
-Cette offre est valable jusqu'au {{date_limite}}.
-
-Réservez vite votre créneau sur WhatsApp ou directement sur le site.
-
-À très bientôt,
-Laïa
-LAIA SKIN Institut`
-    },
-    {
-      id: 'nouveaute',
-      name: '✨ Nouveauté',
-      subject: '✨ Découvrez notre nouveau soin {{service_name}}',
-      message: `Bonjour {{client_name}},
-
-J'ai le plaisir de vous annoncer l'arrivée d'un nouveau soin dans notre institut : {{service_name}} !
-
-Ce soin innovant vous permettra de :
-- Bénéfice 1
-- Bénéfice 2
-- Bénéfice 3
-
-Pour fêter ce lancement, profitez de -15% sur ce soin jusqu'à la fin du mois.
-
-Réservez votre séance découverte dès maintenant !
-
-À bientôt,
-Laïa`
-    },
-    {
-      id: 'rappel',
-      name: '📅 Rappel',
-      subject: '📅 {{client_name}}, il est temps de prendre soin de vous',
-      message: `Bonjour {{client_name}},
-
-Cela fait maintenant quelques semaines depuis votre dernière visite et j'espère que vous allez bien !
-
-Pour maintenir les bienfaits de votre dernier soin et continuer à sublimer votre peau, je vous recommande de prévoir une nouvelle séance.
-
-Voici quelques créneaux disponibles cette semaine :
-- Lundi : 14h, 16h
-- Mercredi : 10h, 15h
-- Samedi : 11h, 14h
-
-N'hésitez pas à me contacter pour réserver votre moment de détente.
-
-À très vite,
-Laïa`
-    },
-    {
-      id: 'merci',
-      name: '💕 Remerciement',
-      subject: '💕 Merci {{client_name}} pour votre confiance',
-      message: `Bonjour {{client_name}},
-
-Je tenais à vous remercier personnellement pour votre fidélité et votre confiance.
-
-C'est un plaisir de vous accompagner dans votre routine beauté et de voir votre peau s'épanouir séance après séance.
-
-Pour vous remercier, je vous offre -10% sur votre prochain soin.
-
-Au plaisir de vous revoir très bientôt,
-Laïa
-LAIA SKIN Institut`
-    },
-    {
-      id: 'anniversaire',
-      name: '🎂 Anniversaire',
-      subject: '🎂 Joyeux anniversaire {{client_name}} !',
-      message: `Bonjour {{client_name}},
-
-Toute l'équipe de LAIA SKIN Institut vous souhaite un merveilleux anniversaire !
-
-Pour célébrer ce jour spécial, nous vous offrons -30% sur le soin de votre choix.
-
-Offre valable tout le mois de votre anniversaire.
-
-Très belle journée à vous,
-Laïa`
-    },
-    {
-      id: 'bienvenue',
-      name: '👋 Bienvenue',
-      subject: 'Bienvenue chez LAIA SKIN Institut',
-      message: `Bonjour {{client_name}},
-
-Bienvenue chez LAIA SKIN Institut !
-
-Je suis ravie de vous compter parmi nos clientes privilégiées.
-
-Pour bien démarrer, bénéficiez de -15% sur votre premier soin avec le code BIENVENUE.
-
-N'hésitez pas à me contacter pour toute question.
-
-À très bientôt,
-Laïa`
-    },
-    {
-      id: 'info',
-      name: '📢 Information',
-      subject: 'Information importante pour nos clientes',
-      message: `Bonjour {{client_name}},
-
-Je voulais vous informer d'un changement important concernant l'institut.
-
-[Votre message ici]
-
-N'hésitez pas à me contacter si vous avez des questions.
-
-Cordialement,
-Laïa`
-    }
-  ];
+  const [templates, setTemplates] = useState<any[]>([{ id: 'custom', name: 'Message personnalisé', subject: '', message: '' }]);
 
   useEffect(() => {
     fetchClients();
+    fetchTemplates();
   }, []);
 
   const fetchClients = async () => {
-    // Toujours charger les clients directement sans authentification pour l'instant
-    const clientsList = [
-      {
-        id: '1',
-        name: 'Célia IVORRA',
-        email: 'celia.ivorra95@hotmail.fr',
-        phone: '0683717050',
-        lastVisit: '2025-09-15'
-      },
-      {
-        id: '2',
-        name: 'Marie Dupont',
-        email: 'marie.dupont@email.com',
-        phone: '0612345678',
-        lastVisit: '2025-09-14'
-      },
-      {
-        id: '3',
-        name: 'Sophie Martin',
-        email: 'sophie.martin@email.com',
-        phone: '0654321098',
-        lastVisit: '2025-09-10'
-      },
-      {
-        id: '4',
-        name: 'Julie Bernard',
-        email: 'julie.bernard@email.com',
-        phone: '0698765432',
-        lastVisit: '2025-09-08'
-      },
-      {
-        id: '5',
-        name: 'Emma Rousseau',
-        email: 'emma.rousseau@email.com',
-        phone: '0623456789',
-        lastVisit: '2025-09-05'
-      }
-    ];
-    
-    setClients(clientsList);
-    console.log('Clients chargés:', clientsList.length);
-    
-    // Tentative de chargement depuis l'API (optionnel)
     try {
       const token = localStorage.getItem('adminToken');
       if (token) {
@@ -210,18 +40,37 @@ Laïa`
             'Authorization': `Bearer ${token}`
           }
         });
-        
+
         if (response.ok) {
           const data = await response.json();
-          if (data && data.length > 0) {
-            setClients(data);
-            console.log('Clients mis à jour depuis API:', data.length);
-          }
+          setClients(data);
         }
       }
     } catch (error) {
-      // Silencieux - on garde les données par défaut
-      console.log('Utilisation des données locales');
+      console.error('Erreur chargement clients:', error);
+    }
+  };
+
+  const fetchTemplates = async () => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      if (token) {
+        const response = await fetch('/api/admin/email-templates/', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setTemplates([
+            { id: 'custom', name: 'Message personnalisé', subject: '', message: '' },
+            ...data
+          ]);
+        }
+      }
+    } catch (error) {
+      console.error('Erreur chargement templates:', error);
     }
   };
 
