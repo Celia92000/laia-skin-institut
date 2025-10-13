@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Calendar, Clock, CheckCircle, XCircle, Gift, User, Users, Award, TrendingUp, UserCheck, Settings, Euro, Edit2, Save, FileText, Heart, AlertCircle, CreditCard, Download, Receipt, LogOut, MapPin, Phone, Mail, Instagram, Globe, Grid3x3, List, Cake, CreditCard as CardIcon, Star, MessageCircle, Send, X, Target, BarChart3, Package, Search, Ban, GraduationCap } from "lucide-react";
+import { Calendar, Clock, CheckCircle, XCircle, Gift, User, Users, Award, TrendingUp, UserCheck, Settings, Euro, Edit2, Save, FileText, Heart, AlertCircle, CreditCard, Download, Receipt, LogOut, MapPin, Phone, Mail, Instagram, Globe, Grid3x3, List, Cake, CreditCard as CardIcon, Star, MessageCircle, Send, X, Target, BarChart3, Package, Search, Ban, GraduationCap, ShoppingBag } from "lucide-react";
 import AuthGuard from "@/components/AuthGuard";
 import AdminCalendarEnhanced from "@/components/AdminCalendarEnhanced";
 import AdminServicesTab from "@/components/AdminServicesTab";
@@ -40,8 +40,7 @@ import { generateInvoiceNumber, calculateInvoiceTotals, formatInvoiceHTML, gener
 import AdminComptabiliteTab from "@/components/AdminComptabiliteTab";
 import AdvancedSearch from "@/components/AdvancedSearch";
 import FormationOrderSection from "@/components/FormationOrderSection";
-import AdminGiftCardsTab from "@/components/AdminGiftCardsTab";
-import AdminPendingOrdersTab from "@/components/AdminPendingOrdersTab";
+import AdminOrdersTab from "@/components/AdminOrdersTab";
 import SocialMediaCalendar from "@/components/admin/SocialMediaCalendar";
 import SocialMediaHub from "@/components/admin/SocialMediaHub";
 
@@ -1310,12 +1309,12 @@ export default function AdminDashboard() {
                 onClick={() => setActiveTab("pending")}
                 className={`px-3 sm:px-6 py-2 sm:py-3 rounded-full font-medium transition-all whitespace-nowrap flex-shrink-0 text-sm sm:text-base ${
                   activeTab === "pending"
-                    ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg"
+                    ? "bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg"
                     : "bg-white text-[#2c3e50] hover:shadow-md"
                 }`}
               >
-                <Clock className="w-4 h-4 inline mr-2" />
-                Commandes en attente
+                <ShoppingBag className="w-4 h-4 inline mr-2" />
+                Commandes
               </button>
             </>
           )}
@@ -2098,6 +2097,12 @@ export default function AdminDashboard() {
                         <div className="flex items-center gap-2 mb-2">
                           <User className="w-4 h-4 text-[#2c3e50]/60" />
                           <span className="text-[#2c3e50] font-medium">{reservation.userName || 'Client'}</span>
+                          {reservation.giftCardId && reservation.giftCard && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-pink-100 text-pink-700 rounded-full text-xs font-medium" title={`Code: ${reservation.giftCard.code} - Utilisé: ${reservation.giftCardUsedAmount}€`}>
+                              <Gift className="w-3 h-3" />
+                              Carte cadeau
+                            </span>
+                          )}
                         </div>
                         <div className="flex flex-wrap gap-2">
                           <span className="text-sm text-[#2c3e50]/70">
@@ -3345,7 +3350,7 @@ export default function AdminDashboard() {
           {/* Onglet Services */}
           {activeTab === "services" && <AdminServicesTab />}
           {activeTab === "products" && <AdminStockTab />}
-          {activeTab === "pending" && <AdminPendingOrdersTab />}
+          {activeTab === "pending" && <AdminOrdersTab />}
 
           {activeTab === "whatsapp" && <WhatsAppHub />}
 

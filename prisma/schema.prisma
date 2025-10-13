@@ -795,6 +795,8 @@ model GiftCard {
   usedDate        DateTime? // Date d'utilisation complète
   createdBy       String?   // ID admin qui a créé (si création manuelle)
   notes           String?   // Notes admin
+  paymentMethod   String?   // Mode de paiement (CB, espèces, chèque, etc.)
+  paymentStatus   String    @default("paid") // paid, pending
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
@@ -804,6 +806,25 @@ model GiftCard {
   @@index([code])
   @@index([purchasedBy])
   @@index([status])
+}
+
+model GiftCardSettings {
+  id                      String   @id @default(cuid())
+  emailSubject            String   @default("Vous avez reçu une carte cadeau Laia Skin Institut !")
+  emailTitle              String   @default("🎁 Vous avez reçu une Carte Cadeau !")
+  emailIntro              String   @db.Text @default("Quelle belle attention ! Vous venez de recevoir une carte cadeau pour découvrir ou redécouvrir les soins d'exception de Laia Skin Institut.")
+  emailInstructions       String   @db.Text @default("Utilisez le code ci-dessous lors de votre réservation en ligne ou contactez-nous pour prendre rendez-vous.")
+  emailFooter             String   @db.Text @default("Cette carte cadeau est valable 1 an à partir de la date d'émission.")
+  physicalCardTitle       String   @default("CARTE CADEAU")
+  physicalCardSubtitle    String   @default("Laia Skin Institut")
+  physicalCardValidity    String   @default("Valable 1 an")
+  physicalCardInstructions String  @db.Text @default("Présentez cette carte lors de votre visite ou utilisez le code en ligne.")
+  cardColorFrom           String   @default("#ec4899") // Couleur gradient début (rose par défaut)
+  cardColorTo             String   @default("#be185d") // Couleur gradient fin (rose foncé par défaut)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@map("gift_card_settings")
 }
 
 model SocialMediaPost {

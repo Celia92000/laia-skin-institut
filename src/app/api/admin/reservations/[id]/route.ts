@@ -122,7 +122,7 @@ export async function PATCH(
   try {
     const prisma = await getPrismaClient();
     const body = await request.json();
-    const { status, paymentStatus, paymentAmount, paymentMethod, paymentDate, paymentNotes } = body;
+    const { status, paymentStatus, paymentAmount, paymentMethod, paymentDate, paymentNotes, giftCardId, giftCardUsedAmount } = body;
     const reservationId = id;
 
     // Récupérer la réservation actuelle
@@ -251,6 +251,35 @@ export async function PATCH(
           });
 
           console.log(`✨ Soin compté pour fidélité: ${loyaltyProfile.individualServicesCount + 1}/5`);
+        }
+      }
+
+      // Si une carte cadeau est utilisée pour cette validation, débiter son solde
+      if (giftCardId && giftCardUsedAmount && giftCardUsedAmount > 0) {
+        try {
+          const giftCard = await prisma.giftCard.findUnique({
+            where: { id: giftCardId }
+          });
+
+          if (giftCard && giftCard.status === 'active' && giftCard.balance >= giftCardUsedAmount) {
+            const newBalance = giftCard.balance - giftCardUsedAmount;
+
+            await prisma.giftCard.update({
+              where: { id: giftCardId },
+              data: {
+                balance: newBalance,
+                status: newBalance <= 0 ? 'used' : 'active',
+                usedDate: newBalance <= 0 ? new Date() : giftCard.usedDate
+              }
+            });
+
+            console.log(`💳 Carte cadeau ${giftCard.code} débitée de ${giftCardUsedAmount}€ (nouveau solde: ${newBalance}€)`);
+          } else {
+            console.error('⚠️ Carte cadeau invalide ou solde insuffisant');
+          }
+        } catch (giftCardError) {
+          console.error('Erreur lors du débit de la carte cadeau:', giftCardError);
+          // On ne bloque pas la validation si le débit échoue
         }
       }
 

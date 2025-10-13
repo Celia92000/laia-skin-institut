@@ -262,6 +262,8 @@ export async function GET(request: NextRequest) {
         paymentDate: true,
         paymentAmount: true,
         paymentMethod: true,
+        giftCardId: true,
+        giftCardUsedAmount: true,
         createdAt: true,
         updatedAt: true,
         user: {
@@ -278,6 +280,14 @@ export async function GET(request: NextRequest) {
             slug: true,
             name: true,
             duration: true
+          }
+        },
+        giftCard: {
+          select: {
+            id: true,
+            code: true,
+            balance: true,
+            purchasedFor: true
           }
         }
       },

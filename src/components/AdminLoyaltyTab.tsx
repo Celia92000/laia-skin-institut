@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { Gift, Star, Award, TrendingUp, Calendar, User, CheckCircle, Euro, Cake, Heart, Users, AlertCircle, Download, Plus, Edit2, X, Settings, Save, FileText, Search, Filter, ArrowUpDown, Eye, RotateCcw, Check, Percent } from 'lucide-react';
-import AdminGiftCardsTab from './AdminGiftCardsTab';
 
 interface LoyaltyProfile {
   id: string;
@@ -1651,10 +1650,6 @@ export default function AdminLoyaltyTab({ clients, reservations, loyaltyProfiles
         </div>
       )}
 
-      {/* Section Cartes Cadeaux */}
-      <div className="mt-8">
-        <AdminGiftCardsTab />
-      </div>
     </div>
   );
 }

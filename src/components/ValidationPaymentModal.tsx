@@ -40,7 +40,15 @@ export default function ValidationPaymentModal({
     pendingReferrals?: number;
   }>({ isReferred: false, isSponsor: false });
   const [referralAlertShown, setReferralAlertShown] = useState(false);
-  
+
+  // États pour la carte cadeau
+  const [useGiftCard, setUseGiftCard] = useState(false);
+  const [giftCardCode, setGiftCardCode] = useState('');
+  const [giftCardData, setGiftCardData] = useState<any>(null);
+  const [giftCardError, setGiftCardError] = useState('');
+  const [isVerifyingGiftCard, setIsVerifyingGiftCard] = useState(false);
+  const [giftCardAmount, setGiftCardAmount] = useState(0);
+
   // Calculer les réductions disponibles
   const individualServicesCount = loyaltyProfile?.individualServicesCount || 0;
   const packagesCount = loyaltyProfile?.packagesCount || 0;
@@ -154,11 +162,47 @@ export default function ValidationPaymentModal({
       console.error('Erreur vérification anniversaire:', error);
     }
   };
-  
+
+  // Vérifier une carte cadeau
+  const verifyGiftCard = async () => {
+    if (!giftCardCode.trim()) {
+      setGiftCardError('Veuillez entrer un code');
+      return;
+    }
+
+    setIsVerifyingGiftCard(true);
+    setGiftCardError('');
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/gift-cards/verify?code=${giftCardCode.toUpperCase()}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.valid) {
+        setGiftCardData(data.giftCard);
+        // Proposer d'utiliser tout le solde ou le montant restant à payer
+        const maxUsable = Math.min(data.giftCard.balance, calculateFinalAmount());
+        setGiftCardAmount(maxUsable);
+        setGiftCardError('');
+      } else {
+        setGiftCardError(data.error || 'Code invalide');
+        setGiftCardData(null);
+      }
+    } catch (error) {
+      setGiftCardError('Erreur lors de la vérification');
+      setGiftCardData(null);
+    } finally {
+      setIsVerifyingGiftCard(false);
+    }
+  };
+
   // Recalculer le montant à payer quand les réductions changent
   useEffect(() => {
-    setPaymentAmount(calculateFinalAmount());
-  }, [applyLoyaltyDiscount, applyPackageDiscount, applyReferralSponsorDiscount, applyReferralReferredDiscount, applyBirthdayDiscount, manualDiscount]);
+    setPaymentAmount(calculateFinalAmount() - giftCardAmount);
+  }, [applyLoyaltyDiscount, applyPackageDiscount, applyReferralSponsorDiscount, applyReferralReferredDiscount, applyBirthdayDiscount, manualDiscount, giftCardAmount]);
   
   // Calculer le montant final avec réductions
   const calculateFinalAmount = () => {
@@ -250,7 +294,12 @@ export default function ValidationPaymentModal({
         discounts.push(`Réduction manuelle: -${manualDiscount}€`);
         data.manualDiscount = manualDiscount;
       }
-      
+      if (giftCardAmount > 0 && giftCardData) {
+        discounts.push(`Carte cadeau ${giftCardData.code}: -${giftCardAmount}€`);
+        data.giftCardId = giftCardData.id;
+        data.giftCardUsedAmount = giftCardAmount;
+      }
+
       let notes = paymentNotes;
       if (discounts.length > 0) {
         notes = `Réductions appliquées: ${discounts.join(', ')}${notes ? ' | ' + notes : ''}`;
@@ -908,14 +957,110 @@ export default function ValidationPaymentModal({
                       </div>
                     </div>
 
+                    {/* Carte cadeau */}
+                    <div className="border-2 border-pink-200 rounded-xl p-4 bg-pink-50">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Gift className="w-5 h-5 text-pink-600" />
+                        <label className="text-sm font-semibold text-pink-900">
+                          Carte cadeau (optionnel)
+                        </label>
+                      </div>
+
+                      {!giftCardData ? (
+                        <div className="space-y-3">
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={giftCardCode}
+                              onChange={(e) => {
+                                setGiftCardCode(e.target.value.toUpperCase());
+                                setGiftCardError('');
+                              }}
+                              placeholder="GIFT-XXXX-XXXX"
+                              className="flex-1 px-3 py-2 border border-pink-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent uppercase"
+                              maxLength={14}
+                            />
+                            <button
+                              type="button"
+                              onClick={verifyGiftCard}
+                              disabled={isVerifyingGiftCard || !giftCardCode.trim()}
+                              className="px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                            >
+                              {isVerifyingGiftCard ? 'Vérification...' : 'Vérifier'}
+                            </button>
+                          </div>
+                          {giftCardError && (
+                            <p className="text-sm text-red-600 flex items-center gap-1">
+                              <XCircle className="w-4 h-4" />
+                              {giftCardError}
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          <div className="bg-white rounded-lg p-3 border-2 border-pink-300">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="font-mono font-bold text-pink-700">{giftCardData.code}</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setGiftCardData(null);
+                                  setGiftCardCode('');
+                                  setGiftCardAmount(0);
+                                }}
+                                className="text-sm text-gray-500 hover:text-red-600"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                            <p className="text-sm text-gray-700">
+                              <strong>Bénéficiaire:</strong> {giftCardData.purchasedFor || 'Non spécifié'}
+                            </p>
+                            <p className="text-sm text-gray-700">
+                              <strong>Solde disponible:</strong> {giftCardData.balance}€
+                            </p>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-pink-900 mb-1">
+                              Montant à utiliser
+                            </label>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="number"
+                                min="0"
+                                max={Math.min(giftCardData.balance, calculateFinalAmount())}
+                                step="0.01"
+                                value={giftCardAmount}
+                                onChange={(e) => setGiftCardAmount(Math.min(parseFloat(e.target.value) || 0, Math.min(giftCardData.balance, calculateFinalAmount())))}
+                                className="flex-1 px-3 py-2 border border-pink-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                              />
+                              <span className="text-pink-900 font-semibold">€</span>
+                              <button
+                                type="button"
+                                onClick={() => setGiftCardAmount(Math.min(giftCardData.balance, calculateFinalAmount()))}
+                                className="px-3 py-2 bg-pink-200 text-pink-900 rounded-lg hover:bg-pink-300 transition-colors text-sm whitespace-nowrap"
+                              >
+                                Utiliser tout
+                              </button>
+                            </div>
+                            <p className="text-xs text-pink-700 mt-1">
+                              Maximum utilisable: {Math.min(giftCardData.balance, calculateFinalAmount())}€
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
                     <div>
                       <label className="block text-sm font-medium text-[#2c3e50] mb-1">
-                        Méthode de paiement
+                        Méthode de paiement {giftCardAmount > 0 && '(pour le reste à payer)'}
                       </label>
                       <select
                         value={paymentMethod}
                         onChange={(e) => setPaymentMethod(e.target.value)}
                         className="w-full px-3 py-2 border border-[#d4b5a0]/30 rounded-lg focus:ring-2 focus:ring-[#d4b5a0] focus:border-transparent"
+                        disabled={giftCardAmount >= calculateFinalAmount()}
                       >
                         <option value="CB">Carte Bancaire</option>
                         <option value="Espèces">Espèces</option>

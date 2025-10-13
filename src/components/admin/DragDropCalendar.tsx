@@ -1204,12 +1204,15 @@ export default function DragDropCalendar() {
                         key={idx}
                         onClick={() => {
                           const titleInput = document.querySelector<HTMLInputElement>('input[name="title"]');
-                          if (titleInput) titleInput.value = suggestion;
+                          const contentInput = document.querySelector<HTMLTextAreaElement>('textarea[name="content"]');
+                          if (titleInput) titleInput.value = suggestion.title;
+                          if (contentInput) contentInput.value = suggestion.content;
                         }}
                         className="bg-white p-3 rounded-lg cursor-pointer hover:bg-amber-50 transition-colors border border-amber-100"
                       >
-                        <p className="text-sm text-gray-700">{suggestion}</p>
-                        <p className="text-xs text-gray-500 mt-1">Cliquez pour utiliser</p>
+                        <p className="text-sm font-semibold text-gray-900">{suggestion.title}</p>
+                        <p className="text-xs text-gray-600 mt-1 line-clamp-2">{suggestion.content}</p>
+                        <p className="text-xs text-amber-600 mt-1 font-medium">{suggestion.trending}</p>
                       </div>
                     ))}
                   </div>

@@ -12,7 +12,7 @@ export async function verifyPassword(password: string, hashedPassword: string): 
 }
 
 export function generateToken(userId: string, role: string, rememberMe: boolean = false): string {
-  const expiresIn = rememberMe ? '30d' : '7d'; // 30 jours si "Se souvenir", sinon 7 jours
+  const expiresIn = rememberMe ? '90d' : '30d'; // 90 jours si "Se souvenir", sinon 30 jours
   return jwt.sign({ userId, role }, JWT_SECRET, { expiresIn });
 }
 

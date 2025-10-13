@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Gift, Plus, Edit, Trash2, Eye, Search, Calendar, User, CreditCard, Mail, Download } from 'lucide-react';
+import { Gift, Plus, Edit, Trash2, Eye, Search, Calendar, User, CreditCard, Mail, Download, Settings, Save } from 'lucide-react';
 import { formatDateLocal } from '@/lib/date-utils';
 
 interface GiftCard {
@@ -30,6 +30,7 @@ interface GiftCard {
 }
 
 export default function AdminGiftCardsTab() {
+  const [activeTab, setActiveTab] = useState<'list' | 'settings'>('list');
   const [giftCards, setGiftCards] = useState<GiftCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -39,6 +40,21 @@ export default function AdminGiftCardsTab() {
   const [showCardPreview, setShowCardPreview] = useState(false);
   const [previewCard, setPreviewCard] = useState<GiftCard | null>(null);
   const [sendingEmail, setSendingEmail] = useState(false);
+
+  // États pour les paramètres de cartes cadeaux
+  const [settingsLoading, setSettingsLoading] = useState(false);
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [settings, setSettings] = useState({
+    emailSubject: "Vous avez reçu une carte cadeau Laia Skin Institut !",
+    emailTitle: "🎁 Vous avez reçu une Carte Cadeau !",
+    emailIntro: "Quelle belle attention ! Vous venez de recevoir une carte cadeau pour découvrir ou redécouvrir les soins d'exception de Laia Skin Institut.",
+    emailInstructions: "Utilisez le code ci-dessous lors de votre réservation en ligne ou contactez-nous pour prendre rendez-vous.",
+    emailFooter: "Cette carte cadeau est valable 1 an à partir de la date d'émission.",
+    physicalCardTitle: "CARTE CADEAU",
+    physicalCardSubtitle: "Laia Skin Institut",
+    physicalCardValidity: "Valable 1 an",
+    physicalCardInstructions: "Présentez cette carte lors de votre visite ou utilisez le code en ligne."
+  });
   const getDefaultExpiryDate = () => {
     const date = new Date();
     date.setFullYear(date.getFullYear() + 1);
@@ -53,12 +69,61 @@ export default function AdminGiftCardsTab() {
     recipientPhone: '',
     message: '',
     expiryDate: getDefaultExpiryDate(),
-    notes: ''
+    notes: '',
+    paymentMethod: 'CB'
   });
 
   useEffect(() => {
     fetchGiftCards();
-  }, []);
+    if (activeTab === 'settings') {
+      fetchSettings();
+    }
+  }, [activeTab]);
+
+  const fetchSettings = async () => {
+    setSettingsLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/admin/gift-card-settings', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSettings(data);
+      }
+    } catch (error) {
+      console.error('Erreur chargement paramètres:', error);
+    } finally {
+      setSettingsLoading(false);
+    }
+  };
+
+  const saveSettings = async () => {
+    setSavingSettings(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/admin/gift-card-settings', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(settings)
+      });
+
+      if (response.ok) {
+        alert('✅ Paramètres sauvegardés avec succès !');
+      } else {
+        alert('❌ Erreur lors de la sauvegarde');
+      }
+    } catch (error) {
+      console.error('Erreur sauvegarde paramètres:', error);
+      alert('❌ Erreur lors de la sauvegarde');
+    } finally {
+      setSavingSettings(false);
+    }
+  };
 
   const fetchGiftCards = async () => {
     try {
@@ -144,7 +209,8 @@ export default function AdminGiftCardsTab() {
           recipientPhone: '',
           message: '',
           expiryDate: getDefaultExpiryDate(),
-          notes: ''
+          notes: '',
+          paymentMethod: 'CB'
         });
         fetchGiftCards();
       } else {
@@ -276,14 +342,46 @@ export default function AdminGiftCardsTab() {
             {giftCards.filter(c => c.status === 'active').length} active{giftCards.filter(c => c.status === 'active').length > 1 ? 's' : ''}
           </p>
         </div>
+        {activeTab === 'list' && (
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-lg hover:shadow-lg transition-all font-semibold flex items-center gap-2"
+          >
+            <Plus className="w-5 h-5" />
+            Nouvelle carte
+          </button>
+        )}
+      </div>
+
+      {/* Onglets */}
+      <div className="flex gap-2 mb-6 border-b border-gray-200">
         <button
-          onClick={() => setShowCreateModal(true)}
-          className="px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-lg hover:shadow-lg transition-all font-semibold flex items-center gap-2"
+          onClick={() => setActiveTab('list')}
+          className={`px-4 py-2 font-medium transition-colors border-b-2 ${
+            activeTab === 'list'
+              ? 'border-pink-600 text-pink-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700'
+          }`}
         >
-          <Plus className="w-5 h-5" />
-          Nouvelle carte
+          <Gift className="w-4 h-4 inline mr-2" />
+          Liste des cartes
+        </button>
+        <button
+          onClick={() => setActiveTab('settings')}
+          className={`px-4 py-2 font-medium transition-colors border-b-2 ${
+            activeTab === 'settings'
+              ? 'border-pink-600 text-pink-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          <Settings className="w-4 h-4 inline mr-2" />
+          Personnalisation
         </button>
       </div>
+
+      {activeTab === 'list' ? (
+        <>
+          {/* Contenu de la liste existante */}
 
       {/* Search */}
       <div className="mb-4">
@@ -324,9 +422,10 @@ export default function AdminGiftCardsTab() {
             </div>
 
             <div className="space-y-2 text-sm mb-3">
-              {/* Propriétaire en évidence */}
+              {/* Bénéficiaire */}
               {card.purchasedFor && (
                 <div className="bg-pink-100 border border-pink-300 rounded-lg p-2 mb-2">
+                  <p className="text-xs text-pink-600 font-medium mb-1">Bénéficiaire</p>
                   <p className="text-pink-900 font-bold flex items-center gap-1">
                     <User className="w-4 h-4" />
                     {card.purchasedFor}
@@ -337,6 +436,15 @@ export default function AdminGiftCardsTab() {
                   {card.recipientPhone && (
                     <p className="text-pink-700 text-xs">{card.recipientPhone}</p>
                   )}
+                </div>
+              )}
+
+              {/* Acheteur */}
+              {card.purchaser && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 mb-2">
+                  <p className="text-xs text-blue-600 font-medium mb-1">Acheté par</p>
+                  <p className="text-blue-900 font-semibold">{card.purchaser.name}</p>
+                  <p className="text-blue-700 text-xs truncate">{card.purchaser.email}</p>
                 </div>
               )}
 
@@ -359,9 +467,19 @@ export default function AdminGiftCardsTab() {
                 </p>
               )}
               {card.reservations && card.reservations.length > 0 && (
-                <p className="text-purple-600 text-xs">
-                  <strong>{card.reservations.length}</strong> utilisation{card.reservations.length > 1 ? 's' : ''}
-                </p>
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-2 mt-2">
+                  <p className="text-xs text-purple-600 font-medium mb-1">
+                    Utilisations ({card.reservations.length})
+                  </p>
+                  <div className="space-y-1">
+                    {card.reservations.map((res: any, idx: number) => (
+                      <div key={res.id} className="text-xs text-purple-800 flex justify-between items-center">
+                        <span>{new Date(res.date).toLocaleDateString('fr-FR')} à {res.time}</span>
+                        <span className="font-semibold text-purple-900">{res.giftCardUsedAmount || 0}€</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
 
@@ -497,6 +615,21 @@ export default function AdminGiftCardsTab() {
                   onChange={(e) => setNewCard({...newCard, expiryDate: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[#2c3e50] mb-1">Mode de paiement*</label>
+                <select
+                  value={newCard.paymentMethod}
+                  onChange={(e) => setNewCard({...newCard, paymentMethod: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500"
+                >
+                  <option value="CB">Carte bancaire</option>
+                  <option value="especes">Espèces</option>
+                  <option value="cheque">Chèque</option>
+                  <option value="virement">Virement</option>
+                  <option value="autre">Autre</option>
+                </select>
               </div>
 
               <div>
@@ -822,6 +955,168 @@ export default function AdminGiftCardsTab() {
             </div>
           </div>
         </div>
+      )}
+        </>
+      ) : (
+        <>
+        {/* Onglet Personnalisation */}
+        <div className="max-w-4xl mx-auto">
+          {settingsLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500"></div>
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {/* Paramètres Email */}
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border-2 border-blue-200">
+                <h4 className="text-lg font-bold text-blue-900 mb-4 flex items-center gap-2">
+                  <Mail className="w-5 h-5" />
+                  Personnalisation des Emails
+                </h4>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-blue-900 mb-1">
+                      Sujet de l'email
+                    </label>
+                    <input
+                      type="text"
+                      value={settings.emailSubject}
+                      onChange={(e) => setSettings({...settings, emailSubject: e.target.value})}
+                      className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Sujet de l'email..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-blue-900 mb-1">
+                      Titre principal
+                    </label>
+                    <input
+                      type="text"
+                      value={settings.emailTitle}
+                      onChange={(e) => setSettings({...settings, emailTitle: e.target.value})}
+                      className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Titre de l'email..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-blue-900 mb-1">
+                      Introduction
+                    </label>
+                    <textarea
+                      value={settings.emailIntro}
+                      onChange={(e) => setSettings({...settings, emailIntro: e.target.value})}
+                      rows={3}
+                      className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                      placeholder="Texte d'introduction..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-blue-900 mb-1">
+                      Instructions d'utilisation
+                    </label>
+                    <textarea
+                      value={settings.emailInstructions}
+                      onChange={(e) => setSettings({...settings, emailInstructions: e.target.value})}
+                      rows={2}
+                      className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                      placeholder="Instructions..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-blue-900 mb-1">
+                      Pied de page
+                    </label>
+                    <textarea
+                      value={settings.emailFooter}
+                      onChange={(e) => setSettings({...settings, emailFooter: e.target.value})}
+                      rows={2}
+                      className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                      placeholder="Pied de page..."
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Paramètres Carte Physique */}
+              <div className="bg-gradient-to-br from-pink-50 to-rose-100 rounded-xl p-6 border-2 border-pink-200">
+                <h4 className="text-lg font-bold text-pink-900 mb-4 flex items-center gap-2">
+                  <Gift className="w-5 h-5" />
+                  Personnalisation de la Carte Physique/PDF
+                </h4>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-pink-900 mb-1">
+                      Titre principal
+                    </label>
+                    <input
+                      type="text"
+                      value={settings.physicalCardTitle}
+                      onChange={(e) => setSettings({...settings, physicalCardTitle: e.target.value})}
+                      className="w-full px-4 py-2 border border-pink-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                      placeholder="CARTE CADEAU"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-pink-900 mb-1">
+                      Sous-titre
+                    </label>
+                    <input
+                      type="text"
+                      value={settings.physicalCardSubtitle}
+                      onChange={(e) => setSettings({...settings, physicalCardSubtitle: e.target.value})}
+                      className="w-full px-4 py-2 border border-pink-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                      placeholder="Nom de l'institut"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-pink-900 mb-1">
+                      Mention de validité
+                    </label>
+                    <input
+                      type="text"
+                      value={settings.physicalCardValidity}
+                      onChange={(e) => setSettings({...settings, physicalCardValidity: e.target.value})}
+                      className="w-full px-4 py-2 border border-pink-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                      placeholder="Valable 1 an"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-pink-900 mb-1">
+                      Instructions
+                    </label>
+                    <textarea
+                      value={settings.physicalCardInstructions}
+                      onChange={(e) => setSettings({...settings, physicalCardInstructions: e.target.value})}
+                      rows={2}
+                      className="w-full px-4 py-2 border border-pink-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none"
+                      placeholder="Instructions d'utilisation..."
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Bouton de sauvegarde */}
+              <div className="flex justify-end">
+                <button
+                  onClick={saveSettings}
+                  disabled={savingSettings}
+                  className="px-6 py-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-lg hover:shadow-lg transition-all font-semibold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Save className="w-5 h-5" />
+                  {savingSettings ? 'Sauvegarde...' : 'Sauvegarder les paramètres'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+        </>
       )}
     </div>
   );

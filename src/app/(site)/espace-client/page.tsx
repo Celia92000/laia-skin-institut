@@ -13,6 +13,7 @@ import { DiscountHistory } from "@/components/DiscountHistory";
 import { SocialQRCodes } from "@/components/SocialQRCodes";
 import { CongratulationsAnimation } from "@/components/CongratulationsAnimation";
 import { getReservationWithServiceNames, getServiceIcon } from '@/lib/service-utils';
+import ClientGiftCards from "@/components/ClientGiftCards";
 
 interface Reservation {
   id: string;
@@ -585,6 +586,17 @@ function EspaceClientContent() {
             }`}
           >
             Mes Avis
+          </button>
+          <button
+            onClick={() => setActiveTab("giftcards")}
+            className={`px-6 py-3 rounded-full font-medium transition-all whitespace-nowrap ${
+              activeTab === "giftcards"
+                ? "bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white shadow-lg"
+                : "bg-white text-[#2c3e50] hover:shadow-md"
+            }`}
+          >
+            <Gift className="w-4 h-4 inline mr-2" />
+            Cartes Cadeaux
           </button>
         </div>
 
@@ -1275,7 +1287,11 @@ function EspaceClientContent() {
               </div>
             </div>
           )}
-          
+
+          {activeTab === "giftcards" && (
+            <ClientGiftCards />
+          )}
+
           {activeTab === "profile" && (
             <div>
               <h2 className="text-2xl font-serif font-bold text-[#2c3e50] mb-6">

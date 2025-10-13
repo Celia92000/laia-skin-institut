@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import {
   Calendar, ChevronLeft, ChevronRight, Eye, CalendarDays,
   Grid3x3, CalendarRange, User, Clock, Euro, Ban, Plus,
-  X, Check, AlertCircle
+  X, Check, AlertCircle, Gift
 } from "lucide-react";
 import { isTimeSlotAvailable, getTotalDuration } from "@/lib/time-utils";
 import { formatDateLocal } from "@/lib/date-utils";
@@ -62,6 +62,13 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
   const [localServices, setLocalServices] = useState<any[]>([]);
   const [isBlockMode, setIsBlockMode] = useState(false);
 
+  // États pour carte cadeau
+  const [useGiftCard, setUseGiftCard] = useState(false);
+  const [giftCardCode, setGiftCardCode] = useState('');
+  const [giftCardData, setGiftCardData] = useState<any>(null);
+  const [giftCardError, setGiftCardError] = useState('');
+  const [isVerifyingGiftCard, setIsVerifyingGiftCard] = useState(false);
+
   // États pour la modification de réservation
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedReservation, setEditedReservation] = useState<any>(null);
@@ -110,6 +117,56 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
     if (!dbServices) return 0;
     const service = dbServices.find(s => s.slug === serviceSlug);
     return service ? (service.promoPrice || service.price) : 0;
+  };
+
+  // Fonction pour réinitialiser le formulaire de réservation
+  const resetReservationForm = () => {
+    setShowQuickReservation(false);
+    setSelectedSlot(null);
+    setSelectedService('');
+    setClientName('');
+    setClientEmail('');
+    setClientPhone('');
+    setUseGiftCard(false);
+    setGiftCardCode('');
+    setGiftCardData(null);
+    setGiftCardError('');
+  };
+
+  // Fonction pour vérifier la carte cadeau
+  const verifyGiftCard = async () => {
+    if (!giftCardCode.trim()) {
+      setGiftCardError('Veuillez entrer un code');
+      return;
+    }
+
+    setIsVerifyingGiftCard(true);
+    setGiftCardError('');
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/gift-cards/verify?code=${giftCardCode.toUpperCase()}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.valid) {
+        setGiftCardData(data.giftCard);
+        setGiftCardError('');
+      } else {
+        setGiftCardError(data.error || 'Code invalide');
+        setGiftCardData(null);
+      }
+    } catch (error) {
+      console.error('Erreur vérification carte cadeau:', error);
+      setGiftCardError('Erreur lors de la vérification');
+      setGiftCardData(null);
+    } finally {
+      setIsVerifyingGiftCard(false);
+    }
   };
 
   // Helper pour obtenir la durée d'un service en minutes
@@ -1857,16 +1914,10 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
               if (hasData) {
                 // Demander confirmation avant de fermer
                 if (confirm('Vous avez des données non sauvegardées. Voulez-vous vraiment fermer ?')) {
-                  setShowQuickReservation(false);
-                  setSelectedSlot(null);
-                  setSelectedService('');
-                  setClientName('');
-                  setClientEmail('');
-                  setClientPhone('');
+                  resetReservationForm();
                 }
               } else {
-                setShowQuickReservation(false);
-                setSelectedSlot(null);
+                resetReservationForm();
               }
             }
           }}
@@ -1880,14 +1931,7 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
                 Nouvelle réservation
               </h3>
               <button
-                onClick={() => {
-                  setShowQuickReservation(false);
-                  setSelectedSlot(null);
-                  setSelectedService('');
-                  setClientName('');
-                  setClientEmail('');
-                  setClientPhone('');
-                }}
+                onClick={resetReservationForm}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <X className="w-5 h-5" />
@@ -2046,6 +2090,102 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
                 </div>
               </div>
 
+              {/* Carte cadeau (optionnel) */}
+              <div className="border-2 border-pink-200 rounded-xl p-4 bg-pink-50">
+                <div className="flex items-center gap-2 mb-3">
+                  <input
+                    type="checkbox"
+                    id="useGiftCard"
+                    checked={useGiftCard}
+                    onChange={(e) => {
+                      setUseGiftCard(e.target.checked);
+                      if (!e.target.checked) {
+                        setGiftCardCode('');
+                        setGiftCardData(null);
+                        setGiftCardError('');
+                      }
+                    }}
+                    className="w-4 h-4 text-pink-600 rounded focus:ring-pink-500"
+                  />
+                  <label htmlFor="useGiftCard" className="flex items-center gap-2 text-sm font-semibold text-pink-900 cursor-pointer">
+                    <Gift className="w-5 h-5 text-pink-600" />
+                    Utiliser une carte cadeau (optionnel)
+                  </label>
+                </div>
+
+                {useGiftCard && (
+                  <div className="space-y-3">
+                    {!giftCardData ? (
+                      <>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={giftCardCode}
+                            onChange={(e) => {
+                              setGiftCardCode(e.target.value.toUpperCase());
+                              setGiftCardError('');
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                verifyGiftCard();
+                              }
+                            }}
+                            placeholder="GIFT-XXXX-XXXX"
+                            maxLength={14}
+                            className="flex-1 px-4 py-2 border-2 border-pink-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent font-mono uppercase"
+                          />
+                          <button
+                            type="button"
+                            onClick={verifyGiftCard}
+                            disabled={isVerifyingGiftCard || !giftCardCode.trim()}
+                            className="px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
+                          >
+                            {isVerifyingGiftCard ? 'Vérification...' : 'Vérifier'}
+                          </button>
+                        </div>
+                        {giftCardError && (
+                          <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-2">
+                            <AlertCircle className="w-4 h-4" />
+                            {giftCardError}
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="bg-white rounded-lg p-3 border-2 border-pink-300">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs text-pink-600 font-medium">Code validé</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setGiftCardData(null);
+                                setGiftCardCode('');
+                              }}
+                              className="text-pink-600 hover:text-pink-800"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                          <p className="font-mono font-bold text-pink-900 mb-1">{giftCardData.code}</p>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-pink-700">Solde disponible:</span>
+                            <span className="font-bold text-pink-900">{giftCardData.balance}€</span>
+                          </div>
+                          {giftCardData.purchasedFor && (
+                            <p className="text-xs text-pink-600 mt-1">Pour: {giftCardData.purchasedFor}</p>
+                          )}
+                        </div>
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-2 flex items-center gap-2 text-sm text-green-700">
+                          <Check className="w-4 h-4" />
+                          <span>Cette carte sera utilisée lors de la réservation</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
               {/* Actions */}
               <div className="space-y-3 pt-4 border-t">
                 <button
@@ -2082,6 +2222,27 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
                       const endMinutes = timeToMinutes(selectedSlot.time) + totalDuration;
                       const endTime = minutesToTime(endMinutes);
 
+                      // Préparer les données de la réservation
+                      const reservationData: any = {
+                        client: clientName,
+                        email: clientEmail,
+                        phone: clientPhone,
+                        date: dateStr,
+                        time: selectedSlot.time,
+                        services: [selectedService],
+                        totalPrice: getServicePrice(selectedService),
+                        status: 'confirmed',
+                        source: 'admin-calendar'
+                      };
+
+                      // Ajouter les données de carte cadeau si utilisée
+                      if (giftCardData) {
+                        const servicPrice = getServicePrice(selectedService);
+                        const giftCardAmount = Math.min(giftCardData.balance, servicPrice);
+                        reservationData.giftCardId = giftCardData.id;
+                        reservationData.giftCardUsedAmount = giftCardAmount;
+                      }
+
                       // Créer la réservation via l'API (qui vérifie les doublons)
                       const response = await fetch('/api/admin/reservations', {
                         method: 'POST',
@@ -2089,17 +2250,7 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
                           'Authorization': `Bearer ${token}`,
                           'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({
-                          client: clientName,
-                          email: clientEmail,
-                          phone: clientPhone,
-                          date: dateStr,
-                          time: selectedSlot.time,
-                          services: [selectedService],
-                          totalPrice: getServicePrice(selectedService),
-                          status: 'confirmed',
-                          source: 'admin-calendar'
-                        })
+                        body: JSON.stringify(reservationData)
                       });
 
                       if (!response.ok) {
@@ -2132,14 +2283,16 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
 
                       // Rafraîchir les données sans recharger la page
                       await fetchBlockedSlots();
-                      setShowQuickReservation(false);
-                      setSelectedSlot(null);
-                      setSelectedService('');
-                      setClientName('');
-                      setClientEmail('');
-                      setClientPhone('');
+
+                      const usedGiftCard = giftCardData !== null;
+                      resetReservationForm();
                       setRefreshKey(prev => prev + 1); // Forcer le rafraîchissement des vues
-                      alert('✅ Réservation créée avec succès!');
+
+                      if (usedGiftCard) {
+                        alert('✅ Réservation créée avec succès!\n💳 Carte cadeau utilisée avec succès');
+                      } else {
+                        alert('✅ Réservation créée avec succès!');
+                      }
                     } catch (error) {
                       console.error('Erreur lors de la création:', error);
                       alert('Erreur lors de la création de la réservation');
@@ -2153,14 +2306,7 @@ export default function PlanningCalendar({ reservations, services, dbServices, o
                 </button>
 
                 <button
-                  onClick={() => {
-                    setShowQuickReservation(false);
-                    setSelectedSlot(null);
-                    setSelectedService('');
-                    setClientName('');
-                    setClientEmail('');
-                    setClientPhone('');
-                  }}
+                  onClick={resetReservationForm}
                   className="w-full px-4 py-3 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   Annuler

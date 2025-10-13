@@ -48,8 +48,8 @@ export async function POST(
       return NextResponse.json({ error: 'Carte cadeau introuvable' }, { status: 404 });
     }
 
-    if (!giftCard.recipientEmail) {
-      return NextResponse.json({ error: 'Aucun email bénéficiaire' }, { status: 400 });
+    if (!giftCard.purchaser?.email) {
+      return NextResponse.json({ error: 'Aucun email acheteur' }, { status: 400 });
     }
 
     // Créer le template HTML de la carte cadeau
@@ -78,16 +78,16 @@ export async function POST(
                           <tr>
                               <td style="padding: 40px;">
                                   <h2 style="color: #2c3e50; font-size: 24px; margin: 0 0 20px 0;">
-                                      ${giftCard.purchasedFor ? `Bonjour ${giftCard.purchasedFor} 🎁` : 'Bonjour 🎁'}
+                                      ${giftCard.purchaser ? `Bonjour ${giftCard.purchaser.name} 🎁` : 'Bonjour 🎁'}
                                   </h2>
 
                                   <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
-                                      Vous avez reçu une carte cadeau LAIA SKIN INSTITUT ${giftCard.purchaser ? `de la part de <strong>${giftCard.purchaser.name}</strong>` : ''} !
+                                      Merci pour votre achat ! Voici votre carte cadeau LAIA SKIN INSTITUT${giftCard.purchasedFor ? ` pour <strong>${giftCard.purchasedFor}</strong>` : ''}.
                                   </p>
 
                                   ${giftCard.message ? `
                                   <div style="margin: 30px 0; padding: 20px; background-color: #fdf5f0; border-left: 4px solid #d4b5a0; border-radius: 4px;">
-                                      ${giftCard.purchaser ? `<p style="color: #c9a084; font-size: 12px; font-weight: 600; margin: 0 0 8px 0;">Message de ${giftCard.purchaser.name}</p>` : ''}
+                                      <p style="color: #c9a084; font-size: 12px; font-weight: 600; margin: 0 0 8px 0;">Votre message personnalisé</p>
                                       <p style="color: #866b5d; font-size: 14px; font-style: italic; margin: 0;">
                                           "${giftCard.message}"
                                       </p>
@@ -127,29 +127,17 @@ export async function POST(
                                   <!-- Instructions -->
                                   <div style="margin: 30px 0; padding: 20px; background-color: #f0f0f0; border-radius: 8px;">
                                       <p style="color: #333; font-size: 16px; margin: 0 0 15px 0; font-weight: 600;">
-                                          💡 Comment utiliser votre carte ?
+                                          💡 Comment offrir cette carte cadeau ?
                                       </p>
                                       <ol style="color: #666; font-size: 14px; line-height: 1.8; margin: 0; padding-left: 20px;">
-                                          <li>Rendez-vous sur notre site pour réserver un soin</li>
-                                          <li>Lors de la réservation, entrez votre code carte cadeau</li>
-                                          <li>Le montant sera automatiquement déduit de votre total</li>
+                                          <li>Imprimez cet email ou transférez-le${giftCard.purchasedFor ? ` à ${giftCard.purchasedFor}` : ' au bénéficiaire'}</li>
+                                          <li>${giftCard.purchasedFor ? `${giftCard.purchasedFor}` : 'Le bénéficiaire'} pourra réserver un soin sur notre site</li>
+                                          <li>Lors de la réservation, il suffira d'entrer le code pour utiliser la carte</li>
                                       </ol>
                                   </div>
 
-                                  <!-- CTA Button -->
-                                  <table width="100%" cellpadding="0" cellspacing="0">
-                                      <tr>
-                                          <td align="center" style="padding: 30px 0 20px 0;">
-                                              <a href="${process.env.VERCEL ? 'https://laia-skin-institut-as92.vercel.app' : 'http://localhost:3001'}/reservation?giftCard=${giftCard.code}"
-                                                 style="display: inline-block; padding: 20px 50px; background: linear-gradient(135deg, #d4b5a0, #c9a084); color: #ffffff; text-decoration: none; border-radius: 50px; font-size: 18px; font-weight: 700; box-shadow: 0 6px 20px rgba(212, 181, 160, 0.4); text-transform: uppercase; letter-spacing: 1px;">
-                                                  ✨ Réserver mon soin
-                                              </a>
-                                          </td>
-                                      </tr>
-                                  </table>
-
-                                  <p style="color: #999; font-size: 12px; text-align: center; margin: 30px 0 0 0;">
-                                      Utilisable sur tous nos soins et produits
+                                  <p style="color: #999; font-size: 13px; text-align: center; margin: 30px 0 0 0;">
+                                      💝 Cette carte cadeau est utilisable sur tous nos soins et produits
                                   </p>
                               </td>
                           </tr>
@@ -181,7 +169,7 @@ export async function POST(
 
     const { data, error } = await getResend().emails.send({
       from: fromEmail,
-      to: [giftCard.recipientEmail],
+      to: [giftCard.purchaser.email],
       subject: `🎁 Votre carte cadeau LAIA SKIN - ${giftCard.amount}€`,
       html: htmlContent
     });

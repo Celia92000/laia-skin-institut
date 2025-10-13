@@ -95,7 +95,9 @@ export async function PATCH(
       expiryDate,
       status,
       notes,
-      purchaserName
+      purchaserName,
+      paymentStatus,
+      paymentMethod
     } = body;
 
     // Préparer les données de mise à jour
@@ -113,6 +115,8 @@ export async function PATCH(
       if (status === 'used') updateData.usedDate = new Date();
     }
     if (notes !== undefined) updateData.notes = notes;
+    if (paymentStatus !== undefined) updateData.paymentStatus = paymentStatus;
+    if (paymentMethod !== undefined) updateData.paymentMethod = paymentMethod;
 
     // Gérer le nom de l'émetteur
     if (purchaserName !== undefined) {

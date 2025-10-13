@@ -69,7 +69,10 @@ export default function ServiceDetailPage() {
         if (typeof data.benefits === 'string') {
           data.benefits = JSON.parse(data.benefits);
         }
-        if (typeof data.process === 'string') {
+        // Utiliser protocol si process n'existe pas
+        if (data.protocol && !data.process) {
+          data.process = typeof data.protocol === 'string' ? JSON.parse(data.protocol) : data.protocol;
+        } else if (typeof data.process === 'string') {
           data.process = JSON.parse(data.process);
         }
         if (typeof data.recommendations === 'string') {
@@ -283,8 +286,8 @@ export default function ServiceDetailPage() {
 
               {/* Prix et CTA */}
               <div className="bg-white rounded-2xl p-6 shadow-xl">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
+                <div className="flex flex-col md:flex-row items-center justify-center gap-8 mb-6">
+                  <div className="text-center">
                     {service.launchPrice && (
                       <p className="text-gray-400 line-through text-lg">{service.price}€</p>
                     )}
@@ -298,7 +301,7 @@ export default function ServiceDetailPage() {
                     )}
                   </div>
                   {service.forfaitPromo && service.forfaitPrice && (
-                    <div className="text-right">
+                    <div className="text-center">
                       <p className="text-sm text-gray-500">Forfait 4 séances</p>
                       <p className="text-2xl font-medium text-[#20b2aa]">{service.forfaitPromo}€</p>
                       <p className="text-xs text-green-600">Économisez {service.forfaitPrice - service.forfaitPromo}€</p>

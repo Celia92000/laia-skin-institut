@@ -242,6 +242,93 @@ export async function GET(request: NextRequest) {
         return sum + (typeof price === 'number' ? price : parseFloat(price) || 0);
       }, 0);
 
+      // Ajouter les revenus des cartes cadeaux et commandes
+      const paidGiftCards = await prisma.giftCard.findMany({
+        where: {
+          paymentStatus: 'paid',
+          createdAt: {
+            gte: startDate,
+            lte: endDate
+          }
+        }
+      }).catch(() => []);
+
+      const paidOrders = await prisma.order.findMany({
+        where: {
+          paymentStatus: 'paid',
+          createdAt: {
+            gte: startDate,
+            lte: endDate
+          }
+        }
+      }).catch(() => []);
+
+      // Récupérer aussi les commandes en attente
+      const pendingGiftCards = await prisma.giftCard.findMany({
+        where: {
+          paymentStatus: 'pending',
+          createdAt: {
+            gte: startDate,
+            lte: endDate
+          }
+        }
+      }).catch(() => []);
+
+      const pendingOrders = await prisma.order.findMany({
+        where: {
+          paymentStatus: 'pending',
+          createdAt: {
+            gte: startDate,
+            lte: endDate
+          }
+        }
+      }).catch(() => []);
+
+      // Séparer produits et formations (payés)
+      const productOrders = paidOrders.filter(o => o.orderType === 'product');
+      const formationOrders = paidOrders.filter(o => o.orderType === 'formation');
+
+      // Séparer produits et formations (en attente)
+      const pendingProductOrders = pendingOrders.filter(o => o.orderType === 'product');
+      const pendingFormationOrders = pendingOrders.filter(o => o.orderType === 'formation');
+
+      // Compteurs
+      const giftCardsPaidCount = paidGiftCards.length;
+      const giftCardsPendingCount = pendingGiftCards.length;
+      const productsPaidCount = productOrders.length;
+      const productsPendingCount = pendingProductOrders.length;
+      const formationsPaidCount = formationOrders.length;
+      const formationsPendingCount = pendingFormationOrders.length;
+
+      // Revenus
+      const giftCardsRevenue = paidGiftCards.reduce((sum, gc) => sum + gc.amount, 0);
+      const giftCardsPendingRevenue = pendingGiftCards.reduce((sum, gc) => sum + gc.amount, 0);
+      const productsRevenue = productOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+      const productsPendingRevenue = pendingProductOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+      const formationsRevenue = formationOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+      const formationsPendingRevenue = pendingFormationOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+      const ordersRevenue = productsRevenue + formationsRevenue;
+
+      // Détail des prestations de service par service
+      const serviceRevenueDetail: Record<string, number> = {};
+      currentReservations.forEach(r => {
+        try {
+          const services = typeof r.services === 'string' ? JSON.parse(r.services) : r.services;
+          if (Array.isArray(services)) {
+            services.forEach(serviceName => {
+              if (!serviceRevenueDetail[serviceName]) {
+                serviceRevenueDetail[serviceName] = 0;
+              }
+              serviceRevenueDetail[serviceName] += (r.totalPrice || 0) / services.length;
+            });
+          }
+        } catch (e) {
+          // Si erreur de parsing, ignorer
+        }
+      });
+
+      const totalRevenueWithOrders = totalRevenue + giftCardsRevenue + ordersRevenue;
+
       const confirmedReservations = currentReservations.filter(r => r.status === 'confirmed').length;
       const pendingReservations = currentReservations.filter(r => r.status === 'pending').length;
       const cancelledReservations = currentReservations.filter(r => r.status === 'cancelled').length;
@@ -387,16 +474,71 @@ export async function GET(request: NextRequest) {
       const slotsPerWeek = 8 * 6 * 4; // 8h x 6 jours x 4 créneaux par heure = 192 créneaux
       const occupancyRate = Math.round((weekReservations / slotsPerWeek) * 100);
       
-      // Calculer les statistiques de produits (simulation pour le moment)
+      // Calculer les vraies statistiques de produits et formations
+      const productItemsMap: Record<string, { quantity: number; revenue: number }> = {};
+      const formationItemsMap: Record<string, { quantity: number; revenue: number }> = {};
+
+      productOrders.forEach(order => {
+        try {
+          const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
+          if (Array.isArray(items)) {
+            items.forEach((item: any) => {
+              const name = item.name || item.title || 'Produit';
+              if (!productItemsMap[name]) {
+                productItemsMap[name] = { quantity: 0, revenue: 0 };
+              }
+              const price = item.price || 0;
+              const quantity = item.quantity || 1;
+              productItemsMap[name].quantity += quantity;
+              productItemsMap[name].revenue += price * quantity;
+            });
+          }
+        } catch (e) {
+          // Ignorer les erreurs de parsing
+        }
+      });
+
+      formationOrders.forEach(order => {
+        try {
+          const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
+          if (Array.isArray(items)) {
+            items.forEach((item: any) => {
+              const name = item.name || item.title || 'Formation';
+              if (!formationItemsMap[name]) {
+                formationItemsMap[name] = { quantity: 0, revenue: 0 };
+              }
+              const price = item.price || 0;
+              const quantity = item.quantity || 1;
+              formationItemsMap[name].quantity += quantity;
+              formationItemsMap[name].revenue += price * quantity;
+            });
+          }
+        } catch (e) {
+          // Ignorer les erreurs de parsing
+        }
+      });
+
+      const topProducts = Object.entries(productItemsMap)
+        .map(([name, data]) => ({ name, ...data }))
+        .sort((a, b) => b.revenue - a.revenue)
+        .slice(0, 5);
+
+      const topFormations = Object.entries(formationItemsMap)
+        .map(([name, data]) => ({ name, ...data }))
+        .sort((a, b) => b.revenue - a.revenue)
+        .slice(0, 5);
+
       const productStats = {
-        totalSold: 15,
-        revenue: 450,
-        topProducts: [
-          { name: 'Crème hydratante', quantity: 5, revenue: 150 },
-          { name: 'Sérum anti-âge', quantity: 3, revenue: 120 },
-          { name: 'Masque purifiant', quantity: 7, revenue: 180 }
-        ],
-        stockAlert: 2
+        totalSold: Object.values(productItemsMap).reduce((sum, p) => sum + p.quantity, 0),
+        revenue: productsRevenue,
+        topProducts,
+        stockAlert: 0 // À implémenter si vous avez un système de stock
+      };
+
+      const formationStats = {
+        totalSold: Object.values(formationItemsMap).reduce((sum, f) => sum + f.quantity, 0),
+        revenue: formationsRevenue,
+        topFormations
       };
       
       // Calculer les statistiques de fidélisation
@@ -453,7 +595,7 @@ export async function GET(request: NextRequest) {
         pendingReservations,
         confirmedReservations,
         cancelledReservations,
-        totalRevenue,
+        totalRevenue: totalRevenueWithOrders,
         todayRevenue,
         yesterdayRevenue,
         weekRevenue,
@@ -463,7 +605,45 @@ export async function GET(request: NextRequest) {
         yearRevenue,
         previousRevenue: lastMonthRevenue,
         revenueGrowth: lastMonthRevenue > 0 ? Math.round(((monthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100) : 0,
-        averageTicket: confirmedReservations > 0 ? Math.round(totalRevenue / confirmedReservations) : 0,
+        averageTicket: confirmedReservations > 0 ? Math.round(totalRevenueWithOrders / confirmedReservations) : 0,
+        giftCardsRevenue,
+        ordersRevenue,
+        productsRevenue,
+        formationsRevenue,
+        reservationsRevenue: totalRevenue,
+        serviceRevenueDetail: Object.entries(serviceRevenueDetail).map(([name, revenue]) => ({
+          service: name,
+          revenue: Math.round(revenue * 100) / 100
+        })),
+        revenueBreakdown: {
+          prestations: totalRevenue,
+          cartesCadeaux: giftCardsRevenue,
+          produits: productsRevenue,
+          formations: formationsRevenue,
+          total: totalRevenueWithOrders
+        },
+        ordersStats: {
+          giftCards: {
+            paid: { count: giftCardsPaidCount, revenue: giftCardsRevenue },
+            pending: { count: giftCardsPendingCount, revenue: giftCardsPendingRevenue },
+            total: { count: giftCardsPaidCount + giftCardsPendingCount, revenue: giftCardsRevenue + giftCardsPendingRevenue }
+          },
+          products: {
+            paid: { count: productsPaidCount, revenue: productsRevenue },
+            pending: { count: productsPendingCount, revenue: productsPendingRevenue },
+            total: { count: productsPaidCount + productsPendingCount, revenue: productsRevenue + productsPendingRevenue }
+          },
+          formations: {
+            paid: { count: formationsPaidCount, revenue: formationsRevenue },
+            pending: { count: formationsPendingCount, revenue: formationsPendingRevenue },
+            total: { count: formationsPaidCount + formationsPendingCount, revenue: formationsRevenue + formationsPendingRevenue }
+          },
+          prestations: {
+            confirmed: { count: confirmedReservations, revenue: totalRevenue },
+            pending: { count: pendingReservations, revenue: 0 },
+            total: { count: confirmedReservations + pendingReservations, revenue: totalRevenue }
+          }
+        },
         appointments: {
           nextWeek: nextWeekReservations,
           occupancyRate,
@@ -476,6 +656,7 @@ export async function GET(request: NextRequest) {
           }))
         },
         products: productStats,
+        formations: formationStats,
         totalClients: 0,
         activeClients: 0,
         newClients: 0,

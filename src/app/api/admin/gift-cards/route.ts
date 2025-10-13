@@ -92,7 +92,8 @@ export async function POST(request: NextRequest) {
       recipientPhone,
       message,
       expiryDate,
-      notes
+      notes,
+      paymentMethod
     } = body;
 
     // Validation
@@ -155,7 +156,9 @@ export async function POST(request: NextRequest) {
         expiryDate: finalExpiryDate,
         notes,
         createdBy: decoded.userId,
-        status: 'active'
+        status: 'active',
+        paymentMethod: paymentMethod || 'CB',
+        paymentStatus: 'paid'
       },
       include: {
         purchaser: {

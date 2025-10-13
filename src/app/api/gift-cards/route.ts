@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
     const expiryDate = new Date();
     expiryDate.setFullYear(expiryDate.getFullYear() + 1);
 
-    // Créer la carte cadeau
+    // Créer la carte cadeau avec statut en attente de paiement
     const giftCard = await prisma.giftCard.create({
       data: {
         code,
@@ -80,6 +80,7 @@ export async function POST(request: NextRequest) {
         recipientPhone: senderPhone,
         message,
         status: 'active',
+        paymentStatus: 'pending', // En attente de paiement sur place
         expiryDate,
         notes: `Achetée par ${senderName} (${senderEmail}) pour ${recipientName}`
       }
@@ -137,7 +138,21 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // TODO: Envoyer email avec le code de la carte cadeau
+    // Envoyer email de confirmation d'achat avec instructions de paiement
+    try {
+      await fetch(`${request.nextUrl.origin}/api/gift-cards/send-purchase-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          giftCardId: giftCard.id,
+          senderEmail,
+          senderName
+        })
+      });
+    } catch (emailError) {
+      console.error('Erreur envoi email confirmation achat:', emailError);
+      // On continue même si l'email échoue
+    }
 
     return NextResponse.json({
       success: true,
