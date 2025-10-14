@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { formatDateLocal } from '@/lib/date-utils';
 import { ChevronLeft, ChevronRight, Clock, User, Euro, Calendar, Grid3x3, List, CalendarDays, Mail, Phone } from "lucide-react";
+import ReservationPaymentButton from './ReservationPaymentButton';
 // import { servicePricing, formatPriceDetails } from "@/lib/pricing";
 
 interface Reservation {
@@ -20,6 +21,7 @@ interface Reservation {
   status: string;
   notes?: string;
   paymentStatus?: string;
+  paymentMethod?: string;
 }
 
 interface AdminCalendarEnhancedProps {
@@ -386,6 +388,20 @@ export default function AdminCalendarEnhanced({ reservations, onDateSelect }: Ad
                             <div className="text-xs text-gray-700">{reservation.notes}</div>
                           </div>
                         )}
+
+                        <div className="mt-3 pt-3 border-t border-[#d4b5a0]/10">
+                          <ReservationPaymentButton
+                            reservationId={reservation.id}
+                            amount={reservation.totalPrice}
+                            serviceName={reservation.serviceName || reservation.services[0] || 'Prestation'}
+                            paymentStatus={reservation.paymentStatus || 'unpaid'}
+                            paymentMethod={reservation.paymentMethod}
+                            onPaymentInitiated={() => {
+                              // Rafraîchir les réservations après paiement
+                              window.location.reload();
+                            }}
+                          />
+                        </div>
                       </div>
                     );
                   })}
@@ -680,21 +696,21 @@ export default function AdminCalendarEnhanced({ reservations, onDateSelect }: Ad
                         </div>
                         
                         {/* Prix et actions */}
-                        <div className="text-right">
+                        <div className="text-right space-y-2">
                           <div className="text-2xl font-bold text-[#d4b5a0] mb-2">
                             {reservation.totalPrice}€
                           </div>
-                          {reservation.paymentStatus && (
-                            <span className={`text-xs px-2 py-1 rounded-full ${
-                              reservation.paymentStatus === 'paid' ? 'bg-green-100 text-green-600' :
-                              reservation.paymentStatus === 'partial' ? 'bg-orange-100 text-orange-600' :
-                              'bg-gray-100 text-gray-600'
-                            }`}>
-                              {reservation.paymentStatus === 'paid' ? '✓ Payé' :
-                               reservation.paymentStatus === 'partial' ? 'Partiel' :
-                               'Non payé'}
-                            </span>
-                          )}
+                          <ReservationPaymentButton
+                            reservationId={reservation.id}
+                            amount={reservation.totalPrice}
+                            serviceName={reservation.serviceName || reservation.services[0] || 'Prestation'}
+                            paymentStatus={reservation.paymentStatus || 'unpaid'}
+                            paymentMethod={reservation.paymentMethod}
+                            onPaymentInitiated={() => {
+                              // Rafraîchir les réservations après paiement
+                              window.location.reload();
+                            }}
+                          />
                         </div>
                       </div>
                     </div>

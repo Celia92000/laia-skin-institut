@@ -23,7 +23,7 @@ const PlanningCalendar = dynamic(() => import("@/components/PlanningCalendar"), 
 const PlanningCalendarDebug = dynamic(() => import("@/components/PlanningCalendarDebug"), { ssr: false });
 const AdminDisponibilitesTabSync = dynamic(() => import("@/components/AdminDisponibilitesTabSync"), { ssr: false });
 const InvoiceButton = dynamic(() => import("@/components/InvoiceGenerator").then(mod => ({ default: mod.InvoiceButton })), { ssr: false });
-const PaymentSectionEnhanced = dynamic(() => import("@/components/PaymentSectionEnhanced"), { ssr: false });
+const PaymentSectionEnhanced = dynamic(() => import("@/components/PaymentSectionSimplified"), { ssr: false });
 const WhatsAppHub = dynamic(() => import("@/components/WhatsAppHub"), { ssr: false });
 const AdminLoyaltyTab = dynamic(() => import("@/components/AdminLoyaltyTab"), { ssr: false });
 const AdminStatsEnhanced = dynamic(() => import("@/components/AdminStatsEnhanced"), { ssr: false });
@@ -40,7 +40,7 @@ const ObjectivesSettings = dynamic(() => import("@/components/ObjectivesSettings
 const ReservationTableAdvanced = dynamic(() => import("@/components/ReservationTableAdvanced"), { ssr: false });
 const QuickBlockManagerEnhanced = dynamic(() => import("@/components/QuickBlockManagerEnhanced"), { ssr: false });
 const QuickActionModal = dynamic(() => import("@/components/QuickActionModal"), { ssr: false });
-const ValidationPaymentModal = dynamic(() => import("@/components/ValidationPaymentModal"), { ssr: false });
+const ValidationPaymentModal = dynamic(() => import("@/components/ValidationPaymentModalOptimized"), { ssr: false });
 const AdminComptabiliteTab = dynamic(() => import("@/components/AdminComptabiliteTab"), { ssr: false });
 const AdvancedSearch = dynamic(() => import("@/components/AdvancedSearch"), { ssr: false });
 const FormationOrderSection = dynamic(() => import("@/components/FormationOrderSection"), { ssr: false });

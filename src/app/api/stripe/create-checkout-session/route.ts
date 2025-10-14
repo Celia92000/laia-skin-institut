@@ -62,6 +62,38 @@ export async function POST(request: Request) {
       metadata = {}
     } = validationResult.data;
 
+    // Si c'est pour une réservation, vérifier qu'elle existe et récupérer les infos
+    let reservation = null;
+    if (reservationId) {
+      reservation = await prisma.reservation.findUnique({
+        where: { id: reservationId },
+        include: {
+          user: true,
+          service: true
+        }
+      });
+
+      if (!reservation) {
+        return NextResponse.json({
+          error: 'Réservation non trouvée'
+        }, { status: 404 });
+      }
+
+      // Vérifier que l'utilisateur a le droit de payer cette réservation
+      if (reservation.userId !== decoded.userId && decoded.role !== 'ADMIN') {
+        return NextResponse.json({
+          error: 'Non autorisé à payer cette réservation'
+        }, { status: 403 });
+      }
+
+      // Vérifier que la réservation n'est pas déjà payée
+      if (reservation.paymentStatus === 'paid') {
+        return NextResponse.json({
+          error: 'Cette réservation est déjà payée'
+        }, { status: 400 });
+      }
+    }
+
     // Récupérer la configuration Stripe
     const stripeIntegration = await prisma.integration.findFirst({
       where: {
@@ -149,6 +181,18 @@ export async function POST(request: Request) {
         lastSync: new Date()
       }
     });
+
+    // Si c'est pour une réservation, mettre à jour avec l'ID de session Stripe
+    if (reservationId && reservation) {
+      await prisma.reservation.update({
+        where: { id: reservationId },
+        data: {
+          stripeSessionId: session.id,
+          paymentMethod: 'stripe',
+          paymentStatus: 'pending'
+        }
+      });
+    }
 
     return NextResponse.json({
       sessionId: session.id,

@@ -40,6 +40,7 @@ model User {
   leads          Lead[]
   discounts      Discount[]
   orders         Order[]
+  payments       Payment[]
   stockMovements StockMovement[]
   giftCards      GiftCard[]        @relation("GiftCardPurchaser")
 
@@ -64,9 +65,11 @@ model Reservation {
   paymentStatus   String    @default("unpaid")
   paymentDate     DateTime?
   paymentAmount   Float?
-  paymentMethod   String?
-  invoiceNumber   String?
-  paymentNotes    String?
+  paymentMethod      String?
+  stripePaymentId    String?   // ID du paiement Stripe (payment_intent_xxx)
+  stripeSessionId    String?   // ID de la session Stripe Checkout
+  invoiceNumber      String?
+  paymentNotes       String?
   reviewEmailSent    Boolean   @default(false)
   reviewWhatsAppSent Boolean   @default(false)
   reminderSent       Boolean   @default(false)
@@ -1021,5 +1024,46 @@ model ServiceSubcategory {
   @@index([slug])
   @@index([active])
   @@index([order])
+}
+
+// Historique des paiements (tous types confondus)
+model Payment {
+  id                  String   @id @default(cuid())
+  type                String   // "reservation", "order", "giftcard"
+  reservationId       String?
+  orderId             String?
+  giftCardId          String?
+  userId              String
+  amount              Float
+  currency            String   @default("eur")
+  status              String   // "pending", "succeeded", "failed", "refunded"
+  paymentMethod       String   // "stripe", "cash", "transfer", "check"
+
+  // Stripe specific
+  stripePaymentId     String?  @unique // payment_intent_xxx
+  stripeSessionId     String?  // checkout_session_xxx
+  stripeCustomerId    String?
+  stripeChargeId      String?
+  stripeFees          Float?   // Frais Stripe
+
+  // Métadonnées
+  description         String?
+  metadata            String?  // JSON pour infos supplémentaires
+  receiptUrl          String?  // URL du reçu Stripe
+  invoiceNumber       String?
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  // Relations
+  user                User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([reservationId])
+  @@index([orderId])
+  @@index([status])
+  @@index([paymentMethod])
+  @@index([stripePaymentId])
+  @@index([createdAt])
 }
 

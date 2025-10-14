@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeft, Save, Lock, Mail, User, Shield,
-  Eye, EyeOff, Check, X, AlertCircle, Settings as SettingsIcon, Globe, Plug
+  Eye, EyeOff, Check, X, AlertCircle, Settings as SettingsIcon, Globe, Plug, CreditCard
 } from 'lucide-react';
 import AdminConfigTab from '@/components/AdminConfigTab';
 import IntegrationsTab from '@/components/IntegrationsTab';
+import PaymentHistoryTab from '@/components/PaymentHistoryTab';
 
 export default function AdminSettings() {
   const router = useRouter();
@@ -17,7 +18,7 @@ export default function AdminSettings() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [activeTab, setActiveTab] = useState<'account' | 'site' | 'integrations'>('account');
+  const [activeTab, setActiveTab] = useState<'account' | 'site' | 'integrations' | 'payments'>('account');
   
   const [userInfo, setUserInfo] = useState({
     email: '',
@@ -159,6 +160,20 @@ export default function AdminSettings() {
             <Plug className="w-5 h-5" />
             Intégrations
             {activeTab === 'integrations' && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#d4b5a0]"></div>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab('payments')}
+            className={`flex items-center gap-2 pb-4 px-4 transition relative ${
+              activeTab === 'payments'
+                ? 'text-[#d4b5a0] font-medium'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <CreditCard className="w-5 h-5" />
+            Paiements
+            {activeTab === 'payments' && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#d4b5a0]"></div>
             )}
           </button>
@@ -354,11 +369,15 @@ export default function AdminSettings() {
         <div className="max-w-7xl mx-auto">
           <AdminConfigTab />
         </div>
-      ) : (
+      ) : activeTab === 'integrations' ? (
         <div className="max-w-7xl mx-auto">
           <IntegrationsTab />
         </div>
-      )}
+      ) : activeTab === 'payments' ? (
+        <div className="max-w-7xl mx-auto">
+          <PaymentHistoryTab />
+        </div>
+      ) : null}
     </div>
   );
 }
