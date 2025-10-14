@@ -1,7 +1,15 @@
 import { prisma } from '@/lib/prisma';
+import { cache } from '@/lib/cache';
 
 export async function getAdminStatistics() {
   try {
+    // Vérifier le cache (30 secondes pour les stats)
+    const cacheKey = 'admin:statistics';
+    const cachedStats = cache.get(cacheKey);
+    if (cachedStats) {
+      return cachedStats;
+    }
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
@@ -161,7 +169,10 @@ export async function getAdminStatistics() {
     }).reduce((sum, o) => sum + (o.totalAmount || 0), 0);
 
     stats.todayRevenue = todayReservationsRevenue + todayOrdersRevenue;
-    
+
+    // Mettre en cache pour 30 secondes
+    cache.set(cacheKey, stats, 30000);
+
     return stats;
   } catch (error) {
     console.error('Erreur lors du calcul des statistiques:', error);

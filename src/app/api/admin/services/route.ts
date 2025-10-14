@@ -29,6 +29,23 @@ export async function GET(request: NextRequest) {
 
     // Récupérer tous les services triés par ordre d'affichage
     const services = await prisma.service.findMany({
+      include: {
+        serviceCategory: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            color: true
+          }
+        },
+        serviceSubcategory: {
+          select: {
+            id: true,
+            name: true,
+            slug: true
+          }
+        }
+      },
       orderBy: { order: 'asc' }
     });
 

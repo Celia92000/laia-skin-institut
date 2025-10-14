@@ -91,6 +91,7 @@ export default function UnifiedCRMTab({
   const [leadStats, setLeadStats] = useState<LeadStats | null>(null);
   const [leadStatusFilter, setLeadStatusFilter] = useState('all');
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [newLeadsCount, setNewLeadsCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterLevel, setFilterLevel] = useState("all");
   const [clientTypeFilter, setClientTypeFilter] = useState<"all" | "client" | "lead" | "prospect">("all");
@@ -134,7 +135,6 @@ export default function UnifiedCRMTab({
   });
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedClientForDetail, setSelectedClientForDetail] = useState<Client | null>(null);
-  const [newLeadsCount, setNewLeadsCount] = useState(0);
   const [showLeadNotification, setShowLeadNotification] = useState(false);
 
   // Fonction pour déterminer le niveau de fidélité basé sur le nombre de séances
@@ -459,23 +459,47 @@ export default function UnifiedCRMTab({
     }
   }, [activeTab, leadStatusFilter]);
 
+  // Polling pour vérifier les nouveaux leads toutes les 30 secondes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (activeTab === 'clients') {
+        // Vérifier uniquement si on est sur l'onglet clients
+        fetchLeads();
+      }
+    }, 30000); // 30 secondes
+
+    return () => clearInterval(interval);
+  }, [activeTab]);
+
   const fetchLeads = async () => {
     try {
       const token = localStorage.getItem('token');
-      const url = leadStatusFilter === 'all' 
+      const url = leadStatusFilter === 'all'
         ? '/api/admin/leads'
         : `/api/admin/leads?status=${leadStatusFilter}`;
-        
+
       const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setLeads(data.leads);
         setLeadStats(data.stats);
+
+        // Vérifier les nouveaux leads
+        const storedLastChecked = localStorage.getItem('lastCheckedLeads');
+        const lastCheckedLeadIds = storedLastChecked ? JSON.parse(storedLastChecked) : [];
+
+        const newLeads = data.leads.filter((lead: Lead) =>
+          !lastCheckedLeadIds.includes(lead.id)
+        );
+
+        if (newLeads.length > 0 && activeTab !== 'leads') {
+          setNewLeadsCount(newLeads.length);
+        }
       }
     } catch (error) {
       console.error('Erreur lors de la récupération des leads:', error);
@@ -562,7 +586,14 @@ export default function UnifiedCRMTab({
           Clients ({clients.length})
         </button>
         <button
-          onClick={() => setActiveTab('leads')}
+          onClick={() => {
+            setActiveTab('leads');
+            // Marquer tous les leads comme vus
+            if (leads.length > 0) {
+              localStorage.setItem('lastCheckedLeads', JSON.stringify(leads.map(l => l.id)));
+              setNewLeadsCount(0);
+            }
+          }}
           className={`px-4 py-2 rounded-lg font-medium transition-colors relative ${
             activeTab === 'leads'
               ? 'bg-[#d4b5a0] text-white'
@@ -571,9 +602,9 @@ export default function UnifiedCRMTab({
         >
           <Target className="w-4 h-4 inline mr-2" />
           Leads
-          {leadStats && leadStats.new > 0 && (
-            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-              {leadStats.new}
+          {newLeadsCount > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
+              {newLeadsCount}
             </span>
           )}
         </button>

@@ -1,18 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrismaClient } from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
+import { cache } from '@/lib/cache';
 
 export async function GET(request: NextRequest) {
   const prisma = await getPrismaClient();
   try {
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
-    
+
     if (!token) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
     const decoded = verifyToken(token);
-    
+
     if (!decoded) {
       return NextResponse.json({ error: 'Token invalide' }, { status: 401 });
     }
@@ -25,6 +26,13 @@ export async function GET(request: NextRequest) {
 
     if (!user || (user.role !== 'admin' && user.role !== 'ADMIN' && user.role !== 'EMPLOYEE') && user.role !== 'ADMIN' && user.role !== 'EMPLOYEE') {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
+    }
+
+    // Vérifier le cache
+    const cacheKey = 'admin:clients';
+    const cachedClients = cache.get(cacheKey);
+    if (cachedClients) {
+      return NextResponse.json(cachedClients);
     }
 
     // Récupérer tous les clients avec leurs stats
@@ -107,6 +115,9 @@ export async function GET(request: NextRequest) {
               c.loyaltyProfile.totalSpent >= 200 ? 'SILVER' : 'BRONZE'
       } : null
     }));
+
+    // Mettre en cache pour 60 secondes
+    cache.set(cacheKey, formattedClients, 60000);
 
     return NextResponse.json(formattedClients);
   } catch (error) {

@@ -6,8 +6,8 @@ import WhatsAppCampaigns from './WhatsAppCampaigns';
 import WhatsAppAutomations from './WhatsAppAutomations';
 import WhatsAppReal from './WhatsAppReal';
 import WhatsAppHistory from './WhatsAppHistory';
-import WhatsAppSimple from './WhatsAppSimple';
 import WhatsAppAPISync from './WhatsAppAPISync';
+import WhatsAppSimple from './WhatsAppSimple';
 
 export default function WhatsAppHub() {
   const [activeSubTab, setActiveSubTab] = useState<'templates' | 'conversations' | 'campaigns' | 'automations' | 'history' | 'sync'>('conversations');

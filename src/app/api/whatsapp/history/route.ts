@@ -32,23 +32,23 @@ export async function GET(request: Request) {
       where,
       orderBy: {
         createdAt: 'desc'
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true
-          }
-        }
       }
     });
+
+    // Récupérer les infos des users si userId existe
+    const userIds = messages.map(m => m.userId).filter(Boolean) as string[];
+    const users = userIds.length > 0 ? await prisma.user.findMany({
+      where: { id: { in: userIds } },
+      select: { id: true, name: true, email: true, phone: true }
+    }) : [];
+
+    const usersMap = new Map(users.map(u => [u.id, u]));
 
     // Formater les messages avec les infos complètes du client
     const formattedMessages = messages.map(msg => {
       // Le numéro du client dépend de la direction du message
       const clientPhone = msg.direction === 'outgoing' ? msg.to : msg.from;
+      const user = msg.userId ? usersMap.get(msg.userId) : null;
 
       return {
         id: msg.id,
@@ -61,8 +61,8 @@ export async function GET(request: Request) {
         deliveredAt: msg.deliveredAt?.toISOString(),
         readAt: msg.readAt?.toISOString(),
         userId: msg.userId,
-        clientName: msg.user?.name || clientPhone,
-        clientEmail: msg.user?.email || '',
+        clientName: user?.name || clientPhone,
+        clientEmail: user?.email || '',
         clientPhone: clientPhone
       };
     });

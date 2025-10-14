@@ -3,6 +3,7 @@ import { getPrismaClient } from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
 import { getReservationWithServiceNamesFromDB } from '@/lib/service-utils-server';
 import { isSlotAvailable } from '@/lib/availability-service';
+import { cache } from '@/lib/cache';
 
 export async function POST(request: NextRequest) {
   try {
@@ -94,7 +95,16 @@ export async function POST(request: NextRequest) {
 
     // Recalculer le prix total basé sur les services de la base de données
     let calculatedPrice = 0;
-    const dbServices = await prisma.service.findMany();
+    const dbServices = await prisma.service.findMany({
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        price: true,
+        promoPrice: true,
+        forfaitPrice: true
+      }
+    });
     let primaryServiceId = null;
     
     for (const serviceId of services) {
@@ -131,7 +141,12 @@ export async function POST(request: NextRequest) {
     // Si une carte cadeau est utilisée, vérifier sa validité et mettre à jour son solde
     if (giftCardId && giftCardUsedAmount) {
       const giftCard = await prisma.giftCard.findUnique({
-        where: { id: giftCardId }
+        where: { id: giftCardId },
+        select: {
+          id: true,
+          status: true,
+          balance: true
+        }
       });
 
       if (!giftCard || giftCard.status !== 'active') {
@@ -241,6 +256,13 @@ export async function GET(request: NextRequest) {
 
     if (user && user.role !== 'admin' && user.role !== 'ADMIN' && user.role !== 'EMPLOYEE') {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
+    }
+
+    // Vérifier le cache
+    const cacheKey = 'admin:reservations';
+    const cachedReservations = cache.get(cacheKey);
+    if (cachedReservations) {
+      return NextResponse.json(cachedReservations);
     }
 
     // Récupérer toutes les réservations avec les infos clients et services
@@ -361,6 +383,9 @@ export async function GET(request: NextRequest) {
         formattedServices
       });
     }
+
+    // Mettre en cache pour 60 secondes
+    cache.set(cacheKey, formattedReservations, 60000);
 
     return NextResponse.json(formattedReservations);
   } catch (error) {

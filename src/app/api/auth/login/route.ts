@@ -1,9 +1,21 @@
 import { NextResponse } from 'next/server';
 import { getPrismaClient } from '@/lib/prisma';
 import { verifyPassword, generateToken } from '@/lib/auth';
+import { checkStrictRateLimit, getClientIp } from '@/lib/rateLimit';
 
 export async function POST(request: Request) {
   try {
+    // 🔒 Rate limiting : 5 tentatives de connexion max par minute
+    const ip = getClientIp(request);
+    const { success, limit, remaining } = await checkStrictRateLimit(`login:${ip}`);
+
+    if (!success) {
+      return NextResponse.json(
+        { error: `Trop de tentatives. Veuillez réessayer dans 1 minute. (${remaining}/${limit} restantes)` },
+        { status: 429 }
+      );
+    }
+
     const { email, password, rememberMe } = await request.json();
 
     // Utiliser getPrismaClient pour s'assurer que la connexion est active

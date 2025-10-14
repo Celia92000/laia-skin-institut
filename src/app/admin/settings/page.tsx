@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeft, Save, Lock, Mail, User, Shield,
-  Eye, EyeOff, Check, X, AlertCircle, Settings as SettingsIcon, Globe
+  Eye, EyeOff, Check, X, AlertCircle, Settings as SettingsIcon, Globe, Plug
 } from 'lucide-react';
 import AdminConfigTab from '@/components/AdminConfigTab';
+import IntegrationsTab from '@/components/IntegrationsTab';
 
 export default function AdminSettings() {
   const router = useRouter();
@@ -16,7 +17,7 @@ export default function AdminSettings() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [activeTab, setActiveTab] = useState<'account' | 'site'>('account');
+  const [activeTab, setActiveTab] = useState<'account' | 'site' | 'integrations'>('account');
   
   const [userInfo, setUserInfo] = useState({
     email: '',
@@ -147,12 +148,26 @@ export default function AdminSettings() {
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#d4b5a0]"></div>
             )}
           </button>
+          <button
+            onClick={() => setActiveTab('integrations')}
+            className={`flex items-center gap-2 pb-4 px-4 transition relative ${
+              activeTab === 'integrations'
+                ? 'text-[#d4b5a0] font-medium'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <Plug className="w-5 h-5" />
+            Intégrations
+            {activeTab === 'integrations' && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#d4b5a0]"></div>
+            )}
+          </button>
         </div>
       </div>
 
       {activeTab === 'account' ? (
         <div className="max-w-4xl mx-auto grid gap-6">
-        {/* Informations du compte */}
+          {/* Informations du compte */}
         <div className="bg-white rounded-2xl shadow-lg p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
@@ -334,10 +349,14 @@ export default function AdminSettings() {
             </div>
           </div>
         </div>
-      </div>
-      ) : (
+        </div>
+      ) : activeTab === 'site' ? (
         <div className="max-w-7xl mx-auto">
           <AdminConfigTab />
+        </div>
+      ) : (
+        <div className="max-w-7xl mx-auto">
+          <IntegrationsTab />
         </div>
       )}
     </div>

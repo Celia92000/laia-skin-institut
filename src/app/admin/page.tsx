@@ -2,47 +2,51 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { Calendar, Clock, CheckCircle, XCircle, Gift, User, Users, Award, TrendingUp, UserCheck, Settings, Euro, Edit2, Save, FileText, Heart, AlertCircle, CreditCard, Download, Receipt, LogOut, MapPin, Phone, Mail, Instagram, Globe, Grid3x3, List, Cake, CreditCard as CardIcon, Star, MessageCircle, Send, X, Target, BarChart3, Package, Search, Ban, GraduationCap, ShoppingBag } from "lucide-react";
 import AuthGuard from "@/components/AuthGuard";
-import AdminCalendarEnhanced from "@/components/AdminCalendarEnhanced";
-import AdminServicesTab from "@/components/AdminServicesTab";
-import AdminStockTab from "@/components/AdminStockTab";
-import AdminConfigTab from "@/components/AdminConfigTab";
-import AdminDashboardOptimized from "@/components/AdminDashboardOptimized";
-import UnifiedCRMTab, { type Client } from "@/components/UnifiedCRMTab";
-import PlanningCalendar from "@/components/PlanningCalendar";
-import PlanningCalendarDebug from "@/components/PlanningCalendarDebug";
-import AdminDisponibilitesTabSync from "@/components/AdminDisponibilitesTabSync";
-import { InvoiceButton } from "@/components/InvoiceGenerator";
-import PaymentSectionEnhanced from "@/components/PaymentSectionEnhanced";
-import WhatsAppHub from "@/components/WhatsAppHub";
-import AdminLoyaltyTab from "@/components/AdminLoyaltyTab";
-import AdminStatsEnhanced from "@/components/AdminStatsEnhanced";
-import EmployeeStatsView from "@/components/EmployeeStatsView";
-import AdminReviewsManager from "@/components/AdminReviewsManager";
-import ClientSegmentation from "@/components/ClientSegmentation";
-import EmailCompleteInterface from "@/components/EmailCompleteInterface";
-import SourceStats from "@/components/SourceStats";
-import RevenueManagement from "@/components/RevenueManagement";
-import RealTimeStats from "@/components/admin/RealTimeStats";
-import DynamicCharts from "@/components/admin/DynamicCharts";
-import DataExport from "@/components/admin/DataExport";
-import ObjectivesSettings from "@/components/ObjectivesSettings";
 import { formatDateLocal } from "@/lib/date-utils";
 import { checkAndCleanAuth, getAuthToken, clearAuthData } from '@/lib/auth-utils';
-import ReservationTableAdvanced from "@/components/ReservationTableAdvanced";
-import QuickBlockManagerEnhanced from "@/components/QuickBlockManagerEnhanced";
-import QuickActionModal from "@/components/QuickActionModal";
 import { logout } from "@/lib/auth-client";
 import { getCurrentPrice, calculateTotalPrice } from "@/lib/pricing";
-import ValidationPaymentModal from "@/components/ValidationPaymentModal";
 import { generateInvoiceNumber, calculateInvoiceTotals, formatInvoiceHTML, generateCSVExport, downloadFile } from '@/lib/invoice-generator';
-import AdminComptabiliteTab from "@/components/AdminComptabiliteTab";
-import AdvancedSearch from "@/components/AdvancedSearch";
-import FormationOrderSection from "@/components/FormationOrderSection";
-import AdminOrdersTab from "@/components/AdminOrdersTab";
-import SocialMediaCalendar from "@/components/admin/SocialMediaCalendar";
-import SocialMediaHub from "@/components/admin/SocialMediaHub";
+import type { Client } from "@/components/UnifiedCRMTab";
+
+// Lazy load des composants lourds uniquement quand nécessaire
+const AdminCalendarEnhanced = dynamic(() => import("@/components/AdminCalendarEnhanced"), { ssr: false });
+const AdminServicesTab = dynamic(() => import("@/components/AdminServicesTab"), { ssr: false });
+const AdminStockTab = dynamic(() => import("@/components/AdminStockTab"), { ssr: false });
+const AdminConfigTab = dynamic(() => import("@/components/AdminConfigTab"), { ssr: false });
+const AdminDashboardOptimized = dynamic(() => import("@/components/AdminDashboardOptimized"), { ssr: false });
+const UnifiedCRMTab = dynamic(() => import("@/components/UnifiedCRMTab"), { ssr: false });
+const PlanningCalendar = dynamic(() => import("@/components/PlanningCalendar"), { ssr: false });
+const PlanningCalendarDebug = dynamic(() => import("@/components/PlanningCalendarDebug"), { ssr: false });
+const AdminDisponibilitesTabSync = dynamic(() => import("@/components/AdminDisponibilitesTabSync"), { ssr: false });
+const InvoiceButton = dynamic(() => import("@/components/InvoiceGenerator").then(mod => ({ default: mod.InvoiceButton })), { ssr: false });
+const PaymentSectionEnhanced = dynamic(() => import("@/components/PaymentSectionEnhanced"), { ssr: false });
+const WhatsAppHub = dynamic(() => import("@/components/WhatsAppHub"), { ssr: false });
+const AdminLoyaltyTab = dynamic(() => import("@/components/AdminLoyaltyTab"), { ssr: false });
+const AdminStatsEnhanced = dynamic(() => import("@/components/AdminStatsEnhanced"), { ssr: false });
+const EmployeeStatsView = dynamic(() => import("@/components/EmployeeStatsView"), { ssr: false });
+const AdminReviewsManager = dynamic(() => import("@/components/AdminReviewsManager"), { ssr: false });
+const ClientSegmentation = dynamic(() => import("@/components/ClientSegmentation"), { ssr: false });
+const EmailCompleteInterface = dynamic(() => import("@/components/EmailCompleteInterface"), { ssr: false });
+const SourceStats = dynamic(() => import("@/components/SourceStats"), { ssr: false });
+const RevenueManagement = dynamic(() => import("@/components/RevenueManagement"), { ssr: false });
+const RealTimeStats = dynamic(() => import("@/components/admin/RealTimeStats"), { ssr: false });
+const DynamicCharts = dynamic(() => import("@/components/admin/DynamicCharts"), { ssr: false });
+const DataExport = dynamic(() => import("@/components/admin/DataExport"), { ssr: false });
+const ObjectivesSettings = dynamic(() => import("@/components/ObjectivesSettings"), { ssr: false });
+const ReservationTableAdvanced = dynamic(() => import("@/components/ReservationTableAdvanced"), { ssr: false });
+const QuickBlockManagerEnhanced = dynamic(() => import("@/components/QuickBlockManagerEnhanced"), { ssr: false });
+const QuickActionModal = dynamic(() => import("@/components/QuickActionModal"), { ssr: false });
+const ValidationPaymentModal = dynamic(() => import("@/components/ValidationPaymentModal"), { ssr: false });
+const AdminComptabiliteTab = dynamic(() => import("@/components/AdminComptabiliteTab"), { ssr: false });
+const AdvancedSearch = dynamic(() => import("@/components/AdvancedSearch"), { ssr: false });
+const FormationOrderSection = dynamic(() => import("@/components/FormationOrderSection"), { ssr: false });
+const AdminOrdersTab = dynamic(() => import("@/components/AdminOrdersTab"), { ssr: false });
+const SocialMediaCalendar = dynamic(() => import("@/components/admin/SocialMediaCalendar"), { ssr: false });
+const SocialMediaHub = dynamic(() => import("@/components/admin/SocialMediaHub"), { ssr: false });
 
 interface Reservation {
   id: string;
@@ -1207,7 +1211,7 @@ export default function AdminDashboard() {
             }`}
           >
             <span className="relative group">
-              Fidélité / Cartes Cadeaux
+              Fidélité
               {(() => {
                 const clientsWithRewards = clients.filter(client => {
                   const clientReservations = reservations.filter(r => 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Mail, Send, Search, Inbox, Users, Filter, CheckSquare, Calendar, Euro, Tag, Star, Globe, ChevronRight, Eye, X, Bold, Italic, Underline, List, ListOrdered, Link2, Image, Type, Palette, AlignLeft, AlignCenter, AlignRight, Strikethrough, AlignJustify, Paintbrush, FileText, BarChart3 } from 'lucide-react';
+import { Mail, Send, Search, Inbox, Users, Filter, CheckSquare, Calendar, Euro, Tag, Star, Globe, ChevronRight, Eye, X, Bold, Italic, Underline, List, ListOrdered, Link2, Image, Type, Palette, AlignLeft, AlignCenter, AlignRight, Strikethrough, AlignJustify, Paintbrush, FileText, BarChart3, History } from 'lucide-react';
 import EmailConversationTab from './EmailConversationTab';
 
 interface Client {
@@ -35,7 +35,8 @@ import EmailTemplateManager from './EmailTemplateManager';
 import EmailCampaignHistory from './EmailCampaignHistory';
 
 export default function EmailCompleteInterface() {
-  const [activeTab, setActiveTab] = useState<'conversations' | 'campaigns' | 'automations' | 'settings' | 'templates' | 'history'>('conversations');
+  const [activeTab, setActiveTab] = useState<'conversations' | 'campaigns' | 'automations' | 'settings' | 'templates'>('conversations');
+  const [campaignSubTab, setCampaignSubTab] = useState<'create' | 'history'>('create');
   const [clients, setClients] = useState<Client[]>([]);
   const [filteredClients, setFilteredClients] = useState<Client[]>([]);
   const [selectedClients, setSelectedClients] = useState<string[]>([]);
@@ -455,73 +456,67 @@ export default function EmailCompleteInterface() {
   return (
     <div className="h-full flex flex-col">
       {/* Tabs */}
-      <div className="bg-white border-b">
-        <div className="flex space-x-1 p-1">
+      <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
           <button
             onClick={() => setActiveTab('conversations')}
-            className={`flex-1 flex items-center justify-center px-4 py-2 rounded-lg transition-colors ${
-              activeTab === 'conversations' 
-                ? 'bg-purple-100 text-purple-700 font-medium' 
-                : 'text-gray-600 hover:bg-gray-100'
+            className={`px-3 md:px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
+              activeTab === 'conversations'
+                ? 'bg-purple-500 text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            <Inbox className="h-4 w-4 mr-2" />
-            Conversations
+            <Inbox className="w-4 h-4" />
+            <span className="hidden sm:inline">Conversations</span>
+            <span className="sm:hidden">💬</span>
           </button>
           <button
             onClick={() => setActiveTab('campaigns')}
-            className={`flex-1 flex items-center justify-center px-4 py-2 rounded-lg transition-colors ${
-              activeTab === 'campaigns' 
-                ? 'bg-purple-100 text-purple-700 font-medium' 
-                : 'text-gray-600 hover:bg-gray-100'
+            className={`px-3 md:px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
+              activeTab === 'campaigns'
+                ? 'bg-purple-500 text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            <Users className="h-4 w-4 mr-2" />
-            Campagnes
+            <Users className="w-4 h-4" />
+            <span className="hidden sm:inline">Campagnes</span>
+            <span className="sm:hidden">📤</span>
           </button>
           <button
             onClick={() => setActiveTab('automations')}
-            className={`flex-1 flex items-center justify-center px-4 py-2 rounded-lg transition-colors ${
-              activeTab === 'automations' 
-                ? 'bg-purple-100 text-purple-700 font-medium' 
-                : 'text-gray-600 hover:bg-gray-100'
+            className={`px-3 md:px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
+              activeTab === 'automations'
+                ? 'bg-purple-500 text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            <Calendar className="h-4 w-4 mr-2" />
-            Automatisations
-          </button>
-          <button
-            onClick={() => setActiveTab('settings')}
-            className={`flex items-center justify-center px-4 py-2 rounded-lg transition-colors ${
-              activeTab === 'settings'
-                ? 'bg-purple-100 text-purple-700 font-medium'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            <Mail className="h-4 w-4 mr-2" />
-            Synchronisation
+            <Calendar className="w-4 h-4" />
+            <span className="hidden sm:inline">Automatisations</span>
+            <span className="sm:hidden">⚡</span>
           </button>
           <button
             onClick={() => setActiveTab('templates')}
-            className={`flex items-center justify-center px-4 py-2 rounded-lg transition-colors ${
+            className={`px-3 md:px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
               activeTab === 'templates'
-                ? 'bg-purple-100 text-purple-700 font-medium'
-                : 'text-gray-600 hover:bg-gray-100'
+                ? 'bg-purple-500 text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            <FileText className="h-4 w-4 mr-2" />
-            Templates
+            <FileText className="w-4 h-4" />
+            <span className="hidden sm:inline">Templates</span>
+            <span className="sm:hidden">📄</span>
           </button>
           <button
-            onClick={() => setActiveTab('history')}
-            className={`flex items-center justify-center px-4 py-2 rounded-lg transition-colors ${
-              activeTab === 'history'
-                ? 'bg-purple-100 text-purple-700 font-medium'
-                : 'text-gray-600 hover:bg-gray-100'
+            onClick={() => setActiveTab('settings')}
+            className={`px-3 md:px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
+              activeTab === 'settings'
+                ? 'bg-purple-500 text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            <BarChart3 className="h-4 w-4 mr-2" />
-            Historique & Rapports
+            <Mail className="w-4 h-4" />
+            <span className="hidden sm:inline">Synchronisation</span>
+            <span className="sm:hidden">🔑</span>
           </button>
         </div>
       </div>
@@ -538,10 +533,44 @@ export default function EmailCompleteInterface() {
           <div className="p-6">
             <EmailTemplateManager />
           </div>
-        ) : activeTab === 'history' ? (
-          <EmailCampaignHistory />
-        ) : (
-          <div className="h-full flex">
+        ) : activeTab === 'campaigns' ? (
+          <div className="h-full flex flex-col">
+            {/* Sous-onglets Campagnes */}
+            <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                <button
+                  onClick={() => setCampaignSubTab('create')}
+                  className={`px-3 md:px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
+                    campaignSubTab === 'create'
+                      ? 'bg-purple-500 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <Send className="w-4 h-4" />
+                  <span className="hidden sm:inline">Créer une campagne</span>
+                  <span className="sm:hidden">✉️</span>
+                </button>
+                <button
+                  onClick={() => setCampaignSubTab('history')}
+                  className={`px-3 md:px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
+                    campaignSubTab === 'history'
+                      ? 'bg-purple-500 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <History className="w-4 h-4" />
+                  <span className="hidden sm:inline">Historique & Rapports</span>
+                  <span className="sm:hidden">📊</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Contenu sous-onglets */}
+            <div className="flex-1 overflow-hidden">
+              {campaignSubTab === 'history' ? (
+                <EmailCampaignHistory />
+              ) : (
+                <div className="h-full flex">
             {/* Sidebar - Sélection des clients */}
             <div className="w-1/3 border-r bg-gray-50 flex flex-col">
               {/* Filtres */}
@@ -1085,7 +1114,10 @@ export default function EmailCompleteInterface() {
               </div>
             </div>
           </div>
-        )}
+              )}
+            </div>
+          </div>
+        ) : null}
       </div>
 
       {/* Modal aperçu */}

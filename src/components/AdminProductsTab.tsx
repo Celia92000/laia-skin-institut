@@ -613,22 +613,39 @@ export default function AdminProductsTab() {
 
             <div className="p-6">
               {/* Onglets */}
-              <div className="flex gap-2 mb-6 border-b">
-                {(['general', 'media', 'details'] as const).map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`px-4 py-2 font-medium transition-colors ${
-                      activeTab === tab
-                        ? 'text-purple-600 border-b-2 border-purple-600'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    {tab === 'general' && 'Général'}
-                    {tab === 'media' && 'Médias'}
-                    {tab === 'details' && 'Détails'}
-                  </button>
-                ))}
+              <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                  {(['general', 'media', 'details'] as const).map((tab) => (
+                    <button
+                      key={tab}
+                      onClick={() => setActiveTab(tab)}
+                      className={`px-3 md:px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
+                        activeTab === tab
+                          ? 'bg-purple-500 text-white shadow-md'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {tab === 'general' && (
+                        <>
+                          <span className="hidden sm:inline">📋 Général</span>
+                          <span className="sm:hidden">📋</span>
+                        </>
+                      )}
+                      {tab === 'media' && (
+                        <>
+                          <span className="hidden sm:inline">📸 Médias</span>
+                          <span className="sm:hidden">📸</span>
+                        </>
+                      )}
+                      {tab === 'details' && (
+                        <>
+                          <span className="hidden sm:inline">📝 Détails</span>
+                          <span className="sm:hidden">📝</span>
+                        </>
+                      )}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Contenu des onglets */}

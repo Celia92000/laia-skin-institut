@@ -509,20 +509,21 @@ export default function AdminOrdersTab() {
       </div>
 
       {/* Onglets */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div className="flex border-b border-gray-200 overflow-x-auto">
+      <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
           <button
             onClick={() => setActiveTab('pending-cards')}
-            className={`px-6 py-4 font-medium transition-colors border-b-2 flex items-center gap-2 whitespace-nowrap ${
+            className={`px-3 md:px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
               activeTab === 'pending-cards'
-                ? 'border-orange-500 text-orange-600 bg-orange-50'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'bg-orange-500 text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            <Gift className="w-5 h-5" />
-            Cartes en attente
+            <Gift className="w-4 h-4" />
+            <span className="hidden sm:inline">Cartes en attente</span>
+            <span className="sm:hidden">🎁</span>
             {pendingCardsCount > 0 && (
-              <span className="bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+              <span className="bg-white text-orange-600 text-xs font-bold px-2 py-1 rounded-full">
                 {pendingCardsCount}
               </span>
             )}
@@ -530,16 +531,17 @@ export default function AdminOrdersTab() {
 
           <button
             onClick={() => setActiveTab('pending-orders')}
-            className={`px-6 py-4 font-medium transition-colors border-b-2 flex items-center gap-2 whitespace-nowrap ${
+            className={`px-3 md:px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
               activeTab === 'pending-orders'
-                ? 'border-purple-500 text-purple-600 bg-purple-50'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'bg-purple-500 text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            <Clock className="w-5 h-5" />
-            Commandes en attente
+            <Clock className="w-4 h-4" />
+            <span className="hidden sm:inline">Commandes en attente</span>
+            <span className="sm:hidden">⏰</span>
             {pendingOrdersCount > 0 && (
-              <span className="bg-purple-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+              <span className="bg-white text-purple-600 text-xs font-bold px-2 py-1 rounded-full">
                 {pendingOrdersCount}
               </span>
             )}
@@ -547,30 +549,34 @@ export default function AdminOrdersTab() {
 
           <button
             onClick={() => setActiveTab('all-cards')}
-            className={`px-6 py-4 font-medium transition-colors border-b-2 flex items-center gap-2 whitespace-nowrap ${
+            className={`px-3 md:px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
               activeTab === 'all-cards'
-                ? 'border-pink-500 text-pink-600 bg-pink-50'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'bg-pink-500 text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            <Gift className="w-5 h-5" />
-            Toutes les cartes
-            <span className="text-xs text-gray-500">({giftCards.length})</span>
+            <Gift className="w-4 h-4" />
+            <span className="hidden sm:inline">Toutes les cartes</span>
+            <span className="sm:hidden">💳</span>
+            <span className="text-xs opacity-75">({giftCards.length})</span>
           </button>
 
           <button
             onClick={() => setActiveTab('settings')}
-            className={`px-6 py-4 font-medium transition-colors border-b-2 flex items-center gap-2 whitespace-nowrap ${
+            className={`px-3 md:px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
               activeTab === 'settings'
-                ? 'border-gray-500 text-gray-600 bg-gray-50'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'bg-gray-500 text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            <Settings className="w-5 h-5" />
-            Paramètres
+            <Settings className="w-4 h-4" />
+            <span className="hidden sm:inline">Paramètres</span>
+            <span className="sm:hidden">⚙️</span>
           </button>
         </div>
+      </div>
 
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
         <div className="p-6">
           {activeTab === 'settings' ? (
             // Onglet Paramètres

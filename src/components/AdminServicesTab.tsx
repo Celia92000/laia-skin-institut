@@ -11,6 +11,7 @@ import AdminBlogTab from "./AdminBlogTab";
 import AdminProductsTab from "./AdminProductsTab";
 import AdminFormationsTab from "./AdminFormationsTab";
 import ServiceStockLinkManager from "./ServiceStockLinkManager";
+import AdminCategoriesManager from "./AdminCategoriesManager";
 
 interface Service {
   id: string;
@@ -39,6 +40,8 @@ interface Service {
   videoUrl?: string;
   canBeOption: boolean;
   category?: string;
+  categoryId?: string;
+  subcategoryId?: string;
   order: number;
   active: boolean;
   featured: boolean;
@@ -52,7 +55,7 @@ export default function AdminServicesTab() {
   const [activeTab, setActiveTab] = useState<'general' | 'seo' | 'media' | 'details' | 'stock'>('general');
   const [expandedServices, setExpandedServices] = useState<Set<string>>(new Set());
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
-  const [mainTab, setMainTab] = useState<'services' | 'products' | 'formations' | 'blog'>('services');
+  const [mainTab, setMainTab] = useState<'services' | 'categories' | 'products' | 'formations' | 'blog'>('services');
   const [productsCount, setProductsCount] = useState(0);
   const [formationsCount, setFormationsCount] = useState(0);
   const [servicesCount, setServicesCount] = useState(0);
@@ -226,6 +229,42 @@ export default function AdminServicesTab() {
       y: formData.imagePositionY ?? 50
     });
 
+    // États pour les catégories et sous-catégories
+    const [categories, setCategories] = useState<any[]>([]);
+    const [subcategories, setSubcategories] = useState<any[]>([]);
+
+    // Charger les catégories au montage du composant
+    useEffect(() => {
+      const fetchCategories = async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const response = await fetch('/api/admin/categories', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (response.ok) {
+            const data = await response.json();
+            setCategories(data.filter((c: any) => c.active));
+          }
+        } catch (error) {
+          console.error('Erreur lors du chargement des catégories:', error);
+        }
+      };
+      fetchCategories();
+    }, []);
+
+    // Charger les sous-catégories quand une catégorie est sélectionnée
+    useEffect(() => {
+      if (formData.categoryId) {
+        const selectedCategory = categories.find(c => c.id === formData.categoryId);
+        if (selectedCategory?.subcategories) {
+          setSubcategories(selectedCategory.subcategories.filter((s: any) => s.active));
+        }
+      } else {
+        setSubcategories([]);
+        setFormData({ ...formData, subcategoryId: undefined });
+      }
+    }, [formData.categoryId, categories]);
+
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       
@@ -284,30 +323,53 @@ export default function AdminServicesTab() {
 
           <form onSubmit={handleSubmit} className="p-6 max-h-[calc(100vh-200px)] overflow-y-auto">
             {/* Tabs */}
-            <div className="flex gap-2 mb-6 border-b border-[#d4b5a0]/20 overflow-x-auto">
-              {(['general', 'seo', 'media', 'details', 'stock'] as const).map(tab => (
-                <button
-                  key={tab}
-                  type="button"
-                  onClick={() => setActiveTab(tab)}
-                  className={`px-4 py-2 font-medium transition-all whitespace-nowrap ${
-                    activeTab === tab
-                      ? 'text-[#d4b5a0] border-b-2 border-[#d4b5a0]'
-                      : 'text-[#2c3e50]/60 hover:text-[#2c3e50]'
-                  }`}
-                >
-                  {tab === 'general' && '📋 Général'}
-                  {tab === 'seo' && '🔍 SEO'}
-                  {tab === 'media' && (
-                    <span className="flex items-center gap-1">
-                      📸 Médias
-                      <span className="text-xs bg-red-500 text-white px-1.5 py-0.5 rounded-full">Images</span>
-                    </span>
-                  )}
-                  {tab === 'details' && '📝 Détails'}
-                  {tab === 'stock' && '📦 Consommables'}
-                </button>
-              ))}
+            <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                {(['general', 'seo', 'media', 'details', 'stock'] as const).map(tab => (
+                  <button
+                    key={tab}
+                    type="button"
+                    onClick={() => setActiveTab(tab)}
+                    className={`px-3 md:px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
+                      activeTab === tab
+                        ? 'bg-[#d4b5a0] text-white shadow-md'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {tab === 'general' && (
+                      <>
+                        <span className="hidden sm:inline">📋 Général</span>
+                        <span className="sm:hidden">📋</span>
+                      </>
+                    )}
+                    {tab === 'seo' && (
+                      <>
+                        <span className="hidden sm:inline">🔍 SEO</span>
+                        <span className="sm:hidden">🔍</span>
+                      </>
+                    )}
+                    {tab === 'media' && (
+                      <span className="flex items-center gap-1">
+                        <span className="hidden sm:inline">📸 Médias</span>
+                        <span className="sm:hidden">📸</span>
+                        <span className="text-xs bg-red-500 text-white px-1.5 py-0.5 rounded-full">Images</span>
+                      </span>
+                    )}
+                    {tab === 'details' && (
+                      <>
+                        <span className="hidden sm:inline">📝 Détails</span>
+                        <span className="sm:hidden">📝</span>
+                      </>
+                    )}
+                    {tab === 'stock' && (
+                      <>
+                        <span className="hidden sm:inline">📦 Consommables</span>
+                        <span className="sm:hidden">📦</span>
+                      </>
+                    )}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* General Tab */}
@@ -467,18 +529,55 @@ export default function AdminServicesTab() {
                       Catégorie
                     </label>
                     <select
-                      value={formData.category || ''}
-                      onChange={(e) => setFormData({...formData, category: e.target.value})}
+                      value={formData.categoryId || ''}
+                      onChange={(e) => {
+                        setFormData({
+                          ...formData,
+                          categoryId: e.target.value || undefined,
+                          subcategoryId: undefined // Réinitialiser la sous-catégorie
+                        });
+                      }}
                       className="w-full px-4 py-2 border border-[#d4b5a0]/20 rounded-lg focus:ring-2 focus:ring-[#d4b5a0] focus:border-transparent"
                     >
-                      <option value="">Sélectionner</option>
-                      <option value="signature">Signature</option>
-                      <option value="hydro">Hydro</option>
-                      <option value="antiage">Anti-âge</option>
-                      <option value="beauty">Beauté</option>
-                      <option value="technology">Technologie</option>
+                      <option value="">-- Sélectionner une catégorie --</option>
+                      {categories.map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </option>
+                      ))}
                     </select>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {categories.length === 0
+                        ? "Aucune catégorie disponible. Créez-en une dans l'onglet Catégories."
+                        : "Sélectionnez la catégorie principale du service"}
+                    </p>
                   </div>
+
+                  {formData.categoryId && subcategories.length > 0 && (
+                    <div>
+                      <label className="block text-sm font-medium text-[#2c3e50] mb-2">
+                        Sous-catégorie (optionnel)
+                      </label>
+                      <select
+                        value={formData.subcategoryId || ''}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          subcategoryId: e.target.value || undefined
+                        })}
+                        className="w-full px-4 py-2 border border-[#d4b5a0]/20 rounded-lg focus:ring-2 focus:ring-[#d4b5a0] focus:border-transparent"
+                      >
+                        <option value="">-- Aucune sous-catégorie --</option>
+                        {subcategories.map((subcat) => (
+                          <option key={subcat.id} value={subcat.id}>
+                            {subcat.name}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Affinez la catégorisation du service
+                      </p>
+                    </div>
+                  )}
                   
                   <div>
                     <label className="block text-sm font-medium text-[#2c3e50] mb-2">
@@ -1159,56 +1258,75 @@ export default function AdminServicesTab() {
   return (
     <div>
       {/* Main Tabs */}
-      <div className="flex gap-4 mb-6 border-b border-[#d4b5a0]/20 overflow-x-auto">
-        <button
-          onClick={() => setMainTab('services')}
-          className={`px-4 py-3 font-medium transition-all flex items-center gap-2 whitespace-nowrap ${
-            mainTab === 'services'
-              ? 'text-[#d4b5a0] border-b-2 border-[#d4b5a0]'
-              : 'text-[#2c3e50]/60 hover:text-[#2c3e50]'
-          }`}
-        >
-          <FileText className="w-5 h-5" />
-          Prestations
-          {servicesCount > 0 && <span className="ml-1 text-xs">({servicesCount})</span>}
-        </button>
+      <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+          <button
+            onClick={() => setMainTab('services')}
+            className={`px-3 md:px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
+              mainTab === 'services'
+                ? 'bg-[#d4b5a0] text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            <FileText className="w-4 h-4" />
+            <span className="hidden sm:inline">Prestations</span>
+            <span className="sm:hidden">💆</span>
+            {servicesCount > 0 && <span className="text-xs opacity-75">({servicesCount})</span>}
+          </button>
 
-        <button
-          onClick={() => setMainTab('products')}
-          className={`px-4 py-3 font-medium transition-all flex items-center gap-2 whitespace-nowrap ${
-            mainTab === 'products'
-              ? 'text-[#d4b5a0] border-b-2 border-[#d4b5a0]'
-              : 'text-[#2c3e50]/60 hover:text-[#2c3e50]'
-          }`}
-        >
-          <Tag className="w-5 h-5" />
-          Produits
-          {productsCount > 0 && <span className="ml-1 text-xs">({productsCount})</span>}
-        </button>
+          <button
+            onClick={() => setMainTab('categories')}
+            className={`px-3 md:px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
+              mainTab === 'categories'
+                ? 'bg-[#d4b5a0] text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            <Tag className="w-4 h-4" />
+            <span className="hidden sm:inline">Catégories</span>
+            <span className="sm:hidden">🏷️</span>
+          </button>
 
-        <button
-          onClick={() => setMainTab('formations')}
-          className={`px-4 py-3 font-medium transition-all flex items-center gap-2 whitespace-nowrap ${
-            mainTab === 'formations'
-              ? 'text-[#d4b5a0] border-b-2 border-[#d4b5a0]'
-              : 'text-[#2c3e50]/60 hover:text-[#2c3e50]'
-          }`}
-        >
-          <Star className="w-5 h-5" />
-          Formations
-          {formationsCount > 0 && <span className="ml-1 text-xs">({formationsCount})</span>}
-        </button>
-        <button
-          onClick={() => setMainTab('blog')}
-          className={`px-4 py-3 font-medium transition-all flex items-center gap-2 whitespace-nowrap ${
-            mainTab === 'blog'
-              ? 'text-[#d4b5a0] border-b-2 border-[#d4b5a0]'
-              : 'text-[#2c3e50]/60 hover:text-[#2c3e50]'
-          }`}
-        >
-          <BookOpen className="w-5 h-5" />
-          Articles Blog
-        </button>
+          <button
+            onClick={() => setMainTab('products')}
+            className={`px-3 md:px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
+              mainTab === 'products'
+                ? 'bg-[#d4b5a0] text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            <Tag className="w-4 h-4" />
+            <span className="hidden sm:inline">Produits</span>
+            <span className="sm:hidden">🏷️</span>
+            {productsCount > 0 && <span className="text-xs opacity-75">({productsCount})</span>}
+          </button>
+
+          <button
+            onClick={() => setMainTab('formations')}
+            className={`px-3 md:px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
+              mainTab === 'formations'
+                ? 'bg-[#d4b5a0] text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            <Star className="w-4 h-4" />
+            <span className="hidden sm:inline">Formations</span>
+            <span className="sm:hidden">⭐</span>
+            {formationsCount > 0 && <span className="text-xs opacity-75">({formationsCount})</span>}
+          </button>
+          <button
+            onClick={() => setMainTab('blog')}
+            className={`px-3 md:px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
+              mainTab === 'blog'
+                ? 'bg-[#d4b5a0] text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            <BookOpen className="w-4 h-4" />
+            <span className="hidden sm:inline">Articles Blog</span>
+            <span className="sm:hidden">📝</span>
+          </button>
+        </div>
       </div>
 
       {/* Services Tab Content */}
@@ -1464,6 +1582,9 @@ export default function AdminServicesTab() {
             <ServiceForm service={editingService} onClose={() => setEditingService(null)} />
           )}
         </>
+      ) : mainTab === 'categories' ? (
+        /* Categories Tab Content */
+        <AdminCategoriesManager />
       ) : mainTab === 'products' ? (
         /* Products Tab Content */
         <AdminProductsTab />

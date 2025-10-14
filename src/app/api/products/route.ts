@@ -1,10 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrismaClient } from '@/lib/prisma';
+import { cache } from '@/lib/cache';
 
 // API publique pour vérifier s'il y a des produits actifs
 export async function GET(request: NextRequest) {
-  const prisma = await getPrismaClient();
   try {
+    const cacheKey = 'products:active';
+
+    // Vérifier le cache
+    const cachedData = cache.get(cacheKey);
+    if (cachedData) {
+      return NextResponse.json(cachedData);
+    }
+
+    const prisma = await getPrismaClient();
     const products = await prisma.product.findMany({
       where: { active: true },
       select: {
@@ -13,6 +22,9 @@ export async function GET(request: NextRequest) {
         name: true
       }
     });
+
+    // Mettre en cache pour 2 minutes
+    cache.set(cacheKey, products, 120000);
 
     return NextResponse.json(products);
   } catch (error) {

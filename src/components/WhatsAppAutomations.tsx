@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
+import {
   Zap, Plus, Settings, Play, Pause, Trash2, Edit2,
   Clock, Calendar, User, Gift, MessageCircle,
   TrendingUp, Award, Bell, Mail, Phone, Star,
@@ -9,8 +9,9 @@ import {
   Save, Copy, ArrowRight, Target, Sparkles,
   Heart, ShoppingBag, UserPlus, UserCheck,
   CalendarCheck, Timer, RefreshCw, Activity,
-  Search, SortDesc
+  Search, SortDesc, GitBranch
 } from 'lucide-react';
+import WorkflowBuilder from './WorkflowBuilder';
 
 interface Automation {
   id: string;
@@ -59,7 +60,7 @@ export default function WhatsAppAutomations() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingAutomation, setEditingAutomation] = useState<Automation | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<AutomationTemplate | null>(null);
-  const [activeTab, setActiveTab] = useState<'active' | 'templates' | 'analytics'>('active');
+  const [activeTab, setActiveTab] = useState<'active' | 'templates' | 'analytics' | 'workflows'>('active');
   const [showSentMessages, setShowSentMessages] = useState(false);
   
   // États pour les filtres
@@ -549,37 +550,57 @@ export default function WhatsAppAutomations() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6">
-        <button
-          onClick={() => setActiveTab('active')}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-            activeTab === 'active'
-              ? 'bg-green-500 text-white'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          Automatisations actives
-        </button>
-        <button
-          onClick={() => setActiveTab('templates')}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-            activeTab === 'templates'
-              ? 'bg-green-500 text-white'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          Templates
-        </button>
-        <button
-          onClick={() => setActiveTab('analytics')}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-            activeTab === 'analytics'
-              ? 'bg-green-500 text-white'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          Analytics
-        </button>
+      <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+          <button
+            onClick={() => setActiveTab('active')}
+            className={`px-3 md:px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
+              activeTab === 'active'
+                ? 'bg-green-500 text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            <Activity className="w-4 h-4" />
+            <span className="hidden sm:inline">Automatisations actives</span>
+            <span className="sm:hidden">⚡</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('workflows')}
+            className={`px-3 md:px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
+              activeTab === 'workflows'
+                ? 'bg-purple-500 text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            <GitBranch className="w-4 h-4" />
+            <span className="hidden sm:inline">Workflows Intelligents</span>
+            <span className="sm:hidden">🔀</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('templates')}
+            className={`px-3 md:px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
+              activeTab === 'templates'
+                ? 'bg-green-500 text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            <Copy className="w-4 h-4" />
+            <span className="hidden sm:inline">Templates</span>
+            <span className="sm:hidden">📋</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('analytics')}
+            className={`px-3 md:px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
+              activeTab === 'analytics'
+                ? 'bg-green-500 text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            <TrendingUp className="w-4 h-4" />
+            <span className="hidden sm:inline">Analytics</span>
+            <span className="sm:hidden">📊</span>
+          </button>
+        </div>
       </div>
 
       {/* Content */}
@@ -772,6 +793,10 @@ export default function WhatsAppAutomations() {
             </div>
           </div>
         </div>
+      )}
+
+      {activeTab === 'workflows' && (
+        <WorkflowBuilder />
       )}
 
       {/* Modal création */}

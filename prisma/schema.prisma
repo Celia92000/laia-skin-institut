@@ -119,7 +119,9 @@ model Service {
   gallery           String? // JSON
   videoUrl          String?
   canBeOption       Boolean       @default(false)
-  category          String?
+  category          String?       // DEPRECATED: Utiliser categoryId et subcategoryId
+  categoryId        String?       // Nouvelle relation vers ServiceCategory
+  subcategoryId     String?       // Relation vers ServiceSubcategory
   order             Int           @default(0)
   active            Boolean       @default(true)
   featured          Boolean       @default(false)
@@ -127,6 +129,11 @@ model Service {
   updatedAt         DateTime      @updatedAt
   reservations      Reservation[]
   stockLinks        ServiceStock[]  // Relation avec le stock
+  serviceCategory   ServiceCategory?    @relation("ServiceToCategory", fields: [categoryId], references: [id])
+  serviceSubcategory ServiceSubcategory? @relation("ServiceToSubcategory", fields: [subcategoryId], references: [id])
+
+  @@index([categoryId])
+  @@index([subcategoryId])
 }
 
 model LoyaltyProfile {
@@ -932,5 +939,87 @@ model EmailConfig {
 
   @@unique([userId, email])
   @@index([userId])
+}
+
+model Integration {
+  id            String   @id @default(cuid())
+  userId        String?  // Propriétaire (null = config globale)
+  type          String   // 'stripe', 'google_calendar', 'paypal', 'twilio', etc.
+  enabled       Boolean  @default(false)
+
+  // Configuration chiffrée (JSON contenant les clés API, tokens, etc.)
+  config        Json     @default("{}")
+
+  // Statut de la connexion
+  status        String   @default("disconnected") // disconnected, connected, error, expired
+  lastSync      DateTime?
+  errorMessage  String?  @db.Text
+
+  // Métadonnées
+  displayName   String?  // Nom affiché dans l'interface
+  description   String?  @db.Text
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([userId, type])
+  @@index([userId])
+  @@index([type])
+  @@index([enabled])
+}
+
+// Catégories de services (ex: Soins du visage, Soins du corps, Épilation)
+model ServiceCategory {
+  id            String   @id @default(cuid())
+  name          String   // Ex: "Soins du visage"
+  slug          String   @unique // Ex: "soins-visage"
+  description   String?  @db.Text
+  icon          String?  // Ex: "FaFaceSmile" (nom de l'icône React Icons)
+  color         String   @default("#e11d48") // Couleur hex pour l'interface
+  image         String?  // Image de bannière de la catégorie
+  order         Int      @default(0) // Ordre d'affichage
+  active        Boolean  @default(true)
+  featured      Boolean  @default(false) // Mettre en avant sur la page d'accueil
+
+  // SEO
+  metaTitle       String?
+  metaDescription String?
+  keywords        String?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  subcategories ServiceSubcategory[]
+  services      Service[] @relation("ServiceToCategory")
+
+  @@index([slug])
+  @@index([active])
+  @@index([order])
+}
+
+// Sous-catégories de services (ex: sous "Soins du visage" → HydroFacial, BB Glow)
+model ServiceSubcategory {
+  id          String   @id @default(cuid())
+  categoryId  String
+  name        String   // Ex: "Soins anti-âge"
+  slug        String   @unique // Ex: "soins-anti-age"
+  description String?  @db.Text
+  icon        String?  // Icône spécifique
+  image       String?  // Image de la sous-catégorie
+  order       Int      @default(0)
+  active      Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  category    ServiceCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  services    Service[]       @relation("ServiceToSubcategory")
+
+  @@index([categoryId])
+  @@index([slug])
+  @@index([active])
+  @@index([order])
 }
 
