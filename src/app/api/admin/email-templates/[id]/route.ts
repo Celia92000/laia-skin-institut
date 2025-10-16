@@ -4,7 +4,7 @@ import { getPrismaClient } from '@/lib/prisma';
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const prisma = await getPrismaClient();
 
@@ -31,11 +31,12 @@ export async function PUT(
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
 
+    const { id } = await params;
     const { name, subject, content, category } = await request.json();
 
     // Mettre à jour le template
     const template = await prisma.emailTemplate.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(name && { name }),
         ...(subject && { subject }),
@@ -57,7 +58,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const prisma = await getPrismaClient();
 
@@ -84,9 +85,10 @@ export async function DELETE(
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
 
+    const { id } = await params;
     // Marquer comme inactif au lieu de supprimer
     const template = await prisma.emailTemplate.update({
-      where: { id: params.id },
+      where: { id },
       data: { isActive: false }
     });
 

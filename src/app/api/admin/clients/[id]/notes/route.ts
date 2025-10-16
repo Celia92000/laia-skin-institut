@@ -51,7 +51,7 @@ export async function POST(
 
     const { note } = await request.json();
     const params = await context.params;
-    const userId = params.id;
+    const userId = id;
 
     // Mettre à jour ou créer le profil de fidélité avec la note
     const loyaltyProfile = await prisma.loyaltyProfile.upsert({
@@ -132,7 +132,7 @@ export async function GET(
     }
 
     const params = await context.params;
-    const userId = params.id;
+    const userId = id;
 
     const loyaltyProfile = await prisma.loyaltyProfile.findUnique({
         where: { userId },

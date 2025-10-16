@@ -36,7 +36,7 @@ export async function GET(
       return NextResponse.json({ error: 'Token invalide' }, { status: 401 });
     }
 
-    const clientId = params.id;
+    const clientId = id;
 
     // Récupérer l'historique des communications depuis les différentes tables
     const communications: CommunicationHistory[] = [];
@@ -220,7 +220,7 @@ export async function POST(
     }
 
     const { type, content, templateUsed, subject, status = 'sent' } = await request.json();
-    const clientId = params.id;
+    const clientId = id;
 
     if (type === 'whatsapp') {
       // Enregistrer dans l'historique WhatsApp

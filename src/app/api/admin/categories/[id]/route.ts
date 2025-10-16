@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 // GET - Récupérer une catégorie par ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
@@ -16,8 +16,9 @@ export async function GET(
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
+    const { id } = await params;
     const category = await prisma.serviceCategory.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         subcategories: {
           orderBy: { order: 'asc' }
@@ -54,7 +55,7 @@ export async function GET(
 // PATCH - Mettre à jour une catégorie
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
@@ -63,6 +64,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
     }
 
+    const { id } = await params;
     const body = await request.json();
     const { name, description, icon, color, image, metaTitle, metaDescription, keywords, featured, active, order } = body;
 
@@ -80,7 +82,7 @@ export async function PATCH(
       const existingCategory = await prisma.serviceCategory.findFirst({
         where: {
           slug,
-          id: { not: params.id }
+          id: { not: id }
         }
       });
 
@@ -93,7 +95,7 @@ export async function PATCH(
     }
 
     const category = await prisma.serviceCategory.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(name && { name }),
         ...(slug && { slug }),
@@ -129,7 +131,7 @@ export async function PATCH(
 // DELETE - Supprimer une catégorie
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
@@ -138,9 +140,10 @@ export async function DELETE(
       return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
     }
 
+    const { id } = await params;
     // Vérifier si la catégorie a des services associés
     const category = await prisma.serviceCategory.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         _count: {
           select: { services: true }
@@ -163,7 +166,7 @@ export async function DELETE(
     }
 
     await prisma.serviceCategory.delete({
-      where: { id: params.id }
+      where: { id }
     });
 
     return NextResponse.json({ message: 'Catégorie supprimée avec succès' });

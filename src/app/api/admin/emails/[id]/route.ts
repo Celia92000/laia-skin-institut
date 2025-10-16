@@ -4,7 +4,7 @@ import { getPrismaClient } from '@/lib/prisma';
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const prisma = await getPrismaClient();
 
@@ -31,9 +31,10 @@ export async function DELETE(
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
 
+    const { id } = await params;
     // Supprimer l'email
     await prisma.emailHistory.delete({
-      where: { id: params.id }
+      where: { id }
     });
 
     return NextResponse.json({
