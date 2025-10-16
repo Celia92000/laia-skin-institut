@@ -14,11 +14,12 @@ interface CommunicationHistory {
 
 export async function GET(
   request: NextRequest,
-  props: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const prisma = await getPrismaClient();
-  const params = await props.params;
   try {
+    const { id } = await params;
+
     // Vérifier l'authentification
     const authHeader = request.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -26,7 +27,7 @@ export async function GET(
     }
 
     const token = authHeader.substring(7);
-    
+
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
       if (decoded.role !== 'admin' && decoded.role !== 'ADMIN') {
