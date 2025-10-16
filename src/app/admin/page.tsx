@@ -2101,12 +2101,6 @@ export default function AdminDashboard() {
                         <div className="flex items-center gap-2 mb-2">
                           <User className="w-4 h-4 text-[#2c3e50]/60" />
                           <span className="text-[#2c3e50] font-medium">{reservation.userName || 'Client'}</span>
-                          {reservation.giftCardId && reservation.giftCard && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-pink-100 text-pink-700 rounded-full text-xs font-medium" title={`Code: ${reservation.giftCard.code} - Utilisé: ${reservation.giftCardUsedAmount}€`}>
-                              <Gift className="w-3 h-3" />
-                              Carte cadeau
-                            </span>
-                          )}
                         </div>
                         <div className="flex flex-wrap gap-2">
                           <span className="text-sm text-[#2c3e50]/70">
