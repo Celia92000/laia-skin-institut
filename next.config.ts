@@ -91,6 +91,5 @@ export default withSentryConfig(nextConfig, {
 
   // Ne pas uploader les source maps en développement
   widenClientFileUpload: true,
-  hideSourceMaps: true,
   disableLogger: true,
 });
