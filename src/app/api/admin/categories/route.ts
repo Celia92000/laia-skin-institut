@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { verifyAuth } from '@/lib/auth';
+import { verifyToken } from '@/lib/auth';
 
 const prisma = new PrismaClient();
 
 // GET - Récupérer toutes les catégories avec leurs sous-catégories
 export async function GET(request: NextRequest) {
   try {
-    const auth = await verifyAuth(request);
-    if (!auth.isValid) {
+    const token = request.headers.get('authorization')?.replace('Bearer ', '');
+    const auth = verifyToken(token || '');
+    if (!auth) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
@@ -38,8 +39,9 @@ export async function GET(request: NextRequest) {
 // POST - Créer une nouvelle catégorie
 export async function POST(request: NextRequest) {
   try {
-    const auth = await verifyAuth(request);
-    if (!auth.isValid || auth.user?.role !== 'ADMIN') {
+    const token = request.headers.get('authorization')?.replace('Bearer ', '');
+    const auth = verifyToken(token || '');
+    if (!auth || auth.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
     }
 

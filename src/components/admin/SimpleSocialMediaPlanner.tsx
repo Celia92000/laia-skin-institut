@@ -19,7 +19,7 @@ interface Post {
 
 export default function SimpleSocialMediaPlanner() {
   const [step, setStep] = useState(1);
-  const [selectedPlatform, setSelectedPlatform] = useState<string>('');
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [contentType, setContentType] = useState<string>('');
   const [category, setCategory] = useState<string>('');
   const [content, setContent] = useState('');
@@ -28,6 +28,7 @@ export default function SimpleSocialMediaPlanner() {
   const [scheduledTime, setScheduledTime] = useState('14:00');
   const [mediaPreview, setMediaPreview] = useState<string[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
+  const [publishMode, setPublishMode] = useState<'draft' | 'schedule' | 'publish'>('schedule');
 
   useEffect(() => {
     loadPosts();
@@ -54,21 +55,61 @@ export default function SimpleSocialMediaPlanner() {
     setMediaPreview(previews);
   };
 
-  const createPost = async () => {
+  const togglePlatform = (platform: string) => {
+    setSelectedPlatforms(prev =>
+      prev.includes(platform)
+        ? prev.filter(p => p !== platform)
+        : [...prev, platform]
+    );
+  };
+
+  const createPost = async (mode: 'draft' | 'schedule' | 'publish') => {
     try {
       const token = localStorage.getItem('token');
+
+      // Validation
+      if (selectedPlatforms.length === 0) {
+        alert('❌ Veuillez sélectionner au moins une plateforme');
+        return;
+      }
+
+      if (!content.trim()) {
+        alert('❌ Veuillez rédiger un message');
+        return;
+      }
+
+      // Valider la date uniquement pour les modes schedule et publish
+      if ((mode === 'schedule' || mode === 'publish') && (!scheduledDate || !scheduledTime)) {
+        alert('❌ Veuillez sélectionner une date et une heure');
+        return;
+      }
+
+      let scheduledDateTime = null;
+      if (mode === 'schedule') {
+        const dateTimeString = `${scheduledDate}T${scheduledTime}`;
+        const postDate = new Date(dateTimeString);
+
+        if (isNaN(postDate.getTime())) {
+          alert('❌ Date ou heure invalide');
+          return;
+        }
+        scheduledDateTime = postDate.toISOString();
+      } else if (mode === 'publish') {
+        scheduledDateTime = new Date().toISOString();
+      }
 
       const postData = {
         title: content.substring(0, 50),
         content,
-        platforms: [selectedPlatform],
-        scheduledDate: new Date(`${scheduledDate}T${scheduledTime}`).toISOString(),
-        status: 'scheduled',
+        platforms: selectedPlatforms,
+        scheduledDate: scheduledDateTime,
+        status: mode === 'draft' ? 'draft' : mode === 'schedule' ? 'scheduled' : 'publishing',
+        publishNow: mode === 'publish',
         hashtags,
         mediaUrls: mediaPreview,
-        instagramType: selectedPlatform === 'instagram' ? contentType : undefined,
-        facebookType: selectedPlatform === 'facebook' ? contentType : undefined,
-        tiktokType: selectedPlatform === 'tiktok' ? 'reel' : undefined,
+        instagramType: selectedPlatforms.includes('instagram') ? contentType : undefined,
+        facebookType: selectedPlatforms.includes('facebook') ? contentType : undefined,
+        tiktokType: selectedPlatforms.includes('tiktok') ? 'reel' : undefined,
         category
       };
 
@@ -82,19 +123,25 @@ export default function SimpleSocialMediaPlanner() {
       });
 
       if (response.ok) {
-        alert('✅ Post planifié avec succès !');
+        const successMsg = mode === 'draft' ? '✅ Brouillon sauvegardé !' :
+                          mode === 'schedule' ? '✅ Post planifié avec succès !' :
+                          '✅ Publication en cours sur les réseaux sociaux...';
+        alert(successMsg);
         resetForm();
         loadPosts();
+      } else {
+        const error = await response.json();
+        alert(`❌ Erreur: ${error.error || 'Erreur lors de la publication'}`);
       }
     } catch (error) {
       console.error('Erreur:', error);
-      alert('❌ Erreur lors de la planification');
+      alert('❌ Erreur lors de la publication');
     }
   };
 
   const resetForm = () => {
     setStep(1);
-    setSelectedPlatform('');
+    setSelectedPlatforms([]);
     setContentType('');
     setCategory('');
     setContent('');
@@ -102,6 +149,7 @@ export default function SimpleSocialMediaPlanner() {
     setScheduledDate('');
     setScheduledTime('14:00');
     setMediaPreview([]);
+    setPublishMode('schedule');
   };
 
   const suggestedHashtags = {
@@ -169,54 +217,80 @@ export default function SimpleSocialMediaPlanner() {
           </div>
         </div>
 
-        {/* Step 1: Platform - Ultra Modern */}
+        {/* Step 1: Platform - Multi-select */}
         {step === 1 && (
           <div className="backdrop-blur-xl bg-white/10 rounded-3xl shadow-2xl p-10 animate-slideUp border border-white/20">
-            <h2 className="text-3xl font-black mb-8 text-center text-white drop-shadow-lg">
-              📱 Sur quelle plateforme ?
+            <h2 className="text-3xl font-black mb-4 text-center text-white drop-shadow-lg">
+              📱 Choisissez vos plateformes
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <button
-                onClick={() => { setSelectedPlatform('instagram'); setStep(2); }}
-                className="group relative p-10 rounded-3xl border-2 border-white/20 hover:border-purple-400 backdrop-blur-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 hover:from-purple-500/40 hover:to-pink-500/40 shadow-xl hover:shadow-purple-500/50 transition-all duration-500 transform hover:scale-110 hover:-rotate-2"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-pink-600 rounded-3xl opacity-0 group-hover:opacity-20 transition-opacity duration-500"></div>
-                <FaInstagram className="w-20 h-20 mx-auto mb-4 text-white drop-shadow-2xl group-hover:scale-125 transition-transform duration-500" />
-                <h3 className="text-2xl font-black text-white drop-shadow-lg">Instagram</h3>
-                <p className="text-sm text-white/70 mt-2 font-medium">Stories, Posts, Reels</p>
-                <div className="absolute -top-3 -right-3 bg-gradient-to-br from-pink-500 to-rose-500 text-white text-xs px-3 py-1 rounded-full font-bold shadow-lg">
-                  Populaire
-                </div>
-              </button>
+            <p className="text-white/70 text-center mb-8">Sélectionnez une ou plusieurs plateformes</p>
 
-              <button
-                onClick={() => { setSelectedPlatform('facebook'); setStep(2); }}
-                className="group relative p-10 rounded-3xl border-2 border-white/20 hover:border-blue-400 backdrop-blur-lg bg-gradient-to-br from-blue-500/20 to-cyan-500/20 hover:from-blue-500/40 hover:to-cyan-500/40 shadow-xl hover:shadow-blue-500/50 transition-all duration-500 transform hover:scale-110 hover:rotate-2"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-3xl opacity-0 group-hover:opacity-20 transition-opacity duration-500"></div>
-                <FaFacebook className="w-20 h-20 mx-auto mb-4 text-white drop-shadow-2xl group-hover:scale-125 transition-transform duration-500" />
-                <h3 className="text-2xl font-black text-white drop-shadow-lg">Facebook</h3>
-                <p className="text-sm text-white/70 mt-2 font-medium">Publications, Stories</p>
-              </button>
-
-              <button
-                onClick={() => { setSelectedPlatform('tiktok'); setContentType('reel'); setStep(3); }}
-                className="group relative p-10 rounded-3xl border-2 border-white/20 hover:border-gray-400 backdrop-blur-lg bg-gradient-to-br from-gray-700/20 to-gray-900/20 hover:from-gray-700/40 hover:to-gray-900/40 shadow-xl hover:shadow-gray-500/50 transition-all duration-500 transform hover:scale-110 hover:-rotate-2"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-black rounded-3xl opacity-0 group-hover:opacity-20 transition-opacity duration-500"></div>
-                <FaTiktok className="w-20 h-20 mx-auto mb-4 text-white drop-shadow-2xl group-hover:scale-125 transition-transform duration-500" />
-                <h3 className="text-2xl font-black text-white drop-shadow-lg">TikTok</h3>
-                <p className="text-sm text-white/70 mt-2 font-medium">Vidéos courtes</p>
-              </button>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              {[
+                { id: 'instagram', icon: FaInstagram, name: 'Instagram', desc: 'Stories, Posts, Reels', color: 'purple-pink', badge: 'Populaire' },
+                { id: 'facebook', icon: FaFacebook, name: 'Facebook', desc: 'Publications, Stories', color: 'blue-cyan' },
+                { id: 'tiktok', icon: FaTiktok, name: 'TikTok', desc: 'Vidéos courtes', color: 'gray-black' },
+                { id: 'linkedin', icon: FaInstagram, name: 'LinkedIn', desc: 'Posts professionnels', color: 'blue-indigo' },
+                { id: 'snapchat', icon: FaTiktok, name: 'Snapchat', desc: 'Stories & Snaps', color: 'yellow-amber' }
+              ].map((platform) => {
+                const Icon = platform.icon;
+                const isSelected = selectedPlatforms.includes(platform.id);
+                return (
+                  <button
+                    key={platform.id}
+                    onClick={() => togglePlatform(platform.id)}
+                    className={`group relative p-8 rounded-3xl border-2 backdrop-blur-lg shadow-xl transition-all duration-500 transform hover:scale-105 ${
+                      isSelected
+                        ? 'border-green-400 bg-green-500/30 scale-105 shadow-green-500/50'
+                        : 'border-white/20 bg-white/5 hover:bg-white/10'
+                    }`}
+                  >
+                    {isSelected && (
+                      <div className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full p-2 shadow-lg">
+                        <FaCheckCircle className="w-5 h-5" />
+                      </div>
+                    )}
+                    {platform.badge && (
+                      <div className="absolute -top-3 -left-3 bg-gradient-to-br from-pink-500 to-rose-500 text-white text-xs px-3 py-1 rounded-full font-bold shadow-lg">
+                        {platform.badge}
+                      </div>
+                    )}
+                    <Icon className="w-16 h-16 mx-auto mb-3 text-white drop-shadow-2xl" />
+                    <h3 className="text-xl font-black text-white drop-shadow-lg">{platform.name}</h3>
+                    <p className="text-xs text-white/70 mt-1 font-medium">{platform.desc}</p>
+                  </button>
+                );
+              })}
             </div>
+
+            <button
+              onClick={() => {
+                // Si seulement TikTok, LinkedIn ou Snapchat sont sélectionnés, passer directement à l'étape 3
+                const needsContentType = selectedPlatforms.includes('instagram') || selectedPlatforms.includes('facebook');
+                if (needsContentType) {
+                  setStep(2);
+                } else {
+                  setContentType('post'); // Type par défaut
+                  setStep(3);
+                }
+              }}
+              disabled={selectedPlatforms.length === 0}
+              className={`w-full py-4 rounded-2xl font-bold text-lg transition-all transform ${
+                selectedPlatforms.length > 0
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:shadow-xl hover:scale-105'
+                  : 'bg-white/10 text-white/40 cursor-not-allowed'
+              }`}
+            >
+              Continuer ({selectedPlatforms.length} plateforme{selectedPlatforms.length > 1 ? 's' : ''})
+            </button>
           </div>
         )}
 
         {/* Step 2: Content Type - Modern Glass Cards */}
-        {step === 2 && selectedPlatform !== 'tiktok' && (
+        {step === 2 && !selectedPlatforms.includes('tiktok') && (selectedPlatforms.includes('instagram') || selectedPlatforms.includes('facebook')) && (
           <div className="backdrop-blur-xl bg-white/10 rounded-3xl shadow-2xl p-10 animate-slideUp border border-white/20">
             <h2 className="text-3xl font-black mb-8 text-center text-white drop-shadow-lg">
-              {selectedPlatform === 'instagram' ? '📸 Quel type de contenu ?' : '📘 Quel type de contenu ?'}
+              📸 Quel type de contenu ?
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <button
@@ -287,7 +361,10 @@ export default function SimpleSocialMediaPlanner() {
             </div>
 
             <button
-              onClick={() => setStep(selectedPlatform === 'tiktok' ? 1 : 2)}
+              onClick={() => {
+                const needsContentType = selectedPlatforms.includes('instagram') || selectedPlatforms.includes('facebook');
+                setStep(needsContentType ? 2 : 1);
+              }}
               className="mt-6 w-full py-3 border-2 border-gray-300 rounded-xl hover:bg-gray-50 transition-all"
             >
               ← Retour
@@ -432,18 +509,79 @@ export default function SimpleSocialMediaPlanner() {
               </div>
             </div>
 
+            {/* Publication Mode Selection */}
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 mb-6 border-2 border-purple-200">
+              <p className="text-sm font-bold text-purple-900 mb-4 flex items-center gap-2">
+                <FaCheckCircle className="text-purple-600" />
+                Mode de publication
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <button
+                  onClick={() => setPublishMode('draft')}
+                  className={`p-4 rounded-xl border-2 transition-all ${
+                    publishMode === 'draft'
+                      ? 'border-purple-500 bg-purple-500 text-white shadow-lg'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-purple-300'
+                  }`}
+                >
+                  <div className="font-bold">📝 Brouillon</div>
+                  <div className="text-xs mt-1 opacity-80">Sauvegarder sans publier</div>
+                </button>
+                <button
+                  onClick={() => setPublishMode('schedule')}
+                  className={`p-4 rounded-xl border-2 transition-all ${
+                    publishMode === 'schedule'
+                      ? 'border-blue-500 bg-blue-500 text-white shadow-lg'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-blue-300'
+                  }`}
+                >
+                  <div className="font-bold">⏰ Planifier</div>
+                  <div className="text-xs mt-1 opacity-80">Programmer pour plus tard</div>
+                </button>
+                <button
+                  onClick={() => setPublishMode('publish')}
+                  className={`p-4 rounded-xl border-2 transition-all ${
+                    publishMode === 'publish'
+                      ? 'border-green-500 bg-green-500 text-white shadow-lg'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-green-300'
+                  }`}
+                >
+                  <div className="font-bold">🚀 Publier</div>
+                  <div className="text-xs mt-1 opacity-80">Publier maintenant</div>
+                </button>
+              </div>
+            </div>
+
+            {/* Platforms selected */}
+            <div className="bg-gray-50 rounded-xl p-4 mb-6">
+              <p className="text-sm font-medium text-gray-700 mb-2">📱 Plateformes sélectionnées :</p>
+              <div className="flex flex-wrap gap-2">
+                {selectedPlatforms.map(platform => (
+                  <span key={platform} className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium capitalize">
+                    {platform}
+                  </span>
+                ))}
+              </div>
+            </div>
+
             <div className="flex gap-3">
               <button
                 onClick={() => setStep(4)}
-                className="flex-1 py-4 border-2 border-gray-300 rounded-xl hover:bg-gray-50 transition-all"
+                className="flex-1 py-4 border-2 border-gray-300 rounded-xl hover:bg-gray-50 transition-all font-medium"
               >
                 ← Retour
               </button>
               <button
-                onClick={createPost}
-                className="flex-1 py-4 bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-xl font-bold text-lg hover:shadow-xl transition-all transform hover:scale-105"
+                onClick={() => createPost(publishMode)}
+                className={`flex-2 py-4 rounded-xl font-bold text-lg transition-all transform hover:scale-105 ${
+                  publishMode === 'draft' ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white hover:shadow-xl' :
+                  publishMode === 'schedule' ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:shadow-xl' :
+                  'bg-gradient-to-r from-green-500 to-teal-500 text-white hover:shadow-xl'
+                }`}
               >
-                ✅ Planifier !
+                {publishMode === 'draft' ? '📝 Sauvegarder le brouillon' :
+                 publishMode === 'schedule' ? '⏰ Planifier la publication' :
+                 '🚀 Publier maintenant !'}
               </button>
             </div>
           </div>

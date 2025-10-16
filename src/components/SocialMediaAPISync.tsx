@@ -146,6 +146,26 @@ export default function SocialMediaAPISync() {
     setShowAddModal(true);
   };
 
+  const handleConnectInstagram = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/auth/instagram/connect', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Ouvrir la fenêtre d'autorisation Meta/Instagram
+        window.location.href = data.authUrl;
+      } else {
+        alert('Erreur lors de la génération de l\'URL d\'autorisation');
+      }
+    } catch (error) {
+      console.error('Erreur:', error);
+      alert('Erreur lors de la connexion à Instagram');
+    }
+  };
+
   const isTokenExpiring = (expiresAt?: string) => {
     if (!expiresAt) return false;
     const daysUntilExpiry = Math.floor((new Date(expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
@@ -199,13 +219,22 @@ export default function SocialMediaAPISync() {
                 Gérez vos comptes Instagram, Facebook, TikTok, LinkedIn et Snapchat
               </p>
             </div>
-            <button
-              onClick={() => { resetForm(); setShowAddModal(true); }}
-              className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Ajouter un compte
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={handleConnectInstagram}
+                className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 flex items-center gap-2 shadow-md"
+              >
+                <Instagram className="w-4 h-4" />
+                Connecter Instagram (OAuth)
+              </button>
+              <button
+                onClick={() => { resetForm(); setShowAddModal(true); }}
+                className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Ajouter manuellement
+              </button>
+            </div>
           </div>
         </div>
 

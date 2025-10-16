@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { verifyAuth } from '@/lib/auth';
+import { verifyToken } from '@/lib/auth';
 
 const prisma = new PrismaClient();
 
@@ -10,8 +10,9 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const auth = await verifyAuth(request);
-    if (!auth.isValid) {
+    const token = request.headers.get('authorization')?.replace('Bearer ', '');
+    const auth = verifyToken(token || '');
+    if (!auth) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
@@ -54,8 +55,9 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    const auth = await verifyAuth(request);
-    if (!auth.isValid || auth.user?.role !== 'ADMIN') {
+    const token = request.headers.get('authorization')?.replace('Bearer ', '');
+    const auth = verifyToken(token || '');
+    if (!auth || auth.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
     }
 
@@ -138,8 +140,9 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const auth = await verifyAuth(request);
-    if (!auth.isValid || auth.user?.role !== 'ADMIN') {
+    const token = request.headers.get('authorization')?.replace('Bearer ', '');
+    const auth = verifyToken(token || '');
+    if (!auth || auth.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
     }
 

@@ -227,10 +227,17 @@ export async function POST(request: Request) {
 
     const data = await request.json();
 
-    // Si status = 'published', publier immédiatement
-    if (data.status === 'published') {
-      // Publier sur les plateformes sélectionnées
-      await publishToSocialMedia(data);
+    // Si publishNow = true ou status = 'publishing', publier immédiatement
+    if (data.publishNow || data.status === 'publishing' || data.status === 'published') {
+      console.log('🚀 Publication immédiate sur:', data.platforms);
+      try {
+        // Publier sur les plateformes sélectionnées
+        await publishToSocialMedia(data);
+        console.log('✅ Publication réussie sur les réseaux sociaux');
+      } catch (error) {
+        console.error('❌ Erreur lors de la publication:', error);
+        // Continuer quand même pour sauvegarder le post en base
+      }
     }
 
     const post = await prisma.socialMediaPost.create({
@@ -238,7 +245,7 @@ export async function POST(request: Request) {
         title: data.title,
         content: data.content,
         platform: data.platforms ? data.platforms.join(',') : (data.platform || null),
-        scheduledDate: new Date(data.scheduledDate),
+        scheduledDate: data.scheduledDate ? new Date(data.scheduledDate) : null,
         status: data.status || 'draft',
         notes: data.notes || null,
         links: data.links ? JSON.stringify(data.links) : null,
