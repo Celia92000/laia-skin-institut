@@ -7,7 +7,7 @@ import { z } from 'zod';
 // Schémas de validation
 const createIntegrationSchema = z.object({
   type: z.string().min(1, 'Type d\'intégration requis'),
-  config: z.record(z.any()).optional(),
+  config: z.record(z.string(), z.any()).optional(),
   enabled: z.boolean().optional().default(false),
   displayName: z.string().optional(),
   description: z.string().optional()
@@ -16,7 +16,7 @@ const createIntegrationSchema = z.object({
 const updateIntegrationSchema = z.object({
   id: z.string().min(1, 'ID requis'),
   enabled: z.boolean().optional(),
-  config: z.record(z.any()).optional(),
+  config: z.record(z.string(), z.any()).optional(),
   status: z.enum(['connected', 'disconnected', 'error', 'expired']).optional(),
   errorMessage: z.string().optional().nullable()
 });

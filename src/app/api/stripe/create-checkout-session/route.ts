@@ -12,7 +12,7 @@ const checkoutSchema = z.object({
   description: z.string().min(1, 'Description requise').max(200),
   reservationId: z.string().optional(),
   productId: z.string().optional(),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.string(), z.any()).optional(),
 });
 
 export async function POST(request: Request) {
