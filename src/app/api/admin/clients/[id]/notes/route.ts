@@ -6,12 +6,14 @@ const JWT_SECRET = process.env.JWT_SECRET || 'laia-skin-secret-key-2024';
 
 export async function POST(
   request: Request,
-  context: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
+
     // Obtenir une connexion Prisma garantie
     const prisma = await getPrismaClient();
-    
+
     const authHeader = request.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
@@ -50,7 +52,6 @@ export async function POST(
     }
 
     const { note } = await request.json();
-    const params = await context.params;
     const userId = id;
 
     // Mettre à jour ou créer le profil de fidélité avec la note
