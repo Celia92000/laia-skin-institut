@@ -61,8 +61,8 @@ export async function POST(request: NextRequest) {
       select: { email: true }
     });
 
-    const unsubscribedSet = new Set(unsubscribedEmails.map(s => s.email));
-    const filteredRecipients = recipients.filter(r => !unsubscribedSet.has(r.email));
+    const unsubscribedSet = new Set(unsubscribedEmails.map((s: { email: string }) => s.email));
+    const filteredRecipients = recipients.filter((r: { email: string }) => !unsubscribedSet.has(r.email));
 
     if (filteredRecipients.length < recipients.length) {
       console.log(`⚠️ ${recipients.length - filteredRecipients.length} destinataire(s) filtré(s) (désinscrits)`);
