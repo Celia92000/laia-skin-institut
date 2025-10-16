@@ -89,12 +89,14 @@ export async function POST(
 
 export async function GET(
   request: Request,
-  context: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
+
     // Obtenir une connexion Prisma garantie
     const prisma = await getPrismaClient();
-    
+
     const authHeader = request.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
@@ -132,7 +134,6 @@ export async function GET(
       return NextResponse.json({ error: 'Erreur d\'authentification' }, { status: 401 });
     }
 
-    const params = await context.params;
     const userId = id;
 
     const loyaltyProfile = await prisma.loyaltyProfile.findUnique({
