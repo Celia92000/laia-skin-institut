@@ -30,7 +30,7 @@ interface ServicePageTemplateProps {
 }
 
 const serviceEnrichment: Record<string, any> = {
-  'hydro-naissance': {
+  'hydroneedling': {
     color: '#d4b5a0',
     secondaryColor: '#c9a084',
     icon: Award,
@@ -56,7 +56,7 @@ const serviceEnrichment: Record<string, any> = {
       { percentage: "4.8/5", desc: "Satisfaction client" }
     ]
   },
-  'hydro-cleaning': {
+  'hydroface': {
     color: '#c9a084',
     secondaryColor: '#d4b5a0',
     icon: Sparkles,
@@ -81,7 +81,7 @@ const serviceEnrichment: Record<string, any> = {
       { percentage: "4.6/5", desc: "Satisfaction client" }
     ]
   },
-  'renaissance': {
+  'nanoneedling': {
     color: '#d4b5a0',
     secondaryColor: '#c9a084',
     icon: Gem,
