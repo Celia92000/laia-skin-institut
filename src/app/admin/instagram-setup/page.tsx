@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function InstagramSetupPage() {
   const [step, setStep] = useState(1);
@@ -103,9 +103,9 @@ export default function InstagramSetupPage() {
   };
 
   // Au chargement, vérifier si on revient de Facebook
-  useState(() => {
+  useEffect(() => {
     extractTokenFromUrl();
-  });
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
