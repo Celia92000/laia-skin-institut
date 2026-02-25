@@ -39,7 +39,7 @@
     "lucide-react": "^0.542.0",
     "mailparser": "^3.7.4",
     "moment": "^2.30.1",
-    "next": "15.5.1",
+    "next": "^15.5.12",
     "node-fetch": "^3.3.2",
     "postgres": "^3.4.7",
     "prisma": "^6.16.1",
