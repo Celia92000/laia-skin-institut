@@ -857,7 +857,7 @@ model SocialMediaPost {
   title           String    // Titre/sujet de la publication
   content         String    @db.Text // Texte de la publication
   platform        String?   // Instagram, Facebook, TikTok, etc.
-  scheduledDate   DateTime  // Date de publication prévue
+  scheduledDate   DateTime? // Date de publication prévue
   status          String    @default("draft") // draft, scheduled, published, cancelled
   notes           String?   @db.Text // Notes et idées supplémentaires
   links           String?   @db.Text // JSON array de liens utiles
