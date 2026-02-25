@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Check, Loader2, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
-export default function PaymentSuccess() {
+function PaymentSuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const sessionId = searchParams.get('session_id');
@@ -23,9 +23,7 @@ export default function PaymentSuccess() {
 
   const verifyPayment = async (sessionId: string) => {
     try {
-      // Optionnel : Vérifier le paiement côté serveur
       setLoading(false);
-      // Simuler un délai pour l'effet visuel
       setTimeout(() => {
         setPaymentDetails({
           status: 'success',
@@ -48,12 +46,10 @@ export default function PaymentSuccess() {
           </div>
         ) : (
           <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
-            {/* Icône de succès */}
             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <Check className="w-10 h-10 text-green-600" />
             </div>
 
-            {/* Message de succès */}
             <h1 className="text-3xl font-bold text-gray-900 mb-3">
               Paiement réussi ! 🎉
             </h1>
@@ -61,7 +57,6 @@ export default function PaymentSuccess() {
               Votre paiement a été effectué avec succès. Vous allez recevoir un email de confirmation.
             </p>
 
-            {/* Détails */}
             {sessionId && (
               <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
                 <p className="text-xs text-gray-500 mb-1">ID de transaction</p>
@@ -69,7 +64,6 @@ export default function PaymentSuccess() {
               </div>
             )}
 
-            {/* Actions */}
             <div className="space-y-3">
               <Link
                 href="/espace-client"
@@ -87,7 +81,6 @@ export default function PaymentSuccess() {
               </Link>
             </div>
 
-            {/* Info */}
             <p className="text-xs text-gray-500 mt-6">
               Un reçu a été envoyé à votre adresse email
             </p>
@@ -95,5 +88,17 @@ export default function PaymentSuccess() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function PaymentSuccess() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 flex items-center justify-center">
+        <Loader2 className="w-16 h-16 text-green-600 animate-spin" />
+      </div>
+    }>
+      <PaymentSuccessContent />
+    </Suspense>
   );
 }
