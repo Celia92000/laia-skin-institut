@@ -134,10 +134,9 @@ export default function AdminDashboard() {
 
   // Services par défaut (au cas où la BDD est vide)
   const defaultServices = {
-    "hydro-naissance": "Hydro'Naissance",
-    "hydro-cleaning": "Hydro'Cleaning",
-    "renaissance": "Renaissance",
-    "bb-glow": "BB Glow",
+    "hydroneedling": "Hydroneedling",
+    "hydroface": "Hydroface",
+    "nanoneedling": "Nanoneedling",
     "led-therapie": "LED Thérapie"
   };
 
@@ -3472,13 +3471,12 @@ export default function AdminDashboard() {
                   {dbServices && dbServices
                     .filter(service => service.active)
                     .sort((a, b) => {
-                      // Ordre personnalisé : Hydro'Naissance en 1er, Hydro'Cleaning en 2e
+                      // Ordre personnalisé : Hydroneedling en 1er, Hydroface en 2e
                       const order = {
-                        'hydro-naissance': 1,
-                        'hydro-cleaning': 2,
-                        'renaissance': 3,
-                        'bb-glow': 4,
-                        'led-therapie': 5
+                        'hydroneedling': 1,
+                        'hydroface': 2,
+                        'nanoneedling': 3,
+                        'led-therapie': 4
                       };
                       const aOrder = order[a.slug as keyof typeof order] || 999;
                       const bOrder = order[b.slug as keyof typeof order] || 999;
@@ -3770,11 +3768,10 @@ export default function AdminDashboard() {
                       />
                       <span className="text-sm text-[#2c3e50]">{String(name)}</span>
                       <span className="text-xs text-[#2c3e50]/60 ml-auto">
-                        {key === 'hydro-naissance' && '90€'}
-                        {key === 'hydro-cleaning' && '70€'}
-                        {key === 'renaissance' && '70€'}
-                        {key === 'bb-glow' && '70€'}
-                        {key === 'led-therapie' && '50€'}
+                        {key === 'hydroneedling' && '120€'}
+                        {key === 'hydroface' && '90€'}
+                        {key === 'nanoneedling' && '90€'}
+                        {key === 'led-therapie' && '60€'}
                       </span>
                     </label>
                   ))}

@@ -144,23 +144,18 @@ export default function Footer() {
             <h4 className="font-playfair text-xl mb-4 text-white">Mes prestations</h4>
             <ul className="space-y-2">
               <li>
-                <Link href="/services/hydro-naissance" className="text-base text-white/95 hover:text-white transition-colors">
-                  Hydro'Naissance
+                <Link href="/services/hydroneedling" className="text-base text-white/95 hover:text-white transition-colors">
+                  Hydroneedling
                 </Link>
               </li>
               <li>
-                <Link href="/services/hydro-cleaning" className="text-base text-white/95 hover:text-white transition-colors">
-                  Hydro'Cleaning
+                <Link href="/services/hydroface" className="text-base text-white/95 hover:text-white transition-colors">
+                  Hydroface
                 </Link>
               </li>
               <li>
-                <Link href="/services/renaissance" className="text-base text-white/95 hover:text-white transition-colors">
-                  Renaissance
-                </Link>
-              </li>
-              <li>
-                <Link href="/services/bb-glow" className="text-base text-white/95 hover:text-white transition-colors">
-                  BB Glow
+                <Link href="/services/nanoneedling" className="text-base text-white/95 hover:text-white transition-colors">
+                  Nanoneedling
                 </Link>
               </li>
               <li>

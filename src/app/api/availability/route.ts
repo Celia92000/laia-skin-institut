@@ -119,16 +119,16 @@ export async function GET(request: Request) {
       // Calculer la durée en fonction des services
       let duration = 30; // durée minimale par défaut
       
-      if (services.includes('hydro-naissance')) {
+      if (services.includes('hydroneedling')) {
         duration = 90; // 1h30
-      } else if (services.includes('hydro') || services.includes('renaissance')) {
+      } else if (services.includes('hydroface') || services.includes('nanoneedling')) {
         duration = 60; // 1h
-      } else if (services.includes('bb-glow') || services.includes('led')) {
+      } else if (services.includes('led-therapie')) {
         duration = 30; // 30min
       }
-      
+
       // Si plusieurs services, additionner les durées
-      if (services.length > 1 && !services.includes('hydro-naissance')) {
+      if (services.length > 1 && !services.includes('hydroneedling')) {
         duration = services.length * 30; // approximation
       }
       

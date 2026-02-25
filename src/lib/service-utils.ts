@@ -100,14 +100,17 @@ export async function getReservationWithServiceNames(reservation: any) {
  */
 export function normalizeServiceId(serviceId: string): string {
   const mapping: {[key: string]: string} = {
-    'hydronaissance': 'hydro-naissance',
-    'hydro-naissance': 'hydro-naissance',
-    'hydrocleaning': 'hydro-cleaning',
-    'hydro-cleaning': 'hydro-cleaning',
-    'renaissance': 'renaissance',
-    'bb-glow': 'bb-glow',
+    'hydroneedling': 'hydroneedling',
+    'hydro-naissance': 'hydroneedling',
+    'hydronaissance': 'hydroneedling',
+    'hydroface': 'hydroface',
+    'hydro-cleaning': 'hydroface',
+    'hydrocleaning': 'hydroface',
+    'nanoneedling': 'nanoneedling',
+    'renaissance': 'nanoneedling',
     'led-therapie': 'led-therapie',
-    'ledtherapy': 'led-therapie'
+    'ledtherapy': 'led-therapie',
+    'bb-glow': 'led-therapie'
   };
   
   return mapping[serviceId] || serviceId;
@@ -118,10 +121,9 @@ export function normalizeServiceId(serviceId: string): string {
  */
 export function getServiceIcon(slug: string): string {
   const icons: {[key: string]: string} = {
-    'hydro-naissance': '👑',
-    'hydro-cleaning': '💧',
-    'renaissance': '✨',
-    'bb-glow': '🌟',
+    'hydroneedling': '👑',
+    'hydroface': '💧',
+    'nanoneedling': '✨',
     'led-therapie': '💡'
   };
   

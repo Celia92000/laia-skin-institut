@@ -91,10 +91,10 @@ function ReservationContent() {
             forfaitDisplayPrice: getForfaitDisplayPrice(service),
             hasPromo: hasPromotion(service),
             discountPercent: hasPromotion(service) ? getDiscountPercentage(service.price, service.promoPrice) : 0,
-            icon: service.slug === 'hydro-naissance' ? "👑" : 
-                  service.slug === 'hydro-cleaning' ? "💧" :
-                  service.slug === 'renaissance' ? "✨" :
-                  service.slug === 'bb-glow' ? "🌟" : "💡",
+            icon: service.slug === 'hydroneedling' ? "👑" :
+                  service.slug === 'hydroface' ? "💧" :
+                  service.slug === 'nanoneedling' ? "✨" :
+                  service.slug === 'led-therapie' ? "💡" : "🌟",
             recommended: service.featured || false,
             order: service.order || 999
           }))
@@ -727,21 +727,21 @@ function ReservationContent() {
                               if (e.target.checked) {
                                 let newServices = [...selectedServices];
                                 
-                                // Si on sélectionne Hydro'Naissance, on retire Hydro'Cleaning et Renaissance
-                                if (service.id === "hydro-naissance") {
-                                  newServices = newServices.filter(id => id !== "hydro-cleaning" && id !== "renaissance");
+                                // Si on sélectionne Hydroneedling, on retire Hydroface et Nanoneedling
+                                if (service.id === "hydroneedling") {
+                                  newServices = newServices.filter(id => id !== "hydroface" && id !== "nanoneedling");
                                 }
-                                
-                                // Si on sélectionne Hydro'Cleaning ou Renaissance, on retire Hydro'Naissance
-                                if (service.id === "hydro-cleaning" || service.id === "renaissance") {
-                                  newServices = newServices.filter(id => id !== "hydro-naissance");
-                                  
-                                  // Si l'autre est déjà sélectionné, proposer Hydro'Naissance
-                                  if ((service.id === "hydro-cleaning" && newServices.includes("renaissance")) ||
-                                      (service.id === "renaissance" && newServices.includes("hydro"))) {
-                                    if (confirm("Vous avez sélectionné Hydro'Cleaning et Renaissance. Voulez-vous plutôt choisir le soin combiné Hydro'Naissance qui est plus avantageux ?")) {
-                                      newServices = ["hydro-naissance"];
-                                      setSelectedPackages({"hydro-naissance": "single"});
+
+                                // Si on sélectionne Hydroface ou Nanoneedling, on retire Hydroneedling
+                                if (service.id === "hydroface" || service.id === "nanoneedling") {
+                                  newServices = newServices.filter(id => id !== "hydroneedling");
+
+                                  // Si l'autre est déjà sélectionné, proposer Hydroneedling (combiné)
+                                  if ((service.id === "hydroface" && newServices.includes("nanoneedling")) ||
+                                      (service.id === "nanoneedling" && newServices.includes("hydroface"))) {
+                                    if (confirm("Vous avez sélectionné Hydroface et Nanoneedling. Voulez-vous plutôt choisir le soin combiné Hydroneedling qui est plus avantageux ?")) {
+                                      newServices = ["hydroneedling"];
+                                      setSelectedPackages({"hydroneedling": "single"});
                                     } else {
                                       newServices.push(service.id);
                                     }
@@ -839,7 +839,7 @@ function ReservationContent() {
                                   ? "border-[#d4b5a0] bg-white shadow-md" 
                                   : "border-gray-200 hover:border-[#d4b5a0]/50"
                               }`}>
-                                {(service.id === "hydro-cleaning" || service.id === "renaissance") && (
+                                {(service.id === "hydroface" || service.id === "nanoneedling") && (
                                   <span className="absolute -top-2 right-2 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white px-2 py-0.5 text-xs rounded-full font-semibold">
                                     -20€
                                   </span>
@@ -849,8 +849,8 @@ function ReservationContent() {
                                     -40€
                                   </span>
                                 )}
-                                {service.id === "hydro-naissance" && (
-                                  <span className="absolute -top-2 right-2 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white px-2 py-0.5 text-xs rounded-full font-semibold">
+                                {service.id === "hydroneedling" && (
+                                  <span className="absolute -top-2 right-2 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white px-2 py-0.5 text-xs rounded-full font-semibond">
                                     Économie
                                   </span>
                                 )}
@@ -890,40 +890,11 @@ function ReservationContent() {
                       Ajoutez ces soins pour compléter votre expérience
                     </p>
                     <div className="space-y-3">
-                      {/* BB Glow en option (sauf si déjà sélectionné comme soin principal) */}
-                      {!selectedServices.includes("bb-glow") && (
-                        <label className={`flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                          selectedOptions.includes("bb-glow")
-                            ? "border-[#d4b5a0] bg-[#d4b5a0]/5"
-                            : "border-gray-200 hover:border-[#d4b5a0]/50"
-                        }`}>
-                          <div className="flex items-center gap-3">
-                            <input
-                              type="checkbox"
-                              checked={selectedOptions.includes("bb-glow")}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setSelectedOptions([...selectedOptions, "bb-glow"]);
-                                } else {
-                                  setSelectedOptions(selectedOptions.filter(id => id !== "bb-glow"));
-                                }
-                              }}
-                              className="w-5 h-5 text-[#d4b5a0] focus:ring-[#d4b5a0] focus:ring-offset-0 rounded"
-                            />
-                            <div>
-                              <h4 className="font-medium text-[#2c3e50]">BB Glow 🌟</h4>
-                              <p className="text-xs text-[#2c3e50]/60">Teint lumineux semi-permanent (+30 min)</p>
-                            </div>
-                          </div>
-                          <span className="font-bold text-[#d4b5a0]">+50€</span>
-                        </label>
-                      )}
-                      
-                      {/* LED Thérapie en option (sauf si déjà sélectionnée comme soin principal ou si incluse dans hydro-cleaning, hydro-naissance ou renaissance) */}
-                      {!selectedServices.includes("led-therapie") && 
-                       !selectedServices.includes("hydro-cleaning") && 
-                       !selectedServices.includes("hydro-naissance") && 
-                       !selectedServices.includes("renaissance") && (
+                      {/* LED Thérapie en option (sauf si déjà sélectionnée comme soin principal ou si incluse dans Hydroface/Hydroneedling/Nanoneedling) */}
+                      {!selectedServices.includes("led-therapie") &&
+                       !selectedServices.includes("hydroface") &&
+                       !selectedServices.includes("hydroneedling") &&
+                       !selectedServices.includes("nanoneedling") && (
                         <label className={`flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition-all ${
                           selectedOptions.includes("led-therapie")
                             ? "border-[#d4b5a0] bg-[#d4b5a0]/5"

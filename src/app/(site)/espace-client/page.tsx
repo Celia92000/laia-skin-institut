@@ -275,28 +275,28 @@ function EspaceClientContent() {
         const demoReservations = [
           {
             id: '1',
-            services: ['hydro-naissance'],
+            services: ['hydroneedling'],
             packages: {},
             date: '2025-02-15',
             time: '10:00',
-            totalPrice: 169,
+            totalPrice: 120,
             status: 'confirmed',
             createdAt: '2025-01-06'
           },
           {
             id: '2',
-            services: ['hydro-cleaning'],
+            services: ['hydroface'],
             packages: {},
             date: '2025-01-20',
             time: '14:30',
-            totalPrice: 89,
+            totalPrice: 90,
             status: 'completed',
             createdAt: '2024-12-15'
           },
           {
             id: '3',
-            services: ['bb-glow'],
-            packages: { 'bb-glow': 'forfait' },
+            services: ['nanoneedling'],
+            packages: { 'nanoneedling': 'forfait' },
             date: '2024-12-10',
             time: '11:00',
             totalPrice: 360,
@@ -319,21 +319,21 @@ function EspaceClientContent() {
       const fallbackReservations = [
         {
           id: '1',
-          services: ['hydro-naissance'],
+          services: ['hydroneedling'],
           packages: {},
           date: '2025-02-15',
           time: '10:00',
-          totalPrice: 169,
+          totalPrice: 120,
           status: 'confirmed',
           createdAt: '2025-01-06'
         },
         {
           id: '2',
-          services: ['hydro-cleaning'],
+          services: ['hydroface'],
           packages: {},
           date: '2025-01-20',
           time: '14:30',
-          totalPrice: 89,
+          totalPrice: 90,
           status: 'completed',
           createdAt: '2024-12-15'
         }

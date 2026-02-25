@@ -91,10 +91,10 @@ export default function ModifierSoins() {
             forfaitDisplayPrice: getForfaitDisplayPrice(service),
             hasPromo: hasPromotion(service),
             discountPercent: hasPromotion(service) ? getDiscountPercentage(service.price, service.promoPrice) : 0,
-            icon: service.slug === 'hydro-naissance' ? "👑" : 
-                  service.slug === 'hydro-cleaning' ? "💧" :
-                  service.slug === 'renaissance' ? "✨" :
-                  service.slug === 'bb-glow' ? "🌟" : "💡",
+            icon: service.slug === 'hydroneedling' ? "👑" :
+                  service.slug === 'hydroface' ? "💧" :
+                  service.slug === 'nanoneedling' ? "✨" :
+                  service.slug === 'led-therapie' ? "💡" : "🌟",
             recommended: service.featured || false,
             order: service.order || 999
           }))
@@ -258,19 +258,19 @@ export default function ModifierSoins() {
                           if (e.target.checked) {
                             let newServices = [...selectedServices];
                             
-                            // Logique spéciale pour Hydro'Naissance
-                            if (service.id === "hydro-naissance") {
-                              newServices = newServices.filter(id => id !== "hydro-cleaning" && id !== "renaissance");
+                            // Logique spéciale pour Hydroneedling
+                            if (service.id === "hydroneedling") {
+                              newServices = newServices.filter(id => id !== "hydroface" && id !== "nanoneedling");
                             }
-                            
-                            if (service.id === "hydro-cleaning" || service.id === "renaissance") {
-                              newServices = newServices.filter(id => id !== "hydro-naissance");
-                              
-                              if ((service.id === "hydro-cleaning" && newServices.includes("renaissance")) ||
-                                  (service.id === "renaissance" && newServices.includes("hydro-cleaning"))) {
-                                if (confirm("Vous avez sélectionné Hydro'Cleaning et Renaissance. Voulez-vous plutôt choisir le soin combiné Hydro'Naissance qui est plus avantageux ?")) {
-                                  newServices = ["hydro-naissance"];
-                                  setSelectedPackages({"hydro-naissance": "single"});
+
+                            if (service.id === "hydroface" || service.id === "nanoneedling") {
+                              newServices = newServices.filter(id => id !== "hydroneedling");
+
+                              if ((service.id === "hydroface" && newServices.includes("nanoneedling")) ||
+                                  (service.id === "nanoneedling" && newServices.includes("hydroface"))) {
+                                if (confirm("Vous avez sélectionné Hydroface et Nanoneedling. Voulez-vous plutôt choisir le soin combiné Hydroneedling qui est plus avantageux ?")) {
+                                  newServices = ["hydroneedling"];
+                                  setSelectedPackages({"hydroneedling": "single"});
                                 } else {
                                   newServices.push(service.id);
                                 }
@@ -367,7 +367,7 @@ export default function ModifierSoins() {
                               ? "border-[#d4b5a0] bg-white shadow-md" 
                               : "border-gray-200 hover:border-[#d4b5a0]/50"
                           }`}>
-                            {(service.id === "hydro-cleaning" || service.id === "renaissance") && (
+                            {(service.id === "hydroface" || service.id === "nanoneedling") && (
                               <span className="absolute -top-2 right-2 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white px-2 py-0.5 text-xs rounded-full font-semibold">
                                 -20€
                               </span>
@@ -377,7 +377,7 @@ export default function ModifierSoins() {
                                 -40€
                               </span>
                             )}
-                            {service.id === "hydro-naissance" && (
+                            {service.id === "hydroneedling" && (
                               <span className="absolute -top-2 right-2 bg-gradient-to-r from-[#d4b5a0] to-[#c9a084] text-white px-2 py-0.5 text-xs rounded-full font-semibold">
                                 Économie
                               </span>
@@ -418,38 +418,9 @@ export default function ModifierSoins() {
                   Ajoutez ces soins pour compléter votre expérience
                 </p>
                 <div className="space-y-3">
-                  {/* BB Glow en option */}
-                  {!selectedServices.includes("bb-glow") && (
-                    <label className={`flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                      selectedOptions.includes("bb-glow")
-                        ? "border-[#d4b5a0] bg-[#d4b5a0]/5"
-                        : "border-gray-200 hover:border-[#d4b5a0]/50"
-                    }`}>
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="checkbox"
-                          checked={selectedOptions.includes("bb-glow")}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedOptions([...selectedOptions, "bb-glow"]);
-                            } else {
-                              setSelectedOptions(selectedOptions.filter(opt => opt !== "bb-glow"));
-                            }
-                          }}
-                          className="w-5 h-5 text-[#d4b5a0] rounded"
-                        />
-                        <div>
-                          <h4 className="font-medium text-[#2c3e50]">BB Glow 🌟</h4>
-                          <p className="text-sm text-[#2c3e50]/60">Effet bonne mine immédiat</p>
-                        </div>
-                      </div>
-                      <span className="text-lg font-bold text-[#d4b5a0]">+50€</span>
-                    </label>
-                  )}
-
                   {/* LED Thérapie en option */}
-                  {!selectedServices.includes("led-therapie") && 
-                   !["hydro-cleaning", "hydro-naissance", "renaissance"].some(id => selectedServices.includes(id)) && (
+                  {!selectedServices.includes("led-therapie") &&
+                   !["hydroface", "hydroneedling", "nanoneedling"].some(id => selectedServices.includes(id)) && (
                     <label className={`flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition-all ${
                       selectedOptions.includes("led-therapie")
                         ? "border-[#d4b5a0] bg-[#d4b5a0]/5"

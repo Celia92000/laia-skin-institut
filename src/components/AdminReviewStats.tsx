@@ -39,10 +39,9 @@ export default function AdminReviewStats() {
   const [loading, setLoading] = useState(true);
 
   const services = [
-    { slug: 'hydro-naissance', name: "Hydro'Naissance", color: '#d4b5a0' },
-    { slug: 'hydro-cleaning', name: "Hydro'Cleaning", color: '#c9a084' },
-    { slug: 'renaissance', name: 'Renaissance', color: '#d4b5a0' },
-    { slug: 'bb-glow', name: 'BB Glow', color: '#ddb892' },
+    { slug: 'hydroneedling', name: 'Hydroneedling', color: '#d4b5a0' },
+    { slug: 'hydroface', name: 'Hydroface', color: '#c9a084' },
+    { slug: 'nanoneedling', name: 'Nanoneedling', color: '#d4b5a0' },
     { slug: 'led-therapie', name: 'LED Thérapie', color: '#c9a084' }
   ];
 

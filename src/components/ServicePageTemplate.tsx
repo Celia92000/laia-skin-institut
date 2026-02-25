@@ -252,7 +252,7 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
     );
   }
 
-  const enrichment = serviceEnrichment[slug] || serviceEnrichment['hydro-naissance'];
+  const enrichment = serviceEnrichment[slug] || serviceEnrichment['hydroneedling'];
   const IconComponent = enrichment.icon;
   
   // Utiliser le protocole de la DB s'il existe, sinon générer automatiquement
@@ -384,12 +384,12 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
               <div className="absolute -inset-4 blur-3xl" style={{
                 background: `linear-gradient(135deg, ${enrichment.color}30, ${enrichment.secondaryColor}30)`
               }}></div>
-              <div className="relative rounded-3xl overflow-hidden shadow-2xl" style={{ minHeight: slug === 'hydro-naissance' ? '500px' : 'auto' }}>
+              <div className="relative rounded-3xl overflow-hidden shadow-2xl" style={{ minHeight: slug === 'hydroneedling' ? '500px' : 'auto' }}>
                 <img
                   src={enrichment.heroImage}
                   alt={service.name}
-                  className={`w-full ${slug === 'bb-glow' ? 'h-[350px]' : slug === 'hydro-naissance' ? 'h-[500px]' : 'h-[450px]'} object-cover`}
-                  style={slug === 'led-therapie' ? { transform: 'rotate(-90deg) scale(1.5)', objectPosition: 'center center' } : slug === 'hydro-naissance' ? { objectPosition: 'center 30%' } : {}}
+                  className={`w-full ${slug === 'hydroneedling' ? 'h-[500px]' : 'h-[450px]'} object-cover`}
+                  style={slug === 'led-therapie' ? { transform: 'rotate(-90deg) scale(1.5)', objectPosition: 'center center' } : slug === 'hydroneedling' ? { objectPosition: 'center 30%' } : {}}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#2c3e50]/40 via-transparent to-transparent"></div>
                 
@@ -813,7 +813,7 @@ export default function ServicePageTemplate({ slug }: ServicePageTemplateProps) 
                 })}
               </div>
               <span className="text-[#2c3e50]/60">
-                {enrichment.stats[3].percentage} sur {slug === 'hydro-naissance' ? '47' : slug === 'hydro-cleaning' ? '35' : slug === 'renaissance' ? '42' : slug === 'bb-glow' ? '28' : '31'} avis vérifiés
+                {enrichment.stats[3].percentage} sur {slug === 'hydroneedling' ? '47' : slug === 'hydroface' ? '35' : slug === 'nanoneedling' ? '42' : '31'} avis vérifiés
               </span>
             </div>
           </div>

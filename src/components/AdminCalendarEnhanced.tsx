@@ -37,10 +37,9 @@ export default function AdminCalendarEnhanced({ reservations, onDateSelect }: Ad
   const [viewType, setViewType] = useState<ViewType>('month');
 
   const services = {
-    "hydro-naissance": "Hydro'Naissance",
-    "hydro-cleaning": "Hydro'Cleaning",
-    "renaissance": "Renaissance",
-    "bb-glow": "BB Glow",
+    "hydroneedling": "Hydroneedling",
+    "hydroface": "Hydroface",
+    "nanoneedling": "Nanoneedling",
     "led-therapie": "LED Thérapie"
   };
 

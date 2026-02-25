@@ -37,10 +37,9 @@ export async function POST(request: Request) {
       const services = JSON.parse(reservation.services);
       const serviceNames = services.map((s: string) => {
         const serviceMap: any = {
-          'hydro-naissance': "Hydro'Naissance",
-          'hydro-cleaning': "Hydro'Cleaning",
-          'renaissance': 'Renaissance',
-          'bb-glow': 'BB Glow',
+          'hydroneedling': 'Hydroneedling',
+          'hydroface': 'Hydroface',
+          'nanoneedling': 'Nanoneedling',
           'led-therapie': 'LED Thérapie'
         };
         return serviceMap[s] || s;

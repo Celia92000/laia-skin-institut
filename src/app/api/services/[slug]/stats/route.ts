@@ -57,7 +57,7 @@ export async function GET(
     let stats = [];
     
     switch(slug) {
-      case 'hydro-naissance':
+      case 'hydroneedling':
         // Compter les clients qui mentionnent l'hydratation dans leur avis
         const hydrationMentions = reviews.filter(r => 
           r.comment.toLowerCase().includes('hydrat') || 
@@ -73,7 +73,7 @@ export async function GET(
         ];
         break;
         
-      case 'hydro-cleaning':
+      case 'hydroface':
         const poresMentions = reviews.filter(r => 
           r.comment.toLowerCase().includes('pore') || 
           r.comment.toLowerCase().includes('nett')
@@ -88,7 +88,7 @@ export async function GET(
         ];
         break;
         
-      case 'renaissance':
+      case 'nanoneedling':
         stats = [
           { percentage: `${Math.max(satisfactionRate - 2, 73)}%`, desc: "Peau régénérée" },
           { percentage: `${Math.max(satisfactionRate - 7, 68)}%`, desc: "Taches atténuées" },
@@ -97,7 +97,7 @@ export async function GET(
         ];
         break;
         
-      case 'bb-glow':
+      case 'led-therapie':
         const teintMentions = reviews.filter(r => 
           r.comment.toLowerCase().includes('teint') || 
           r.comment.toLowerCase().includes('éclat')

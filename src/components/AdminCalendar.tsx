@@ -24,10 +24,9 @@ export default function AdminCalendar({ reservations, onDateSelect }: AdminCalen
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
 
   const services = {
-    "hydro-naissance": "Hydro'Naissance",
-    "hydro-cleaning": "Hydro'Cleaning",
-    "renaissance": "Renaissance",
-    "bb-glow": "BB Glow",
+    "hydroneedling": "Hydroneedling",
+    "hydroface": "Hydroface",
+    "nanoneedling": "Nanoneedling",
     "led-therapie": "LED Thérapie"
   };
 

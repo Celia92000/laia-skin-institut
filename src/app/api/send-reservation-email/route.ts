@@ -61,10 +61,9 @@ export async function POST(request: NextRequest) {
 
     // Liste des services avec leurs icônes
     const serviceMap: { [key: string]: { name: string; icon: string } } = {
-      'hydro-naissance': { name: "LAIA Hydro'Naissance", icon: '👑' },
-      'hydro-cleaning': { name: "LAIA Hydro'Cleaning", icon: '💧' },
-      'renaissance': { name: 'LAIA Renaissance', icon: '✨' },
-      'bb-glow': { name: 'BB Glow', icon: '🌟' },
+      'hydroneedling': { name: 'LAIA Hydroneedling', icon: '👑' },
+      'hydroface': { name: 'LAIA Hydroface', icon: '💧' },
+      'nanoneedling': { name: 'LAIA Nanoneedling', icon: '✨' },
       'led-therapie': { name: 'LED Thérapie', icon: '💡' }
     };
 
@@ -88,8 +87,8 @@ export async function POST(request: NextRequest) {
       <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #e0e0e0;">
         <p style="color: #666; font-size: 14px; margin: 5px 0;"><strong>Options ajoutées :</strong></p>
         ${options.map((opt: string) => {
-          const optionName = opt === 'bb-glow' ? 'BB Glow' : 'LED Thérapie';
-          const icon = opt === 'bb-glow' ? '🌟' : '💡';
+          const optionName = opt === 'led-therapie' ? 'LED Thérapie' : opt;
+          const icon = opt === 'led-therapie' ? '💡' : '🌟';
           return `<div style="padding: 4px 0;"><span>${icon}</span> ${optionName} (+50€)</div>`;
         }).join('')}
       </div>` : '';
