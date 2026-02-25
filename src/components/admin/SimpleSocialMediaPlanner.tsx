@@ -380,7 +380,7 @@ export default function SimpleSocialMediaPlanner() {
             {/* Canva Integration */}
             <div className="mb-6">
               <CanvaIntegration
-                platform={selectedPlatform}
+                platform={selectedPlatforms[0] || ''}
                 contentType={contentType}
               />
             </div>

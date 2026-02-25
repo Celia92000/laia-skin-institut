@@ -87,7 +87,7 @@ export default function CanvaIntegration({ platform, contentType, onDesignCreate
     if (!platform && !contentType) return true;
     if (platform && !contentType) return template.platform.toLowerCase() === platform.toLowerCase();
     if (!platform && contentType) return template.type === contentType;
-    return template.platform.toLowerCase() === platform.toLowerCase() && template.type === contentType;
+    return template.platform.toLowerCase() === platform!.toLowerCase() && template.type === contentType;
   });
 
   const openCanva = (template?: CanvaTemplate) => {

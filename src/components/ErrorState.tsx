@@ -4,7 +4,7 @@
  * Évite les doublons en centralisant la gestion
  */
 
-import { XCircleIcon, ExclamationTriangleIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { XCircle as XCircleIcon, AlertTriangle as ExclamationTriangleIcon, RefreshCw as ArrowPathIcon } from 'lucide-react';
 
 interface ErrorStateProps {
   title?: string;

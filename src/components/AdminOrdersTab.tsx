@@ -27,6 +27,7 @@ interface GiftCard {
     id: string;
     name: string;
     email: string;
+    phone?: string;
   };
   reservations?: any[];
 }

@@ -439,7 +439,7 @@ export default function IntegrationsTab() {
         <StripeConfigModal
           onClose={() => setShowStripeModal(false)}
           onSave={handleSaveStripe}
-          existingConfig={integrations.find(i => i.type === 'stripe')?.config}
+          existingConfig={(integrations.find(i => i.type === 'stripe') as any)?.config}
         />
       )}
 

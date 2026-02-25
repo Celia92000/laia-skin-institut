@@ -17,6 +17,7 @@ interface EmailTemplate {
   name: string;
   subject: string;
   content: string;
+  category?: string;
 }
 
 export default function AdminEmailingTab() {
@@ -74,7 +75,7 @@ export default function AdminEmailingTab() {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('✅ [Campagnes] Templates reçus:', data.length, data.map(t => t.name));
+        console.log('✅ [Campagnes] Templates reçus:', data.length, data.map((t: EmailTemplate) => t.name));
         setTemplates(data);
       }
     } catch (error) {

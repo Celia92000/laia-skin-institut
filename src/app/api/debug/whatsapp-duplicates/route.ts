@@ -5,18 +5,8 @@ export async function GET() {
   try {
     // Récupérer tous les messages WhatsApp avec les infos utilisateur
     const messages = await prisma.whatsAppHistory.findMany({
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true
-          }
-        }
-      },
       orderBy: {
-        sentAt: 'desc'
+        createdAt: 'desc'
       },
       take: 50
     });
@@ -28,10 +18,8 @@ export async function GET() {
       to: msg.to,
       direction: msg.direction,
       userId: msg.userId,
-      userName: msg.user?.name,
-      userPhone: msg.user?.phone,
       message: msg.message.substring(0, 50) + '...',
-      sentAt: msg.sentAt
+      sentAt: msg.createdAt
     }));
 
     // Grouper par numéro normalisé pour identifier les doublons
@@ -54,8 +42,7 @@ export async function GET() {
         to: msg.to,
         direction: msg.direction,
         userId: msg.userId,
-        userName: msg.user?.name,
-        sentAt: msg.sentAt
+        sentAt: msg.createdAt
       });
     });
 

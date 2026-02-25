@@ -16,6 +16,9 @@ interface Post {
   instagramType?: string;
   facebookType?: string;
   mediaUrls?: string;
+  notes?: string;
+  links?: string;
+  hashtags?: string;
 }
 
 interface DragItem {

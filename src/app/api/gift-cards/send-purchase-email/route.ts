@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Formater la date d'expiration
-    const expiryDate = new Date(giftCard.expiryDate);
+    const expiryDate = giftCard.expiryDate ? new Date(giftCard.expiryDate) : new Date();
     const formattedExpiryDate = expiryDate.toLocaleDateString('fr-FR', {
       day: 'numeric',
       month: 'long',
