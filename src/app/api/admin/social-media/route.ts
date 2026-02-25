@@ -245,7 +245,7 @@ export async function POST(request: Request) {
         title: data.title,
         content: data.content,
         platform: data.platforms ? data.platforms.join(',') : (data.platform || null),
-        scheduledDate: data.scheduledDate ? new Date(data.scheduledDate) : null,
+        scheduledDate: data.scheduledDate ? new Date(data.scheduledDate) : undefined,
         status: data.status || 'draft',
         notes: data.notes || null,
         links: data.links ? JSON.stringify(data.links) : null,
