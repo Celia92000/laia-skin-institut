@@ -105,17 +105,16 @@ export async function GET(request: NextRequest) {
     const instagramUsername = igUsernameData.username || pageName;
 
     // Vérifier si un compte existe déjà pour cet utilisateur et cette plateforme
-    const existingAccount = await prisma.account.findFirst({
+    const existingAccount = await prisma.socialMediaConfig.findFirst({
       where: {
         userId: userId,
-        type: 'social',
         platform: 'instagram'
       }
     });
 
     if (existingAccount) {
       // Mettre à jour le compte existant
-      await prisma.account.update({
+      await prisma.socialMediaConfig.update({
         where: { id: existingAccount.id },
         data: {
           accountName: instagramUsername,
@@ -124,16 +123,14 @@ export async function GET(request: NextRequest) {
           accessToken: accessToken,
           refreshToken: null,
           expiresAt: expiresAt,
-          enabled: true,
-          lastSyncedAt: new Date()
+          enabled: true
         }
       });
     } else {
       // Créer un nouveau compte
-      await prisma.account.create({
+      await prisma.socialMediaConfig.create({
         data: {
           userId: userId,
-          type: 'social',
           platform: 'instagram',
           accountName: instagramUsername,
           accountId: instagramAccountId,
@@ -142,8 +139,7 @@ export async function GET(request: NextRequest) {
           refreshToken: null,
           expiresAt: expiresAt,
           enabled: true,
-          isDefault: true, // Premier compte = par défaut
-          lastSyncedAt: new Date()
+          isDefault: true
         }
       });
     }
