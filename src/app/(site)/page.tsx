@@ -14,9 +14,12 @@ export default async function Home() {
   try {
     // Récupérer les services depuis la base de données (sans les forfaits)
     services = await prisma.service.findMany({
-      where: { 
+      where: {
         active: true,
-        category: { not: 'forfaits' } // Exclure les forfaits
+        OR: [
+          { category: null },
+          { category: { not: 'forfaits' } }
+        ]
       }
     });
   } catch (error) {
