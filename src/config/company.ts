@@ -4,29 +4,29 @@
 export const companyInfo = {
   // Informations de base
   name: "LAIA SKIN Institut",
-  legalName: "LAIA SKIN SARL", // Raison sociale
+  legalName: "LAIA SKIN INSTITUT",
   address: {
-    street: "123 Avenue de la Beauté",
-    zipCode: "75001",
-    city: "Paris",
+    street: "65 Rue de la Croix",
+    zipCode: "92000",
+    city: "Nanterre",
     country: "France"
   },
   
   // Contact
-  phone: "01 23 45 67 89",
-  email: "contact@laiaskin.fr",
-  website: "www.laiaskin.fr",
+  phone: "06 31 10 75 31",
+  email: "contact@laiaskininstitut.fr",
+  website: "www.laiaskininstitut.fr",
   
   // Informations légales
-  siret: "123 456 789 00012", // À remplacer par le vrai SIRET
-  siren: "123 456 789", // 9 premiers chiffres du SIRET
-  tva: "FR 12 123456789", // N° TVA intracommunautaire
+  siret: "", // Micro-entreprise : SIREN uniquement
+  siren: "988 691 937",
+  tva: "", // TVA non applicable (franchise en base, art. 293 B du CGI)
   ape: "9602B", // Code APE/NAF pour les soins de beauté
-  rcs: "Paris 123 456 789", // RCS + ville + n° SIREN
-  
+  rcs: "", // Micro-entreprise non inscrite au RCS
+
   // Capital social
-  capital: "10 000 €", // Capital social de l'entreprise
-  legalForm: "SARL", // Forme juridique (SARL, SAS, EURL, etc.)
+  capital: "", // Pas de capital social (micro-entreprise)
+  legalForm: "Micro-entreprise",
   
   // Assurances
   insurance: {
@@ -37,15 +37,15 @@ export const companyInfo = {
   
   // Représentant légal
   legalRepresentative: {
-    name: "Laïa [Nom]", // Nom du gérant
-    title: "Gérante" // Titre (Gérant, Président, etc.)
+    name: "Célia IVORRA",
+    title: "Gérante"
   },
   
   // Informations bancaires (pour les virements)
   bank: {
-    name: "BNP Paribas",
-    iban: "FR76 1234 5678 9012 3456 7890 123", // À remplacer
-    bic: "BNPAFRPPXXX" // À remplacer
+    name: "Trade Republic",
+    iban: "FR76 3123 3123 4500 4854 9441 181",
+    bic: "TRBKFRPPXXX"
   },
   
   // Conditions commerciales

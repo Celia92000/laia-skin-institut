@@ -90,9 +90,9 @@ export async function POST(request: NextRequest) {
       </div>
       <div class="footer">
         <p>
-          📍 Allée Jean de la Fontaine, 92000 Nanterre<br>
-          📞 06 83 71 70 50<br>
-          ✉️ <a href="mailto:contact@laia-skin.fr">contact@laia-skin.fr</a><br>
+          📍 5 Allée Jean de la Fontaine, 92000 Nanterre<br>
+          📞 06 31 10 75 31<br>
+          ✉️ <a href="mailto:contact@laiaskininstitut.fr">contact@laiaskininstitut.fr</a><br>
           📸 <a href="https://www.instagram.com/laia.skin/">@laia.skin</a>
         </p>
       </div>
