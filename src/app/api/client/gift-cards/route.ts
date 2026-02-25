@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     // Récupérer les cartes cadeaux achetées par le client
     const purchasedGiftCards = await prisma.giftCard.findMany({
       where: {
-        purchaserId: decoded.userId
+        purchasedBy: decoded.userId
       },
       include: {
         reservations: {
