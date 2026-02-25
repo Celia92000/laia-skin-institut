@@ -2,9 +2,9 @@
 
 import Script from 'next/script'
 import { usePathname, useSearchParams } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, Suspense } from 'react'
 
-export default function FacebookPixel() {
+function FacebookPixelContent() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const pixelId = process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID || 'YOUR_PIXEL_ID'
@@ -49,5 +49,13 @@ export default function FacebookPixel() {
         />
       </noscript>
     </>
+  )
+}
+
+export default function FacebookPixel() {
+  return (
+    <Suspense fallback={null}>
+      <FacebookPixelContent />
+    </Suspense>
   )
 }
